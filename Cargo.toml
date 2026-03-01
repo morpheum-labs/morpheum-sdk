@@ -1,0 +1,58 @@
+[workspace]
+members = [
+    "crates/core",
+    "crates/proto",
+    "crates/market",
+    "crates/vc",
+    "crates/auth",
+    "crates/native",
+    "crates/wasm",
+    "examples",
+    "tests",
+]
+resolver = "2"
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.80"
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/morpheum-labs/sdk"
+homepage = "https://morpheum.xyz"
+keywords = ["blockchain", "morpheum", "sdk", "agent", "wallet"]
+categories = ["cryptography", "api-bindings"]
+readme = "README.md"
+
+[workspace.dependencies]
+# Core & Proto
+morpheum-sdk-core = { path = "crates/core" }
+morpheum-sdk-proto = { path = "crates/proto" }
+
+# Signing (the official Morpheum signing library)
+morpheum-signing-native = { version = "0.2", features = ["full"] }
+
+# Shared dependencies
+prost = { version = "0.14", default-features = false, features = ["derive"] }
+prost-types = "0.14"
+serde = { version = "1.0", features = ["derive"] }
+thiserror = "2.0"
+async-trait = "0.1"
+tokio = { version = "1", features = ["full"] }
+reqwest = { version = "0.12", features = ["json", "rustls-tls"] }
+tonic = { version = "0.12", features = ["tls", "tls-roots"] }
+serde_json = "1.0"
+
+# WASM-only
+wasm-bindgen = "0.2"
+wasm-bindgen-futures = "0.4"
+tsify = { version = "0.4", features = ["js"] }
+js-sys = "0.3"
+serde-wasm-bindgen = "0.6"
+web-sys = { version = "0.3", features = ["Window", "Navigator", "console"] }
+console_error_panic_hook = "0.1"
+
+[profile.release]
+opt-level = 3
+lto = true
+codegen-units = 1
+panic = "abort"

@@ -1,0 +1,60 @@
+[package]
+name = "morpheum-sdk-core"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+homepage.workspace = true
+description = "no_std core foundation for the Morpheum SDK — shared types, errors, traits, config, and builders"
+
+[lib]
+crate-type = ["lib"]
+
+[features]
+default = []
+# Enables std support (required for native and some WASM features)
+std = [
+    "prost/std",
+    "prost-types/std",
+    "thiserror/std",
+    "morpheum-signing-core/std",
+    "morpheum-sdk-proto/std",
+]
+# Enables serde support for types (std-only)
+serde = ["dep:serde", "morpheum-signing-core/serde"]
+# Convenience feature for full std + all capabilities
+full = ["std", "serde"]
+
+[dependencies]
+# Local protobuf definitions (generated from the sibling proto-lib)
+morpheum-sdk-proto = { path = "../proto", default-features = false }
+
+# Official Morpheum signing core (no_std version) — deliberately used here
+# instead of -native to keep sdk-core truly no_std and reusable.
+# All signing, dynamic SignerInfo, TradingKeyClaim, and claim verification
+# are delegated to this crate.
+morpheum-signing-core = { version = "0.2", default-features = false, features = [
+    "dynamic-signer-info",
+    "claim-verification",
+] }
+
+# Protobuf runtime (no_std compatible)
+prost = { version = "0.14", default-features = false }
+prost-types = { version = "0.14", default-features = false }
+
+# Clean, zero-cost error handling
+thiserror = { version = "2.0", default-features = false }
+
+# Async traits for Transport and Client traits (zero-cost when not used)
+async-trait = "0.1"
+
+# Optional serialization (only enabled via "serde" or "std" feature)
+serde = { version = "1.0", optional = true, default-features = false, features = ["derive"] }
+
+# WASM support (optional)
+wasm-bindgen = { version = "0.2", optional = true }
+tsify = { version = "0.4", optional = true, features = ["js"] }
+
+[dev-dependencies]
+tokio = { version = "1", features = ["macros", "rt"] }

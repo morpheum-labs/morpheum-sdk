@@ -1,0 +1,26 @@
+[package]
+name = "morpheum-sdk-tests"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+publish = false
+description = "Integration and end-to-end tests for the Morpheum SDK"
+
+[dependencies]
+# Full native SDK with all modules and transports enabled
+morpheum-sdk-native = { path = "../crates/native", features = ["full"] }
+
+# Async runtime for integration tests
+tokio = { version = "1", features = ["full"] }
+
+# For JSON assertions and test output
+serde_json = "1.0"
+
+# Optional: Test utilities (if you add common test helpers later)
+# tempfile = "3"
+
+[dev-dependencies]
+# If you need additional test-only dependencies (e.g. for mocking in the future)
+# wiremock = "0.6"

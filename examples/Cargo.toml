@@ -1,0 +1,20 @@
+[package]
+name = "morpheum-sdk-examples"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+homepage.workspace = true
+description = "Examples for the Morpheum Native SDK — demonstrates usage for CLI, bots, and autonomous agents"
+publish = false
+
+[dependencies]
+# Full native SDK with all modules and transports enabled
+morpheum-sdk-native = { path = "../crates/native", features = ["full"] }
+
+# Async runtime for all async examples
+tokio = { version = "1", features = ["full"] }
+
+# For pretty printing in examples
+serde_json = "1.0"

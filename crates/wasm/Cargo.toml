@@ -1,0 +1,60 @@
+[package]
+name = "morpheum-sdk-wasm"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+homepage.workspace = true
+description = "WASM + TypeScript bindings for the Morpheum SDK — browser support for React, Vue, Svelte, Next.js, and other web applications"
+
+[lib]
+crate-type = ["cdylib"]
+
+[features]
+default = ["full-wasm"]
+
+# Full WASM feature set with panic hook and all module support
+full-wasm = [
+    "console_error_panic_hook",
+    "morpheum-sdk-core/wasm",
+    "morpheum-sdk-core/serde",
+    "morpheum-sdk-market?/full",
+    "morpheum-sdk-vc?/full",
+    "morpheum-sdk-auth?/full",
+]
+
+[dependencies]
+# Core SDK foundation with WASM support
+morpheum-sdk-core = { path = "../core", default-features = false, features = ["std"] }
+
+# Feature-gated module clients (optional via features)
+morpheum-sdk-market = { path = "../market", optional = true, default-features = false }
+morpheum-sdk-vc = { path = "../vc", optional = true, default-features = false }
+morpheum-sdk-auth = { path = "../auth", optional = true, default-features = false }
+
+# Protobuf (for message construction in bindings)
+morpheum-sdk-proto = { path = "../proto", default-features = false }
+
+# WASM interop stack
+wasm-bindgen = "0.2"
+wasm-bindgen-futures = "0.4"
+tsify = { version = "0.4", features = ["js"] }
+js-sys = "0.3"
+serde-wasm-bindgen = "0.6"
+
+# Browser APIs
+web-sys = { version = "0.3", features = [
+    "Window",
+    "Navigator",
+    "console",
+] }
+
+# Better panic messages in browser console (optional but enabled in full-wasm)
+console_error_panic_hook = { version = "0.1", optional = true }
+
+# Required for getrandom in WASM (used by signing and uuid)
+getrandom = { version = "0.2", features = ["js"] }
+
+[dev-dependencies]
+wasm-bindgen-test = "0.3"

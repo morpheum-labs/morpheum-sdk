@@ -98,7 +98,7 @@ impl From<Vc> for proto::Vc {
 ///     ..Default::default()
 /// };
 /// ```
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct VcClaims {
     pub max_daily_usd: u64,
@@ -106,18 +106,6 @@ pub struct VcClaims {
     pub max_slippage_bps: u32,
     pub max_position_usd: u64,
     pub custom_constraints: Option<String>,
-}
-
-impl Default for VcClaims {
-    fn default() -> Self {
-        Self {
-            max_daily_usd: 0,
-            allowed_pairs_bitflags: 0,
-            max_slippage_bps: 0,
-            max_position_usd: 0,
-            custom_constraints: None,
-        }
-    }
 }
 
 impl From<proto::VcClaims> for VcClaims {

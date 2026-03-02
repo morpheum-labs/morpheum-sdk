@@ -83,7 +83,7 @@ impl From<Option<proto::NonceState>> for NonceState {
 }
 
 /// BaseAccount — the universal account record for both humans and agents.
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, Default, PartialEq)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct BaseAccount {
     /// Canonical account address (32-byte AccountId as hex or bech32).
@@ -118,18 +118,6 @@ impl From<proto::BaseAccount> for BaseAccount {
             account_number: p.account_number,
             nonce_state: NonceState::from(p.nonce_state),
             mana_score: p.mana_score,
-        }
-    }
-}
-
-impl Default for BaseAccount {
-    fn default() -> Self {
-        Self {
-            address: String::new(),
-            pub_key: None,
-            account_number: 0,
-            nonce_state: NonceState::default(),
-            mana_score: 0,
         }
     }
 }

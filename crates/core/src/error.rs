@@ -73,6 +73,7 @@ impl SdkError {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use alloc::string::ToString;
 
     #[test]
     fn signing_error_converts() {

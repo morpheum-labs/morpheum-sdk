@@ -368,7 +368,7 @@ mod tests {
         };
 
         let request = MarketCreateBuilder::new()
-            .from_address(from)
+            .from_address(from.clone())
             .base_asset_index(1)
             .quote_asset_index(2)
             .market_type(MarketType::Perp)

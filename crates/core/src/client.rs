@@ -65,7 +65,8 @@ impl<T: MorpheumClient + ?Sized> MorpheumClient for Box<T> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::transport::DummyTransport; // from transport.rs test helper
+    use alloc::vec;
+    use crate::transport::DummyTransport;
 
     // Minimal test client for compile-time verification
     struct TestClient {

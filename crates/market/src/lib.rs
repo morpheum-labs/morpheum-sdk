@@ -79,6 +79,7 @@ mod tests {
     #[test]
     fn public_api_compiles_cleanly() {
         // Ensures all re-exports are valid and the prelude is ergonomic
+        #[allow(unused_imports)]
         use prelude::*;
         let _ = VERSION;
     }

@@ -64,22 +64,25 @@ impl<T: Transport + ?Sized> Transport for Box<T> {
     }
 }
 
+/// Minimal no-op transport for internal testing. Not part of the public API.
+#[cfg(test)]
+pub(crate) struct DummyTransport;
+
+#[cfg(test)]
+#[async_trait(?Send)]
+impl Transport for DummyTransport {
+    async fn broadcast_tx(&self, _tx_bytes: Vec<u8>) -> Result<BroadcastResult, SdkError> {
+        Ok(BroadcastResult {
+            txhash: "0000000000000000000000000000000000000000000000000000000000000000".into(),
+            raw_response: None,
+        })
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    // Dummy transport for compile-time testing
-    struct DummyTransport;
-
-    #[async_trait(?Send)]
-    impl Transport for DummyTransport {
-        async fn broadcast_tx(&self, _tx_bytes: Vec<u8>) -> Result<BroadcastResult, SdkError> {
-            Ok(BroadcastResult {
-                txhash: "0000000000000000000000000000000000000000000000000000000000000000".into(),
-                raw_response: None,
-            })
-        }
-    }
+    use alloc::vec;
 
     #[tokio::test]
     async fn transport_trait_object_works() {

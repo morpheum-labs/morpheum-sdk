@@ -66,6 +66,45 @@ impl fmt::Display for AccountId {
     }
 }
 
+#[cfg(feature = "serde")]
+impl Serialize for AccountId {
+    fn serialize<S: serde::Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+        use alloc::string::ToString;
+        serializer.serialize_str(&self.to_string())
+    }
+}
+
+#[cfg(feature = "serde")]
+impl<'de> Deserialize<'de> for AccountId {
+    fn deserialize<D: serde::Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
+        let hex_str = alloc::string::String::deserialize(deserializer)?;
+        let hex_str = hex_str.strip_prefix("0x").unwrap_or(&hex_str);
+        if hex_str.len() != 64 {
+            return Err(serde::de::Error::invalid_length(
+                hex_str.len(),
+                &"64 hex characters (32 bytes)",
+            ));
+        }
+        let mut bytes = [0u8; 32];
+        for (i, chunk) in hex_str.as_bytes().chunks(2).enumerate() {
+            let hi = hex_nibble(chunk[0]).map_err(serde::de::Error::custom)?;
+            let lo = hex_nibble(chunk[1]).map_err(serde::de::Error::custom)?;
+            bytes[i] = (hi << 4) | lo;
+        }
+        Ok(Self::new(bytes))
+    }
+}
+
+#[cfg(feature = "serde")]
+fn hex_nibble(c: u8) -> Result<u8, &'static str> {
+    match c {
+        b'0'..=b'9' => Ok(c - b'0'),
+        b'a'..=b'f' => Ok(c - b'a' + 10),
+        b'A'..=b'F' => Ok(c - b'A' + 10),
+        _ => Err("invalid hex character in AccountId"),
+    }
+}
+
 /// Canonical chain identifier (e.g. `"morpheum-1"`, `"morpheum-test-1"`).
 ///
 /// Newtype pattern for type safety and future validation/extension.

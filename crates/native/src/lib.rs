@@ -199,6 +199,7 @@ mod tests {
 
     #[test]
     fn prelude_compiles_cleanly() {
+        #[allow(unused_imports)]
         use prelude::*;
         let _ = VERSION;
     }

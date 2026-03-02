@@ -6,6 +6,7 @@
 //! transport while offering default implementations for common operations
 //! to keep the design DRY and SOLID.
 
+use alloc::boxed::Box;
 use alloc::vec::Vec;
 
 use async_trait::async_trait;

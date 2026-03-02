@@ -54,7 +54,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
         .chain_id("morpheum-test-1")
         .memo("Agent executing trade with verified TradingKeyClaim")
         .with_trading_key_claim(claim)                    // ← Claim is embedded and signed
-        .add_message(prost_types::Any {
+        .add_message(Any {
             type_url: "/market.v1.MsgCreateOrder".to_string(),
             value: vec![1, 2, 3, 4], // Placeholder for real order message
         })

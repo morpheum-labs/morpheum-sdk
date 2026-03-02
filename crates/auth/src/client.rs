@@ -5,9 +5,8 @@
 //! (the single source of truth for replay protection and parallel execution)
 //! and will be extended for TradingKey management.
 
-use alloc::vec::Vec;
-
 use async_trait::async_trait;
+use prost::Message as _;
 
 use morpheum_sdk_core::{
     AccountId, MorpheumClient, SdkConfig, SdkError, Transport,
@@ -42,16 +41,17 @@ impl AuthClient {
         address: impl Into<AccountId>,
     ) -> Result<NonceState, SdkError> {
         let req = QueryNonceStateRequest::new(address.into());
-        let proto_req: morpheum_sdk_proto::auth::v1::QueryNonceStateRequest = req.into();
+        let proto_req: morpheum_proto::auth::v1::QueryNonceStateRequest = req.into();
 
         let path = "/auth.v1.Query/QueryNonceState";
         let data = proto_req.encode_to_vec();
 
         let response_bytes = self.query(path, data).await?;
 
-        let proto_res: morpheum_sdk_proto::auth::v1::QueryNonceStateResponse =
-            prost::Message::decode(response_bytes.as_slice())
-                .map_err(|e| SdkError::Decode(e))?;
+        let proto_res = morpheum_proto::auth::v1::QueryNonceStateResponse::decode(
+            response_bytes.as_slice(),
+        )
+        .map_err(SdkError::Decode)?;
 
         let response: crate::requests::QueryNonceStateResponse = proto_res.into();
         Ok(response.state)
@@ -86,14 +86,14 @@ mod tests {
         async fn query(&self, path: &str, _data: Vec<u8>) -> Result<Vec<u8>, SdkError> {
             if path == "/auth.v1.Query/QueryNonceState" {
                 // Return a minimal valid response for testing
-                let dummy_res = morpheum_sdk_proto::auth::v1::QueryNonceStateResponse {
-                    state: morpheum_sdk_proto::auth::v1::NonceState {
+                    let dummy_res = morpheum_proto::auth::v1::QueryNonceStateResponse {
+                    state: Some(morpheum_proto::auth::v1::NonceState {
                         last_monotonic: 42,
                         ring: vec![],
                         merkle_root: vec![],
-                    },
+                    }),
                 };
-                Ok(dummy_res.encode_to_vec())
+                Ok(prost::Message::encode_to_vec(&dummy_res))
             } else {
                 Err(SdkError::transport("unexpected query path"))
             }

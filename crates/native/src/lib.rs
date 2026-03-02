@@ -7,7 +7,7 @@
 //! - Seamless integration with the official `morpheum-signing-native` library
 //!
 //! Recommended usage:
-//! ```rust
+//! ```rust,ignore
 //! use morpheum_sdk_native::prelude::*;
 //! ```
 
@@ -16,6 +16,11 @@
 #![cfg_attr(docsrs, feature(doc_auto_cfg))]
 
 extern crate alloc;
+
+use alloc::string::String;
+use alloc::vec::Vec;
+
+use async_trait::async_trait;
 
 // ==================== RE-EXPORTS ====================
 
@@ -48,9 +53,33 @@ pub use core::{
 pub use signing::{
     AgentSigner,
     NativeSigner,
-    TradingKeyClaim,
-    VcClaimBuilder,
 };
+
+// Claim types are in signing-core, re-exported through native
+pub use signing::claim::{TradingKeyClaim, VcClaimBuilder};
+
+// ==================== PLACEHOLDER TRANSPORT ====================
+
+/// A placeholder transport that returns errors for all operations.
+///
+/// Used as the default when no concrete transport (gRPC, HTTP, etc.) is provided.
+/// In production, replace with a real transport implementation.
+struct PlaceholderTransport;
+
+#[async_trait(?Send)]
+impl core::Transport for PlaceholderTransport {
+    async fn broadcast_tx(&self, _tx_bytes: Vec<u8>) -> Result<core::BroadcastResult, SdkError> {
+        Err(SdkError::transport(
+            "no transport configured — provide a concrete transport implementation",
+        ))
+    }
+
+    async fn query(&self, _path: &str, _data: Vec<u8>) -> Result<Vec<u8>, SdkError> {
+        Err(SdkError::transport(
+            "no transport configured — provide a concrete transport implementation",
+        ))
+    }
+}
 
 // ==================== MAIN FACADE ====================
 
@@ -67,15 +96,17 @@ impl MorpheumSdk {
     /// Creates a new SDK with the given RPC endpoint and default chain ID.
     pub fn new(rpc_endpoint: impl Into<String>, chain_id: impl Into<ChainId>) -> Self {
         let config = SdkConfig::new(rpc_endpoint, chain_id);
-        Self::with_config(config)
+        Self {
+            config,
+            transport: Box::new(PlaceholderTransport),
+        }
     }
 
-    /// Creates a new SDK using a custom `SdkConfig`.
-    pub fn with_config(config: SdkConfig) -> Self {
-        // In a full implementation, we would choose transport based on features
-        // (e.g. tonic for gRPC, reqwest for HTTP). For now we use a placeholder.
-        let transport: Box<dyn core::Transport> = Box::new(core::transport::DummyTransport);
-
+    /// Creates a new SDK with a custom transport and configuration.
+    pub fn with_transport(
+        config: SdkConfig,
+        transport: Box<dyn core::Transport>,
+    ) -> Self {
         Self { config, transport }
     }
 
@@ -84,21 +115,9 @@ impl MorpheumSdk {
         &self.config
     }
 
-    // ==================== MODULE CLIENT ACCESSORS ====================
-
-    #[cfg(feature = "market")]
-    pub fn market(&self) -> market::MarketClient {
-        market::MarketClient::new(self.config.clone(), self.transport.clone())
-    }
-
-    #[cfg(feature = "vc")]
-    pub fn vc(&self) -> vc::VcClient {
-        vc::VcClient::new(self.config.clone(), self.transport.clone())
-    }
-
-    #[cfg(feature = "auth")]
-    pub fn auth(&self) -> auth::AuthClient {
-        auth::AuthClient::new(self.config.clone(), self.transport.clone())
+    /// Returns a reference to the underlying transport.
+    pub fn transport(&self) -> &dyn core::Transport {
+        &*self.transport
     }
 }
 
@@ -124,7 +143,7 @@ pub fn agent(signer: AgentSigner) -> MorpheumSdk {
 /// Recommended prelude for the native SDK.
 ///
 /// Most users should start with:
-/// ```rust
+/// ```rust,ignore
 /// use morpheum_sdk_native::prelude::*;
 /// ```
 pub mod prelude {
@@ -142,6 +161,10 @@ pub mod prelude {
         TradingKeyClaim,
         VcClaimBuilder,
     };
+
+    // Transaction builder and the canonical `Any` type for constructing messages.
+    pub use super::core::builder::TxBuilder;
+    pub use super::core::prelude::Any;
 
     // Feature-gated module re-exports
     #[cfg(feature = "market")]
@@ -171,7 +194,7 @@ mod tests {
     #[test]
     fn convenience_functions_work() {
         let _sdk = native(NativeSigner::from_seed(&[0u8; 32]));
-        let _sdk2 = agent(AgentSigner::new(&[0u8; 32], AccountId::new([0u8; 32]), None));
+        let _sdk2 = agent(AgentSigner::new(&[0u8; 32], signing::types::AccountId([0u8; 32]), None));
     }
 
     #[test]

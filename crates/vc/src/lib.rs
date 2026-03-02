@@ -49,11 +49,9 @@ pub use morpheum_sdk_core::{
 };
 
 // Re-export key signing types needed for VC issuance and agent delegation.
-pub use morpheum_sdk_core::signing::{
-    AgentSigner,
-    TradingKeyClaim,
-    VcClaimBuilder,
-};
+// Note: AgentSigner/NativeSigner are in morpheum-signing-native (not core).
+pub use morpheum_sdk_core::signing::claim::{TradingKeyClaim, VcClaimBuilder};
+pub use morpheum_sdk_core::signing::signer::Signer;
 
 /// Recommended prelude for the VC module.
 ///
@@ -73,7 +71,7 @@ pub mod prelude {
         ChainId,
         SdkError,
         SignedTx,
-        AgentSigner,
+        Signer,
         TradingKeyClaim,
         VcClaimBuilder,
     };

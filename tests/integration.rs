@@ -26,7 +26,7 @@ async fn sdk_initialization_and_basic_signing() {
     let signed_tx = TxBuilder::new(signer)
         .chain_id(TEST_CHAIN_ID)
         .memo("Basic signing sanity test")
-        .add_message(prost_types::Any {
+        .add_message(Any {
             type_url: "type.googleapis.com/test.v1.MsgTest".to_string(),
             value: vec![1, 2, 3, 4],
         })
@@ -65,7 +65,7 @@ async fn agent_signing_with_trading_key_claim() {
         .chain_id(TEST_CHAIN_ID)
         .memo("Agent signing with verified TradingKeyClaim")
         .with_trading_key_claim(claim)
-        .add_message(prost_types::Any {
+        .add_message(Any {
             type_url: "type.googleapis.com/test.v1.MsgTest".to_string(),
             value: vec![42],
         })
@@ -87,7 +87,7 @@ async fn bip39_mnemonic_signer_works() {
     let signed_tx = TxBuilder::new(sdk.signer.clone())
         .chain_id(TEST_CHAIN_ID)
         .memo("Transaction from BIP-39 mnemonic")
-        .add_message(prost_types::Any {
+        .add_message(Any {
             type_url: "type.googleapis.com/test.v1.MsgTest".to_string(),
             value: vec![9, 9, 9],
         })

@@ -166,8 +166,8 @@ impl MetaMaskAdapterWasm {
     }
 
     /// Returns the protobuf-encoded public key for `SignerInfo`.
-    pub(crate) fn public_key_proto(&self) -> prost_types::Any {
-        prost_types::Any {
+    pub(crate) fn public_key_proto(&self) -> morpheum_sdk_core::signing::Any {
+        morpheum_sdk_core::signing::Any {
             type_url: "/cosmos.crypto.secp256k1.PubKey".to_string(),
             value: self.cached_address.borrow().to_vec(),
         }

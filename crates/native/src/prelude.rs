@@ -41,6 +41,14 @@ pub use morpheum_signing_native::{
     WalletType,
 };
 
+// ==================== TRANSACTION BUILDING ====================
+
+/// The canonical `Any` type (from `prost_types`) used in `TxBuilder.add_message()`.
+pub use morpheum_sdk_core::signing::Any;
+
+/// Transaction builder for constructing and signing Morpheum transactions.
+pub use morpheum_sdk_core::builder::TxBuilder;
+
 // ==================== FEATURE-GATED MODULE CLIENTS ====================
 
 /// Market module client (only available when the `market` feature is enabled).

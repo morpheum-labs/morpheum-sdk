@@ -6,13 +6,15 @@
 
 use alloc::{string::String, vec::Vec};
 
+use prost::Message as _;
+
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
-use prost_types::Any as ProtoAny;
+use morpheum_proto::google::protobuf::Any as ProtoAny;
 
-use morpheum_sdk_core::{AccountId, SdkError};
-use morpheum_sdk_proto::auth::v1 as proto;
+use morpheum_sdk_core::AccountId;
+use morpheum_proto::auth::v1 as proto;
 
 /// Request to approve a Trading Key (delegated session key) for an agent.
 ///
@@ -148,7 +150,7 @@ impl From<UpdateParamsRequest> for proto::MsgUpdateParams {
     fn from(req: UpdateParamsRequest) -> Self {
         Self {
             authority: req.authority.to_string(),
-            params: req.params.into(),
+            params: Some(req.params.into()),
         }
     }
 }
@@ -175,7 +177,7 @@ impl From<QueryNonceStateRequest> for proto::QueryNonceStateRequest {
 }
 
 /// Query response containing the full nonce state.
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct QueryNonceStateResponse {
     pub state: crate::types::NonceState,
@@ -184,7 +186,7 @@ pub struct QueryNonceStateResponse {
 impl From<proto::QueryNonceStateResponse> for QueryNonceStateResponse {
     fn from(res: proto::QueryNonceStateResponse) -> Self {
         Self {
-            state: res.state.into(),
+            state: crate::types::NonceState::from(res.state),
         }
     }
 }

@@ -61,7 +61,7 @@ impl Signer for WasmSigner {
         }
     }
 
-    fn public_key_proto(&self) -> prost_types::Any {
+    fn public_key_proto(&self) -> morpheum_sdk_core::signing::Any {
         match self {
             Self::MetaMask(a) => a.public_key_proto(),
             Self::Phantom(a) => a.public_key_proto(),

@@ -9,9 +9,10 @@
 use alloc::vec::Vec;
 
 use async_trait::async_trait;
+use prost::Message as _;
 
 use morpheum_sdk_core::{
-    AccountId, MorpheumClient, SdkConfig, SdkError, Transport,
+    MorpheumClient, SdkConfig, SdkError, Transport,
 };
 
 use crate::{
@@ -47,21 +48,22 @@ impl MarketClient {
         shard_id: Option<String>,
     ) -> Result<Market, SdkError> {
         let req = QueryMarketRequest::new(market_index).with_shard_id_opt(shard_id);
-        let proto_req: morpheum_sdk_proto::market::v1::QueryMarketRequest = req.into();
+        let proto_req: morpheum_proto::market::v1::QueryMarketRequest = req.into();
 
         let path = "/market.v1.Query/QueryMarket";
         let data = proto_req.encode_to_vec();
 
         let response_bytes = self.query(path, data).await?;
 
-        let proto_res: morpheum_sdk_proto::market::v1::QueryMarketResponse =
-            prost::Message::decode(response_bytes.as_slice())
-                .map_err(SdkError::Decode)?;
+        let proto_res = morpheum_proto::market::v1::QueryMarketResponse::decode(
+            response_bytes.as_slice(),
+        )
+        .map_err(SdkError::Decode)?;
 
-        // Note: The response contains a success flag and error_message.
-        // For simplicity and consistency with other clients, we assume success
-        // if decoding succeeded (real implementation can add more checks).
-        Ok(proto_res.market.into())
+        proto_res
+            .market
+            .map(Into::into)
+            .ok_or_else(|| SdkError::transport("market field missing in response"))
     }
 
     /// Queries a list of markets with pagination and optional filters.
@@ -76,16 +78,17 @@ impl MarketClient {
             .status_filter_opt(status_filter)
             .type_filter_opt(type_filter);
 
-        let proto_req: morpheum_sdk_proto::market::v1::QueryMarketsRequest = req.into();
+        let proto_req: morpheum_proto::market::v1::QueryMarketsRequest = req.into();
 
         let path = "/market.v1.Query/QueryMarkets";
         let data = proto_req.encode_to_vec();
 
         let response_bytes = self.query(path, data).await?;
 
-        let proto_res: morpheum_sdk_proto::market::v1::QueryMarketsResponse =
-            prost::Message::decode(response_bytes.as_slice())
-                .map_err(SdkError::Decode)?;
+        let proto_res = morpheum_proto::market::v1::QueryMarketsResponse::decode(
+            response_bytes.as_slice(),
+        )
+        .map_err(SdkError::Decode)?;
 
         Ok(proto_res.markets.into_iter().map(Into::into).collect())
     }
@@ -97,16 +100,17 @@ impl MarketClient {
         offset: u32,
     ) -> Result<Vec<Market>, SdkError> {
         let req = QueryActiveMarketsRequest::new(limit, offset);
-        let proto_req: morpheum_sdk_proto::market::v1::QueryActiveMarketsRequest = req.into();
+        let proto_req: morpheum_proto::market::v1::QueryActiveMarketsRequest = req.into();
 
         let path = "/market.v1.Query/QueryActiveMarkets";
         let data = proto_req.encode_to_vec();
 
         let response_bytes = self.query(path, data).await?;
 
-        let proto_res: morpheum_sdk_proto::market::v1::QueryActiveMarketsResponse =
-            prost::Message::decode(response_bytes.as_slice())
-                .map_err(SdkError::Decode)?;
+        let proto_res = morpheum_proto::market::v1::QueryActiveMarketsResponse::decode(
+            response_bytes.as_slice(),
+        )
+        .map_err(SdkError::Decode)?;
 
         Ok(proto_res.markets.into_iter().map(Into::into).collect())
     }
@@ -122,18 +126,22 @@ impl MarketClient {
             .time_range_opt(time_range)
             .shard_id_opt(shard_id);
 
-        let proto_req: morpheum_sdk_proto::market::v1::QueryMarketStatsRequest = req.into();
+        let proto_req: morpheum_proto::market::v1::QueryMarketStatsRequest = req.into();
 
         let path = "/market.v1.Query/QueryMarketStats";
         let data = proto_req.encode_to_vec();
 
         let response_bytes = self.query(path, data).await?;
 
-        let proto_res: morpheum_sdk_proto::market::v1::QueryMarketStatsResponse =
-            prost::Message::decode(response_bytes.as_slice())
-                .map_err(SdkError::Decode)?;
+        let proto_res = morpheum_proto::market::v1::QueryMarketStatsResponse::decode(
+            response_bytes.as_slice(),
+        )
+        .map_err(SdkError::Decode)?;
 
-        Ok(proto_res.stats.into())
+        proto_res
+            .stats
+            .map(Into::into)
+            .ok_or_else(|| SdkError::transport("stats field missing in response"))
     }
 }
 
@@ -165,32 +173,32 @@ mod tests {
         async fn query(&self, path: &str, _data: Vec<u8>) -> Result<Vec<u8>, SdkError> {
             match path {
                 "/market.v1.Query/QueryMarket" => {
-                    let dummy = morpheum_sdk_proto::market::v1::QueryMarketResponse {
+                        let dummy = morpheum_proto::market::v1::QueryMarketResponse {
                         success: true,
                         error_message: "".into(),
-                        market: Default::default(),
+                        market: Some(Default::default()),
                         shard_id: "shard-1".into(),
                     };
-                    Ok(dummy.encode_to_vec())
+                    Ok(prost::Message::encode_to_vec(&dummy))
                 }
                 "/market.v1.Query/QueryMarkets" | "/market.v1.Query/QueryActiveMarkets" => {
-                    let dummy = morpheum_sdk_proto::market::v1::QueryMarketsResponse {
+                    let dummy = morpheum_proto::market::v1::QueryMarketsResponse {
                         success: true,
                         error_message: "".into(),
                         markets: vec![],
                         total_count: 0,
                         shard_id: "shard-1".into(),
                     };
-                    Ok(dummy.encode_to_vec())
+                    Ok(prost::Message::encode_to_vec(&dummy))
                 }
                 "/market.v1.Query/QueryMarketStats" => {
-                    let dummy = morpheum_sdk_proto::market::v1::QueryMarketStatsResponse {
+                    let dummy = morpheum_proto::market::v1::QueryMarketStatsResponse {
                         success: true,
                         error_message: "".into(),
-                        stats: Default::default(),
+                        stats: Some(Default::default()),
                         shard_id: "shard-1".into(),
                     };
-                    Ok(dummy.encode_to_vec())
+                    Ok(prost::Message::encode_to_vec(&dummy))
                 }
                 _ => Err(SdkError::transport("unexpected query path in test")),
             }

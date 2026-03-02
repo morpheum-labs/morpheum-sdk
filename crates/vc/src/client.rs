@@ -9,6 +9,7 @@
 use alloc::vec::Vec;
 
 use async_trait::async_trait;
+use prost::Message as _;
 
 use morpheum_sdk_core::{
     AccountId, MorpheumClient, SdkConfig, SdkError, Transport,
@@ -45,18 +46,22 @@ impl VcClient {
     /// Queries a specific Verifiable Credential by its ID.
     pub async fn query_vc(&self, vc_id: impl Into<String>) -> Result<Vc, SdkError> {
         let req = QueryVcRequest::new(vc_id.into());
-        let proto_req: morpheum_sdk_proto::vc::v1::QueryVcRequest = req.into();
+        let proto_req: morpheum_proto::vc::v1::QueryVcRequest = req.into();
 
         let path = "/vc.v1.Query/QueryVc";
         let data = proto_req.encode_to_vec();
 
         let response_bytes = self.query(path, data).await?;
 
-        let proto_res: morpheum_sdk_proto::vc::v1::QueryVcResponse =
-            prost::Message::decode(response_bytes.as_slice())
-                .map_err(SdkError::Decode)?;
+        let proto_res = morpheum_proto::vc::v1::QueryVcResponse::decode(
+            response_bytes.as_slice(),
+        )
+        .map_err(SdkError::Decode)?;
 
-        Ok(proto_res.vc.into())
+        proto_res
+            .vc
+            .map(Into::into)
+            .ok_or_else(|| SdkError::transport("vc field missing in response"))
     }
 
     /// Queries the current status of a VC (valid, revoked, expired, etc.).
@@ -65,18 +70,25 @@ impl VcClient {
         vc_id: impl Into<String>,
     ) -> Result<VcStatus, SdkError> {
         let req = QueryVcStatusRequest::new(vc_id.into());
-        let proto_req: morpheum_sdk_proto::vc::v1::QueryVcStatusRequest = req.into();
+        let proto_req: morpheum_proto::vc::v1::QueryVcStatusRequest = req.into();
 
         let path = "/vc.v1.Query/QueryVcStatus";
         let data = proto_req.encode_to_vec();
 
         let response_bytes = self.query(path, data).await?;
 
-        let proto_res: morpheum_sdk_proto::vc::v1::QueryVcStatusResponse =
-            prost::Message::decode(response_bytes.as_slice())
-                .map_err(SdkError::Decode)?;
+        let proto_res = morpheum_proto::vc::v1::QueryVcStatusResponse::decode(
+            response_bytes.as_slice(),
+        )
+        .map_err(SdkError::Decode)?;
 
-        Ok(proto_res.into())
+        Ok(VcStatus {
+            vc_id: proto_res.vc_id,
+            is_valid: proto_res.is_valid,
+            is_revoked: proto_res.is_revoked,
+            is_expired: proto_res.is_expired,
+            revoked_at: proto_res.revoked_at,
+        })
     }
 
     /// Queries all VCs issued by a specific issuer (paginated).
@@ -91,16 +103,17 @@ impl VcClient {
             limit,
             offset,
         };
-        let proto_req: morpheum_sdk_proto::vc::v1::QueryVcsByIssuerRequest = req.into();
+        let proto_req: morpheum_proto::vc::v1::QueryVcsByIssuerRequest = req.into();
 
         let path = "/vc.v1.Query/QueryVcsByIssuer";
         let data = proto_req.encode_to_vec();
 
         let response_bytes = self.query(path, data).await?;
 
-        let proto_res: morpheum_sdk_proto::vc::v1::QueryVcsByIssuerResponse =
-            prost::Message::decode(response_bytes.as_slice())
-                .map_err(SdkError::Decode)?;
+        let proto_res = morpheum_proto::vc::v1::QueryVcsByIssuerResponse::decode(
+            response_bytes.as_slice(),
+        )
+        .map_err(SdkError::Decode)?;
 
         Ok(proto_res.vcs.into_iter().map(Into::into).collect())
     }
@@ -117,16 +130,17 @@ impl VcClient {
             limit,
             offset,
         };
-        let proto_req: morpheum_sdk_proto::vc::v1::QueryVcsBySubjectRequest = req.into();
+        let proto_req: morpheum_proto::vc::v1::QueryVcsBySubjectRequest = req.into();
 
         let path = "/vc.v1.Query/QueryVcsBySubject";
         let data = proto_req.encode_to_vec();
 
         let response_bytes = self.query(path, data).await?;
 
-        let proto_res: morpheum_sdk_proto::vc::v1::QueryVcsBySubjectResponse =
-            prost::Message::decode(response_bytes.as_slice())
-                .map_err(SdkError::Decode)?;
+        let proto_res = morpheum_proto::vc::v1::QueryVcsBySubjectResponse::decode(
+            response_bytes.as_slice(),
+        )
+        .map_err(SdkError::Decode)?;
 
         Ok(proto_res.vcs.into_iter().map(Into::into).collect())
     }
@@ -137,16 +151,17 @@ impl VcClient {
         issuer: AccountId,
     ) -> Result<Vec<u8>, SdkError> {
         let req = QueryRevocationBitmapRequest::new(issuer);
-        let proto_req: morpheum_sdk_proto::vc::v1::QueryRevocationBitmapRequest = req.into();
+        let proto_req: morpheum_proto::vc::v1::QueryRevocationBitmapRequest = req.into();
 
         let path = "/vc.v1.Query/QueryRevocationBitmap";
         let data = proto_req.encode_to_vec();
 
         let response_bytes = self.query(path, data).await?;
 
-        let proto_res: morpheum_sdk_proto::vc::v1::QueryRevocationBitmapResponse =
-            prost::Message::decode(response_bytes.as_slice())
-                .map_err(SdkError::Decode)?;
+        let proto_res = morpheum_proto::vc::v1::QueryRevocationBitmapResponse::decode(
+            response_bytes.as_slice(),
+        )
+        .map_err(SdkError::Decode)?;
 
         Ok(proto_res.bitmap)
     }
@@ -154,18 +169,22 @@ impl VcClient {
     /// Queries the current VC module parameters.
     pub async fn query_params(&self) -> Result<Params, SdkError> {
         let req = QueryParamsRequest {};
-        let proto_req: morpheum_sdk_proto::vc::v1::QueryParamsRequest = req.into();
+        let proto_req: morpheum_proto::vc::v1::QueryParamsRequest = req.into();
 
         let path = "/vc.v1.Query/QueryParams";
         let data = proto_req.encode_to_vec();
 
         let response_bytes = self.query(path, data).await?;
 
-        let proto_res: morpheum_sdk_proto::vc::v1::QueryParamsResponse =
-            prost::Message::decode(response_bytes.as_slice())
-                .map_err(SdkError::Decode)?;
+        let proto_res = morpheum_proto::vc::v1::QueryParamsResponse::decode(
+            response_bytes.as_slice(),
+        )
+        .map_err(SdkError::Decode)?;
 
-        Ok(proto_res.params.into())
+        proto_res
+            .params
+            .map(Into::into)
+            .ok_or_else(|| SdkError::transport("params field missing in response"))
     }
 }
 
@@ -197,16 +216,16 @@ mod tests {
         async fn query(&self, path: &str, _data: Vec<u8>) -> Result<Vec<u8>, SdkError> {
             match path {
                 "/vc.v1.Query/QueryVc" => {
-                    let dummy = morpheum_sdk_proto::vc::v1::QueryVcResponse {
-                        vc: Default::default(),
+                    let dummy = morpheum_proto::vc::v1::QueryVcResponse {
+                        vc: Some(Default::default()),
                         is_valid: true,
                         is_revoked: false,
                         is_expired: false,
                     };
-                    Ok(dummy.encode_to_vec())
+                    Ok(prost::Message::encode_to_vec(&dummy))
                 }
                 "/vc.v1.Query/QueryVcStatus" => {
-                    let dummy = morpheum_sdk_proto::vc::v1::QueryVcStatusResponse {
+                    let dummy = morpheum_proto::vc::v1::QueryVcStatusResponse {
                         vc_id: "vc_test".into(),
                         is_valid: true,
                         is_revoked: false,
@@ -214,7 +233,7 @@ mod tests {
                         revoked_at: 0,
                         reason: "".into(),
                     };
-                    Ok(dummy.encode_to_vec())
+                    Ok(prost::Message::encode_to_vec(&dummy))
                 }
                 _ => Err(SdkError::transport("unexpected query path in test")),
             }

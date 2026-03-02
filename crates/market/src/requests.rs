@@ -4,17 +4,19 @@
 //! They use `AccountId` for addresses, offer ergonomic constructors and helpers,
 //! and include `to_any()` methods for seamless integration with `TxBuilder`.
 
-use alloc::{string::String, vec::Vec};
+use alloc::string::String;
+
+use prost::Message as _;
 
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
-use prost_types::Any as ProtoAny;
+use morpheum_proto::google::protobuf::Any as ProtoAny;
 
-use morpheum_sdk_core::{AccountId, SdkError};
-use morpheum_sdk_proto::market::v1 as proto;
+use morpheum_sdk_core::AccountId;
+use morpheum_proto::market::v1 as proto;
 
-use crate::types::{MarketParams, MarketStatus, MarketType};
+use crate::types::{MarketParams, MarketType};
 
 // ====================== TRANSACTION REQUESTS ======================
 
@@ -71,9 +73,9 @@ impl From<CreateMarketRequest> for proto::MsgCreateMarketRequest {
             from_address: req.from_address.to_string(),
             base_asset_index: req.base_asset_index,
             quote_asset_index: req.quote_asset_index,
-            market_type: req.market_type.into(),
+            market_type: i32::from(req.market_type),
             orderbook_type: req.orderbook_type,
-            params: req.params.into(),
+            params: Some(req.params.into()),
             governance_proposal_id: req.governance_proposal_id.unwrap_or_default(),
             timestamp: None, // Set by signer layer if needed
         }
@@ -184,7 +186,7 @@ impl From<UpdateMarketRequest> for proto::MsgUpdateMarketRequest {
     fn from(req: UpdateMarketRequest) -> Self {
         Self {
             market_index: req.market_index,
-            params: req.params.into(),
+            params: Some(req.params.into()),
             from_address: req.from_address.to_string(),
             governance_proposal_id: req.governance_proposal_id.unwrap_or_default(),
             timestamp: None,
@@ -278,6 +280,14 @@ impl QueryMarketRequest {
         self.shard_id = Some(shard_id.into());
         self
     }
+
+    /// Sets shard_id from an `Option<String>`, ignoring `None`.
+    pub fn with_shard_id_opt(mut self, shard_id: Option<String>) -> Self {
+        if shard_id.is_some() {
+            self.shard_id = shard_id;
+        }
+        self
+    }
 }
 
 impl From<QueryMarketRequest> for proto::QueryMarketRequest {
@@ -318,6 +328,22 @@ impl QueryMarketsRequest {
         self.type_filter = Some(market_type);
         self
     }
+
+    /// Sets status_filter from an `Option<String>`, ignoring `None`.
+    pub fn status_filter_opt(mut self, status: Option<String>) -> Self {
+        if status.is_some() {
+            self.status_filter = status;
+        }
+        self
+    }
+
+    /// Sets type_filter from an `Option<MarketType>`, ignoring `None`.
+    pub fn type_filter_opt(mut self, market_type: Option<MarketType>) -> Self {
+        if market_type.is_some() {
+            self.type_filter = market_type;
+        }
+        self
+    }
 }
 
 impl From<QueryMarketsRequest> for proto::QueryMarketsRequest {
@@ -326,7 +352,7 @@ impl From<QueryMarketsRequest> for proto::QueryMarketsRequest {
             limit: req.limit as i32,
             offset: req.offset as i32,
             status_filter: req.status_filter.unwrap_or_default(),
-            type_filter: req.type_filter.map(Into::into).unwrap_or(proto::MarketType::Unspecified),
+            type_filter: req.type_filter.map(i32::from).unwrap_or(0),
         }
     }
 }
@@ -379,6 +405,22 @@ impl QueryMarketStatsRequest {
 
     pub fn shard_id(mut self, shard_id: impl Into<String>) -> Self {
         self.shard_id = Some(shard_id.into());
+        self
+    }
+
+    /// Sets time_range from an `Option<String>`, ignoring `None`.
+    pub fn time_range_opt(mut self, range: Option<String>) -> Self {
+        if range.is_some() {
+            self.time_range = range;
+        }
+        self
+    }
+
+    /// Sets shard_id from an `Option<String>`, ignoring `None`.
+    pub fn shard_id_opt(mut self, shard_id: Option<String>) -> Self {
+        if shard_id.is_some() {
+            self.shard_id = shard_id;
+        }
         self
     }
 }

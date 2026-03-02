@@ -183,8 +183,8 @@ impl TaprootAdapterWasm {
     }
 
     /// Returns the protobuf-encoded public key for `SignerInfo`.
-    pub(crate) fn public_key_proto(&self) -> prost_types::Any {
-        prost_types::Any {
+    pub(crate) fn public_key_proto(&self) -> morpheum_sdk_core::signing::Any {
+        morpheum_sdk_core::signing::Any {
             type_url: "/morpheum.crypto.schnorr.PubKey".to_string(),
             value: self.cached_pubkey.borrow().to_vec(),
         }

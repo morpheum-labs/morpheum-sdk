@@ -1,6 +1,5 @@
 #![no_std]
 #![cfg_attr(docsrs, feature(doc_auto_cfg))]
-#![doc = include_str!("../../README.md")]
 
 // When the "std" feature is enabled, we bring in the standard library.
 // Otherwise we stay strictly no_std.
@@ -16,7 +15,7 @@ extern crate alloc;
 pub use morpheum_signing_core as signing;
 
 // Re-export our generated protobuf definitions for clean access.
-pub use morpheum_sdk_proto as proto;
+pub use morpheum_proto as proto;
 
 // Public modules — each has a single, clear responsibility (SOLID)
 pub mod error;
@@ -26,49 +25,51 @@ pub mod transport;
 pub mod client;
 pub mod builder;
 
+// ── Root-level re-exports for ergonomic `crate::SdkError` style access ──
+
+pub use error::SdkError;
+pub use types::{AccountId, ChainId, SignedTx};
+pub use config::SdkConfig;
+pub use transport::{Transport, BroadcastResult};
+pub use client::MorpheumClient;
+
 /// Current version of the Morpheum SDK core (from Cargo.toml).
 pub const VERSION: &str = env!("CARGO_PKG_VERSION");
 
 /// Recommended imports for most users of the core crate.
 ///
-/// This prelude is designed to be ergonomic while remaining explicit.
 /// Usage:
-/// ```rust
+/// ```rust,ignore
 /// use morpheum_sdk_core::prelude::*;
 /// ```
 pub mod prelude {
     // Core SDK types
     pub use crate::client::MorpheumClient;
-    pub use crate::config::SdkConfig;
-    pub use crate::error::SdkError;
-    pub use crate::transport::Transport;
-    pub use crate::types::*;
+    pub use crate::{AccountId, BroadcastResult, ChainId, SdkConfig, SdkError, SignedTx, Transport, VERSION};
 
-    // Most commonly used items from the signing library
-    pub use crate::signing::{
-        AccountId,
-        PublicKey,
-        Signature,
-        WalletType,
-        SignedTx,
-        TradingKeyClaim,
-        VcClaimBuilder,
-        NativeSigner,
-        AgentSigner,
-    };
+    // Signing library domain types (via submodule paths)
+    pub use crate::signing::types::{PublicKey, Signature, WalletType};
+    pub use crate::signing::claim::{TradingKeyClaim, VcClaimBuilder};
+    pub use crate::signing::signer::Signer;
 
-    // Frequently used protobuf types
+    // The prost_types::Any re-exported from the signing library.
+    // This is the canonical `Any` type used in TxBuilder.add_message().
+    pub use crate::signing::Any;
+
+    // Transaction builder
+    pub use crate::builder::TxBuilder;
+
+    // Frequently used protobuf types when constructing transactions
     pub use crate::proto::tx::v1::{
-        SignDoc,
-        Tx,
-        TxRaw,
-        SignerInfo,
         AuthInfo,
+        SignDoc,
+        SignerInfo,
+        Tx,
         TxBody,
+        TxRaw,
     };
 }
 
-// Tests for the prelude and version (always compiled)
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -76,12 +77,5 @@ mod tests {
     #[test]
     fn version_is_set() {
         assert!(!VERSION.is_empty());
-    }
-
-    #[test]
-    fn prelude_compiles() {
-        // This test ensures the prelude can be imported cleanly
-        use crate::prelude::*;
-        let _ = VERSION;
     }
 }

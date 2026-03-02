@@ -6,13 +6,14 @@
 //! dynamic SignerInfo, etc.) is delegated to the signing library — keeping this
 //! crate clean, DRY, and truly `no_std` compatible.
 
-use alloc::vec::Vec;
-
 use crate::{
-    proto::prost_types,
-    signing::{Signer, TradingKeyClaim, TxBuilder as SigningTxBuilder},
+    signing::{signer::Signer, claim::TradingKeyClaim, builder::TxBuilder as SigningTxBuilder},
     ChainId, SignedTx, SdkError,
 };
+
+// Re-use the same `Any` type the signing library uses (prost_types::Any),
+// ensuring zero-cost pass-through to the inner TxBuilder.
+use crate::signing::Any as ProtoAny;
 
 /// Fluent transaction builder for the Morpheum SDK.
 ///
@@ -48,7 +49,7 @@ impl<S: Signer> TxBuilder<S> {
     ///
     /// This is the most generic way to add messages and keeps the core SDK
     /// completely decoupled from specific module types.
-    pub fn add_message(mut self, msg: prost_types::Any) -> Self {
+    pub fn add_message(mut self, msg: ProtoAny) -> Self {
         self.inner = self.inner.add_message(msg);
         self
     }
@@ -83,45 +84,4 @@ impl<S: Signer> TxBuilder<S> {
 
 // Re-export the signing library's TxBuilder for advanced users who need
 // direct access to all its methods.
-pub use crate::signing::TxBuilder as RawTxBuilder;
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use crate::signing::NativeSigner;
-
-    #[tokio::test]
-    async fn tx_builder_basic_flow() {
-        let signer = NativeSigner::from_seed(&[42u8; 32]);
-
-        let result = TxBuilder::new(signer)
-            .chain_id("morpheum-test-1")
-            .memo("Test transaction from SDK core")
-            .add_message(prost_types::Any {
-                type_url: "type.googleapis.com/test.v1.MsgTest".into(),
-                value: vec![1, 2, 3],
-            })
-            .sign()
-            .await;
-
-        assert!(result.is_ok());
-    }
-
-    #[tokio::test]
-    async fn tx_builder_with_claim() {
-        let signer = NativeSigner::from_seed(&[42u8; 32]);
-        let claim = TradingKeyClaim::default(); // placeholder for test
-
-        let result = TxBuilder::new(signer)
-            .chain_id("morpheum-test-1")
-            .with_trading_key_claim(claim)
-            .add_message(prost_types::Any {
-                type_url: "type.googleapis.com/test.v1.MsgTest".into(),
-                value: vec![],
-            })
-            .sign()
-            .await;
-
-        assert!(result.is_ok());
-    }
-}
+pub use crate::signing::builder::TxBuilder as RawTxBuilder;

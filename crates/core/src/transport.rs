@@ -6,6 +6,7 @@
 //!
 //! The design is deliberately minimal, extensible, and `no_std`-friendly where possible.
 
+use alloc::boxed::Box;
 use alloc::string::String;
 use alloc::vec::Vec;
 

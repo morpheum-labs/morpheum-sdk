@@ -70,11 +70,6 @@ impl SdkError {
     }
 }
 
-// When the "std" feature is enabled, we implement the standard Error trait
-// for better integration with the Rust ecosystem (e.g. anyhow, thiserror chaining).
-#[cfg(feature = "std")]
-impl std::error::Error for SdkError {}
-
 #[cfg(test)]
 mod tests {
     use super::*;

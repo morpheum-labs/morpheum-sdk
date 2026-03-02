@@ -1,7 +1,6 @@
 [workspace]
 members = [
     "crates/core",
-    "crates/proto",
     "crates/market",
     "crates/vc",
     "crates/auth",
@@ -24,16 +23,18 @@ categories = ["cryptography", "api-bindings"]
 readme = "README.md"
 
 [workspace.dependencies]
-# Core & Proto
+# Core
 morpheum-sdk-core = { path = "crates/core" }
-morpheum-sdk-proto = { path = "crates/proto" }
 
-# Signing (the official Morpheum signing library)
-morpheum-signing-native = { version = "0.2", features = ["full"] }
+# Canonical protobuf definitions (sibling repo)
+morpheum-proto = { path = "../morpheum-proto", default-features = false }
+
+# Signing (the official Morpheum signing library — local sibling repo)
+morpheum-signing-core = { path = "../morpheum-signing/crates/core", default-features = false, features = ["std"] }
+morpheum-signing-native = { path = "../morpheum-signing/crates/native", features = ["full"] }
 
 # Shared dependencies
 prost = { version = "0.14", default-features = false, features = ["derive"] }
-prost-types = "0.14"
 serde = { version = "1.0", features = ["derive"] }
 thiserror = "2.0"
 async-trait = "0.1"

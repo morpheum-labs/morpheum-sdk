@@ -16,13 +16,13 @@ default = []
 # Enables std support (required when used from native crate)
 std = [
     "morpheum-sdk-core/std",
-    "morpheum-sdk-proto/std",
+    "morpheum-proto/std",
 ]
 # Enables serde support for VC types (e.g. Vc, VcClaims, Vp)
 serde = [
     "dep:serde",
     "morpheum-sdk-core/serde",
-    "morpheum-sdk-proto/serde",
+    "morpheum-proto/serde",
 ]
 # Convenience feature for full std + serde
 full = ["std", "serde"]
@@ -31,8 +31,17 @@ full = ["std", "serde"]
 # Core SDK foundation (types, config, transport, client trait, error, builder)
 morpheum-sdk-core = { path = "../core", default-features = false }
 
-# Generated protobuf definitions (vc.v1, tx.v1, etc.)
-morpheum-sdk-proto = { path = "../proto", default-features = false }
+# Canonical protobuf definitions
+morpheum-proto = { workspace = true }
+
+# Protobuf runtime (for Message::decode / encode_to_vec)
+prost = { version = "0.14", default-features = false }
+
+# Async trait for MorpheumClient impl
+async-trait = "0.1"
+
+# Hex encoding/decoding (for AccountId address parsing)
+hex = { version = "0.4", default-features = false, features = ["alloc"] }
 
 # Optional serialization (only enabled via "serde" feature)
 serde = { version = "1.0", optional = true, default-features = false, features = ["derive"] }

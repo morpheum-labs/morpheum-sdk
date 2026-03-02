@@ -54,7 +54,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
         .chain_id("morpheum-test-1")
         .memo("Agent issuing VC with delegated TradingKey")
         .with_trading_key_claim(claim)                    // ← Critical: claim is embedded
-        .add_message(prost_types::Any {
+        .add_message(Any {
             type_url: "/vc.v1.MsgIssue".to_string(),
             value: vec![1, 2, 3], // Placeholder for real VC issuance message
         })

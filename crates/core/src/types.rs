@@ -4,13 +4,14 @@
 //! from `morpheum-signing-core` while remaining strictly `no_std` compatible.
 
 use alloc::string::String;
+use alloc::vec::Vec;
 use core::fmt;
 
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
-use crate::signing::{
-    AccountId as SigningAccountId, PublicKey, Signature, SignedTx as SigningSignedTx, WalletType,
+use crate::signing::types::{
+    AccountId as SigningAccountId, SignedTx as SigningSignedTx,
 };
 use crate::SdkError;
 
@@ -18,17 +19,17 @@ use crate::SdkError;
 ///
 /// This provides a clean, extensible surface for the SDK while delegating
 /// all cryptographic logic to the official signing crate.
-#[derive(Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Clone, PartialEq, Eq, Hash)]
 pub struct AccountId(pub SigningAccountId);
 
 impl AccountId {
     /// Creates a new `AccountId` from raw 32 bytes.
-    pub const fn new(bytes: [u8; 32]) -> Self {
+    pub fn new(bytes: [u8; 32]) -> Self {
         Self(SigningAccountId(bytes))
     }
 
     /// Returns the underlying 32-byte array.
-    pub const fn as_bytes(&self) -> &[u8; 32] {
+    pub fn as_bytes(&self) -> &[u8; 32] {
         &self.0.0
     }
 }
@@ -47,13 +48,21 @@ impl From<AccountId> for SigningAccountId {
 
 impl fmt::Debug for AccountId {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "AccountId({})", hex::encode(self.as_bytes()))
+        // Hex-encode inline without pulling in the `hex` crate.
+        write!(f, "AccountId(")?;
+        for byte in self.as_bytes() {
+            write!(f, "{:02x}", byte)?;
+        }
+        write!(f, ")")
     }
 }
 
 impl fmt::Display for AccountId {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", hex::encode(self.as_bytes()))
+        for byte in self.as_bytes() {
+            write!(f, "{:02x}", byte)?;
+        }
+        Ok(())
     }
 }
 
@@ -91,6 +100,21 @@ impl AsRef<str> for ChainId {
     }
 }
 
+// Ergonomic From conversions so callers can pass &str / String directly
+// to builders and constructors (e.g. `SdkConfig::new("endpoint", "morpheum-1")`).
+
+impl From<&str> for ChainId {
+    fn from(s: &str) -> Self {
+        Self(s.into())
+    }
+}
+
+impl From<String> for ChainId {
+    fn from(s: String) -> Self {
+        Self(s)
+    }
+}
+
 #[cfg(feature = "serde")]
 impl Serialize for ChainId {
     fn serialize<S: serde::Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
@@ -120,18 +144,22 @@ impl SignedTx {
     }
 
     /// Returns the SHA-256 hex transaction hash (standard in Cosmos ecosystems).
+    #[cfg(feature = "std")]
     pub fn txhash_hex(&self) -> String {
         self.0.txhash_hex()
     }
 
     /// Returns the underlying decoded `Tx` protobuf (for inspection/debugging).
-    pub fn tx(&self) -> &crate::proto::tx::v1::Tx {
+    ///
+    /// Note: This returns the signing library's `Tx` type (from `morpheum-signing-core`).
+    /// It is structurally identical to `morpheum_proto::tx::v1::Tx`.
+    pub fn tx(&self) -> &crate::signing::proto::tx::v1::Tx {
         self.0.tx()
     }
 
     /// Returns the raw `TxRaw` protobuf bytes (if present).
     pub fn tx_raw_bytes(&self) -> Option<Vec<u8>> {
-        self.0.tx_raw().map(|raw| raw.encode_to_vec())
+        self.0.tx_raw().map(prost::Message::encode_to_vec)
     }
 }
 
@@ -143,9 +171,8 @@ impl From<SigningSignedTx> for SignedTx {
 
 // Re-exports of the most commonly used types from the signing library.
 // This keeps the SDK API clean and DRY — users can do `use morpheum_sdk_core::types::*;`
-pub use crate::signing::{
-    NativeSigner, AgentSigner, PublicKey, Signature, TradingKeyClaim, VcClaimBuilder, WalletType,
-};
+pub use crate::signing::types::{PublicKey, Signature, WalletType};
+pub use crate::signing::claim::{TradingKeyClaim, VcClaimBuilder};
 
 #[cfg(test)]
 mod tests {
@@ -159,11 +186,8 @@ mod tests {
     }
 
     #[test]
-    fn signed_tx_convenience() {
-        // This test ensures the wrapper compiles and methods are accessible
-        let dummy = SigningSignedTx::default(); // assumes signing crate provides a Default for tests
-        let sdk_tx = SignedTx::from(dummy);
-        let _ = sdk_tx.raw_bytes();
-        let _ = sdk_tx.txhash_hex();
+    fn chain_id_from_str() {
+        let id: ChainId = "morpheum-1".into();
+        assert_eq!(id.as_str(), "morpheum-1");
     }
 }

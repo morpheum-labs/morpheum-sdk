@@ -6,15 +6,17 @@
 
 use alloc::{string::String, vec::Vec};
 
+use prost::Message as _;
+
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
-use prost_types::Any as ProtoAny;
+use morpheum_proto::google::protobuf::Any as ProtoAny;
 
-use morpheum_sdk_core::{AccountId, SdkError};
-use morpheum_sdk_proto::vc::v1 as proto;
+use morpheum_sdk_core::AccountId;
+use morpheum_proto::vc::v1 as proto;
 
-use crate::types::{VcClaims, Vp};
+use crate::types::VcClaims;
 
 // ====================== TRANSACTION REQUESTS ======================
 
@@ -67,7 +69,7 @@ impl From<IssueVcRequest> for proto::MsgIssue {
         Self {
             issuer_agent_hash: req.issuer.to_string(),
             subject_agent_hash: req.subject.to_string(),
-            claims: req.claims.into(),
+            claims: Some(req.claims.into()),
             expiry_timestamp: req.expiry_timestamp,
             issuer_signature: req.issuer_signature,
         }
@@ -203,7 +205,7 @@ impl From<UpdateClaimsRequest> for proto::MsgUpdateClaims {
         Self {
             vc_id: req.vc_id,
             issuer_agent_hash: req.issuer.to_string(),
-            new_claims: req.new_claims.into(),
+            new_claims: Some(req.new_claims.into()),
             issuer_signature: req.issuer_signature,
         }
     }
@@ -243,7 +245,21 @@ pub struct QueryVcResponse {
 impl From<proto::QueryVcResponse> for QueryVcResponse {
     fn from(res: proto::QueryVcResponse) -> Self {
         Self {
-            vc: res.vc.into(),
+            vc: res.vc.map(crate::types::Vc::from).unwrap_or(crate::types::Vc {
+                vc_id: String::new(),
+                issuer: morpheum_sdk_core::AccountId::new([0u8; 32]),
+                subject: morpheum_sdk_core::AccountId::new([0u8; 32]),
+                claims: crate::types::VcClaims {
+                    max_daily_usd: 0,
+                    allowed_pairs_bitflags: 0,
+                    max_slippage_bps: 0,
+                    max_position_usd: 0,
+                    custom_constraints: None,
+                },
+                issuance_timestamp: 0,
+                expiry_timestamp: 0,
+                status_list_index: 0,
+            }),
             is_valid: res.is_valid,
             is_revoked: res.is_revoked,
             is_expired: res.is_expired,
@@ -291,6 +307,76 @@ impl From<proto::QueryVcStatusResponse> for QueryVcStatusResponse {
             revoked_at: res.revoked_at,
             reason: res.reason,
         }
+    }
+}
+
+/// Query VCs issued by a specific issuer (paginated).
+#[derive(Clone, Debug, PartialEq, Eq)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+pub struct QueryVcsByIssuerRequest {
+    pub issuer: AccountId,
+    pub limit: u32,
+    pub offset: u32,
+}
+
+impl From<QueryVcsByIssuerRequest> for proto::QueryVcsByIssuerRequest {
+    fn from(req: QueryVcsByIssuerRequest) -> Self {
+        Self {
+            issuer_agent_hash: req.issuer.to_string(),
+            limit: req.limit,
+            offset: req.offset,
+        }
+    }
+}
+
+/// Query VCs issued to a specific subject (paginated).
+#[derive(Clone, Debug, PartialEq, Eq)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+pub struct QueryVcsBySubjectRequest {
+    pub subject: AccountId,
+    pub limit: u32,
+    pub offset: u32,
+}
+
+impl From<QueryVcsBySubjectRequest> for proto::QueryVcsBySubjectRequest {
+    fn from(req: QueryVcsBySubjectRequest) -> Self {
+        Self {
+            subject_agent_hash: req.subject.to_string(),
+            limit: req.limit,
+            offset: req.offset,
+        }
+    }
+}
+
+/// Query the revocation bitmap for an issuer.
+#[derive(Clone, Debug, PartialEq, Eq)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+pub struct QueryRevocationBitmapRequest {
+    pub issuer: AccountId,
+}
+
+impl QueryRevocationBitmapRequest {
+    pub fn new(issuer: AccountId) -> Self {
+        Self { issuer }
+    }
+}
+
+impl From<QueryRevocationBitmapRequest> for proto::QueryRevocationBitmapRequest {
+    fn from(req: QueryRevocationBitmapRequest) -> Self {
+        Self {
+            issuer_agent_hash: req.issuer.to_string(),
+        }
+    }
+}
+
+/// Query the current VC module parameters.
+#[derive(Clone, Debug, PartialEq, Eq)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+pub struct QueryParamsRequest {}
+
+impl From<QueryParamsRequest> for proto::QueryParamsRequest {
+    fn from(_req: QueryParamsRequest) -> Self {
+        Self {}
     }
 }
 

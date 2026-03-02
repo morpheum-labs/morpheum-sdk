@@ -10,10 +10,8 @@ use alloc::{string::String, vec::Vec};
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
-use prost_types::Any as ProtoAny;
-
-use morpheum_sdk_core::{AccountId, SdkError};
-use morpheum_sdk_proto::vc::v1 as proto;
+use morpheum_sdk_core::AccountId;
+use morpheum_proto::vc::v1 as proto;
 
 /// Verifiable Credential (VC) — the core data structure issued by an agent
 /// to another agent with specific claims and permissions.
@@ -36,19 +34,29 @@ impl Vc {
     }
 }
 
+/// Parses a hex-encoded agent hash to AccountId, falling back to zeroes.
+fn parse_agent_hash(hex_str: &str) -> AccountId {
+    AccountId::new(
+        hex::decode(hex_str)
+            .ok()
+            .and_then(|b| <[u8; 32]>::try_from(b).ok())
+            .unwrap_or([0u8; 32]),
+    )
+}
+
 impl From<proto::Vc> for Vc {
     fn from(p: proto::Vc) -> Self {
         Self {
             vc_id: p.vc_id,
-            issuer: AccountId::new(hex::decode(&p.issuer_agent_hash)
-                .ok()
-                .and_then(|b| b.try_into().ok())
-                .unwrap_or([0u8; 32])),
-            subject: AccountId::new(hex::decode(&p.subject_agent_hash)
-                .ok()
-                .and_then(|b| b.try_into().ok())
-                .unwrap_or([0u8; 32])),
-            claims: p.claims.into(),
+            issuer: parse_agent_hash(&p.issuer_agent_hash),
+            subject: parse_agent_hash(&p.subject_agent_hash),
+            claims: p.claims.map(VcClaims::from).unwrap_or(VcClaims {
+                max_daily_usd: 0,
+                allowed_pairs_bitflags: 0,
+                max_slippage_bps: 0,
+                max_position_usd: 0,
+                custom_constraints: None,
+            }),
             issuance_timestamp: p.issuance_timestamp,
             expiry_timestamp: p.expiry_timestamp,
             status_list_index: p.status_list_index,
@@ -62,7 +70,7 @@ impl From<Vc> for proto::Vc {
             vc_id: v.vc_id,
             issuer_agent_hash: v.issuer.to_string(),
             subject_agent_hash: v.subject.to_string(),
-            claims: v.claims.into(),
+            claims: Some(v.claims.into()),
             issuance_timestamp: v.issuance_timestamp,
             expiry_timestamp: v.expiry_timestamp,
             status_list_index: v.status_list_index,
@@ -121,7 +129,15 @@ pub struct Vp {
 impl From<proto::Vp> for Vp {
     fn from(p: proto::Vp) -> Self {
         Self {
-            vc: p.vc.into(),
+            vc: p.vc.map(Vc::from).unwrap_or(Vc {
+                vc_id: String::new(),
+                issuer: AccountId::new([0u8; 32]),
+                subject: AccountId::new([0u8; 32]),
+                claims: VcClaims { max_daily_usd: 0, allowed_pairs_bitflags: 0, max_slippage_bps: 0, max_position_usd: 0, custom_constraints: None },
+                issuance_timestamp: 0,
+                expiry_timestamp: 0,
+                status_list_index: 0,
+            }),
             agent_signature: p.agent_signature,
             presentation_timestamp: p.presentation_timestamp,
         }
@@ -131,7 +147,7 @@ impl From<proto::Vp> for Vp {
 impl From<Vp> for proto::Vp {
     fn from(v: Vp) -> Self {
         Self {
-            vc: v.vc.into(),
+            vc: Some(v.vc.into()),
             agent_signature: v.agent_signature,
             presentation_timestamp: v.presentation_timestamp,
         }
@@ -214,14 +230,8 @@ impl From<proto::ActiveVc> for ActiveVc {
     fn from(p: proto::ActiveVc) -> Self {
         Self {
             vc_id: p.vc_id,
-            issuer: AccountId::new(hex::decode(&p.issuer_agent_hash)
-                .ok()
-                .and_then(|b| b.try_into().ok())
-                .unwrap_or([0u8; 32])),
-            subject: AccountId::new(hex::decode(&p.subject_agent_hash)
-                .ok()
-                .and_then(|b| b.try_into().ok())
-                .unwrap_or([0u8; 32])),
+            issuer: parse_agent_hash(&p.issuer_agent_hash),
+            subject: parse_agent_hash(&p.subject_agent_hash),
             expiry_timestamp: p.expiry_timestamp,
             status_list_index: p.status_list_index,
         }

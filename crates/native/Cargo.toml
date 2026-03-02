@@ -36,7 +36,7 @@ http = ["dep:reqwest", "dep:tokio"]
 # Enables std support across the SDK
 std = [
     "morpheum-sdk-core/std",
-    "morpheum-sdk-proto/std",
+    "morpheum-proto/std",
     "morpheum-sdk-market?/std",
     "morpheum-sdk-vc?/std",
     "morpheum-sdk-auth?/std",
@@ -45,7 +45,7 @@ std = [
 [dependencies]
 # Core SDK foundation
 morpheum-sdk-core = { path = "../core", default-features = false }
-morpheum-sdk-proto = { path = "../proto", default-features = false }
+morpheum-proto = { workspace = true }
 
 # Module clients (optional via features)
 morpheum-sdk-market = { path = "../market", optional = true, default-features = false }
@@ -53,7 +53,10 @@ morpheum-sdk-vc = { path = "../vc", optional = true, default-features = false }
 morpheum-sdk-auth = { path = "../auth", optional = true, default-features = false }
 
 # Official Morpheum signing library (native version with full crypto, BIP-39, claims)
-morpheum-signing-native = { version = "0.2", features = ["full"] }
+morpheum-signing-native = { workspace = true }
+
+# Async trait for Transport impl
+async-trait = "0.1"
 
 # Async runtime
 tokio = { version = "1", optional = true, features = ["full"] }

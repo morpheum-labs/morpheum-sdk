@@ -46,11 +46,9 @@ pub use morpheum_sdk_core::{
 };
 
 // Re-export key signing types needed for TradingKey delegation.
-pub use morpheum_sdk_core::signing::{
-    AgentSigner,
-    TradingKeyClaim,
-    VcClaimBuilder,
-};
+// Note: AgentSigner/NativeSigner are in morpheum-signing-native (not core).
+pub use morpheum_sdk_core::signing::claim::{TradingKeyClaim, VcClaimBuilder};
+pub use morpheum_sdk_core::signing::signer::Signer;
 
 /// Recommended prelude for the auth module.
 ///
@@ -65,7 +63,7 @@ pub mod prelude {
         ModuleAccount,
         NonceState,
         Params,
-        AgentSigner,
+        Signer,
         TradingKeyClaim,
         VcClaimBuilder,
         AccountId,

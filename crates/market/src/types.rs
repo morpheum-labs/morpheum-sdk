@@ -9,8 +9,7 @@ use alloc::{collections::BTreeMap, string::String, vec::Vec};
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
-use morpheum_sdk_core::SdkError;
-use morpheum_sdk_proto::market::v1 as proto;
+use morpheum_proto::market::v1 as proto;
 
 /// Market type enum.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
@@ -24,9 +23,9 @@ pub enum MarketType {
     Custom,
 }
 
-impl From<proto::MarketType> for MarketType {
-    fn from(p: proto::MarketType) -> Self {
-        match p {
+impl From<i32> for MarketType {
+    fn from(v: i32) -> Self {
+        match proto::MarketType::try_from(v).unwrap_or(proto::MarketType::Unspecified) {
             proto::MarketType::Unspecified => Self::Unspecified,
             proto::MarketType::Spot => Self::Spot,
             proto::MarketType::Perp => Self::Perp,
@@ -37,15 +36,15 @@ impl From<proto::MarketType> for MarketType {
     }
 }
 
-impl From<MarketType> for proto::MarketType {
+impl From<MarketType> for i32 {
     fn from(t: MarketType) -> Self {
         match t {
-            MarketType::Unspecified => Self::Unspecified,
-            MarketType::Spot => Self::Spot,
-            MarketType::Perp => Self::Perp,
-            MarketType::Future => Self::Future,
-            MarketType::Option => Self::Option,
-            MarketType::Custom => Self::Custom,
+            MarketType::Unspecified => proto::MarketType::Unspecified as i32,
+            MarketType::Spot => proto::MarketType::Spot as i32,
+            MarketType::Perp => proto::MarketType::Perp as i32,
+            MarketType::Future => proto::MarketType::Future as i32,
+            MarketType::Option => proto::MarketType::Option as i32,
+            MarketType::Custom => proto::MarketType::Custom as i32,
         }
     }
 }
@@ -61,9 +60,9 @@ pub enum MarketStatus {
     Inactive,
 }
 
-impl From<proto::MarketStatus> for MarketStatus {
-    fn from(p: proto::MarketStatus) -> Self {
-        match p {
+impl From<i32> for MarketStatus {
+    fn from(v: i32) -> Self {
+        match proto::MarketStatus::try_from(v).unwrap_or(proto::MarketStatus::Unknown) {
             proto::MarketStatus::Unknown => Self::Unknown,
             proto::MarketStatus::Pending => Self::Pending,
             proto::MarketStatus::Active => Self::Active,
@@ -73,14 +72,14 @@ impl From<proto::MarketStatus> for MarketStatus {
     }
 }
 
-impl From<MarketStatus> for proto::MarketStatus {
+impl From<MarketStatus> for i32 {
     fn from(s: MarketStatus) -> Self {
         match s {
-            MarketStatus::Unknown => Self::Unknown,
-            MarketStatus::Pending => Self::Pending,
-            MarketStatus::Active => Self::Active,
-            MarketStatus::Suspended => Self::Suspended,
-            MarketStatus::Inactive => Self::Inactive,
+            MarketStatus::Unknown => proto::MarketStatus::Unknown as i32,
+            MarketStatus::Pending => proto::MarketStatus::Pending as i32,
+            MarketStatus::Active => proto::MarketStatus::Active as i32,
+            MarketStatus::Suspended => proto::MarketStatus::Suspended as i32,
+            MarketStatus::Inactive => proto::MarketStatus::Inactive as i32,
         }
     }
 }
@@ -95,9 +94,9 @@ pub enum MarketCategory {
     Power,
 }
 
-impl From<proto::MarketCategory> for MarketCategory {
-    fn from(p: proto::MarketCategory) -> Self {
-        match p {
+impl From<i32> for MarketCategory {
+    fn from(v: i32) -> Self {
+        match proto::MarketCategory::try_from(v).unwrap_or(proto::MarketCategory::Unspecified) {
             proto::MarketCategory::Unspecified => Self::Unspecified,
             proto::MarketCategory::Spot => Self::Spot,
             proto::MarketCategory::Linear => Self::Linear,
@@ -106,13 +105,13 @@ impl From<proto::MarketCategory> for MarketCategory {
     }
 }
 
-impl From<MarketCategory> for proto::MarketCategory {
+impl From<MarketCategory> for i32 {
     fn from(c: MarketCategory) -> Self {
         match c {
-            MarketCategory::Unspecified => Self::Unspecified,
-            MarketCategory::Spot => Self::Spot,
-            MarketCategory::Linear => Self::Linear,
-            MarketCategory::Power => Self::Power,
+            MarketCategory::Unspecified => proto::MarketCategory::Unspecified as i32,
+            MarketCategory::Spot => proto::MarketCategory::Spot as i32,
+            MarketCategory::Linear => proto::MarketCategory::Linear as i32,
+            MarketCategory::Power => proto::MarketCategory::Power as i32,
         }
     }
 }
@@ -208,6 +207,11 @@ impl From<MarketParams> for proto::MarketParams {
     }
 }
 
+/// Helper to safely extract seconds from an optional Timestamp.
+fn timestamp_seconds(ts: Option<morpheum_proto::google::protobuf::Timestamp>) -> u64 {
+    ts.map(|t| t.seconds as u64).unwrap_or(0)
+}
+
 /// Core Market definition.
 #[derive(Clone, Debug, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
@@ -244,13 +248,26 @@ impl From<proto::Market> for Market {
             name: p.name,
             base_asset_index: p.base_asset_index,
             quote_asset_index: p.quote_asset_index,
-            market_type: p.market_type.into(),
+            market_type: MarketType::from(p.market_type),
             orderbook_type: p.orderbook_type,
-            status: p.status.into(),
-            params: p.params.into(),
+            status: MarketStatus::from(p.status),
+            params: p.params.map(Into::into).unwrap_or_else(|| MarketParams {
+                min_order_size: String::new(),
+                tick_size: String::new(),
+                lot_size: String::new(),
+                max_leverage: String::new(),
+                initial_margin_ratio: String::new(),
+                maintenance_margin_ratio: String::new(),
+                taker_fee_rate: String::new(),
+                maker_fee_rate: String::new(),
+                allow_market_orders: false,
+                allow_stop_orders: false,
+                perp_config: None,
+                additional_params: BTreeMap::new(),
+            }),
             shard_id: p.shard_id,
-            created_at: p.created_at.seconds as u64,
-            activated_at: p.activated_at.seconds as u64,
+            created_at: timestamp_seconds(p.created_at),
+            activated_at: timestamp_seconds(p.activated_at),
             total_volume_quote: p.total_volume_quote,
             mmf: p.mmf,
             additional_metadata: p.additional_metadata.into_iter().collect(),
@@ -266,19 +283,19 @@ impl From<Market> for proto::Market {
             name: m.name,
             base_asset_index: m.base_asset_index,
             quote_asset_index: m.quote_asset_index,
-            market_type: m.market_type.into(),
+            market_type: i32::from(m.market_type),
             orderbook_type: m.orderbook_type,
-            status: m.status.into(),
-            params: m.params.into(),
+            status: i32::from(m.status),
+            params: Some(m.params.into()),
             shard_id: m.shard_id,
-            created_at: prost_types::Timestamp {
+            created_at: Some(morpheum_proto::google::protobuf::Timestamp {
                 seconds: m.created_at as i64,
                 nanos: 0,
-            },
-            activated_at: prost_types::Timestamp {
+            }),
+            activated_at: Some(morpheum_proto::google::protobuf::Timestamp {
                 seconds: m.activated_at as i64,
                 nanos: 0,
-            },
+            }),
             total_volume_quote: m.total_volume_quote,
             mmf: m.mmf,
             additional_metadata: m.additional_metadata.into_iter().collect(),
@@ -318,7 +335,7 @@ impl From<proto::MarketStats> for MarketStats {
             price_change_percent: p.price_change_percent,
             open_interest: p.open_interest,
             trade_count: p.trade_count,
-            last_trade_at: p.last_trade_at.seconds as u64,
+            last_trade_at: timestamp_seconds(p.last_trade_at),
         }
     }
 }
@@ -342,11 +359,11 @@ impl From<proto::MarketUpdate> for MarketUpdate {
         Self {
             market_index: p.market_index,
             name: p.name,
-            old_status: p.old_status.into(),
-            new_status: p.new_status.into(),
+            old_status: MarketStatus::from(p.old_status),
+            new_status: MarketStatus::from(p.new_status),
             update_reason: p.update_reason,
             new_params: p.new_params.map(Into::into),
-            timestamp: p.timestamp.seconds as u64,
+            timestamp: timestamp_seconds(p.timestamp),
             shard_id: p.shard_id,
         }
     }

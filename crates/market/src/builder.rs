@@ -16,7 +16,7 @@ use crate::requests::{
     SuspendMarketRequest,
     UpdateMarketRequest,
 };
-use crate::types::{MarketParams, MarketStatus, MarketType};
+use crate::types::{MarketParams, MarketType};
 
 /// Fluent builder for creating a new market.
 ///

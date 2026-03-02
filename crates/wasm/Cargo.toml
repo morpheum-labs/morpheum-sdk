@@ -14,8 +14,11 @@ crate-type = ["cdylib"]
 [features]
 default = ["full-wasm"]
 
+std = []
+
 # Full WASM feature set with panic hook and all module support
 full-wasm = [
+    "std",
     "console_error_panic_hook",
     "morpheum-sdk-core/wasm",
     "morpheum-sdk-core/serde",
@@ -33,8 +36,8 @@ morpheum-sdk-market = { path = "../market", optional = true, default-features = 
 morpheum-sdk-vc = { path = "../vc", optional = true, default-features = false }
 morpheum-sdk-auth = { path = "../auth", optional = true, default-features = false }
 
-# Protobuf (for message construction in bindings)
-morpheum-sdk-proto = { path = "../proto", default-features = false }
+# Canonical protobuf definitions (for message construction in bindings)
+morpheum-proto = { workspace = true }
 
 # WASM interop stack
 wasm-bindgen = "0.2"

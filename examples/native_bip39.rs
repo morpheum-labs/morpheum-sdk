@@ -48,7 +48,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
     let signed_tx = TxBuilder::new(sdk.signer.clone())
         .chain_id("morpheum-test-1")
         .memo("Transaction signed using BIP-39 mnemonic via Morpheum SDK")
-        .add_message(prost_types::Any {
+        .add_message(Any {
             type_url: "/market.v1.MsgCreateMarketRequest".to_string(),
             value: vec![1, 2, 3, 4], // Placeholder for a real market creation message
         })

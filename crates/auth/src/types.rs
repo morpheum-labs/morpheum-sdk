@@ -9,10 +9,10 @@ use alloc::{string::String, vec::Vec};
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
-use prost_types::Any as ProtoAny;
+use morpheum_proto::google::protobuf::Any as ProtoAny;
 
 use morpheum_sdk_core::{AccountId, SdkError};
-use morpheum_sdk_proto::{
+use morpheum_proto::{
     auth::v1 as proto,
     tx::v1::Nonce as ProtoNonce,
 };
@@ -22,7 +22,7 @@ use morpheum_sdk_proto::{
 ///
 /// Contains the last monotonic nonce, a sliding ring buffer for recent
 /// nonces, and a Merkle root for historical verification.
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct NonceState {
     /// Last used monotonic nonce.
@@ -35,7 +35,7 @@ pub struct NonceState {
 
 impl NonceState {
     /// Creates an empty `NonceState` (used for new accounts).
-    pub const fn new() -> Self {
+    pub fn new() -> Self {
         Self {
             last_monotonic: 0,
             ring: Vec::new(),
@@ -46,6 +46,12 @@ impl NonceState {
     /// Returns the number of nonces currently in the ring buffer.
     pub fn ring_size(&self) -> usize {
         self.ring.len()
+    }
+}
+
+impl Default for NonceState {
+    fn default() -> Self {
+        Self::new()
     }
 }
 
@@ -69,8 +75,15 @@ impl From<NonceState> for proto::NonceState {
     }
 }
 
+/// Converts `Option<proto::NonceState>` to `NonceState`, using default for `None`.
+impl From<Option<proto::NonceState>> for NonceState {
+    fn from(opt: Option<proto::NonceState>) -> Self {
+        opt.map(NonceState::from).unwrap_or_default()
+    }
+}
+
 /// BaseAccount — the universal account record for both humans and agents.
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct BaseAccount {
     /// Canonical account address (32-byte AccountId as hex or bech32).
@@ -90,7 +103,7 @@ impl BaseAccount {
     pub fn account_id(&self) -> Result<AccountId, SdkError> {
         // The address is typically the hex representation of the 32-byte AccountId
         let bytes = hex::decode(&self.address)
-            .map_err(|e| SdkError::invalid_input(format!("invalid account address: {e}")))?;
+            .map_err(|e| SdkError::invalid_input(alloc::format!("invalid account address: {e}")))?;
         let arr: [u8; 32] = bytes.try_into()
             .map_err(|_| SdkError::invalid_input("account address must be 32 bytes"))?;
         Ok(AccountId::new(arr))
@@ -103,7 +116,7 @@ impl From<proto::BaseAccount> for BaseAccount {
             address: p.address,
             pub_key: p.pub_key,
             account_number: p.account_number,
-            nonce_state: p.nonce_state.into(),
+            nonce_state: NonceState::from(p.nonce_state),
             mana_score: p.mana_score,
         }
     }
@@ -115,15 +128,28 @@ impl From<BaseAccount> for proto::BaseAccount {
             address: a.address,
             pub_key: a.pub_key,
             account_number: a.account_number,
-            nonce_state: a.nonce_state.into(),
+            nonce_state: Some(a.nonce_state.into()),
             mana_score: a.mana_score,
         }
     }
 }
 
+/// Converts `Option<proto::BaseAccount>` to `BaseAccount`, using defaults for `None`.
+impl From<Option<proto::BaseAccount>> for BaseAccount {
+    fn from(opt: Option<proto::BaseAccount>) -> Self {
+        opt.map(BaseAccount::from).unwrap_or_else(|| BaseAccount {
+            address: String::new(),
+            pub_key: None,
+            account_number: 0,
+            nonce_state: NonceState::default(),
+            mana_score: 0,
+        })
+    }
+}
+
 /// ModuleAccount — used by system modules (e.g. bank, staking) that hold funds
 /// without a human signer.
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct ModuleAccount {
     pub base_account: BaseAccount,
@@ -136,7 +162,7 @@ pub struct ModuleAccount {
 impl From<proto::ModuleAccount> for ModuleAccount {
     fn from(p: proto::ModuleAccount) -> Self {
         Self {
-            base_account: p.base_account.into(),
+            base_account: BaseAccount::from(p.base_account),
             name: p.name,
             permissions: p.permissions,
             shard_id: p.shard_id,
@@ -147,7 +173,7 @@ impl From<proto::ModuleAccount> for ModuleAccount {
 impl From<ModuleAccount> for proto::ModuleAccount {
     fn from(m: ModuleAccount) -> Self {
         Self {
-            base_account: m.base_account.into(),
+            base_account: Some(m.base_account.into()),
             name: m.name,
             permissions: m.permissions,
             shard_id: m.shard_id,
@@ -232,6 +258,14 @@ mod tests {
             mana_score: 100,
         };
         let id = acc.account_id().unwrap();
-        assert_eq!(id.as_bytes(), &[0x01, 0x23, 0x45, 0x67, 0x89, 0xab, 0xcd, 0xef; 4]);
+        assert_eq!(
+            id.as_bytes(),
+            &[
+                0x01, 0x23, 0x45, 0x67, 0x89, 0xab, 0xcd, 0xef,
+                0x01, 0x23, 0x45, 0x67, 0x89, 0xab, 0xcd, 0xef,
+                0x01, 0x23, 0x45, 0x67, 0x89, 0xab, 0xcd, 0xef,
+                0x01, 0x23, 0x45, 0x67, 0x89, 0xab, 0xcd, 0xef,
+            ]
+        );
     }
 }

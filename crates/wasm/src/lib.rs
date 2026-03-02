@@ -22,6 +22,8 @@ extern crate alloc;
 #[cfg(feature = "std")]
 extern crate std;
 
+mod bindings;
+
 // ==================== WASM SETUP ====================
 
 /// Installs a better panic hook for improved error messages in the browser console.
@@ -51,13 +53,13 @@ pub fn version() -> String {
 pub use crate::bindings::*;
 
 // Feature-gated module clients (only exported when features are enabled)
-#[cfg(feature = "market")]
+#[cfg(feature = "morpheum-sdk-market")]
 pub use morpheum_sdk_market as market;
 
-#[cfg(feature = "vc")]
+#[cfg(feature = "morpheum-sdk-vc")]
 pub use morpheum_sdk_vc as vc;
 
-#[cfg(feature = "auth")]
+#[cfg(feature = "morpheum-sdk-auth")]
 pub use morpheum_sdk_auth as auth;
 
 // Re-export core types commonly used in WASM
@@ -69,10 +71,7 @@ pub use morpheum_sdk_core::{
 };
 
 // Re-export key signing types for agent flows
-pub use morpheum_sdk_core::signing::{
-    TradingKeyClaim,
-    VcClaimBuilder,
-};
+pub use morpheum_sdk_core::signing::claim::{TradingKeyClaim, VcClaimBuilder};
 
 // ==================== WASM-SPECIFIC PRELUDE ====================
 

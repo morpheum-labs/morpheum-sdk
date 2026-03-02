@@ -15,6 +15,7 @@
 extern crate alloc;
 
 // Public API modules — each has a single, clear responsibility
+pub mod builder;
 pub mod client;
 pub mod types;
 pub mod requests;
@@ -24,6 +25,13 @@ pub mod requests;
 /// Main client for all auth operations (nonce queries, TradingKey management,
 /// account state, etc.).
 pub use client::AuthClient;
+
+/// Fluent builders for TradingKey management and parameter updates.
+pub use builder::{
+    ApproveTradingKeyBuilder,
+    RevokeTradingKeyBuilder,
+    UpdateParamsBuilder,
+};
 
 /// Re-export key domain types from the auth module.
 pub use types::{
@@ -59,6 +67,9 @@ pub use morpheum_sdk_core::signing::signer::Signer;
 pub mod prelude {
     pub use super::{
         AuthClient,
+        ApproveTradingKeyBuilder,
+        RevokeTradingKeyBuilder,
+        UpdateParamsBuilder,
         BaseAccount,
         ModuleAccount,
         NonceState,

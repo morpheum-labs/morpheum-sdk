@@ -40,8 +40,11 @@ impl MarketCreateBuilder {
     }
 
     /// Sets the creator address (signer).
-    pub fn from_address(mut self, address: AccountId) -> Self {
-        self.from_address = Some(address);
+    ///
+    /// Accepts any type that converts into `AccountId`, including
+    /// `morpheum_signing_core::types::AccountId` from a `Signer`.
+    pub fn from_address(mut self, address: impl Into<AccountId>) -> Self {
+        self.from_address = Some(address.into());
         self
     }
 
@@ -136,8 +139,11 @@ impl ActivateMarketBuilder {
         self
     }
 
-    pub fn activator(mut self, activator: AccountId) -> Self {
-        self.activator = Some(activator);
+    /// Sets the activator address.
+    ///
+    /// Accepts any type that converts into `AccountId`.
+    pub fn activator(mut self, activator: impl Into<AccountId>) -> Self {
+        self.activator = Some(activator.into());
         self
     }
 
@@ -177,8 +183,11 @@ impl SuspendMarketBuilder {
         self
     }
 
-    pub fn suspender(mut self, suspender: AccountId) -> Self {
-        self.suspender = Some(suspender);
+    /// Sets the suspender address.
+    ///
+    /// Accepts any type that converts into `AccountId`.
+    pub fn suspender(mut self, suspender: impl Into<AccountId>) -> Self {
+        self.suspender = Some(suspender.into());
         self
     }
 
@@ -223,8 +232,8 @@ impl UpdateMarketBuilder {
         self
     }
 
-    pub fn from_address(mut self, address: AccountId) -> Self {
-        self.from_address = Some(address);
+    pub fn from_address(mut self, address: impl Into<AccountId>) -> Self {
+        self.from_address = Some(address.into());
         self
     }
 
@@ -275,8 +284,8 @@ impl ChangeMarketMarginRatioBuilder {
         Self::default()
     }
 
-    pub fn from_address(mut self, address: AccountId) -> Self {
-        self.from_address = Some(address);
+    pub fn from_address(mut self, address: impl Into<AccountId>) -> Self {
+        self.from_address = Some(address.into());
         self
     }
 

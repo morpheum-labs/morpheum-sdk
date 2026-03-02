@@ -6,6 +6,8 @@
 //! operations (create, activate, suspend, update, margin changes) are handled
 //! via the fluent builders in `builder.rs` + `TxBuilder`.
 
+use alloc::boxed::Box;
+use alloc::string::String;
 use alloc::vec::Vec;
 
 use async_trait::async_trait;
@@ -159,6 +161,7 @@ impl MorpheumClient for MarketClient {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use alloc::vec;
     use morpheum_sdk_core::SdkConfig;
 
     // Dummy transport for testing

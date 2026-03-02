@@ -18,6 +18,7 @@
 extern crate alloc;
 
 // Public API modules — each has a single, clear responsibility
+pub mod builder;
 pub mod client;
 pub mod types;
 pub mod requests;
@@ -26,6 +27,14 @@ pub mod requests;
 
 /// Main client for all VC operations (issue, revoke, query, status, etc.).
 pub use client::VcClient;
+
+/// Fluent builders for VC issuance, revocation, self-revocation, and claims updates.
+pub use builder::{
+    VcIssueBuilder,
+    VcRevokeBuilder,
+    VcSelfRevokeBuilder,
+    UpdateClaimsBuilder,
+};
 
 /// Core domain types for Verifiable Credentials.
 pub use types::{
@@ -62,10 +71,15 @@ pub use morpheum_sdk_core::signing::signer::Signer;
 pub mod prelude {
     pub use super::{
         VcClient,
+        VcIssueBuilder,
+        VcRevokeBuilder,
+        VcSelfRevokeBuilder,
+        UpdateClaimsBuilder,
         Vc,
         VcClaims,
         Vp,
         VcStatus,
+        ActiveVc,
         Params,
         AccountId,
         ChainId,

@@ -6,6 +6,8 @@
 //! (issue, revoke, self-revoke, update claims) are handled via the fluent
 //! builders in `builder.rs` + `TxBuilder`.
 
+use alloc::boxed::Box;
+use alloc::string::String;
 use alloc::vec::Vec;
 
 use async_trait::async_trait;
@@ -94,15 +96,11 @@ impl VcClient {
     /// Queries all VCs issued by a specific issuer (paginated).
     pub async fn query_vcs_by_issuer(
         &self,
-        issuer: AccountId,
+        issuer: impl Into<AccountId>,
         limit: u32,
         offset: u32,
     ) -> Result<Vec<Vc>, SdkError> {
-        let req = QueryVcsByIssuerRequest {
-            issuer,
-            limit,
-            offset,
-        };
+        let req = QueryVcsByIssuerRequest::new(issuer, limit, offset);
         let proto_req: morpheum_proto::vc::v1::QueryVcsByIssuerRequest = req.into();
 
         let path = "/vc.v1.Query/QueryVcsByIssuer";
@@ -121,15 +119,11 @@ impl VcClient {
     /// Queries all VCs issued to a specific subject (paginated).
     pub async fn query_vcs_by_subject(
         &self,
-        subject: AccountId,
+        subject: impl Into<AccountId>,
         limit: u32,
         offset: u32,
     ) -> Result<Vec<Vc>, SdkError> {
-        let req = QueryVcsBySubjectRequest {
-            subject,
-            limit,
-            offset,
-        };
+        let req = QueryVcsBySubjectRequest::new(subject, limit, offset);
         let proto_req: morpheum_proto::vc::v1::QueryVcsBySubjectRequest = req.into();
 
         let path = "/vc.v1.Query/QueryVcsBySubject";
@@ -148,7 +142,7 @@ impl VcClient {
     /// Queries the revocation bitmap for an issuer (for cross-chain verification).
     pub async fn query_revocation_bitmap(
         &self,
-        issuer: AccountId,
+        issuer: impl Into<AccountId>,
     ) -> Result<Vec<u8>, SdkError> {
         let req = QueryRevocationBitmapRequest::new(issuer);
         let proto_req: morpheum_proto::vc::v1::QueryRevocationBitmapRequest = req.into();

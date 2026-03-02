@@ -7,6 +7,7 @@
 //! integration with `TxBuilder`.
 
 use alloc::string::String;
+use alloc::vec::Vec;
 
 use morpheum_sdk_core::{AccountId, SdkError};
 
@@ -38,14 +39,19 @@ impl VcIssueBuilder {
     }
 
     /// Sets the issuer of the VC (the agent issuing the credential).
-    pub fn issuer(mut self, issuer: AccountId) -> Self {
-        self.issuer = Some(issuer);
+    ///
+    /// Accepts any type that converts into `AccountId`, including
+    /// `morpheum_signing_core::types::AccountId` from a `Signer`.
+    pub fn issuer(mut self, issuer: impl Into<AccountId>) -> Self {
+        self.issuer = Some(issuer.into());
         self
     }
 
     /// Sets the subject of the VC (the agent receiving the credential).
-    pub fn subject(mut self, subject: AccountId) -> Self {
-        self.subject = Some(subject);
+    ///
+    /// Accepts any type that converts into `AccountId`.
+    pub fn subject(mut self, subject: impl Into<AccountId>) -> Self {
+        self.subject = Some(subject.into());
         self
     }
 
@@ -119,8 +125,11 @@ impl VcRevokeBuilder {
         self
     }
 
-    pub fn issuer(mut self, issuer: AccountId) -> Self {
-        self.issuer = Some(issuer);
+    /// Sets the issuer address.
+    ///
+    /// Accepts any type that converts into `AccountId`.
+    pub fn issuer(mut self, issuer: impl Into<AccountId>) -> Self {
+        self.issuer = Some(issuer.into());
         self
     }
 
@@ -175,8 +184,11 @@ impl VcSelfRevokeBuilder {
         self
     }
 
-    pub fn subject(mut self, subject: AccountId) -> Self {
-        self.subject = Some(subject);
+    /// Sets the subject address (the agent self-revoking).
+    ///
+    /// Accepts any type that converts into `AccountId`.
+    pub fn subject(mut self, subject: impl Into<AccountId>) -> Self {
+        self.subject = Some(subject.into());
         self
     }
 
@@ -212,16 +224,91 @@ impl VcSelfRevokeBuilder {
     }
 }
 
+/// Fluent builder for updating claims on an existing VC (issuer-initiated).
+///
+/// # Example
+/// ```rust,ignore
+/// let request = UpdateClaimsBuilder::new()
+///     .vc_id("vc_test_001")
+///     .issuer(signer.account_id())
+///     .new_claims(VcClaims {
+///         max_daily_usd: 200_000,
+///         ..Default::default()
+///     })
+///     .issuer_signature(sig_bytes)
+///     .build()?;
+/// ```
+#[derive(Default)]
+pub struct UpdateClaimsBuilder {
+    vc_id: Option<String>,
+    issuer: Option<AccountId>,
+    new_claims: Option<VcClaims>,
+    issuer_signature: Option<Vec<u8>>,
+}
+
+impl UpdateClaimsBuilder {
+    pub fn new() -> Self {
+        Self::default()
+    }
+
+    pub fn vc_id(mut self, vc_id: impl Into<String>) -> Self {
+        self.vc_id = Some(vc_id.into());
+        self
+    }
+
+    /// Sets the issuer address.
+    ///
+    /// Accepts any type that converts into `AccountId`.
+    pub fn issuer(mut self, issuer: impl Into<AccountId>) -> Self {
+        self.issuer = Some(issuer.into());
+        self
+    }
+
+    /// Sets the new claims to replace the existing ones.
+    pub fn new_claims(mut self, claims: VcClaims) -> Self {
+        self.new_claims = Some(claims);
+        self
+    }
+
+    /// Sets the issuer's signature authorizing the update.
+    pub fn issuer_signature(mut self, signature: Vec<u8>) -> Self {
+        self.issuer_signature = Some(signature);
+        self
+    }
+
+    /// Builds the update claims request, performing validation.
+    pub fn build(self) -> Result<UpdateClaimsRequest, SdkError> {
+        let vc_id = self.vc_id.ok_or_else(|| {
+            SdkError::invalid_input("vc_id is required for claims update")
+        })?;
+
+        let issuer = self.issuer.ok_or_else(|| {
+            SdkError::invalid_input("issuer is required for claims update")
+        })?;
+
+        let new_claims = self.new_claims.ok_or_else(|| {
+            SdkError::invalid_input("new_claims are required for claims update")
+        })?;
+
+        let issuer_signature = self.issuer_signature.ok_or_else(|| {
+            SdkError::invalid_input("issuer_signature is required for claims update")
+        })?;
+
+        Ok(UpdateClaimsRequest::new(vc_id, issuer, new_claims, issuer_signature))
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+    use alloc::vec;
     use morpheum_sdk_core::AccountId;
 
     #[test]
     fn vc_issue_builder_full_flow() {
         let issuer = AccountId::new([1u8; 32]);
         let subject = AccountId::new([2u8; 32]);
-        let claims = crate::types::VcClaims {
+        let claims = VcClaims {
             max_daily_usd: 100_000,
             allowed_pairs_bitflags: 0b0011,
             max_slippage_bps: 50,
@@ -230,8 +317,8 @@ mod tests {
         };
 
         let request = VcIssueBuilder::new()
-            .issuer(issuer)
-            .subject(subject)
+            .issuer(issuer.clone())
+            .subject(subject.clone())
             .claims(claims)
             .expiry(1_800_000_000)
             .issuer_signature(vec![0u8; 64])
@@ -262,5 +349,30 @@ mod tests {
 
         assert_eq!(request.vc_id, "vc_test_001");
         assert_eq!(request.reason, Some("Test revocation".into()));
+    }
+
+    #[test]
+    fn update_claims_builder_works() {
+        let issuer = AccountId::new([1u8; 32]);
+        let request = UpdateClaimsBuilder::new()
+            .vc_id("vc_test_002")
+            .issuer(issuer)
+            .new_claims(VcClaims {
+                max_daily_usd: 200_000,
+                ..Default::default()
+            })
+            .issuer_signature(vec![0u8; 64])
+            .build()
+            .unwrap();
+
+        assert_eq!(request.vc_id, "vc_test_002");
+        assert_eq!(request.new_claims.max_daily_usd, 200_000);
+        assert_eq!(request.new_claims.max_slippage_bps, 0); // default
+    }
+
+    #[test]
+    fn update_claims_builder_validation() {
+        let result = UpdateClaimsBuilder::new().build();
+        assert!(result.is_err());
     }
 }

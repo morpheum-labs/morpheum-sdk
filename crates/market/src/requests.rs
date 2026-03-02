@@ -4,7 +4,7 @@
 //! They use `AccountId` for addresses, offer ergonomic constructors and helpers,
 //! and include `to_any()` methods for seamless integration with `TxBuilder`.
 
-use alloc::string::String;
+use alloc::string::{String, ToString};
 
 use prost::Message as _;
 

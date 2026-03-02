@@ -122,6 +122,18 @@ impl From<proto::BaseAccount> for BaseAccount {
     }
 }
 
+impl Default for BaseAccount {
+    fn default() -> Self {
+        Self {
+            address: String::new(),
+            pub_key: None,
+            account_number: 0,
+            nonce_state: NonceState::default(),
+            mana_score: 0,
+        }
+    }
+}
+
 impl From<BaseAccount> for proto::BaseAccount {
     fn from(a: BaseAccount) -> Self {
         Self {
@@ -137,13 +149,7 @@ impl From<BaseAccount> for proto::BaseAccount {
 /// Converts `Option<proto::BaseAccount>` to `BaseAccount`, using defaults for `None`.
 impl From<Option<proto::BaseAccount>> for BaseAccount {
     fn from(opt: Option<proto::BaseAccount>) -> Self {
-        opt.map(BaseAccount::from).unwrap_or_else(|| BaseAccount {
-            address: String::new(),
-            pub_key: None,
-            account_number: 0,
-            nonce_state: NonceState::default(),
-            mana_score: 0,
-        })
+        opt.map(BaseAccount::from).unwrap_or_default()
     }
 }
 
@@ -208,12 +214,35 @@ impl From<ModuleCredential> for proto::ModuleCredential {
 }
 
 /// Module parameters (governance-controlled).
+///
+/// Provides sensible defaults for common use cases:
+/// - `max_memo_characters`: 256
+/// - `tx_sig_limit`: 7
+/// - `mana_threshold`: 0
+///
+/// Override only the fields you need:
+/// ```rust,ignore
+/// let params = Params {
+///     mana_threshold: 100,
+///     ..Default::default()
+/// };
+/// ```
 #[derive(Clone, Debug, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct Params {
     pub max_memo_characters: u64,
     pub tx_sig_limit: u64,
     pub mana_threshold: u64,
+}
+
+impl Default for Params {
+    fn default() -> Self {
+        Self {
+            max_memo_characters: 256,
+            tx_sig_limit: 7,
+            mana_threshold: 0,
+        }
+    }
 }
 
 impl From<proto::Params> for Params {

@@ -152,6 +152,21 @@ impl From<PerpConfig> for proto::PerpConfig {
 }
 
 /// MarketParams — trading parameters for a market.
+///
+/// Provides sensible defaults via [`Default`] for common use cases:
+/// - `tick_size`: `"0.01"`, `lot_size`: `"1"`, `min_order_size`: `"1"`
+/// - `max_leverage`: `"10"`, margins: `10%` initial / `5%` maintenance
+/// - `taker_fee_rate`: `"0.001"` (10 bps), `maker_fee_rate`: `"0.0005"` (5 bps)
+/// - Both market and stop orders allowed
+///
+/// Override only the fields you need:
+/// ```rust,ignore
+/// let params = MarketParams {
+///     tick_size: "0.001".into(),
+///     min_order_size: "0.1".into(),
+///     ..Default::default()
+/// };
+/// ```
 #[derive(Clone, Debug, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct MarketParams {
@@ -167,6 +182,25 @@ pub struct MarketParams {
     pub allow_stop_orders: bool,
     pub perp_config: Option<PerpConfig>,
     pub additional_params: BTreeMap<String, String>,
+}
+
+impl Default for MarketParams {
+    fn default() -> Self {
+        Self {
+            min_order_size: "1".into(),
+            tick_size: "0.01".into(),
+            lot_size: "1".into(),
+            max_leverage: "10".into(),
+            initial_margin_ratio: "0.1".into(),
+            maintenance_margin_ratio: "0.05".into(),
+            taker_fee_rate: "0.001".into(),
+            maker_fee_rate: "0.0005".into(),
+            allow_market_orders: true,
+            allow_stop_orders: true,
+            perp_config: None,
+            additional_params: BTreeMap::new(),
+        }
+    }
 }
 
 impl From<proto::MarketParams> for MarketParams {
@@ -372,6 +406,7 @@ impl From<proto::MarketUpdate> for MarketUpdate {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use alloc::vec;
 
     #[test]
     fn market_roundtrip() {

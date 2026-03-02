@@ -4,7 +4,8 @@
 //! They use `AccountId` for addresses, offer ergonomic constructors and helpers,
 //! and include `to_any()` methods for seamless integration with `TxBuilder`.
 
-use alloc::{string::String, vec::Vec};
+use alloc::string::{String, ToString};
+use alloc::vec::Vec;
 
 use prost::Message as _;
 
@@ -34,14 +35,14 @@ pub struct IssueVcRequest {
 impl IssueVcRequest {
     /// Creates a new VC issuance request.
     pub fn new(
-        issuer: AccountId,
-        subject: AccountId,
+        issuer: impl Into<AccountId>,
+        subject: impl Into<AccountId>,
         claims: VcClaims,
         issuer_signature: Vec<u8>,
     ) -> Self {
         Self {
-            issuer,
-            subject,
+            issuer: issuer.into(),
+            subject: subject.into(),
             claims,
             expiry_timestamp: 0,
             issuer_signature,
@@ -87,10 +88,10 @@ pub struct RevokeVcRequest {
 }
 
 impl RevokeVcRequest {
-    pub fn new(vc_id: String, issuer: AccountId, issuer_signature: Vec<u8>) -> Self {
+    pub fn new(vc_id: impl Into<String>, issuer: impl Into<AccountId>, issuer_signature: Vec<u8>) -> Self {
         Self {
-            vc_id,
-            issuer,
+            vc_id: vc_id.into(),
+            issuer: issuer.into(),
             issuer_signature,
             reason: None,
         }
@@ -132,10 +133,10 @@ pub struct SelfRevokeVcRequest {
 }
 
 impl SelfRevokeVcRequest {
-    pub fn new(vc_id: String, subject: AccountId, agent_signature: Vec<u8>) -> Self {
+    pub fn new(vc_id: impl Into<String>, subject: impl Into<AccountId>, agent_signature: Vec<u8>) -> Self {
         Self {
-            vc_id,
-            subject,
+            vc_id: vc_id.into(),
+            subject: subject.into(),
             agent_signature,
             reason: None,
         }
@@ -178,14 +179,14 @@ pub struct UpdateClaimsRequest {
 
 impl UpdateClaimsRequest {
     pub fn new(
-        vc_id: String,
-        issuer: AccountId,
+        vc_id: impl Into<String>,
+        issuer: impl Into<AccountId>,
         new_claims: VcClaims,
         issuer_signature: Vec<u8>,
     ) -> Self {
         Self {
-            vc_id,
-            issuer,
+            vc_id: vc_id.into(),
+            issuer: issuer.into(),
             new_claims,
             issuer_signature,
         }
@@ -245,21 +246,7 @@ pub struct QueryVcResponse {
 impl From<proto::QueryVcResponse> for QueryVcResponse {
     fn from(res: proto::QueryVcResponse) -> Self {
         Self {
-            vc: res.vc.map(crate::types::Vc::from).unwrap_or(crate::types::Vc {
-                vc_id: String::new(),
-                issuer: morpheum_sdk_core::AccountId::new([0u8; 32]),
-                subject: morpheum_sdk_core::AccountId::new([0u8; 32]),
-                claims: crate::types::VcClaims {
-                    max_daily_usd: 0,
-                    allowed_pairs_bitflags: 0,
-                    max_slippage_bps: 0,
-                    max_position_usd: 0,
-                    custom_constraints: None,
-                },
-                issuance_timestamp: 0,
-                expiry_timestamp: 0,
-                status_list_index: 0,
-            }),
+            vc: res.vc.map(crate::types::Vc::from).unwrap_or_default(),
             is_valid: res.is_valid,
             is_revoked: res.is_revoked,
             is_expired: res.is_expired,
@@ -319,6 +306,12 @@ pub struct QueryVcsByIssuerRequest {
     pub offset: u32,
 }
 
+impl QueryVcsByIssuerRequest {
+    pub fn new(issuer: impl Into<AccountId>, limit: u32, offset: u32) -> Self {
+        Self { issuer: issuer.into(), limit, offset }
+    }
+}
+
 impl From<QueryVcsByIssuerRequest> for proto::QueryVcsByIssuerRequest {
     fn from(req: QueryVcsByIssuerRequest) -> Self {
         Self {
@@ -336,6 +329,12 @@ pub struct QueryVcsBySubjectRequest {
     pub subject: AccountId,
     pub limit: u32,
     pub offset: u32,
+}
+
+impl QueryVcsBySubjectRequest {
+    pub fn new(subject: impl Into<AccountId>, limit: u32, offset: u32) -> Self {
+        Self { subject: subject.into(), limit, offset }
+    }
 }
 
 impl From<QueryVcsBySubjectRequest> for proto::QueryVcsBySubjectRequest {
@@ -356,8 +355,8 @@ pub struct QueryRevocationBitmapRequest {
 }
 
 impl QueryRevocationBitmapRequest {
-    pub fn new(issuer: AccountId) -> Self {
-        Self { issuer }
+    pub fn new(issuer: impl Into<AccountId>) -> Self {
+        Self { issuer: issuer.into() }
     }
 }
 
@@ -383,6 +382,7 @@ impl From<QueryParamsRequest> for proto::QueryParamsRequest {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use alloc::vec;
     use morpheum_sdk_core::AccountId;
 
     #[test]
@@ -408,7 +408,7 @@ mod tests {
     #[test]
     fn conversions_work() {
         let req = RevokeVcRequest::new(
-            "vc_123".into(),
+            "vc_123",
             AccountId::new([1u8; 32]),
             vec![0u8; 64],
         )

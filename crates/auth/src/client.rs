@@ -5,6 +5,8 @@
 //! (the single source of truth for replay protection and parallel execution)
 //! and will be extended for TradingKey management.
 
+use alloc::boxed::Box;
+
 use async_trait::async_trait;
 use prost::Message as _;
 
@@ -72,6 +74,8 @@ impl MorpheumClient for AuthClient {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use alloc::vec;
+    use alloc::vec::Vec;
     use morpheum_sdk_core::SdkConfig;
 
     // Dummy transport for compile-time and basic runtime testing

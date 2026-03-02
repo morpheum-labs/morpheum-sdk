@@ -5,7 +5,8 @@
 //! round-trip conversion to/from protobuf while remaining strictly `no_std`
 //! compatible.
 
-use alloc::{string::String, vec::Vec};
+use alloc::string::{String, ToString};
+use alloc::vec::Vec;
 
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
@@ -25,6 +26,20 @@ pub struct Vc {
     pub issuance_timestamp: u64,
     pub expiry_timestamp: u64,
     pub status_list_index: u32,
+}
+
+impl Default for Vc {
+    fn default() -> Self {
+        Self {
+            vc_id: String::new(),
+            issuer: AccountId::new([0u8; 32]),
+            subject: AccountId::new([0u8; 32]),
+            claims: VcClaims::default(),
+            issuance_timestamp: 0,
+            expiry_timestamp: 0,
+            status_list_index: 0,
+        }
+    }
 }
 
 impl Vc {
@@ -50,13 +65,7 @@ impl From<proto::Vc> for Vc {
             vc_id: p.vc_id,
             issuer: parse_agent_hash(&p.issuer_agent_hash),
             subject: parse_agent_hash(&p.subject_agent_hash),
-            claims: p.claims.map(VcClaims::from).unwrap_or(VcClaims {
-                max_daily_usd: 0,
-                allowed_pairs_bitflags: 0,
-                max_slippage_bps: 0,
-                max_position_usd: 0,
-                custom_constraints: None,
-            }),
+            claims: p.claims.map(VcClaims::from).unwrap_or_default(),
             issuance_timestamp: p.issuance_timestamp,
             expiry_timestamp: p.expiry_timestamp,
             status_list_index: p.status_list_index,
@@ -79,6 +88,16 @@ impl From<Vc> for proto::Vc {
 }
 
 /// VC Claims — the permissions and limits embedded in a Verifiable Credential.
+///
+/// Provides sensible defaults (all zeroes / no constraints) so callers can
+/// override only the fields they need:
+/// ```rust,ignore
+/// let claims = VcClaims {
+///     max_daily_usd: 100_000,
+///     allowed_pairs_bitflags: 0b0011,
+///     ..Default::default()
+/// };
+/// ```
 #[derive(Clone, Debug, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct VcClaims {
@@ -87,6 +106,18 @@ pub struct VcClaims {
     pub max_slippage_bps: u32,
     pub max_position_usd: u64,
     pub custom_constraints: Option<String>,
+}
+
+impl Default for VcClaims {
+    fn default() -> Self {
+        Self {
+            max_daily_usd: 0,
+            allowed_pairs_bitflags: 0,
+            max_slippage_bps: 0,
+            max_position_usd: 0,
+            custom_constraints: None,
+        }
+    }
 }
 
 impl From<proto::VcClaims> for VcClaims {
@@ -129,15 +160,7 @@ pub struct Vp {
 impl From<proto::Vp> for Vp {
     fn from(p: proto::Vp) -> Self {
         Self {
-            vc: p.vc.map(Vc::from).unwrap_or(Vc {
-                vc_id: String::new(),
-                issuer: AccountId::new([0u8; 32]),
-                subject: AccountId::new([0u8; 32]),
-                claims: VcClaims { max_daily_usd: 0, allowed_pairs_bitflags: 0, max_slippage_bps: 0, max_position_usd: 0, custom_constraints: None },
-                issuance_timestamp: 0,
-                expiry_timestamp: 0,
-                status_list_index: 0,
-            }),
+            vc: p.vc.map(Vc::from).unwrap_or_default(),
             agent_signature: p.agent_signature,
             presentation_timestamp: p.presentation_timestamp,
         }
@@ -155,7 +178,7 @@ impl From<Vp> for proto::Vp {
 }
 
 /// Status of a Verifiable Credential (returned by queries).
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct VcStatus {
     pub vc_id: String,
@@ -178,6 +201,22 @@ impl From<proto::VcStatus> for VcStatus {
 }
 
 /// Module parameters (governance-controlled).
+///
+/// Provides sensible defaults:
+/// - `default_expiry_seconds`: 86400 (24 hours)
+/// - `revocation_bitmap_chunk_size`: 256
+/// - `max_vcs_per_issuer`: 1000
+/// - `enable_self_revocation`: true
+/// - `slashing_multiplier`: 1
+/// - `min_reputation_to_issue_vc`: 0
+///
+/// Override only the fields you need:
+/// ```rust,ignore
+/// let params = Params {
+///     max_vcs_per_issuer: 500,
+///     ..Default::default()
+/// };
+/// ```
 #[derive(Clone, Debug, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct Params {
@@ -187,6 +226,19 @@ pub struct Params {
     pub enable_self_revocation: bool,
     pub slashing_multiplier: u32,
     pub min_reputation_to_issue_vc: u64,
+}
+
+impl Default for Params {
+    fn default() -> Self {
+        Self {
+            default_expiry_seconds: 86400,
+            revocation_bitmap_chunk_size: 256,
+            max_vcs_per_issuer: 1000,
+            enable_self_revocation: true,
+            slashing_multiplier: 1,
+            min_reputation_to_issue_vc: 0,
+        }
+    }
 }
 
 impl From<proto::Params> for Params {
@@ -270,18 +322,8 @@ mod tests {
     fn vc_is_expired() {
         let vc = Vc {
             vc_id: "test".into(),
-            issuer: AccountId::new([0; 32]),
-            subject: AccountId::new([0; 32]),
-            claims: VcClaims {
-                max_daily_usd: 0,
-                allowed_pairs_bitflags: 0,
-                max_slippage_bps: 0,
-                max_position_usd: 0,
-                custom_constraints: None,
-            },
-            issuance_timestamp: 0,
             expiry_timestamp: 1_700_000_000,
-            status_list_index: 0,
+            ..Default::default()
         };
 
         assert!(vc.is_expired(1_700_000_001));

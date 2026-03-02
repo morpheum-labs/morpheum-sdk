@@ -4,7 +4,8 @@
 //! They provide type safety (using `AccountId`), validation, helper methods,
 //! and seamless conversion to/from protobuf for use with `TxBuilder`.
 
-use alloc::{string::String, vec::Vec};
+use alloc::string::{String, ToString};
+use alloc::vec::Vec;
 
 use prost::Message as _;
 
@@ -133,8 +134,8 @@ pub struct UpdateParamsRequest {
 }
 
 impl UpdateParamsRequest {
-    pub fn new(authority: AccountId, params: crate::types::Params) -> Self {
-        Self { authority, params }
+    pub fn new(authority: impl Into<AccountId>, params: crate::types::Params) -> Self {
+        Self { authority: authority.into(), params }
     }
 
     pub fn to_any(&self) -> ProtoAny {
@@ -163,8 +164,8 @@ pub struct QueryNonceStateRequest {
 }
 
 impl QueryNonceStateRequest {
-    pub fn new(address: AccountId) -> Self {
-        Self { address }
+    pub fn new(address: impl Into<AccountId>) -> Self {
+        Self { address: address.into() }
     }
 }
 
@@ -194,6 +195,7 @@ impl From<proto::QueryNonceStateResponse> for QueryNonceStateResponse {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use alloc::vec;
     use morpheum_sdk_core::AccountId;
 
     #[test]

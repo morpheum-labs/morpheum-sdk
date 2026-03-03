@@ -203,7 +203,6 @@ pub struct ChangeMarketMarginRatioRequest {
     pub new_initial_margin_ratio: Option<String>,
     pub new_maintenance_margin_ratio: Option<String>,
     pub reason: Option<String>,
-    pub shard_id: Option<String>,
 }
 
 impl ChangeMarketMarginRatioRequest {
@@ -214,7 +213,6 @@ impl ChangeMarketMarginRatioRequest {
             new_initial_margin_ratio: None,
             new_maintenance_margin_ratio: None,
             reason: None,
-            shard_id: None,
         }
     }
 
@@ -230,11 +228,6 @@ impl ChangeMarketMarginRatioRequest {
 
     pub fn reason(mut self, reason: impl Into<String>) -> Self {
         self.reason = Some(reason.into());
-        self
-    }
-
-    pub fn shard_id(mut self, shard_id: impl Into<String>) -> Self {
-        self.shard_id = Some(shard_id.into());
         self
     }
 
@@ -255,7 +248,6 @@ impl From<ChangeMarketMarginRatioRequest> for proto::MsgChangeMarketMarginRatioR
             new_initial_margin_ratio: req.new_initial_margin_ratio.unwrap_or_default(),
             new_maintenance_margin_ratio: req.new_maintenance_margin_ratio.unwrap_or_default(),
             reason: req.reason.unwrap_or_default(),
-            shard_id: req.shard_id.unwrap_or_default(),
             timestamp: None,
         }
     }
@@ -268,25 +260,11 @@ impl From<ChangeMarketMarginRatioRequest> for proto::MsgChangeMarketMarginRatioR
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct QueryMarketRequest {
     pub market_index: u64,
-    pub shard_id: Option<String>,
 }
 
 impl QueryMarketRequest {
     pub fn new(market_index: u64) -> Self {
-        Self { market_index, shard_id: None }
-    }
-
-    pub fn with_shard_id(mut self, shard_id: impl Into<String>) -> Self {
-        self.shard_id = Some(shard_id.into());
-        self
-    }
-
-    /// Sets shard_id from an `Option<String>`, ignoring `None`.
-    pub fn with_shard_id_opt(mut self, shard_id: Option<String>) -> Self {
-        if shard_id.is_some() {
-            self.shard_id = shard_id;
-        }
-        self
+        Self { market_index }
     }
 }
 
@@ -294,7 +272,6 @@ impl From<QueryMarketRequest> for proto::QueryMarketRequest {
     fn from(req: QueryMarketRequest) -> Self {
         Self {
             market_index: req.market_index,
-            shard_id: req.shard_id.unwrap_or_default(),
         }
     }
 }
@@ -386,7 +363,6 @@ impl From<QueryActiveMarketsRequest> for proto::QueryActiveMarketsRequest {
 pub struct QueryMarketStatsRequest {
     pub market_index: u64,
     pub time_range: Option<String>,
-    pub shard_id: Option<String>,
 }
 
 impl QueryMarketStatsRequest {
@@ -394,17 +370,11 @@ impl QueryMarketStatsRequest {
         Self {
             market_index,
             time_range: None,
-            shard_id: None,
         }
     }
 
     pub fn time_range(mut self, range: impl Into<String>) -> Self {
         self.time_range = Some(range.into());
-        self
-    }
-
-    pub fn shard_id(mut self, shard_id: impl Into<String>) -> Self {
-        self.shard_id = Some(shard_id.into());
         self
     }
 
@@ -415,14 +385,6 @@ impl QueryMarketStatsRequest {
         }
         self
     }
-
-    /// Sets shard_id from an `Option<String>`, ignoring `None`.
-    pub fn shard_id_opt(mut self, shard_id: Option<String>) -> Self {
-        if shard_id.is_some() {
-            self.shard_id = shard_id;
-        }
-        self
-    }
 }
 
 impl From<QueryMarketStatsRequest> for proto::QueryMarketStatsRequest {
@@ -430,7 +392,6 @@ impl From<QueryMarketStatsRequest> for proto::QueryMarketStatsRequest {
         Self {
             market_index: req.market_index,
             time_range: req.time_range.unwrap_or_default(),
-            shard_id: req.shard_id.unwrap_or_default(),
         }
     }
 }

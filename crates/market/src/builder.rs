@@ -276,7 +276,6 @@ pub struct ChangeMarketMarginRatioBuilder {
     new_initial_margin_ratio: Option<String>,
     new_maintenance_margin_ratio: Option<String>,
     reason: Option<String>,
-    shard_id: Option<String>,
 }
 
 impl ChangeMarketMarginRatioBuilder {
@@ -309,11 +308,6 @@ impl ChangeMarketMarginRatioBuilder {
         self
     }
 
-    pub fn shard_id(mut self, shard_id: impl Into<String>) -> Self {
-        self.shard_id = Some(shard_id.into());
-        self
-    }
-
     pub fn build(self) -> Result<ChangeMarketMarginRatioRequest, SdkError> {
         let from_address = self.from_address.ok_or_else(|| {
             SdkError::invalid_input("from_address is required")
@@ -326,8 +320,7 @@ impl ChangeMarketMarginRatioBuilder {
         Ok(ChangeMarketMarginRatioRequest::new(from_address, market_index)
             .new_initial_margin_ratio_opt(self.new_initial_margin_ratio)
             .new_maintenance_margin_ratio_opt(self.new_maintenance_margin_ratio)
-            .reason_opt(self.reason)
-            .shard_id_opt(self.shard_id))
+            .reason_opt(self.reason))
     }
 }
 
@@ -344,11 +337,6 @@ impl ChangeMarketMarginRatioRequest {
 
     fn reason_opt(mut self, reason: Option<String>) -> Self {
         self.reason = reason;
-        self
-    }
-
-    fn shard_id_opt(mut self, shard_id: Option<String>) -> Self {
-        self.shard_id = shard_id;
         self
     }
 }

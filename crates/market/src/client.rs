@@ -47,9 +47,8 @@ impl MarketClient {
     pub async fn query_market(
         &self,
         market_index: u64,
-        shard_id: Option<String>,
     ) -> Result<Market, SdkError> {
-        let req = QueryMarketRequest::new(market_index).with_shard_id_opt(shard_id);
+        let req = QueryMarketRequest::new(market_index);
         let proto_req: morpheum_proto::market::v1::QueryMarketRequest = req.into();
 
         let path = "/market.v1.Query/QueryMarket";
@@ -122,11 +121,9 @@ impl MarketClient {
         &self,
         market_index: u64,
         time_range: Option<String>,
-        shard_id: Option<String>,
     ) -> Result<MarketStats, SdkError> {
         let req = QueryMarketStatsRequest::new(market_index)
-            .time_range_opt(time_range)
-            .shard_id_opt(shard_id);
+            .time_range_opt(time_range);
 
         let proto_req: morpheum_proto::market::v1::QueryMarketStatsRequest = req.into();
 
@@ -180,7 +177,6 @@ mod tests {
                         success: true,
                         error_message: "".into(),
                         market: Some(Default::default()),
-                        shard_id: "shard-1".into(),
                     };
                     Ok(prost::Message::encode_to_vec(&dummy))
                 }
@@ -190,7 +186,6 @@ mod tests {
                         error_message: "".into(),
                         markets: vec![],
                         total_count: 0,
-                        shard_id: "shard-1".into(),
                     };
                     Ok(prost::Message::encode_to_vec(&dummy))
                 }
@@ -199,7 +194,6 @@ mod tests {
                         success: true,
                         error_message: "".into(),
                         stats: Some(Default::default()),
-                        shard_id: "shard-1".into(),
                     };
                     Ok(prost::Message::encode_to_vec(&dummy))
                 }
@@ -213,7 +207,7 @@ mod tests {
         let config = SdkConfig::new("https://sentry.morpheum.xyz", "morpheum-test-1");
         let client = MarketClient::new(config, Box::new(DummyTransport));
 
-        let result = client.query_market(42, None).await;
+        let result = client.query_market(42).await;
         assert!(result.is_ok());
     }
 
@@ -231,7 +225,7 @@ mod tests {
         let config = SdkConfig::new("https://sentry.morpheum.xyz", "morpheum-test-1");
         let client = MarketClient::new(config, Box::new(DummyTransport));
 
-        let result = client.query_market_stats(42, None, None).await;
+        let result = client.query_market_stats(42, None).await;
         assert!(result.is_ok());
     }
 }

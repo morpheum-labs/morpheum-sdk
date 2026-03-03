@@ -259,7 +259,6 @@ pub struct Market {
     pub orderbook_type: String,
     pub status: MarketStatus,
     pub params: MarketParams,
-    pub shard_id: String,
     pub created_at: u64,      // Unix seconds
     pub activated_at: u64,    // Unix seconds
     pub total_volume_quote: String,
@@ -299,7 +298,6 @@ impl From<proto::Market> for Market {
                 perp_config: None,
                 additional_params: BTreeMap::new(),
             }),
-            shard_id: p.shard_id,
             created_at: timestamp_seconds(p.created_at),
             activated_at: timestamp_seconds(p.activated_at),
             total_volume_quote: p.total_volume_quote,
@@ -321,7 +319,6 @@ impl From<Market> for proto::Market {
             orderbook_type: m.orderbook_type,
             status: i32::from(m.status),
             params: Some(m.params.into()),
-            shard_id: m.shard_id,
             created_at: Some(morpheum_proto::google::protobuf::Timestamp {
                 seconds: m.created_at as i64,
                 nanos: 0,
@@ -385,7 +382,6 @@ pub struct MarketUpdate {
     pub update_reason: String,
     pub new_params: Option<MarketParams>,
     pub timestamp: u64,
-    pub shard_id: String,
 }
 
 impl From<proto::MarketUpdate> for MarketUpdate {
@@ -398,7 +394,6 @@ impl From<proto::MarketUpdate> for MarketUpdate {
             update_reason: p.update_reason,
             new_params: p.new_params.map(Into::into),
             timestamp: timestamp_seconds(p.timestamp),
-            shard_id: p.shard_id,
         }
     }
 }
@@ -433,7 +428,6 @@ mod tests {
                 perp_config: None,
                 additional_params: BTreeMap::new(),
             },
-            shard_id: "shard-1".into(),
             created_at: 1_700_000_000,
             activated_at: 1_700_001_000,
             total_volume_quote: "1234567.89".into(),
@@ -472,7 +466,6 @@ mod tests {
                 perp_config: None,
                 additional_params: BTreeMap::new(),
             },
-            shard_id: "".into(),
             created_at: 0,
             activated_at: 0,
             total_volume_quote: "".into(),

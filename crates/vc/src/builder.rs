@@ -169,7 +169,6 @@ impl VcRevokeBuilder {
 #[derive(Default)]
 pub struct VcSelfRevokeBuilder {
     vc_id: Option<String>,
-    subject: Option<AccountId>,
     agent_signature: Option<Vec<u8>>,
     reason: Option<String>,
 }
@@ -181,14 +180,6 @@ impl VcSelfRevokeBuilder {
 
     pub fn vc_id(mut self, vc_id: impl Into<String>) -> Self {
         self.vc_id = Some(vc_id.into());
-        self
-    }
-
-    /// Sets the subject address (the agent self-revoking).
-    ///
-    /// Accepts any type that converts into `AccountId`.
-    pub fn subject(mut self, subject: impl Into<AccountId>) -> Self {
-        self.subject = Some(subject.into());
         self
     }
 
@@ -207,17 +198,12 @@ impl VcSelfRevokeBuilder {
             SdkError::invalid_input("vc_id is required for self-revocation")
         })?;
 
-        let subject = self.subject.ok_or_else(|| {
-            SdkError::invalid_input("subject is required for self-revocation")
-        })?;
-
         let agent_signature = self.agent_signature.ok_or_else(|| {
             SdkError::invalid_input("agent_signature is required for self-revocation")
         })?;
 
         Ok(SelfRevokeVcRequest {
             vc_id,
-            subject,
             agent_signature,
             reason: self.reason,
         })

@@ -123,20 +123,21 @@ impl From<RevokeVcRequest> for proto::MsgRevoke {
 }
 
 /// Request for an agent to self-revoke its own VC.
+///
+/// The subject's identity is established by the transaction signature through
+/// the auth pipeline — no explicit `subject` field is needed in the message.
 #[derive(Clone, Debug, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct SelfRevokeVcRequest {
     pub vc_id: String,
-    pub subject: AccountId,
     pub agent_signature: Vec<u8>,
     pub reason: Option<String>,
 }
 
 impl SelfRevokeVcRequest {
-    pub fn new(vc_id: impl Into<String>, subject: impl Into<AccountId>, agent_signature: Vec<u8>) -> Self {
+    pub fn new(vc_id: impl Into<String>, agent_signature: Vec<u8>) -> Self {
         Self {
             vc_id: vc_id.into(),
-            subject: subject.into(),
             agent_signature,
             reason: None,
         }
@@ -160,7 +161,6 @@ impl From<SelfRevokeVcRequest> for proto::MsgSelfRevoke {
     fn from(req: SelfRevokeVcRequest) -> Self {
         Self {
             vc_id: req.vc_id,
-            subject_agent_hash: req.subject.to_string(),
             agent_signature: req.agent_signature,
             reason: req.reason.unwrap_or_default(),
         }

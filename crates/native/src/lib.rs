@@ -31,6 +31,9 @@ pub use morpheum_sdk_core as core;
 pub use morpheum_signing_native as signing;
 
 // Feature-gated module clients
+#[cfg(feature = "identity")]
+pub use morpheum_sdk_identity as identity;
+
 #[cfg(feature = "market")]
 pub use morpheum_sdk_market as market;
 

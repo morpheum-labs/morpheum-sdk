@@ -25,6 +25,7 @@ full = [
 ]
 
 # Individual modules (feature-gated for minimal builds)
+identity = ["dep:morpheum-sdk-identity"]
 market = ["dep:morpheum-sdk-market"]
 vc = ["dep:morpheum-sdk-vc"]
 auth = ["dep:morpheum-sdk-auth"]
@@ -37,6 +38,7 @@ http = ["dep:reqwest", "dep:tokio"]
 std = [
     "morpheum-sdk-core/std",
     "morpheum-proto/std",
+    "morpheum-sdk-identity?/std",
     "morpheum-sdk-market?/std",
     "morpheum-sdk-vc?/std",
     "morpheum-sdk-auth?/std",
@@ -48,6 +50,7 @@ morpheum-sdk-core = { path = "../core", default-features = false }
 morpheum-proto = { workspace = true }
 
 # Module clients (optional via features)
+morpheum-sdk-identity = { path = "../identity", optional = true, default-features = false }
 morpheum-sdk-market = { path = "../market", optional = true, default-features = false }
 morpheum-sdk-vc = { path = "../vc", optional = true, default-features = false }
 morpheum-sdk-auth = { path = "../auth", optional = true, default-features = false }

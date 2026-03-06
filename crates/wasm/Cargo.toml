@@ -56,8 +56,10 @@ web-sys = { version = "0.3", features = [
 # Better panic messages in browser console (optional but enabled in full-wasm)
 console_error_panic_hook = { version = "0.1", optional = true }
 
-# Required for getrandom in WASM (used by signing and uuid)
+# WASM-specific: enable browser crypto support for transitive deps pulled in
+# by morpheum-primitives (ed25519-dalek, k256, uuid).
 getrandom = { version = "0.2", features = ["js"] }
+uuid = { version = "1", features = ["js"] }
 
 [dev-dependencies]
 wasm-bindgen-test = "0.3"

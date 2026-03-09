@@ -64,6 +64,24 @@ impl<S: Signer> TxBuilder<S> {
         self
     }
 
+    /// Sets a pre-built nonce directly, bypassing any nonce provider.
+    ///
+    /// Takes precedence over any configured `NonceProvider`. Use when the
+    /// caller has already queried the nonce state (e.g. via gRPC).
+    pub fn with_nonce(mut self, nonce: crate::signing::proto::tx::v1::Nonce) -> Self {
+        self.inner = self.inner.with_nonce(nonce);
+        self
+    }
+
+    /// Injects a nonce provider strategy (Sentry, AgentPortal, etc.).
+    ///
+    /// Without a provider, the signing library falls back to a zero nonce
+    /// (`ts_ms=0`), which will be rejected by the chain's time-window check.
+    pub fn with_nonce_provider(mut self, provider: impl crate::signing::nonce::NonceProvider + 'static) -> Self {
+        self.inner = self.inner.with_nonce_provider(provider);
+        self
+    }
+
     /// Attaches a `TradingKeyClaim` for agent delegation.
     ///
     /// The claim will be embedded in `SignerInfo.signing_options` and covered

@@ -417,6 +417,8 @@ impl From<AgentIntent> for proto::AgentIntent {
             priority_boost: a.priority_boost,
             status: a.status.to_proto(),
             created_at: a.created_at,
+            context_data: Vec::new(),
+            blob_merkle_root: Vec::new(),
         }
     }
 }

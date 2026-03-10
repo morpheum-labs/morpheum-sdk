@@ -43,6 +43,9 @@ pub use morpheum_sdk_vc as vc;
 #[cfg(feature = "auth")]
 pub use morpheum_sdk_auth as auth;
 
+#[cfg(feature = "agent_registry")]
+pub use morpheum_sdk_agent_registry as agent_registry;
+
 // Re-export commonly used core types
 pub use core::{
     AccountId,
@@ -178,6 +181,9 @@ pub mod prelude {
 
     #[cfg(feature = "auth")]
     pub use super::auth::AuthClient;
+
+    #[cfg(feature = "agent_registry")]
+    pub use super::agent_registry::AgentRegistryClient;
 }
 
 // Current version of the native SDK

@@ -16,8 +16,9 @@ use crate::requests::{
     RevokeVcRequest,
     SelfRevokeVcRequest,
     UpdateClaimsRequest,
+    UpdateParamsRequest,
 };
-use crate::types::VcClaims;
+use crate::types::{Params, VcClaims};
 
 /// Fluent builder for issuing a new Verifiable Credential.
 ///
@@ -281,6 +282,41 @@ impl UpdateClaimsBuilder {
         })?;
 
         Ok(UpdateClaimsRequest::new(vc_id, issuer, new_claims, issuer_signature))
+    }
+}
+
+/// Fluent builder for updating VC module parameters (governance).
+#[derive(Default)]
+pub struct VcUpdateParamsBuilder {
+    params: Option<Params>,
+    gov_signature: Option<Vec<u8>>,
+}
+
+impl VcUpdateParamsBuilder {
+    pub fn new() -> Self {
+        Self::default()
+    }
+
+    pub fn params(mut self, params: Params) -> Self {
+        self.params = Some(params);
+        self
+    }
+
+    pub fn gov_signature(mut self, sig: Vec<u8>) -> Self {
+        self.gov_signature = Some(sig);
+        self
+    }
+
+    pub fn build(self) -> Result<UpdateParamsRequest, SdkError> {
+        let params = self.params.ok_or_else(|| {
+            SdkError::invalid_input("params are required for VC UpdateParams")
+        })?;
+
+        let gov_signature = self.gov_signature.ok_or_else(|| {
+            SdkError::invalid_input("gov_signature is required for VC UpdateParams")
+        })?;
+
+        Ok(UpdateParamsRequest::new(params, gov_signature))
     }
 }
 

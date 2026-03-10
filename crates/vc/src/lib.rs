@@ -34,6 +34,7 @@ pub use builder::{
     VcRevokeBuilder,
     VcSelfRevokeBuilder,
     UpdateClaimsBuilder,
+    VcUpdateParamsBuilder,
 };
 
 /// Core domain types for Verifiable Credentials.
@@ -75,6 +76,7 @@ pub mod prelude {
         VcRevokeBuilder,
         VcSelfRevokeBuilder,
         UpdateClaimsBuilder,
+        VcUpdateParamsBuilder,
         Vc,
         VcClaims,
         Vp,

@@ -31,6 +31,7 @@ vc = ["dep:morpheum-sdk-vc"]
 auth = ["dep:morpheum-sdk-auth"]
 agent_registry = ["dep:morpheum-sdk-agent-registry"]
 inference_registry = ["dep:morpheum-sdk-inference-registry"]
+interop = ["dep:morpheum-sdk-interop"]
 
 # Transport backends
 grpc = ["dep:tonic", "dep:tokio"]
@@ -46,6 +47,7 @@ std = [
     "morpheum-sdk-auth?/std",
     "morpheum-sdk-agent-registry?/std",
     "morpheum-sdk-inference-registry?/std",
+    "morpheum-sdk-interop?/std",
 ]
 
 [dependencies]
@@ -60,6 +62,7 @@ morpheum-sdk-vc = { path = "../vc", optional = true, default-features = false }
 morpheum-sdk-auth = { path = "../auth", optional = true, default-features = false }
 morpheum-sdk-agent-registry = { path = "../agent_registry", optional = true, default-features = false }
 morpheum-sdk-inference-registry = { path = "../inference_registry", optional = true, default-features = false }
+morpheum-sdk-interop = { path = "../interop", optional = true, default-features = false }
 
 # Official Morpheum signing library (native version with full crypto, BIP-39, claims)
 morpheum-signing-native = { workspace = true }

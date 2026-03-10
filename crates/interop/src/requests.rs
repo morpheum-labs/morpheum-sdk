@@ -509,6 +509,7 @@ mod tests {
                 intent_data: vec![1, 2, 3],
                 signature: vec![0u8; 64],
                 exported_at: 1_700_000_000,
+                blob_merkle_root: Vec::new(),
             }),
             target_tx_hash: "0xfeed".into(),
             found: true,
@@ -529,6 +530,7 @@ mod tests {
                 agent_hash: "agent-abc".into(),
                 exported_at: 1_700_000_100,
                 merkle_proof: "merkle".into(),
+                blob_merkle_root: Vec::new(),
                 proof: Some(proto::cross_chain_proof_packet::Proof::ReputationProof(
                     proto::ReputationProofPacket {
                         agent_hash: "agent-abc".into(),

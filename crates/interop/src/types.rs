@@ -217,6 +217,7 @@ impl From<CrossChainProofPacket> for proto::CrossChainProofPacket {
             proof: p.proof.map(Into::into),
             exported_at: p.exported_at,
             merkle_proof: p.merkle_proof,
+            blob_merkle_root: Vec::new(),
         }
     }
 }
@@ -263,6 +264,7 @@ impl From<IntentExportPacket> for proto::IntentExportPacket {
             intent_data: p.intent_data,
             signature: p.signature,
             exported_at: p.exported_at,
+            blob_merkle_root: Vec::new(),
         }
     }
 }

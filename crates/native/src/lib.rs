@@ -46,6 +46,9 @@ pub use morpheum_sdk_auth as auth;
 #[cfg(feature = "agent_registry")]
 pub use morpheum_sdk_agent_registry as agent_registry;
 
+#[cfg(feature = "inference_registry")]
+pub use morpheum_sdk_inference_registry as inference_registry;
+
 // Re-export commonly used core types
 pub use core::{
     AccountId,
@@ -184,6 +187,9 @@ pub mod prelude {
 
     #[cfg(feature = "agent_registry")]
     pub use super::agent_registry::AgentRegistryClient;
+
+    #[cfg(feature = "inference_registry")]
+    pub use super::inference_registry::InferenceRegistryClient;
 }
 
 // Current version of the native SDK

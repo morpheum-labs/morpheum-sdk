@@ -13,6 +13,7 @@ members = [
     "crates/marketplace",
     "crates/interop",
     "crates/agent_registry",
+    "crates/inference_registry",
     "crates/native",
     "crates/wasm",
     "examples",

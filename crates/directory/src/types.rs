@@ -143,6 +143,11 @@ impl From<AgentDirectoryProfile> for proto::AgentDirectoryProfile {
             memory_health_score: p.memory_health_score,
             visibility: p.visibility.to_proto(),
             last_updated: p.last_updated,
+            caip_id: String::new(),
+            erc8004_view_hash: Vec::new(),
+            a2a_ready: false,
+            mcp_manifest_hash: Vec::new(),
+            export_synced: false,
         }
     }
 }

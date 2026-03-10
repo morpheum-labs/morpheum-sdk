@@ -162,6 +162,7 @@ mod tests {
                             memory_health_score: 80,
                             visibility: 0, // PUBLIC
                             last_updated: 1_700_000_000,
+                            ..Default::default()
                         }),
                         found: true,
                     };

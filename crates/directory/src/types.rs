@@ -5,6 +5,7 @@
 //! conversion to/from protobuf while remaining strictly `no_std` compatible.
 
 use alloc::string::String;
+use alloc::vec::Vec;
 use core::fmt;
 
 #[cfg(feature = "serde")]

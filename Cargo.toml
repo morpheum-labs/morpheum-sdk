@@ -14,6 +14,7 @@ members = [
     "crates/interop",
     "crates/agent_registry",
     "crates/inference_registry",
+    "crates/job",
     "crates/native",
     "crates/wasm",
     "examples",

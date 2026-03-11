@@ -16,6 +16,7 @@ members = [
     "crates/inference_registry",
     "crates/job",
     "crates/bank",
+    "crates/staking",
     "crates/native",
     "crates/wasm",
     "examples",

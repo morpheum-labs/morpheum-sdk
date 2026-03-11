@@ -58,6 +58,9 @@ pub use morpheum_sdk_job as job;
 #[cfg(feature = "bank")]
 pub use morpheum_sdk_bank as bank;
 
+#[cfg(feature = "staking")]
+pub use morpheum_sdk_staking as staking;
+
 // Re-export commonly used core types
 pub use core::{
     AccountId,
@@ -208,6 +211,9 @@ pub mod prelude {
 
     #[cfg(feature = "bank")]
     pub use super::bank::BankClient;
+
+    #[cfg(feature = "staking")]
+    pub use super::staking::StakingClient;
 }
 
 // Current version of the native SDK

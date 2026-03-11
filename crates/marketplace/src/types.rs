@@ -230,6 +230,8 @@ impl From<AgentListing> for proto::AgentListing {
             status: l.status.to_proto(),
             created_at: l.created_at,
             expires_at: l.expires_at,
+            metadata_payload: Vec::new(),
+            blob_merkle_root: Vec::new(),
         }
     }
 }
@@ -390,6 +392,8 @@ impl From<EvaluationReport> for proto::EvaluationReport {
             summary: r.summary,
             detailed_report_hash: r.detailed_report_hash,
             submitted_at: r.submitted_at,
+            detailed_report: Vec::new(),
+            blob_merkle_root: Vec::new(),
         }
     }
 }

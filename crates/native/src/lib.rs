@@ -52,6 +52,9 @@ pub use morpheum_sdk_inference_registry as inference_registry;
 #[cfg(feature = "interop")]
 pub use morpheum_sdk_interop as interop;
 
+#[cfg(feature = "job")]
+pub use morpheum_sdk_job as job;
+
 // Re-export commonly used core types
 pub use core::{
     AccountId,
@@ -196,6 +199,9 @@ pub mod prelude {
 
     #[cfg(feature = "interop")]
     pub use super::interop::InteropClient;
+
+    #[cfg(feature = "job")]
+    pub use super::job::JobClient;
 }
 
 // Current version of the native SDK

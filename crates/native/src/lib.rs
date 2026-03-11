@@ -55,6 +55,9 @@ pub use morpheum_sdk_interop as interop;
 #[cfg(feature = "job")]
 pub use morpheum_sdk_job as job;
 
+#[cfg(feature = "bank")]
+pub use morpheum_sdk_bank as bank;
+
 // Re-export commonly used core types
 pub use core::{
     AccountId,
@@ -202,6 +205,9 @@ pub mod prelude {
 
     #[cfg(feature = "job")]
     pub use super::job::JobClient;
+
+    #[cfg(feature = "bank")]
+    pub use super::bank::BankClient;
 }
 
 // Current version of the native SDK

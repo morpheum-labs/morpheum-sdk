@@ -319,7 +319,6 @@ impl From<ClaimRewardsRequest> for proto::MsgClaimRewardsRequest {
 #[derive(Clone, Debug, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct AccrueFeesRequest {
-    pub txhash: String,
     pub tps: String,
     pub asset_index: u64,
     pub volume: String,
@@ -330,14 +329,12 @@ pub struct AccrueFeesRequest {
 
 impl AccrueFeesRequest {
     pub fn new(
-        txhash: impl Into<String>,
         asset_index: u64,
         fees: impl Into<String>,
         validator_id: impl Into<String>,
         sig: Vec<u8>,
     ) -> Self {
         Self {
-            txhash: txhash.into(),
             tps: String::new(),
             asset_index,
             volume: String::new(),
@@ -359,7 +356,6 @@ impl AccrueFeesRequest {
 impl From<AccrueFeesRequest> for proto::MsgAccrueFeesRequest {
     fn from(req: AccrueFeesRequest) -> Self {
         Self {
-            txhash: req.txhash,
             tps: req.tps,
             asset_index: req.asset_index,
             volume: req.volume,
@@ -873,7 +869,7 @@ mod tests {
 
     #[test]
     fn accrue_fees_request_to_any() {
-        let req = AccrueFeesRequest::new("txhash-1", 0, "100", "val-1", vec![5, 6]);
+        let req = AccrueFeesRequest::new(0, "100", "val-1", vec![5, 6]);
         let any = req.to_any();
         assert_eq!(any.type_url, "/staking.v1.MsgAccrueFeesRequest");
     }

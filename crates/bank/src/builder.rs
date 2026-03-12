@@ -484,7 +484,6 @@ pub struct DepositBuilder {
     asset: Option<AssetIdentifier>,
     amount: Option<String>,
     source_chain: Option<ChainType>,
-    external_txhash: Option<String>,
     is_genesis_mint: bool,
     external_address: Option<String>,
 }
@@ -514,11 +513,6 @@ impl DepositBuilder {
         self
     }
 
-    pub fn external_txhash(mut self, hash: impl Into<String>) -> Self {
-        self.external_txhash = Some(hash.into());
-        self
-    }
-
     pub fn genesis_mint(mut self, is_genesis: bool) -> Self {
         self.is_genesis_mint = is_genesis;
         self
@@ -544,9 +538,6 @@ impl DepositBuilder {
         })?;
 
         let mut req = DepositRequest::new(from_address, asset, amount, source_chain);
-        if let Some(h) = self.external_txhash {
-            req.external_txhash = h;
-        }
         req.is_genesis_mint = self.is_genesis_mint;
         req.external_address = self.external_address;
         Ok(req)
@@ -702,11 +693,9 @@ mod tests {
             .asset(AssetIdentifier::symbol("MORM"))
             .amount("10000")
             .source_chain(ChainType::Ethereum)
-            .external_txhash("0xabc123")
             .build()
             .unwrap();
 
-        assert_eq!(req.external_txhash, "0xabc123");
         assert_eq!(req.source_chain, ChainType::Ethereum);
     }
 

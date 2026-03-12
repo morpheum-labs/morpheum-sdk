@@ -295,7 +295,6 @@ impl ClaimRewardsBuilder {
 /// Fluent builder for accruing transaction fees (validator/system operation).
 #[derive(Default)]
 pub struct AccrueFeesBuilder {
-    txhash: Option<String>,
     tps: Option<String>,
     asset_index: Option<u64>,
     volume: Option<String>,
@@ -307,9 +306,6 @@ pub struct AccrueFeesBuilder {
 impl AccrueFeesBuilder {
     pub fn new() -> Self { Self::default() }
 
-    pub fn txhash(mut self, hash: impl Into<String>) -> Self {
-        self.txhash = Some(hash.into()); self
-    }
     pub fn tps(mut self, tps: impl Into<String>) -> Self {
         self.tps = Some(tps.into()); self
     }
@@ -330,13 +326,12 @@ impl AccrueFeesBuilder {
     }
 
     pub fn build(self) -> Result<AccrueFeesRequest, SdkError> {
-        let txhash = self.txhash.ok_or_else(|| SdkError::invalid_input("txhash is required for fee accrual"))?;
         let asset_index = self.asset_index.ok_or_else(|| SdkError::invalid_input("asset_index is required for fee accrual"))?;
         let fees = self.fees.ok_or_else(|| SdkError::invalid_input("fees is required for fee accrual"))?;
         let validator_id = self.validator_id.ok_or_else(|| SdkError::invalid_input("validator_id is required for fee accrual"))?;
         let sig = self.sig.ok_or_else(|| SdkError::invalid_input("sig is required for fee accrual"))?;
 
-        let mut req = AccrueFeesRequest::new(txhash, asset_index, fees, validator_id, sig);
+        let mut req = AccrueFeesRequest::new(asset_index, fees, validator_id, sig);
         if let Some(tps) = self.tps { req.tps = tps; }
         if let Some(volume) = self.volume { req.volume = volume; }
         Ok(req)
@@ -738,7 +733,6 @@ mod tests {
     #[test]
     fn accrue_fees_builder_works() {
         let req = AccrueFeesBuilder::new()
-            .txhash("hash-1")
             .asset_index(0)
             .fees("100")
             .validator_id("val-1")

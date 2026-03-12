@@ -15,7 +15,7 @@ use prost::Message as _;
 
 use morpheum_sdk_core::{MorpheumClient, SdkConfig, SdkError, Transport};
 
-use crate::requests::{QueryBalanceRequest, QueryBalancesRequest, QueryTransactionRequest};
+use crate::requests::{QueryBalanceRequest, QueryBalancesRequest};
 use crate::types::Balance;
 
 /// Primary client for all bank-related queries.
@@ -91,25 +91,6 @@ impl BankClient {
             .collect())
     }
 
-    /// Queries whether a transaction exists by hash.
-    pub async fn query_transaction(
-        &self,
-        txhash: impl Into<String>,
-    ) -> Result<bool, SdkError> {
-        let req = QueryTransactionRequest::new(txhash);
-        let proto_req: morpheum_proto::bank::v1::QueryTransactionRequest = req.into();
-
-        let path = "/bank.v1.Query/QueryTransaction";
-        let data = proto_req.encode_to_vec();
-        let response_bytes = self.query(path, data).await?;
-
-        let proto_res = morpheum_proto::bank::v1::QueryTransactionResponse::decode(
-            response_bytes.as_slice(),
-        )
-        .map_err(SdkError::Decode)?;
-
-        Ok(proto_res.found)
-    }
 }
 
 /// Response from a single-asset balance query.
@@ -174,13 +155,6 @@ mod tests {
                     };
                     Ok(prost::Message::encode_to_vec(&dummy))
                 }
-                "/bank.v1.Query/QueryTransaction" => {
-                    let dummy = morpheum_proto::bank::v1::QueryTransactionResponse {
-                        transaction: None,
-                        found: true,
-                    };
-                    Ok(prost::Message::encode_to_vec(&dummy))
-                }
                 _ => Err(SdkError::transport("unexpected query path in test")),
             }
         }
@@ -207,13 +181,4 @@ mod tests {
         assert!(result.is_ok());
     }
 
-    #[tokio::test]
-    async fn bank_client_query_transaction_works() {
-        let config = SdkConfig::new("https://sentry.morpheum.xyz", "morpheum-test-1");
-        let client = BankClient::new(config, Box::new(DummyTransport));
-
-        let result = client.query_transaction("abc123").await;
-        assert!(result.is_ok());
-        assert!(result.unwrap());
-    }
 }

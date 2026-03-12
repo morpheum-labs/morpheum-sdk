@@ -360,7 +360,6 @@ pub struct DepositRequest {
     pub asset: AssetIdentifier,
     pub amount: String,
     pub source_chain: ChainType,
-    pub external_txhash: String,
     pub is_genesis_mint: bool,
     pub external_address: Option<String>,
 }
@@ -377,7 +376,6 @@ impl DepositRequest {
             asset,
             amount: amount.into(),
             source_chain,
-            external_txhash: String::new(),
             is_genesis_mint: false,
             external_address: None,
         }
@@ -406,7 +404,6 @@ impl From<DepositRequest> for proto::MsgDepositRequest {
             from_address: req.from_address,
             amount: req.amount,
             source_chain: i32::from(req.source_chain),
-            external_txhash: req.external_txhash,
             timestamp: None,
             metadata: Default::default(),
             is_genesis_mint: req.is_genesis_mint,
@@ -542,25 +539,6 @@ impl From<QueryBalancesRequest> for proto::QueryBalancesRequest {
             chain_type: req.chain_type.map(i32::from),
             asset_type_filter: req.asset_type_filter,
         }
-    }
-}
-
-/// Query a transaction by hash.
-#[derive(Clone, Debug, PartialEq, Eq)]
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-pub struct QueryTransactionRequest {
-    pub txhash: String,
-}
-
-impl QueryTransactionRequest {
-    pub fn new(txhash: impl Into<String>) -> Self {
-        Self { txhash: txhash.into() }
-    }
-}
-
-impl From<QueryTransactionRequest> for proto::QueryTransactionRequest {
-    fn from(req: QueryTransactionRequest) -> Self {
-        Self { txhash: req.txhash }
     }
 }
 

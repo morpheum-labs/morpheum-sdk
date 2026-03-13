@@ -18,6 +18,7 @@ members = [
     "crates/job",
     "crates/bank",
     "crates/staking",
+    "crates/upgrade",
     "crates/native",
     "crates/wasm",
     "examples",

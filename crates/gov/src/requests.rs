@@ -301,122 +301,6 @@ impl From<CancelProposalRequest> for proto::MsgCancelProposalRequest {
     }
 }
 
-/// Manually trigger execution of a passed proposal after enactment delay.
-#[derive(Clone, Debug, PartialEq, Eq)]
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-pub struct ExecuteProposalRequest {
-    pub from_address: AccountId,
-    pub proposal_id: u64,
-}
-
-impl ExecuteProposalRequest {
-    pub fn new(from_address: AccountId, proposal_id: u64) -> Self {
-        Self { from_address, proposal_id }
-    }
-
-    pub fn to_any(&self) -> ProtoAny {
-        let msg: proto::MsgExecuteProposalRequest = self.clone().into();
-        ProtoAny {
-            type_url: "/gov.v1.MsgExecuteProposalRequest".into(),
-            value: msg.encode_to_vec(),
-        }
-    }
-}
-
-impl From<ExecuteProposalRequest> for proto::MsgExecuteProposalRequest {
-    fn from(req: ExecuteProposalRequest) -> Self {
-        Self {
-            from_address: req.from_address.to_string(),
-            proposal_id: req.proposal_id,
-            timestamp: None,
-        }
-    }
-}
-
-/// Signal that a validator is ready for a scheduled upgrade.
-#[derive(Clone, Debug, PartialEq, Eq)]
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-pub struct SignalUpgradeReadyRequest {
-    pub from_address: AccountId,
-    pub proposal_id: u64,
-    pub validator_pubkey: String,
-}
-
-impl SignalUpgradeReadyRequest {
-    pub fn new(
-        from_address: AccountId,
-        proposal_id: u64,
-        validator_pubkey: impl Into<String>,
-    ) -> Self {
-        Self {
-            from_address,
-            proposal_id,
-            validator_pubkey: validator_pubkey.into(),
-        }
-    }
-
-    pub fn to_any(&self) -> ProtoAny {
-        let msg: proto::MsgSignalUpgradeReadyRequest = self.clone().into();
-        ProtoAny {
-            type_url: "/gov.v1.MsgSignalUpgradeReadyRequest".into(),
-            value: msg.encode_to_vec(),
-        }
-    }
-}
-
-impl From<SignalUpgradeReadyRequest> for proto::MsgSignalUpgradeReadyRequest {
-    fn from(req: SignalUpgradeReadyRequest) -> Self {
-        Self {
-            from_address: req.from_address.to_string(),
-            proposal_id: req.proposal_id,
-            validator_pubkey: req.validator_pubkey,
-            timestamp: None,
-        }
-    }
-}
-
-/// Cancel a scheduled upgrade (safety net).
-#[derive(Clone, Debug, PartialEq, Eq)]
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-pub struct CancelUpgradeRequest {
-    pub from_address: AccountId,
-    pub proposal_id: u64,
-    pub reason: String,
-}
-
-impl CancelUpgradeRequest {
-    pub fn new(
-        from_address: AccountId,
-        proposal_id: u64,
-        reason: impl Into<String>,
-    ) -> Self {
-        Self {
-            from_address,
-            proposal_id,
-            reason: reason.into(),
-        }
-    }
-
-    pub fn to_any(&self) -> ProtoAny {
-        let msg: proto::MsgCancelUpgradeRequest = self.clone().into();
-        ProtoAny {
-            type_url: "/gov.v1.MsgCancelUpgradeRequest".into(),
-            value: msg.encode_to_vec(),
-        }
-    }
-}
-
-impl From<CancelUpgradeRequest> for proto::MsgCancelUpgradeRequest {
-    fn from(req: CancelUpgradeRequest) -> Self {
-        Self {
-            from_address: req.from_address.to_string(),
-            proposal_id: req.proposal_id,
-            reason: req.reason,
-            timestamp: None,
-        }
-    }
-}
-
 // ====================== QUERY REQUESTS ======================
 
 /// Query current governance parameters.
@@ -661,15 +545,6 @@ mod tests {
         assert_eq!(any.type_url, "/gov.v1.MsgVoteRequest");
         assert!(!any.value.is_empty());
         assert_eq!(req.conviction_multiplier, 3);
-    }
-
-    #[test]
-    fn execute_proposal_request_to_any() {
-        let from = AccountId::new([4u8; 32]);
-        let req = ExecuteProposalRequest::new(from, 42);
-
-        let any = req.to_any();
-        assert_eq!(any.type_url, "/gov.v1.MsgExecuteProposalRequest");
     }
 
     #[test]

@@ -12,9 +12,8 @@ use morpheum_proto::google::protobuf::Any as ProtoAny;
 use morpheum_sdk_core::{AccountId, SdkError};
 
 use crate::requests::{
-    CancelProposalRequest, CancelUpgradeRequest, ExecuteProposalRequest,
-    ProposalDepositRequest, ProposalVoteRequest, ScheduleUpgradeRequest,
-    SignalUpgradeReadyRequest, SubmitProposalRequest,
+    CancelProposalRequest, ProposalDepositRequest, ProposalVoteRequest,
+    ScheduleUpgradeRequest, SubmitProposalRequest,
 };
 use crate::types::{ProposalClass, UpgradePlan, WeightedVoteOption};
 
@@ -353,130 +352,6 @@ impl CancelProposalBuilder {
     }
 }
 
-// ====================== EXECUTE PROPOSAL ======================
-
-#[derive(Default)]
-pub struct ExecuteProposalBuilder {
-    from_address: Option<AccountId>,
-    proposal_id: Option<u64>,
-}
-
-impl ExecuteProposalBuilder {
-    pub fn new() -> Self {
-        Self::default()
-    }
-
-    pub fn from_address(mut self, address: impl Into<AccountId>) -> Self {
-        self.from_address = Some(address.into());
-        self
-    }
-
-    pub fn proposal_id(mut self, id: u64) -> Self {
-        self.proposal_id = Some(id);
-        self
-    }
-
-    pub fn build(self) -> Result<ExecuteProposalRequest, SdkError> {
-        let from_address = self.from_address.ok_or_else(|| {
-            SdkError::invalid_input("from_address is required for execution")
-        })?;
-        let proposal_id = self.proposal_id.ok_or_else(|| {
-            SdkError::invalid_input("proposal_id is required")
-        })?;
-
-        Ok(ExecuteProposalRequest::new(from_address, proposal_id))
-    }
-}
-
-// ====================== SIGNAL UPGRADE READY ======================
-
-#[derive(Default)]
-pub struct SignalUpgradeReadyBuilder {
-    from_address: Option<AccountId>,
-    proposal_id: Option<u64>,
-    validator_pubkey: Option<String>,
-}
-
-impl SignalUpgradeReadyBuilder {
-    pub fn new() -> Self {
-        Self::default()
-    }
-
-    pub fn from_address(mut self, address: impl Into<AccountId>) -> Self {
-        self.from_address = Some(address.into());
-        self
-    }
-
-    pub fn proposal_id(mut self, id: u64) -> Self {
-        self.proposal_id = Some(id);
-        self
-    }
-
-    pub fn validator_pubkey(mut self, pubkey: impl Into<String>) -> Self {
-        self.validator_pubkey = Some(pubkey.into());
-        self
-    }
-
-    pub fn build(self) -> Result<SignalUpgradeReadyRequest, SdkError> {
-        let from_address = self.from_address.ok_or_else(|| {
-            SdkError::invalid_input("from_address is required for signaling upgrade readiness")
-        })?;
-        let proposal_id = self.proposal_id.ok_or_else(|| {
-            SdkError::invalid_input("proposal_id is required")
-        })?;
-        let validator_pubkey = self.validator_pubkey.ok_or_else(|| {
-            SdkError::invalid_input("validator_pubkey is required")
-        })?;
-
-        Ok(SignalUpgradeReadyRequest::new(from_address, proposal_id, validator_pubkey))
-    }
-}
-
-// ====================== CANCEL UPGRADE ======================
-
-#[derive(Default)]
-pub struct CancelUpgradeBuilder {
-    from_address: Option<AccountId>,
-    proposal_id: Option<u64>,
-    reason: Option<String>,
-}
-
-impl CancelUpgradeBuilder {
-    pub fn new() -> Self {
-        Self::default()
-    }
-
-    pub fn from_address(mut self, address: impl Into<AccountId>) -> Self {
-        self.from_address = Some(address.into());
-        self
-    }
-
-    pub fn proposal_id(mut self, id: u64) -> Self {
-        self.proposal_id = Some(id);
-        self
-    }
-
-    pub fn reason(mut self, reason: impl Into<String>) -> Self {
-        self.reason = Some(reason.into());
-        self
-    }
-
-    pub fn build(self) -> Result<CancelUpgradeRequest, SdkError> {
-        let from_address = self.from_address.ok_or_else(|| {
-            SdkError::invalid_input("from_address is required for upgrade cancellation")
-        })?;
-        let proposal_id = self.proposal_id.ok_or_else(|| {
-            SdkError::invalid_input("proposal_id is required")
-        })?;
-
-        Ok(CancelUpgradeRequest::new(
-            from_address,
-            proposal_id,
-            self.reason.unwrap_or_else(|| "No reason provided".into()),
-        ))
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -553,17 +428,6 @@ mod tests {
     }
 
     #[test]
-    fn execute_proposal_builder_works() {
-        let request = ExecuteProposalBuilder::new()
-            .from_address(AccountId::new([5u8; 32]))
-            .proposal_id(99)
-            .build()
-            .unwrap();
-
-        assert_eq!(request.proposal_id, 99);
-    }
-
-    #[test]
     fn schedule_upgrade_builder_works() {
         let plan = UpgradePlan {
             name: "v2.1.0-morpheum".into(),
@@ -590,14 +454,4 @@ mod tests {
         assert_eq!(request.upgrade_plan.name, "v2.1.0-morpheum");
     }
 
-    #[test]
-    fn cancel_upgrade_builder_default_reason() {
-        let request = CancelUpgradeBuilder::new()
-            .from_address(AccountId::new([7u8; 32]))
-            .proposal_id(5)
-            .build()
-            .unwrap();
-
-        assert_eq!(request.reason, "No reason provided");
-    }
 }

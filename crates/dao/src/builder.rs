@@ -14,7 +14,7 @@ use morpheum_sdk_core::{AccountId, SdkError};
 use crate::requests::{
     CancelDaoProposalRequest, CreateDaoProposalRequest, CreateDaoRequest,
     DaoDepositRequest, DaoVoteRequest, ExecuteDaoProposalRequest,
-    WithdrawDaoDepositRequest,
+    SignDaoProposalRequest, WithdrawDaoDepositRequest,
 };
 use crate::types::{DaoConfig, DaoType, GovernedAsset, WeightedDaoVoteOption};
 
@@ -280,6 +280,50 @@ impl DaoVoteBuilder {
             options: self.options,
             conviction_multiplier: self.conviction_multiplier,
         })
+    }
+}
+
+// ====================== SIGN PROPOSAL ======================
+
+#[derive(Default)]
+pub struct SignDaoProposalBuilder {
+    from_address: Option<AccountId>,
+    dao_id: Option<u64>,
+    proposal_id: Option<u64>,
+}
+
+impl SignDaoProposalBuilder {
+    pub fn new() -> Self {
+        Self::default()
+    }
+
+    pub fn from_address(mut self, address: impl Into<AccountId>) -> Self {
+        self.from_address = Some(address.into());
+        self
+    }
+
+    pub fn dao_id(mut self, id: u64) -> Self {
+        self.dao_id = Some(id);
+        self
+    }
+
+    pub fn proposal_id(mut self, id: u64) -> Self {
+        self.proposal_id = Some(id);
+        self
+    }
+
+    pub fn build(self) -> Result<SignDaoProposalRequest, SdkError> {
+        let from_address = self.from_address.ok_or_else(|| {
+            SdkError::invalid_input("from_address is required for signing a proposal")
+        })?;
+        let dao_id = self.dao_id.ok_or_else(|| {
+            SdkError::invalid_input("dao_id is required")
+        })?;
+        let proposal_id = self.proposal_id.ok_or_else(|| {
+            SdkError::invalid_input("proposal_id is required")
+        })?;
+
+        Ok(SignDaoProposalRequest::new(from_address, dao_id, proposal_id))
     }
 }
 

@@ -7,6 +7,8 @@
 
 Sign transactions, issue/revoke VCs, create markets, and more — with a single elegant API that works identically in native Rust and the browser.
 
+**Documentation:** [API Reference](API_REFERENCE.md) · [Full Guide](DOCUMENTATION.md) · [Architecture](ARCHITECTURE.md)
+
 ---
 
 ## Features

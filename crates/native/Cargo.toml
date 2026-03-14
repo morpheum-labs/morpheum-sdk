@@ -35,6 +35,12 @@ interop = ["dep:morpheum-sdk-interop"]
 job = ["dep:morpheum-sdk-job"]
 bank = ["dep:morpheum-sdk-bank"]
 staking = ["dep:morpheum-sdk-staking"]
+reputation = ["dep:morpheum-sdk-reputation"]
+validation = ["dep:morpheum-sdk-validation"]
+memory = ["dep:morpheum-sdk-memory"]
+intent = ["dep:morpheum-sdk-intent"]
+marketplace = ["dep:morpheum-sdk-marketplace"]
+directory = ["dep:morpheum-sdk-directory"]
 
 # Transport backends
 grpc = ["dep:tonic", "dep:tokio"]
@@ -72,6 +78,12 @@ morpheum-sdk-interop = { path = "../interop", optional = true, default-features 
 morpheum-sdk-job = { path = "../job", optional = true, default-features = false }
 morpheum-sdk-bank = { path = "../bank", optional = true, default-features = false }
 morpheum-sdk-staking = { path = "../staking", optional = true, default-features = false }
+morpheum-sdk-reputation = { path = "../reputation", optional = true, default-features = false }
+morpheum-sdk-validation = { path = "../validation", optional = true, default-features = false }
+morpheum-sdk-memory = { path = "../memory", optional = true, default-features = false }
+morpheum-sdk-intent = { path = "../intent", optional = true, default-features = false }
+morpheum-sdk-marketplace = { path = "../marketplace", optional = true, default-features = false }
+morpheum-sdk-directory = { path = "../directory", optional = true, default-features = false }
 
 # Official Morpheum signing library (native version with full crypto, BIP-39, claims)
 morpheum-signing-native = { workspace = true }

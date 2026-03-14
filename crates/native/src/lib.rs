@@ -61,6 +61,24 @@ pub use morpheum_sdk_bank as bank;
 #[cfg(feature = "staking")]
 pub use morpheum_sdk_staking as staking;
 
+#[cfg(feature = "reputation")]
+pub use morpheum_sdk_reputation as reputation;
+
+#[cfg(feature = "validation")]
+pub use morpheum_sdk_validation as validation;
+
+#[cfg(feature = "memory")]
+pub use morpheum_sdk_memory as memory;
+
+#[cfg(feature = "intent")]
+pub use morpheum_sdk_intent as intent;
+
+#[cfg(feature = "marketplace")]
+pub use morpheum_sdk_marketplace as marketplace;
+
+#[cfg(feature = "directory")]
+pub use morpheum_sdk_directory as directory;
+
 // Re-export commonly used core types
 pub use core::{
     AccountId,

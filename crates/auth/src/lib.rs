@@ -26,11 +26,10 @@ pub mod requests;
 /// account state, etc.).
 pub use client::AuthClient;
 
-/// Fluent builders for TradingKey management and parameter updates.
+/// Fluent builders for TradingKey management.
 pub use builder::{
     ApproveTradingKeyBuilder,
     RevokeTradingKeyBuilder,
-    UpdateParamsBuilder,
 };
 
 /// Re-export key domain types from the auth module.
@@ -69,7 +68,6 @@ pub mod prelude {
         AuthClient,
         ApproveTradingKeyBuilder,
         RevokeTradingKeyBuilder,
-        UpdateParamsBuilder,
         BaseAccount,
         ModuleAccount,
         NonceState,

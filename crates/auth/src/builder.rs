@@ -13,9 +13,7 @@ use morpheum_sdk_core::{AccountId, SdkError};
 use crate::requests::{
     ApproveTradingKeyRequest,
     RevokeTradingKeyRequest,
-    UpdateParamsRequest,
 };
-use crate::types::Params;
 
 /// Fluent builder for approving a Trading Key (delegated session key).
 ///
@@ -193,60 +191,6 @@ impl RevokeTradingKeyBuilder {
     }
 }
 
-/// Fluent builder for updating auth module parameters via governance.
-///
-/// Uses [`Params::default()`] if no explicit params are provided, so callers
-/// can override only the fields they care about.
-///
-/// # Example
-/// ```rust,ignore
-/// let request = UpdateParamsBuilder::new()
-///     .authority(governance_account_id)
-///     .params(Params {
-///         mana_threshold: 100,
-///         ..Default::default()
-///     })
-///     .build()?;
-/// ```
-#[derive(Default)]
-pub struct UpdateParamsBuilder {
-    authority: Option<AccountId>,
-    params: Option<Params>,
-}
-
-impl UpdateParamsBuilder {
-    pub fn new() -> Self {
-        Self::default()
-    }
-
-    /// Sets the governance authority address.
-    ///
-    /// Accepts any type that converts into `AccountId`.
-    pub fn authority(mut self, authority: impl Into<AccountId>) -> Self {
-        self.authority = Some(authority.into());
-        self
-    }
-
-    /// Sets the new module parameters.
-    pub fn params(mut self, params: Params) -> Self {
-        self.params = Some(params);
-        self
-    }
-
-    /// Builds the update params request, performing validation.
-    pub fn build(self) -> Result<UpdateParamsRequest, SdkError> {
-        let authority = self.authority.ok_or_else(|| {
-            SdkError::invalid_input("authority is required for UpdateParams")
-        })?;
-
-        let params = self.params.ok_or_else(|| {
-            SdkError::invalid_input("params are required for UpdateParams")
-        })?;
-
-        Ok(UpdateParamsRequest::new(authority, params))
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -295,21 +239,4 @@ mod tests {
         assert_eq!(request.reason, Some("Agent compromised".into()));
     }
 
-    #[test]
-    fn update_params_builder_works() {
-        let authority = AccountId::new([3u8; 32]);
-
-        let request = UpdateParamsBuilder::new()
-            .authority(authority.clone())
-            .params(Params {
-                mana_threshold: 100,
-                ..Default::default()
-            })
-            .build()
-            .unwrap();
-
-        assert_eq!(request.authority, authority);
-        assert_eq!(request.params.mana_threshold, 100);
-        assert_eq!(request.params.max_memo_characters, 256); // default
-    }
 }

@@ -1,8 +1,8 @@
 //! Fluent builders for the Reputation module.
 //!
 //! This module provides ergonomic, type-safe fluent builders for all reputation
-//! transaction operations (penalties, recoveries, milestone forcing, parameter
-//! updates). Each builder follows the classic Builder pattern and returns the
+//! transaction operations (penalties, recoveries, milestone forcing). Each
+//! builder follows the classic Builder pattern and returns the
 //! corresponding request type from `requests.rs` for seamless integration
 //! with `TxBuilder`.
 
@@ -15,9 +15,8 @@ use crate::requests::{
     ApplyPenaltyRequest,
     ApplyRecoveryRequest,
     ForceMilestoneRequest,
-    UpdateParamsRequest,
 };
-use crate::types::{Params, RecoveryActionType};
+use crate::types::RecoveryActionType;
 
 /// Fluent builder for applying a penalty to an agent's reputation.
 ///
@@ -234,56 +233,6 @@ impl ForceMilestoneBuilder {
     }
 }
 
-/// Fluent builder for updating reputation module parameters (governance).
-///
-/// # Example
-/// ```rust,ignore
-/// let request = UpdateParamsBuilder::new()
-///     .params(Params {
-///         slashing_multiplier: 200,
-///         ..Default::default()
-///     })
-///     .gov_signature(sig_bytes)
-///     .build()?;
-/// ```
-#[derive(Default)]
-pub struct UpdateParamsBuilder {
-    params: Option<Params>,
-    gov_signature: Option<Vec<u8>>,
-}
-
-impl UpdateParamsBuilder {
-    /// Creates a new empty builder.
-    pub fn new() -> Self {
-        Self::default()
-    }
-
-    /// Sets the new module parameters.
-    pub fn params(mut self, params: Params) -> Self {
-        self.params = Some(params);
-        self
-    }
-
-    /// Sets the governance signature authorising this update.
-    pub fn gov_signature(mut self, sig: Vec<u8>) -> Self {
-        self.gov_signature = Some(sig);
-        self
-    }
-
-    /// Builds the update-params request, performing validation.
-    pub fn build(self) -> Result<UpdateParamsRequest, SdkError> {
-        let params = self.params.ok_or_else(|| {
-            SdkError::invalid_input("params are required for UpdateParams")
-        })?;
-
-        let gov_signature = self.gov_signature.ok_or_else(|| {
-            SdkError::invalid_input("gov_signature is required for UpdateParams")
-        })?;
-
-        Ok(UpdateParamsRequest::new(params, gov_signature))
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -357,24 +306,4 @@ mod tests {
         assert!(result.is_err());
     }
 
-    #[test]
-    fn update_params_builder_works() {
-        let request = UpdateParamsBuilder::new()
-            .params(Params {
-                slashing_multiplier: 200,
-                ..Default::default()
-            })
-            .gov_signature(vec![0u8; 64])
-            .build()
-            .unwrap();
-
-        assert_eq!(request.params.slashing_multiplier, 200);
-        assert_eq!(request.params.daily_recovery_cap_bps, 3000); // default
-    }
-
-    #[test]
-    fn update_params_builder_validation() {
-        let result = UpdateParamsBuilder::new().build();
-        assert!(result.is_err());
-    }
 }

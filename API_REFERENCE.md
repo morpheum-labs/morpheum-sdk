@@ -246,7 +246,6 @@ Client for Verifiable Credentials: issue, revoke, query, status.
 | `VcRevokeBuilder` | Revoke VC (issuer-initiated) |
 | `VcSelfRevokeBuilder` | Self-revoke (subject-initiated) |
 | `UpdateClaimsBuilder` | Update VC claims |
-| `VcUpdateParamsBuilder` | Update module params |
 
 ### Types
 
@@ -276,7 +275,6 @@ Client for nonce queries, TradingKey management, account state.
 |---------|---------|
 | `ApproveTradingKeyBuilder` | Approve trading key |
 | `RevokeTradingKeyBuilder` | Revoke trading key |
-| `UpdateParamsBuilder` | Update auth params |
 
 ### Types
 
@@ -336,7 +334,7 @@ Client for nonce queries, TradingKey management, account state.
 ### Directory (`morpheum-sdk-directory`)
 
 - **Client:** `DirectoryClient`
-- **Requests:** `UpdateProfileRequest`, `UpdateVisibilityRequest`, `UpdateParamsRequest`
+- **Requests:** `UpdateProfileRequest`, `UpdateVisibilityRequest`
 
 ### Reputation (`morpheum-sdk-reputation`)
 

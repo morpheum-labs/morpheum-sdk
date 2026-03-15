@@ -10,10 +10,10 @@ use alloc::vec::Vec;
 
 use morpheum_sdk_core::SdkError;
 
-use crate::requests::{CancelIntentRequest, SubmitIntentRequest, UpdateParamsRequest};
+use crate::requests::{CancelIntentRequest, SubmitIntentRequest};
 use crate::types::{
     AgentIntent, ConditionalParams, DeclarativeParams, IntentParams, IntentStatus, IntentType,
-    MultiLegParams, Params, TwapParams,
+    MultiLegParams, TwapParams,
 };
 
 /// Fluent builder for constructing and submitting an agent intent.
@@ -212,56 +212,6 @@ impl CancelIntentBuilder {
     }
 }
 
-/// Fluent builder for updating intent module parameters (governance only).
-///
-/// # Example
-/// ```rust,ignore
-/// let request = UpdateParamsBuilder::new()
-///     .params(Params {
-///         max_concurrent_intents_per_agent: 20,
-///         ..Default::default()
-///     })
-///     .gov_signature(sig_bytes)
-///     .build()?;
-/// ```
-#[derive(Default)]
-pub struct UpdateParamsBuilder {
-    params: Option<Params>,
-    gov_signature: Option<Vec<u8>>,
-}
-
-impl UpdateParamsBuilder {
-    /// Creates a new empty builder.
-    pub fn new() -> Self {
-        Self::default()
-    }
-
-    /// Sets the new module parameters.
-    pub fn params(mut self, params: Params) -> Self {
-        self.params = Some(params);
-        self
-    }
-
-    /// Sets the governance signature authorising this update.
-    pub fn gov_signature(mut self, sig: Vec<u8>) -> Self {
-        self.gov_signature = Some(sig);
-        self
-    }
-
-    /// Builds the update-params request, performing validation.
-    pub fn build(self) -> Result<UpdateParamsRequest, SdkError> {
-        let params = self.params.ok_or_else(|| {
-            SdkError::invalid_input("params are required for UpdateParams")
-        })?;
-
-        let gov_signature = self.gov_signature.ok_or_else(|| {
-            SdkError::invalid_input("gov_signature is required for UpdateParams")
-        })?;
-
-        Ok(UpdateParamsRequest::new(params, gov_signature))
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -412,24 +362,4 @@ mod tests {
         assert!(result.is_err());
     }
 
-    #[test]
-    fn update_params_builder_works() {
-        let request = UpdateParamsBuilder::new()
-            .params(Params {
-                max_concurrent_intents_per_agent: 20,
-                ..Default::default()
-            })
-            .gov_signature(vec![0u8; 64])
-            .build()
-            .unwrap();
-
-        assert_eq!(request.params.max_concurrent_intents_per_agent, 20);
-        assert_eq!(request.params.default_expiry_seconds, 3600); // default
-    }
-
-    #[test]
-    fn update_params_builder_validation() {
-        let result = UpdateParamsBuilder::new().build();
-        assert!(result.is_err());
-    }
 }

@@ -32,7 +32,6 @@ pub use builder::{
     BridgeRequestBuilder,
     ExportIntentBuilder,
     ExportProofBuilder,
-    UpdateParamsBuilder,
 };
 
 /// Core domain types for the interop module.
@@ -70,7 +69,6 @@ pub mod prelude {
         BridgeRequestBuilder,
         ExportIntentBuilder,
         ExportProofBuilder,
-        UpdateParamsBuilder,
         BridgePayload,
         BridgeRequestData,
         BridgeResponse,

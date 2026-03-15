@@ -13,9 +13,8 @@ use morpheum_sdk_core::SdkError;
 
 use crate::requests::{
     AcceptBidRequest, ListAgentRequest, PlaceBidRequest, RequestEvaluationRequest,
-    UpdateParamsRequest,
 };
-use crate::types::{AgentListing, ListingType, Params, RevenueShareConfig};
+use crate::types::{AgentListing, ListingType, RevenueShareConfig};
 
 /// Fluent builder for listing an agent on the marketplace.
 ///
@@ -386,60 +385,6 @@ impl RequestEvaluationBuilder {
     }
 }
 
-/// Fluent builder for updating marketplace module parameters (governance only).
-///
-/// # Example
-/// ```rust,ignore
-/// let request = UpdateParamsBuilder::new()
-///     .params(Params {
-///         default_platform_cut_bps: 300,
-///         ..Default::default()
-///     })
-///     .gov_signature(sig_bytes)
-///     .build()?;
-/// ```
-#[derive(Default)]
-pub struct UpdateParamsBuilder {
-    params: Option<Params>,
-    gov_signature: Option<Vec<u8>>,
-}
-
-impl UpdateParamsBuilder {
-    /// Creates a new empty builder.
-    pub fn new() -> Self {
-        Self::default()
-    }
-
-    /// Sets the new module parameters.
-    pub fn params(mut self, params: Params) -> Self {
-        self.params = Some(params);
-        self
-    }
-
-    /// Sets the governance signature authorising this update.
-    pub fn gov_signature(mut self, sig: Vec<u8>) -> Self {
-        self.gov_signature = Some(sig);
-        self
-    }
-
-    /// Builds the update-params request, performing validation.
-    ///
-    /// # Errors
-    ///
-    /// Returns [`SdkError`] if params or governance signature is missing.
-    pub fn build(self) -> Result<UpdateParamsRequest, SdkError> {
-        let params = self.params.ok_or_else(|| {
-            SdkError::invalid_input("params are required for UpdateParams")
-        })?;
-
-        let gov_signature = self.gov_signature.ok_or_else(|| {
-            SdkError::invalid_input("gov_signature is required for UpdateParams")
-        })?;
-
-        Ok(UpdateParamsRequest::new(params, gov_signature))
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -638,30 +583,4 @@ mod tests {
             .is_err()); // missing signature
     }
 
-    #[test]
-    fn update_params_builder_works() {
-        let req = UpdateParamsBuilder::new()
-            .params(Params {
-                default_platform_cut_bps: 300,
-                max_listings_per_agent: 100,
-                ..Default::default()
-            })
-            .gov_signature(vec![0u8; 64])
-            .build()
-            .unwrap();
-
-        assert_eq!(req.params.default_platform_cut_bps, 300);
-        assert_eq!(req.params.max_listings_per_agent, 100);
-        assert!(req.params.listings_enabled); // default
-    }
-
-    #[test]
-    fn update_params_builder_validation() {
-        assert!(UpdateParamsBuilder::new().build().is_err());
-
-        assert!(UpdateParamsBuilder::new()
-            .params(Params::default())
-            .build()
-            .is_err()); // missing gov_signature
-    }
 }

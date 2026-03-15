@@ -6,10 +6,10 @@
 //! - **Domain types**: `AgentListing`, `Bid`, `EscrowState`, `EvaluationReport`,
 //!   `ListingType`, `ListingStatus`, `RevenueShareConfig`, `Params`.
 //! - **Request/response wrappers**: `ListAgentRequest`, `PlaceBidRequest`,
-//!   `AcceptBidRequest`, `RequestEvaluationRequest`, `UpdateParamsRequest`,
+//!   `AcceptBidRequest`, `RequestEvaluationRequest`,
 //!   plus all query request/response pairs.
 //! - **Fluent builders**: `ListAgentBuilder`, `PlaceBidBuilder`,
-//!   `AcceptBidBuilder`, `RequestEvaluationBuilder`, `UpdateParamsBuilder`.
+//!   `AcceptBidBuilder`, `RequestEvaluationBuilder`.
 //! - **Client**: `MarketplaceClient` with high-level query methods.
 //!
 //! ## Quick Start
@@ -49,7 +49,6 @@ pub mod types;
 // Re-export core domain types at crate root for convenience
 pub use builder::{
     AcceptBidBuilder, ListAgentBuilder, PlaceBidBuilder, RequestEvaluationBuilder,
-    UpdateParamsBuilder,
 };
 pub use client::MarketplaceClient;
 pub use types::{
@@ -61,7 +60,6 @@ pub use types::{
 pub mod prelude {
     pub use crate::builder::{
         AcceptBidBuilder, ListAgentBuilder, PlaceBidBuilder, RequestEvaluationBuilder,
-        UpdateParamsBuilder,
     };
     pub use crate::client::MarketplaceClient;
     pub use crate::requests::{
@@ -70,7 +68,6 @@ pub mod prelude {
         QueryBidsByListingRequest, QueryBidsByListingResponse, QueryListingRequest,
         QueryListingResponse, QueryListingsRequest, QueryListingsResponse, QueryParamsRequest,
         QueryParamsResponse, RequestEvaluationRequest, RequestEvaluationResponse,
-        UpdateParamsRequest, UpdateParamsResponse,
     };
     pub use crate::types::{
         AgentListing, Bid, EscrowState, EvaluationReport, ListingStatus, ListingType, Params,

@@ -31,7 +31,6 @@ pub use builder::{
     ApplyPenaltyBuilder,
     ApplyRecoveryBuilder,
     ForceMilestoneBuilder,
-    UpdateParamsBuilder,
 };
 
 /// Core domain types for the reputation module.
@@ -66,7 +65,6 @@ pub mod prelude {
         ApplyPenaltyBuilder,
         ApplyRecoveryBuilder,
         ForceMilestoneBuilder,
-        UpdateParamsBuilder,
         MilestoneStatus,
         Params,
         RecoveryActionType,

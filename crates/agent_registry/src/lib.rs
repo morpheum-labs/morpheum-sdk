@@ -8,7 +8,6 @@
 //!
 //! Direct transactions are limited to:
 //! - `TriggerProtocolSync` — manual protocol sync (governance / emergency / testing)
-//! - `UpdateParams` — governance parameter updates
 //!
 //! All other state mutations arrive via cross-module domain events.
 //!
@@ -41,7 +40,7 @@ pub mod requests;
 
 pub use client::AgentRegistryClient;
 
-pub use builder::{TriggerProtocolSyncBuilder, UpdateParamsBuilder};
+pub use builder::TriggerProtocolSyncBuilder;
 
 pub use types::{
     AgentRecord,
@@ -63,7 +62,6 @@ pub mod prelude {
     pub use super::{
         AgentRegistryClient,
         TriggerProtocolSyncBuilder,
-        UpdateParamsBuilder,
         AgentRecord,
         CaipAgentId,
         ExportStatus,

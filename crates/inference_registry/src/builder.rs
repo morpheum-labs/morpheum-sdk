@@ -9,8 +9,8 @@ use alloc::vec::Vec;
 
 use morpheum_sdk_core::SdkError;
 
-use crate::requests::{RegisterModelRequest, UpdateParamsRequest};
-use crate::types::{Params, QuantFormat};
+use crate::requests::RegisterModelRequest;
+use crate::types::QuantFormat;
 
 /// Fluent builder for registering a new inference model (governance only).
 ///
@@ -141,52 +141,6 @@ impl RegisterModelBuilder {
     }
 }
 
-/// Fluent builder for updating inference_registry module parameters (governance only).
-///
-/// # Example
-/// ```rust,ignore
-/// let request = UpdateParamsBuilder::new()
-///     .authority("morpheum1gov")
-///     .params(Params { max_models: 500, ..Default::default() })
-///     .build()?;
-/// ```
-#[derive(Default)]
-pub struct UpdateParamsBuilder {
-    authority: Option<String>,
-    params: Option<Params>,
-}
-
-impl UpdateParamsBuilder {
-    pub fn new() -> Self {
-        Self::default()
-    }
-
-    /// Sets the governance authority address.
-    pub fn authority(mut self, authority: impl Into<String>) -> Self {
-        self.authority = Some(authority.into());
-        self
-    }
-
-    /// Sets the new module parameters.
-    pub fn params(mut self, params: Params) -> Self {
-        self.params = Some(params);
-        self
-    }
-
-    /// Builds the update-params request, performing validation.
-    pub fn build(self) -> Result<UpdateParamsRequest, SdkError> {
-        let authority = self.authority.ok_or_else(|| {
-            SdkError::invalid_input("authority is required for UpdateParams")
-        })?;
-
-        let params = self.params.ok_or_else(|| {
-            SdkError::invalid_input("params are required for UpdateParams")
-        })?;
-
-        Ok(UpdateParamsRequest::new(authority, params))
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -254,31 +208,4 @@ mod tests {
         assert!(result.is_err());
     }
 
-    #[test]
-    fn update_params_builder_full_flow() {
-        let request = UpdateParamsBuilder::new()
-            .authority("morpheum1gov")
-            .params(Params {
-                max_models: 500,
-                governance_threshold: 3,
-                ..Default::default()
-            })
-            .build()
-            .unwrap();
-
-        assert_eq!(request.authority, "morpheum1gov");
-        assert_eq!(request.params.max_models, 500);
-        assert_eq!(request.params.governance_threshold, 3);
-    }
-
-    #[test]
-    fn update_params_builder_validation() {
-        let result = UpdateParamsBuilder::new().build();
-        assert!(result.is_err());
-
-        let result = UpdateParamsBuilder::new()
-            .authority("morpheum1gov")
-            .build();
-        assert!(result.is_err());
-    }
 }

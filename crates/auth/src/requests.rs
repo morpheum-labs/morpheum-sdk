@@ -125,37 +125,6 @@ impl From<RevokeTradingKeyRequest> for proto::MsgRevokeTradingKey {
     }
 }
 
-/// Request to update module parameters via governance.
-#[derive(Clone, Debug, PartialEq, Eq)]
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-pub struct UpdateParamsRequest {
-    pub authority: AccountId,
-    pub params: crate::types::Params,
-}
-
-impl UpdateParamsRequest {
-    pub fn new(authority: impl Into<AccountId>, params: crate::types::Params) -> Self {
-        Self { authority: authority.into(), params }
-    }
-
-    pub fn to_any(&self) -> ProtoAny {
-        let msg: proto::MsgUpdateParams = self.clone().into();
-        ProtoAny {
-            type_url: "/auth.v1.MsgUpdateParams".into(),
-            value: msg.encode_to_vec(),
-        }
-    }
-}
-
-impl From<UpdateParamsRequest> for proto::MsgUpdateParams {
-    fn from(req: UpdateParamsRequest) -> Self {
-        Self {
-            authority: req.authority.to_string(),
-            params: Some(req.params.into()),
-        }
-    }
-}
-
 /// Query request for nonce state of an account.
 #[derive(Clone, Debug, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]

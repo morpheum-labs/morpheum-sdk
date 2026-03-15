@@ -1,7 +1,7 @@
 //! Fluent builders for the Validation module.
 //!
 //! This module provides ergonomic, type-safe fluent builders for all validation
-//! transaction operations (submit proof, revoke proof, parameter updates). Each
+//! transaction operations (submit proof, revoke proof). Each
 //! builder follows the classic Builder pattern and returns the corresponding
 //! request type from `requests.rs` for seamless integration with `TxBuilder`.
 
@@ -10,8 +10,8 @@ use alloc::vec::Vec;
 
 use morpheum_sdk_core::SdkError;
 
-use crate::requests::{RevokeProofRequest, SubmitProofRequest, UpdateParamsRequest};
-use crate::types::{Params, ProofType, ValidationProof};
+use crate::requests::{RevokeProofRequest, SubmitProofRequest};
+use crate::types::{ProofType, ValidationProof};
 
 /// Fluent builder for submitting a new validation proof.
 ///
@@ -188,57 +188,6 @@ impl RevokeProofBuilder {
     }
 }
 
-/// Fluent builder for updating validation module parameters (governance only).
-///
-/// # Example
-/// ```rust,ignore
-/// let request = UpdateParamsBuilder::new()
-///     .params(Params {
-///         min_score_contribution: 100,
-///         max_proofs_per_agent: 50,
-///         ..Default::default()
-///     })
-///     .gov_signature(sig_bytes)
-///     .build()?;
-/// ```
-#[derive(Default)]
-pub struct UpdateParamsBuilder {
-    params: Option<Params>,
-    gov_signature: Option<Vec<u8>>,
-}
-
-impl UpdateParamsBuilder {
-    /// Creates a new empty builder.
-    pub fn new() -> Self {
-        Self::default()
-    }
-
-    /// Sets the new module parameters.
-    pub fn params(mut self, params: Params) -> Self {
-        self.params = Some(params);
-        self
-    }
-
-    /// Sets the governance signature authorising this update.
-    pub fn gov_signature(mut self, sig: Vec<u8>) -> Self {
-        self.gov_signature = Some(sig);
-        self
-    }
-
-    /// Builds the update-params request, performing validation.
-    pub fn build(self) -> Result<UpdateParamsRequest, SdkError> {
-        let params = self.params.ok_or_else(|| {
-            SdkError::invalid_input("params are required for UpdateParams")
-        })?;
-
-        let gov_signature = self.gov_signature.ok_or_else(|| {
-            SdkError::invalid_input("gov_signature is required for UpdateParams")
-        })?;
-
-        Ok(UpdateParamsRequest::new(params, gov_signature))
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -342,31 +291,4 @@ mod tests {
         assert!(result.is_err()); // missing reason
     }
 
-    #[test]
-    fn update_params_builder_works() {
-        let request = UpdateParamsBuilder::new()
-            .params(Params {
-                min_score_contribution: 100,
-                max_proofs_per_agent: 50,
-                ..Default::default()
-            })
-            .gov_signature(vec![0u8; 64])
-            .build()
-            .unwrap();
-
-        assert_eq!(request.params.min_score_contribution, 100);
-        assert_eq!(request.params.max_proofs_per_agent, 50);
-        assert!(request.params.require_verifier_signature); // default
-    }
-
-    #[test]
-    fn update_params_builder_validation() {
-        let result = UpdateParamsBuilder::new().build();
-        assert!(result.is_err());
-
-        let result = UpdateParamsBuilder::new()
-            .params(Params::default())
-            .build();
-        assert!(result.is_err()); // missing gov_signature
-    }
 }

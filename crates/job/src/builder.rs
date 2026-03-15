@@ -11,7 +11,7 @@ use morpheum_sdk_core::SdkError;
 
 use crate::requests::{
     AttestRequest, CancelJobRequest, ClaimRefundRequest, CreateJobRequest,
-    FundJobRequest, SetProviderRequest, SubmitDeliverableRequest, UpdateParamsRequest,
+    FundJobRequest, SetProviderRequest, SubmitDeliverableRequest,
 };
 use crate::types::{Deliverable, Job, RevenueShareConfig};
 
@@ -383,41 +383,6 @@ impl CancelJobBuilder {
         })?;
 
         Ok(CancelJobRequest::new(job_id, signer_signature))
-    }
-}
-
-/// Fluent builder for updating module parameters (governance only).
-#[derive(Default)]
-pub struct UpdateParamsBuilder {
-    params: Option<crate::types::JobParams>,
-    gov_signature: Option<Vec<u8>>,
-}
-
-impl UpdateParamsBuilder {
-    pub fn new() -> Self {
-        Self::default()
-    }
-
-    pub fn params(mut self, params: crate::types::JobParams) -> Self {
-        self.params = Some(params);
-        self
-    }
-
-    pub fn gov_signature(mut self, sig: Vec<u8>) -> Self {
-        self.gov_signature = Some(sig);
-        self
-    }
-
-    pub fn build(self) -> Result<UpdateParamsRequest, SdkError> {
-        let params = self.params.ok_or_else(|| {
-            SdkError::invalid_input("params is required for UpdateParams")
-        })?;
-
-        let gov_signature = self.gov_signature.ok_or_else(|| {
-            SdkError::invalid_input("gov_signature is required for UpdateParams")
-        })?;
-
-        Ok(UpdateParamsRequest::new(params, gov_signature))
     }
 }
 

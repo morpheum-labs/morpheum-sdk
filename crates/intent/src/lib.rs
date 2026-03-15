@@ -29,7 +29,6 @@ pub use client::IntentClient;
 pub use builder::{
     CancelIntentBuilder,
     SubmitIntentBuilder,
-    UpdateParamsBuilder,
 };
 
 /// Core domain types for the intent module.
@@ -67,7 +66,6 @@ pub mod prelude {
         IntentClient,
         SubmitIntentBuilder,
         CancelIntentBuilder,
-        UpdateParamsBuilder,
         AgentIntent,
         ConditionalParams,
         DeclarativeParams,

@@ -17,7 +17,7 @@ use morpheum_proto::google::protobuf::Any as ProtoAny;
 use morpheum_sdk_core::AccountId;
 use morpheum_proto::vc::v1 as proto;
 
-use crate::types::{Params, VcClaims};
+use crate::types::VcClaims;
 
 // ====================== TRANSACTION REQUESTS ======================
 
@@ -208,37 +208,6 @@ impl From<UpdateClaimsRequest> for proto::MsgUpdateClaims {
             issuer_agent_hash: req.issuer.to_string(),
             new_claims: Some(req.new_claims.into()),
             issuer_signature: req.issuer_signature,
-        }
-    }
-}
-
-/// Request to update module parameters (governance only).
-#[derive(Clone, Debug, PartialEq, Eq)]
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-pub struct UpdateParamsRequest {
-    pub params: Params,
-    pub gov_signature: Vec<u8>,
-}
-
-impl UpdateParamsRequest {
-    pub fn new(params: Params, gov_signature: Vec<u8>) -> Self {
-        Self { params, gov_signature }
-    }
-
-    pub fn to_any(&self) -> ProtoAny {
-        let msg: proto::MsgUpdateParams = self.clone().into();
-        ProtoAny {
-            type_url: "/vc.v1.MsgUpdateParams".into(),
-            value: msg.encode_to_vec(),
-        }
-    }
-}
-
-impl From<UpdateParamsRequest> for proto::MsgUpdateParams {
-    fn from(req: UpdateParamsRequest) -> Self {
-        Self {
-            params: Some(req.params.into()),
-            gov_signature: req.gov_signature,
         }
     }
 }

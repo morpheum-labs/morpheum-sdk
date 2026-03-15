@@ -9,8 +9,7 @@ use alloc::vec::Vec;
 
 use morpheum_sdk_core::SdkError;
 
-use crate::requests::{TriggerProtocolSyncRequest, UpdateParamsRequest};
-use crate::types::Params;
+use crate::requests::TriggerProtocolSyncRequest;
 
 /// Fluent builder for triggering a manual protocol sync.
 ///
@@ -75,52 +74,6 @@ impl TriggerProtocolSyncBuilder {
     }
 }
 
-/// Fluent builder for updating agent_registry module parameters (governance only).
-///
-/// # Example
-/// ```rust,ignore
-/// let request = UpdateParamsBuilder::new()
-///     .authority("morpheum1gov")
-///     .params(Params { enable_auto_export: false, ..Default::default() })
-///     .build()?;
-/// ```
-#[derive(Default)]
-pub struct UpdateParamsBuilder {
-    authority: Option<String>,
-    params: Option<Params>,
-}
-
-impl UpdateParamsBuilder {
-    pub fn new() -> Self {
-        Self::default()
-    }
-
-    /// Sets the governance authority address.
-    pub fn authority(mut self, authority: impl Into<String>) -> Self {
-        self.authority = Some(authority.into());
-        self
-    }
-
-    /// Sets the new module parameters.
-    pub fn params(mut self, params: Params) -> Self {
-        self.params = Some(params);
-        self
-    }
-
-    /// Builds the update-params request, performing validation.
-    pub fn build(self) -> Result<UpdateParamsRequest, SdkError> {
-        let authority = self.authority.ok_or_else(|| {
-            SdkError::invalid_input("authority is required for UpdateParams")
-        })?;
-
-        let params = self.params.ok_or_else(|| {
-            SdkError::invalid_input("params are required for UpdateParams")
-        })?;
-
-        Ok(UpdateParamsRequest::new(authority, params))
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -176,31 +129,4 @@ mod tests {
         assert!(result.is_err());
     }
 
-    #[test]
-    fn update_params_builder_full_flow() {
-        let request = UpdateParamsBuilder::new()
-            .authority("morpheum1gov")
-            .params(Params {
-                enable_auto_export: false,
-                max_export_retries: 10,
-                ..Default::default()
-            })
-            .build()
-            .unwrap();
-
-        assert_eq!(request.authority, "morpheum1gov");
-        assert!(!request.params.enable_auto_export);
-        assert_eq!(request.params.max_export_retries, 10);
-    }
-
-    #[test]
-    fn update_params_builder_validation() {
-        let result = UpdateParamsBuilder::new().build();
-        assert!(result.is_err());
-
-        let result = UpdateParamsBuilder::new()
-            .authority("morpheum1gov")
-            .build();
-        assert!(result.is_err());
-    }
 }

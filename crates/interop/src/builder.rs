@@ -12,11 +12,11 @@ use alloc::vec::Vec;
 use morpheum_sdk_core::SdkError;
 
 use crate::requests::{
-    ExportIntentRequest, ExportProofRequest, SubmitBridgeRequest, UpdateParamsRequest,
+    ExportIntentRequest, ExportProofRequest, SubmitBridgeRequest,
 };
 use crate::types::{
     BridgePayload, BridgeRequestData, CrossChainProofPacket,
-    IntentExportPacket, Params,
+    IntentExportPacket,
 };
 
 /// Fluent builder for submitting a general bridge request.
@@ -264,57 +264,6 @@ impl ExportProofBuilder {
     }
 }
 
-/// Fluent builder for updating interop module parameters (governance only).
-///
-/// # Example
-/// ```rust,ignore
-/// let request = UpdateParamsBuilder::new()
-///     .params(Params {
-///         bridging_enabled: true,
-///         max_concurrent_bridge_requests: 200,
-///         ..Default::default()
-///     })
-///     .gov_signature(sig_bytes)
-///     .build()?;
-/// ```
-#[derive(Default)]
-pub struct UpdateParamsBuilder {
-    params: Option<Params>,
-    gov_signature: Option<Vec<u8>>,
-}
-
-impl UpdateParamsBuilder {
-    /// Creates a new empty builder.
-    pub fn new() -> Self {
-        Self::default()
-    }
-
-    /// Sets the new module parameters.
-    pub fn params(mut self, params: Params) -> Self {
-        self.params = Some(params);
-        self
-    }
-
-    /// Sets the governance signature authorising this update.
-    pub fn gov_signature(mut self, sig: Vec<u8>) -> Self {
-        self.gov_signature = Some(sig);
-        self
-    }
-
-    /// Builds the update-params request, performing validation.
-    pub fn build(self) -> Result<UpdateParamsRequest, SdkError> {
-        let params = self.params.ok_or_else(|| {
-            SdkError::invalid_input("params are required for UpdateParams")
-        })?;
-
-        let gov_signature = self.gov_signature.ok_or_else(|| {
-            SdkError::invalid_input("gov_signature is required for UpdateParams")
-        })?;
-
-        Ok(UpdateParamsRequest::new(params, gov_signature))
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -491,33 +440,4 @@ mod tests {
         assert!(result.is_err());
     }
 
-    #[test]
-    fn update_params_builder_works() {
-        let request = UpdateParamsBuilder::new()
-            .params(Params {
-                bridging_enabled: true,
-                max_concurrent_bridge_requests: 200,
-                ..Default::default()
-            })
-            .gov_signature(vec![0u8; 64])
-            .build()
-            .unwrap();
-
-        assert!(request.params.bridging_enabled);
-        assert_eq!(request.params.max_concurrent_bridge_requests, 200);
-        assert_eq!(request.params.default_proof_ttl_seconds, 86_400); // default
-    }
-
-    #[test]
-    fn update_params_builder_validation() {
-        // Missing all fields
-        let result = UpdateParamsBuilder::new().build();
-        assert!(result.is_err());
-
-        // Missing gov_signature
-        let result = UpdateParamsBuilder::new()
-            .params(Params::default())
-            .build();
-        assert!(result.is_err());
-    }
 }

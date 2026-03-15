@@ -27,7 +27,6 @@ pub use client::DirectoryClient;
 
 /// Fluent builders for directory transaction construction.
 pub use builder::{
-    UpdateParamsBuilder,
     UpdateProfileBuilder,
     UpdateVisibilityBuilder,
 };
@@ -60,7 +59,6 @@ pub mod prelude {
         DirectoryClient,
         UpdateProfileBuilder,
         UpdateVisibilityBuilder,
-        UpdateParamsBuilder,
         AgentDirectoryProfile,
         DirectoryFilter,
         Params,

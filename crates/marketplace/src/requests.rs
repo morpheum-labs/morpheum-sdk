@@ -12,11 +12,12 @@ use prost::Message as _;
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
+use crate::types::Params;
 use morpheum_proto::google::protobuf::Any as ProtoAny;
 use morpheum_proto::marketplace::v1 as proto;
 
 use crate::types::{
-    AgentListing, Bid, ListingStatus, Params,
+    AgentListing, Bid, ListingStatus,
 };
 
 // ====================== TRANSACTION REQUESTS ======================
@@ -284,55 +285,6 @@ impl From<proto::RequestEvaluationResponse> for RequestEvaluationResponse {
             requested_at: p.requested_at,
             success: p.success,
         }
-    }
-}
-
-/// Request to update module parameters (governance only).
-#[derive(Clone, Debug, PartialEq, Eq)]
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-pub struct UpdateParamsRequest {
-    /// New parameters.
-    pub params: Params,
-    /// Governance signature authorising this update.
-    pub gov_signature: Vec<u8>,
-}
-
-impl UpdateParamsRequest {
-    /// Creates a new update-params request.
-    pub fn new(params: Params, gov_signature: Vec<u8>) -> Self {
-        Self { params, gov_signature }
-    }
-
-    /// Converts this request into a protobuf `Any` ready for `TxBuilder::add_message`.
-    pub fn to_any(&self) -> ProtoAny {
-        let msg: proto::MsgUpdateParams = self.clone().into();
-        ProtoAny {
-            type_url: "/marketplace.v1.MsgUpdateParams".into(),
-            value: msg.encode_to_vec(),
-        }
-    }
-}
-
-impl From<UpdateParamsRequest> for proto::MsgUpdateParams {
-    fn from(req: UpdateParamsRequest) -> Self {
-        Self {
-            params: Some(req.params.into()),
-            gov_signature: req.gov_signature,
-        }
-    }
-}
-
-/// Response from updating parameters.
-#[derive(Clone, Debug, Default, PartialEq, Eq)]
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-pub struct UpdateParamsResponse {
-    /// Whether the operation succeeded.
-    pub success: bool,
-}
-
-impl From<proto::UpdateParamsResponse> for UpdateParamsResponse {
-    fn from(p: proto::UpdateParamsResponse) -> Self {
-        Self { success: p.success }
     }
 }
 
@@ -624,13 +576,6 @@ mod tests {
         let any = req.to_any();
         assert_eq!(any.type_url, "/marketplace.v1.MsgRequestEvaluation");
         assert!(!any.value.is_empty());
-    }
-
-    #[test]
-    fn update_params_request_to_any() {
-        let req = UpdateParamsRequest::new(Params::default(), vec![0u8; 64]);
-        let any = req.to_any();
-        assert_eq!(any.type_url, "/marketplace.v1.MsgUpdateParams");
     }
 
     #[test]

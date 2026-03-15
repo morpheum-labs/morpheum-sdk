@@ -114,54 +114,6 @@ impl From<proto::MsgRegisterModelResponse> for RegisterModelResponse {
     }
 }
 
-/// Request to update module parameters (governance only).
-#[derive(Clone, Debug, PartialEq, Eq)]
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-pub struct UpdateParamsRequest {
-    pub authority: String,
-    pub params: Params,
-}
-
-impl UpdateParamsRequest {
-    pub fn new(authority: impl Into<String>, params: Params) -> Self {
-        Self {
-            authority: authority.into(),
-            params,
-        }
-    }
-
-    /// Converts this request into a protobuf `Any` ready for `TxBuilder::add_message`.
-    pub fn to_any(&self) -> ProtoAny {
-        let msg: proto::MsgUpdateParams = self.clone().into();
-        ProtoAny {
-            type_url: "/inference_registry.v1.MsgUpdateParams".into(),
-            value: msg.encode_to_vec(),
-        }
-    }
-}
-
-impl From<UpdateParamsRequest> for proto::MsgUpdateParams {
-    fn from(req: UpdateParamsRequest) -> Self {
-        Self {
-            authority: req.authority,
-            params: Some(req.params.into()),
-        }
-    }
-}
-
-/// Response from updating parameters.
-#[derive(Clone, Debug, Default, PartialEq, Eq)]
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-pub struct UpdateParamsResponse {
-    pub success: bool,
-}
-
-impl From<proto::MsgUpdateParamsResponse> for UpdateParamsResponse {
-    fn from(p: proto::MsgUpdateParamsResponse) -> Self {
-        Self { success: p.success }
-    }
-}
-
 // ====================== QUERY REQUESTS & RESPONSES ======================
 
 /// Query a single model by its model_id.
@@ -325,14 +277,6 @@ mod tests {
         )
         .with_weights_payload(vec![1, 2, 3, 4]);
         assert_eq!(req.weights_payload, vec![1, 2, 3, 4]);
-    }
-
-    #[test]
-    fn update_params_to_any() {
-        let req = UpdateParamsRequest::new("morpheum1gov", Params::default());
-        let any = req.to_any();
-        assert_eq!(any.type_url, "/inference_registry.v1.MsgUpdateParams");
-        assert!(!any.value.is_empty());
     }
 
     #[test]

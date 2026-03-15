@@ -8,7 +8,6 @@
 //!
 //! Transactions:
 //! - `RegisterModel` — register a new model (governance only)
-//! - `UpdateParams` — governance parameter updates
 //!
 //! Queries:
 //! - `QueryModel` — single model lookup by model_id
@@ -46,7 +45,7 @@ pub mod requests;
 
 pub use client::InferenceRegistryClient;
 
-pub use builder::{RegisterModelBuilder, UpdateParamsBuilder};
+pub use builder::RegisterModelBuilder;
 
 pub use types::{
     ModelCommitment,
@@ -65,7 +64,6 @@ pub mod prelude {
     pub use super::{
         InferenceRegistryClient,
         RegisterModelBuilder,
-        UpdateParamsBuilder,
         ModelCommitment,
         ModelStatus,
         Params,

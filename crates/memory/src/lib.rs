@@ -32,7 +32,6 @@ pub use builder::{
     DeleteEntryBuilder,
     StoreEntryBuilder,
     UpdateEntryBuilder,
-    UpdateParamsBuilder,
 };
 
 /// Core domain types for the memory module.
@@ -66,7 +65,6 @@ pub mod prelude {
         StoreEntryBuilder,
         UpdateEntryBuilder,
         DeleteEntryBuilder,
-        UpdateParamsBuilder,
         MemoryEntry,
         MemoryEntryType,
         MemoryRoot,

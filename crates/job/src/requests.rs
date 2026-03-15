@@ -14,7 +14,7 @@ use serde::{Deserialize, Serialize};
 use morpheum_proto::google::protobuf::Any as ProtoAny;
 use morpheum_proto::job::v1 as proto;
 
-use crate::types::{Deliverable, Job, JobParams, JobState};
+use crate::types::{Deliverable, Job, JobState};
 
 // ====================== TRANSACTION REQUESTS ======================
 
@@ -281,37 +281,6 @@ impl From<CancelJobRequest> for proto::MsgCancelJob {
         Self {
             job_id: req.job_id,
             signer_signature: req.signer_signature,
-        }
-    }
-}
-
-/// Request to update module parameters (governance only).
-#[derive(Clone, Debug, PartialEq, Eq)]
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-pub struct UpdateParamsRequest {
-    pub params: JobParams,
-    pub gov_signature: Vec<u8>,
-}
-
-impl UpdateParamsRequest {
-    pub fn new(params: JobParams, gov_signature: Vec<u8>) -> Self {
-        Self { params, gov_signature }
-    }
-
-    pub fn to_any(&self) -> ProtoAny {
-        let msg: proto::MsgUpdateParams = self.clone().into();
-        ProtoAny {
-            type_url: "/job.v1.MsgUpdateParams".into(),
-            value: msg.encode_to_vec(),
-        }
-    }
-}
-
-impl From<UpdateParamsRequest> for proto::MsgUpdateParams {
-    fn from(req: UpdateParamsRequest) -> Self {
-        Self {
-            params: Some(req.params.into()),
-            gov_signature: req.gov_signature,
         }
     }
 }

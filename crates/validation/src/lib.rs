@@ -7,7 +7,6 @@
 //! - Revoking proofs (by verifier or governance)
 //! - Querying proofs by ID, by agent, by type (with pagination)
 //! - Cross-chain proof packets for bridge verification
-//! - Governance-controlled parameter updates
 //!
 //! The `ValidationClient` is the main entry point for all validation queries.
 //! Transaction construction is handled via the fluent builders.
@@ -31,7 +30,6 @@ pub use client::ValidationClient;
 pub use builder::{
     RevokeProofBuilder,
     SubmitProofBuilder,
-    UpdateParamsBuilder,
 };
 
 /// Core domain types for the validation module.
@@ -62,7 +60,6 @@ pub mod prelude {
         ValidationClient,
         SubmitProofBuilder,
         RevokeProofBuilder,
-        UpdateParamsBuilder,
         CrossChainProofPacket,
         Params,
         ProofType,

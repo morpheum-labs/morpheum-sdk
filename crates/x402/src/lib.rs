@@ -11,10 +11,11 @@
 
 extern crate alloc;
 
-pub mod client;
-pub mod types;
-pub mod requests;
 pub mod builder;
+pub mod chains;
+pub mod client;
+pub mod requests;
+pub mod types;
 
 // ==================== PUBLIC RE-EXPORTS ====================
 
@@ -27,6 +28,15 @@ pub use builder::{
 };
 
 pub use client::X402Client;
+
+pub use chains::{
+    ChainMetadata,
+    SignatureScheme,
+    KNOWN_CHAINS,
+    find_by_caip2,
+    find_by_caip2_str,
+    resolve_chain_name,
+};
 
 pub use types::{
     AttestedReceipt,
@@ -61,6 +71,9 @@ pub mod prelude {
         AttestedReceipt,
         BridgeSettlementResult,
         Capabilities,
+        ChainMetadata,
+        SignatureScheme,
+        KNOWN_CHAINS,
         Params,
         PaymentDirection,
         PaymentPacket,

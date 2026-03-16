@@ -18,6 +18,13 @@ pub mod builder;
 
 // ==================== PUBLIC RE-EXPORTS ====================
 
+pub use builder::{
+    ApproveOutboundBuilder,
+    RegisterPolicyBuilder,
+    RotateAddressBuilder,
+    UpdatePolicyBuilder,
+};
+
 pub use client::X402Client;
 
 pub use types::{

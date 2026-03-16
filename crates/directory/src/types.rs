@@ -149,6 +149,10 @@ impl From<AgentDirectoryProfile> for proto::AgentDirectoryProfile {
             a2a_ready: false,
             mcp_manifest_hash: Vec::new(),
             export_synced: false,
+            x402_enabled: false,
+            x402_endpoint: String::new(),
+            x402_min_amount_usd: 0,
+            x402_preferred_schemes: 0,
         }
     }
 }
@@ -197,6 +201,7 @@ impl From<DirectoryFilter> for proto::DirectoryFilter {
             semantic_query: f.semantic_query,
             limit: f.limit,
             offset: f.offset,
+            x402_only: false,
         }
     }
 }

@@ -41,6 +41,7 @@ memory = ["dep:morpheum-sdk-memory"]
 intent = ["dep:morpheum-sdk-intent"]
 marketplace = ["dep:morpheum-sdk-marketplace"]
 directory = ["dep:morpheum-sdk-directory"]
+x402 = ["dep:morpheum-sdk-x402"]
 
 # Transport backends
 grpc = ["dep:tonic", "dep:tokio"]
@@ -84,6 +85,7 @@ morpheum-sdk-memory = { path = "../memory", optional = true, default-features = 
 morpheum-sdk-intent = { path = "../intent", optional = true, default-features = false }
 morpheum-sdk-marketplace = { path = "../marketplace", optional = true, default-features = false }
 morpheum-sdk-directory = { path = "../directory", optional = true, default-features = false }
+morpheum-sdk-x402 = { path = "../x402", optional = true, default-features = false }
 
 # Official Morpheum signing library (native version with full crypto, BIP-39, claims)
 morpheum-signing-native = { workspace = true }

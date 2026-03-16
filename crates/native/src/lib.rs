@@ -79,6 +79,9 @@ pub use morpheum_sdk_marketplace as marketplace;
 #[cfg(feature = "directory")]
 pub use morpheum_sdk_directory as directory;
 
+#[cfg(feature = "x402")]
+pub use morpheum_sdk_x402 as x402;
+
 // Re-export commonly used core types
 pub use core::{
     AccountId,

@@ -22,8 +22,9 @@ use crate::requests::{
     QueryPolicyRequest,
     QueryReceiptRequest,
     QueryReceiptsByAgentRequest,
+    SettleBridgePaymentRequest,
 };
-use crate::types::{Capabilities, Params, Policy, Receipt};
+use crate::types::{BridgeSettlementResult, Capabilities, Params, Policy, Receipt};
 
 /// Primary client for all x402 payment queries.
 ///
@@ -142,6 +143,33 @@ impl X402Client {
             .ok_or_else(|| SdkError::transport("capabilities field missing in response"))
     }
 
+    /// Settles a cross-chain bridge payment on Morpheum.
+    ///
+    /// Submits an `X402PaymentPacket` from an external EVM chain, validates it,
+    /// processes it through the native inbound path, and returns a receipt with
+    /// Merkle proof plus a GMP reply payload for confirmation on the source chain.
+    ///
+    /// This is the primary SDK entry point for relay services and operators
+    /// performing cross-chain settlement.
+    pub async fn settle_bridge_payment(
+        &self,
+        request: SettleBridgePaymentRequest,
+    ) -> Result<BridgeSettlementResult, SdkError> {
+        let proto_req: morpheum_proto::x402::v1::MsgSettleBridgePayment = request.into();
+
+        let path = "/x402.v1.Msg/SettleBridgePayment";
+        let data = proto_req.encode_to_vec();
+
+        let response_bytes = self.query(path, data).await?;
+
+        let proto_res = morpheum_proto::x402::v1::SettleBridgePaymentResponse::decode(
+            response_bytes.as_slice(),
+        )
+        .map_err(SdkError::Decode)?;
+
+        Ok(proto_res.into())
+    }
+
     /// Queries the x402 module parameters.
     pub async fn query_params(&self) -> Result<Params, SdkError> {
         let proto_req: morpheum_proto::x402::v1::QueryParamsRequest = QueryParamsRequest.into();
@@ -225,6 +253,15 @@ mod tests {
                     };
                     Ok(prost::Message::encode_to_vec(&dummy))
                 }
+                "/x402.v1.Msg/SettleBridgePayment" => {
+                    let dummy = morpheum_proto::x402::v1::SettleBridgePaymentResponse {
+                        success: true,
+                        receipt: Some(Default::default()),
+                        gmp_reply_payload: vec![1, 2, 3],
+                        receipt_hash: "hash123".into(),
+                    };
+                    Ok(prost::Message::encode_to_vec(&dummy))
+                }
                 _ => Err(SdkError::transport("unexpected query path in test")),
             }
         }
@@ -271,5 +308,32 @@ mod tests {
         let client = test_client();
         let result = client.query_params().await;
         assert!(result.is_ok());
+    }
+
+    #[tokio::test]
+    async fn settle_bridge_payment_works() {
+        use crate::requests::SettleBridgePaymentRequest;
+        use crate::types::PaymentPacket;
+
+        let client = test_client();
+        let packet = PaymentPacket {
+            payment_id: "pay-001".into(),
+            source_chain: "eip155:8453".into(),
+            target_agent_id: "agent-1".into(),
+            amount: 5000,
+            asset: "USDC".into(),
+            memo: String::new(),
+            signature_payload: vec![0xAA],
+            reply_channel: "gmp-42".into(),
+        };
+
+        let req = SettleBridgePaymentRequest::new("relayer-1", packet);
+        let result = client.settle_bridge_payment(req).await;
+        assert!(result.is_ok());
+
+        let settlement = result.unwrap();
+        assert!(settlement.success);
+        assert!(settlement.receipt.is_some());
+        assert_eq!(settlement.receipt_hash, "hash123");
     }
 }

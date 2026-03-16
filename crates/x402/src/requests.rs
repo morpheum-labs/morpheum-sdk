@@ -15,7 +15,7 @@ use morpheum_proto::google::protobuf::Any as ProtoAny;
 use morpheum_proto::x402::v1 as proto;
 use morpheum_sdk_core::AccountId;
 
-use crate::types::{Policy, Scheme};
+use crate::types::{PaymentPacket, Policy, Scheme};
 
 // ====================== TRANSACTION REQUESTS ======================
 
@@ -195,6 +195,43 @@ impl From<ApproveOutboundRequest> for proto::MsgApproveOutbound {
             memo: req.memo,
             scheme: i32::from(req.scheme),
             idempotency_key: req.idempotency_key,
+        }
+    }
+}
+
+/// Request to settle a cross-chain bridge payment delivered via GMP.
+///
+/// Submits an `X402PaymentPacket` from an external EVM chain for settlement
+/// on Morpheum. Used by relay services and operators for manual settlement.
+#[derive(Clone, Debug, PartialEq, Eq)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+pub struct SettleBridgePaymentRequest {
+    pub relayer_address: String,
+    pub packet: PaymentPacket,
+}
+
+impl SettleBridgePaymentRequest {
+    pub fn new(relayer_address: impl Into<String>, packet: PaymentPacket) -> Self {
+        Self {
+            relayer_address: relayer_address.into(),
+            packet,
+        }
+    }
+
+    pub fn to_any(&self) -> ProtoAny {
+        let msg: proto::MsgSettleBridgePayment = self.clone().into();
+        ProtoAny {
+            type_url: "/x402.v1.MsgSettleBridgePayment".into(),
+            value: msg.encode_to_vec(),
+        }
+    }
+}
+
+impl From<SettleBridgePaymentRequest> for proto::MsgSettleBridgePayment {
+    fn from(req: SettleBridgePaymentRequest) -> Self {
+        Self {
+            relayer_address: req.relayer_address,
+            packet: Some(req.packet.into()),
         }
     }
 }
@@ -388,6 +425,27 @@ mod tests {
 
         let any = req.to_any();
         assert_eq!(any.type_url, "/x402.v1.MsgApproveOutbound");
+        assert!(!any.value.is_empty());
+    }
+
+    #[test]
+    fn settle_bridge_payment_to_any() {
+        use crate::types::PaymentPacket;
+
+        let packet = PaymentPacket {
+            payment_id: "pay-001".into(),
+            source_chain: "eip155:8453".into(),
+            target_agent_id: "agent-1".into(),
+            amount: 5000,
+            asset: "USDC".into(),
+            memo: "bridge payment".into(),
+            signature_payload: vec![0xAA],
+            reply_channel: "gmp-42".into(),
+        };
+
+        let req = SettleBridgePaymentRequest::new("relayer-1", packet);
+        let any = req.to_any();
+        assert_eq!(any.type_url, "/x402.v1.MsgSettleBridgePayment");
         assert!(!any.value.is_empty());
     }
 

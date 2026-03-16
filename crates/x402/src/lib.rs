@@ -22,6 +22,7 @@ pub use builder::{
     ApproveOutboundBuilder,
     RegisterPolicyBuilder,
     RotateAddressBuilder,
+    SettleBridgePaymentBuilder,
     UpdatePolicyBuilder,
 };
 
@@ -29,9 +30,11 @@ pub use client::X402Client;
 
 pub use types::{
     AttestedReceipt,
+    BridgeSettlementResult,
     Capabilities,
     Params,
     PaymentDirection,
+    PaymentPacket,
     Policy,
     Receipt,
     ReceiptStatus,
@@ -56,13 +59,16 @@ pub mod prelude {
     pub use super::{
         X402Client,
         AttestedReceipt,
+        BridgeSettlementResult,
         Capabilities,
         Params,
         PaymentDirection,
+        PaymentPacket,
         Policy,
         Receipt,
         ReceiptStatus,
         Scheme,
+        SettleBridgePaymentBuilder,
         AccountId,
         ChainId,
         SdkError,

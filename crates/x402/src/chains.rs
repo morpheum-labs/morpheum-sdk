@@ -114,7 +114,58 @@ pub const KNOWN_CHAINS: &[ChainMetadata] = &[
         native_assets: &["USDC"],
         signature_scheme: SignatureScheme::Ed25519,
     },
-    // ── Test chains ─────────────────────────────────────────
+    // ── EVM testnets ────────────────────────────────────────
+    ChainMetadata {
+        namespace: "eip155",
+        reference: "84532",
+        display_name: "Base Sepolia",
+        native_assets: &["USDC"],
+        signature_scheme: SignatureScheme::Eip712,
+    },
+    ChainMetadata {
+        namespace: "eip155",
+        reference: "11155111",
+        display_name: "Ethereum Sepolia",
+        native_assets: &["USDC"],
+        signature_scheme: SignatureScheme::Eip712,
+    },
+    ChainMetadata {
+        namespace: "eip155",
+        reference: "80002",
+        display_name: "Polygon Amoy",
+        native_assets: &["USDC"],
+        signature_scheme: SignatureScheme::Eip712,
+    },
+    ChainMetadata {
+        namespace: "eip155",
+        reference: "421614",
+        display_name: "Arbitrum Sepolia",
+        native_assets: &["USDC"],
+        signature_scheme: SignatureScheme::Eip712,
+    },
+    // ── Non-EVM testnets ──────────────────────────────────
+    ChainMetadata {
+        namespace: "solana",
+        reference: "EtWTRABZaYq6iMfeYKouRu166VU2xqa1",
+        display_name: "Solana Devnet",
+        native_assets: &["USDC"],
+        signature_scheme: SignatureScheme::Ed25519,
+    },
+    ChainMetadata {
+        namespace: "tron",
+        reference: "0xcd8690dc",
+        display_name: "Tron Nile",
+        native_assets: &["USDT"],
+        signature_scheme: SignatureScheme::Secp256k1,
+    },
+    ChainMetadata {
+        namespace: "stellar",
+        reference: "testnet",
+        display_name: "Stellar Testnet",
+        native_assets: &["USDC"],
+        signature_scheme: SignatureScheme::Ed25519,
+    },
+    // ── Local test chains ─────────────────────────────────
     ChainMetadata {
         namespace: "eip155",
         reference: "31337",
@@ -132,6 +183,7 @@ pub const KNOWN_CHAINS: &[ChainMetadata] = &[
 pub fn resolve_chain_name(name: &str) -> Option<&'static ChainMetadata> {
     let lower = name.to_ascii_lowercase();
     match lower.as_str() {
+        // Mainnets
         "ethereum" | "eth" => find_by_caip2("eip155", "1"),
         "base" => find_by_caip2("eip155", "8453"),
         "polygon" | "matic" => find_by_caip2("eip155", "137"),
@@ -142,6 +194,16 @@ pub fn resolve_chain_name(name: &str) -> Option<&'static ChainMetadata> {
         "solana" | "sol" => find_by_caip2("solana", "5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp"),
         "tron" | "trx" => find_by_caip2("tron", "0x2b6653dc"),
         "stellar" | "xlm" => find_by_caip2("stellar", "pubnet"),
+        // EVM testnets
+        "base-sepolia" | "base_sepolia" => find_by_caip2("eip155", "84532"),
+        "sepolia" => find_by_caip2("eip155", "11155111"),
+        "polygon-amoy" | "polygon_amoy" | "amoy" => find_by_caip2("eip155", "80002"),
+        "arbitrum-sepolia" | "arb-sepolia" | "arb_sepolia" => find_by_caip2("eip155", "421614"),
+        // Non-EVM testnets
+        "solana-devnet" | "sol-devnet" => find_by_caip2("solana", "EtWTRABZaYq6iMfeYKouRu166VU2xqa1"),
+        "tron-nile" | "nile" => find_by_caip2("tron", "0xcd8690dc"),
+        "stellar-testnet" => find_by_caip2("stellar", "testnet"),
+        // Local
         "anvil" | "local" => find_by_caip2("eip155", "31337"),
         _ => None,
     }

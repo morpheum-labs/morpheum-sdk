@@ -441,6 +441,7 @@ mod tests {
             memo: "bridge payment".into(),
             signature_payload: vec![0xAA],
             reply_channel: "gmp-42".into(),
+            payer_address: String::new(),
         };
 
         let req = SettleBridgePaymentRequest::new("relayer-1", packet);

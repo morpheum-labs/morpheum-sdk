@@ -300,6 +300,7 @@ pub struct PaymentPacket {
     pub memo: String,
     pub signature_payload: Vec<u8>,
     pub reply_channel: String,
+    pub payer_address: String,
 }
 
 impl From<proto::X402PaymentPacket> for PaymentPacket {
@@ -313,6 +314,7 @@ impl From<proto::X402PaymentPacket> for PaymentPacket {
             memo: p.memo,
             signature_payload: p.signature_payload,
             reply_channel: p.reply_channel,
+            payer_address: p.payer_address,
         }
     }
 }
@@ -328,6 +330,7 @@ impl From<PaymentPacket> for proto::X402PaymentPacket {
             memo: p.memo,
             signature_payload: p.signature_payload,
             reply_channel: p.reply_channel,
+            payer_address: p.payer_address,
         }
     }
 }
@@ -361,6 +364,8 @@ pub struct Params {
     pub platform_min_amount_usd: u64,
     pub facilitator_timeout_seconds: u64,
     pub enable_tee_facilitator: bool,
+    pub authorized_relayers: Vec<String>,
+    pub enable_signature_verification: bool,
 }
 
 impl Default for Params {
@@ -370,6 +375,8 @@ impl Default for Params {
             platform_min_amount_usd: 1,
             facilitator_timeout_seconds: 30,
             enable_tee_facilitator: true,
+            authorized_relayers: Vec::new(),
+            enable_signature_verification: false,
         }
     }
 }
@@ -381,6 +388,8 @@ impl From<proto::Params> for Params {
             platform_min_amount_usd: p.platform_min_amount_usd,
             facilitator_timeout_seconds: p.facilitator_timeout_seconds,
             enable_tee_facilitator: p.enable_tee_facilitator,
+            authorized_relayers: p.authorized_relayers,
+            enable_signature_verification: p.enable_signature_verification,
         }
     }
 }
@@ -392,6 +401,8 @@ impl From<Params> for proto::Params {
             platform_min_amount_usd: p.platform_min_amount_usd,
             facilitator_timeout_seconds: p.facilitator_timeout_seconds,
             enable_tee_facilitator: p.enable_tee_facilitator,
+            authorized_relayers: p.authorized_relayers,
+            enable_signature_verification: p.enable_signature_verification,
         }
     }
 }
@@ -464,6 +475,8 @@ mod tests {
             platform_min_amount_usd: 5,
             facilitator_timeout_seconds: 60,
             enable_tee_facilitator: false,
+            authorized_relayers: vec!["relayer-1".into()],
+            enable_signature_verification: true,
         };
 
         let proto: proto::Params = params.clone().into();
@@ -525,6 +538,7 @@ mod tests {
             memo: "cross-chain tool call".into(),
             signature_payload: vec![0xAA, 0xBB],
             reply_channel: "gmp-reply-42".into(),
+            payer_address: "0x1234abcd".into(),
         };
 
         let proto: proto::X402PaymentPacket = packet.clone().into();

@@ -275,6 +275,7 @@ pub struct SettleBridgePaymentBuilder {
     memo: Option<String>,
     signature_payload: Option<Vec<u8>>,
     reply_channel: Option<String>,
+    payer_address: Option<String>,
 }
 
 impl SettleBridgePaymentBuilder {
@@ -327,6 +328,11 @@ impl SettleBridgePaymentBuilder {
         self
     }
 
+    pub fn payer_address(mut self, addr: impl Into<String>) -> Self {
+        self.payer_address = Some(addr.into());
+        self
+    }
+
     /// Convenience: set all packet fields from an existing `PaymentPacket`.
     pub fn packet(mut self, p: PaymentPacket) -> Self {
         self.payment_id = Some(p.payment_id);
@@ -337,6 +343,7 @@ impl SettleBridgePaymentBuilder {
         self.memo = Some(p.memo);
         self.signature_payload = Some(p.signature_payload);
         self.reply_channel = Some(p.reply_channel);
+        self.payer_address = Some(p.payer_address);
         self
     }
 
@@ -386,6 +393,7 @@ impl SettleBridgePaymentBuilder {
             memo: self.memo.unwrap_or_default(),
             signature_payload,
             reply_channel,
+            payer_address: self.payer_address.unwrap_or_default(),
         };
 
         Ok(SettleBridgePaymentRequest::new(relayer_address, packet))
@@ -539,6 +547,7 @@ mod tests {
             memo: String::new(),
             signature_payload: vec![0xCC],
             reply_channel: "gmp-99".into(),
+            payer_address: "0xpayer".into(),
         };
 
         let req = SettleBridgePaymentBuilder::new()

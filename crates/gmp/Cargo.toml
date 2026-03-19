@@ -1,0 +1,22 @@
+[package]
+name = "morpheum-sdk-gmp"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "Morpheum SDK — GMP (General Message Passing) module client: builders, queries, and types for Hyperlane, Axelar, Wormhole, LayerZero cross-chain operations."
+
+[features]
+default = ["std"]
+std = []
+serde = ["dep:serde"]
+full = ["std", "serde"]
+
+[dependencies]
+morpheum-sdk-core = { path = "../core" }
+morpheum-proto = { path = "../../../morpheum-proto" }
+prost = { workspace = true }
+async-trait = { workspace = true }
+serde = { workspace = true, features = ["derive"], optional = true }
+
+[lints.rust]
+unsafe_code = "forbid"

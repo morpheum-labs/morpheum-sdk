@@ -21,6 +21,7 @@ members = [
     "crates/staking",
     "crates/upgrade",
     "crates/x402",
+    "crates/gmp",
     "crates/native",
     "crates/wasm",
     "examples",

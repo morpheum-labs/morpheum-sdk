@@ -165,7 +165,7 @@ impl PhantomAdapterWasm {
     /// Returns the protobuf-encoded public key for `SignerInfo`.
     pub(crate) fn public_key_proto(&self) -> morpheum_sdk_core::signing::Any {
         morpheum_sdk_core::signing::Any {
-            type_url: "/cosmos.crypto.ed25519.PubKey".to_string(),
+            type_url: "/morpheum.crypto.ed25519.PubKey".to_string(),
             value: self.cached_pubkey.borrow().to_vec(),
         }
     }

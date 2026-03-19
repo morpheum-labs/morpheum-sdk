@@ -62,6 +62,7 @@ std = [
     "morpheum-sdk-job?/std",
     "morpheum-sdk-bank?/std",
     "morpheum-sdk-staking?/std",
+    "morpheum-sdk-gmp?/std",
 ]
 
 [dependencies]

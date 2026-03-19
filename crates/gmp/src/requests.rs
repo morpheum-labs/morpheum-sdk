@@ -74,6 +74,26 @@ impl SettleGmpPaymentRequest {
     }
 }
 
+/// Request to update GMP module parameters via governance.
+#[derive(Clone, Debug)]
+pub struct UpdateGmpParamsRequest {
+    pub authority: String,
+    pub params: crate::types::GmpParams,
+}
+
+impl UpdateGmpParamsRequest {
+    pub fn to_any(&self) -> morpheum_proto::google::protobuf::Any {
+        let msg = pb::MsgUpdateParams {
+            authority: self.authority.clone(),
+            params: Some(self.params.clone().into()),
+        };
+        morpheum_proto::google::protobuf::Any {
+            type_url: "/gmp.v1.MsgUpdateParams".into(),
+            value: msg.encode_to_vec(),
+        }
+    }
+}
+
 /// Query request for Hyperlane delivery status.
 #[derive(Clone, Debug)]
 pub struct QueryHyperlaneDeliveryRequest {

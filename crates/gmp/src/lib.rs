@@ -15,16 +15,18 @@ pub mod requests;
 pub mod types;
 
 pub use builder::{
-    ProcessHyperlaneMessageBuilder, SettleGmpPaymentBuilder, WarpRouteTransferBuilder,
+    HyperlaneParamsBuilder, ProcessHyperlaneMessageBuilder, SettleGmpPaymentBuilder,
+    UpdateGmpParamsBuilder, WarpRouteConfigBuilder, WarpRouteTransferBuilder,
 };
 pub use client::GmpClient;
 pub use requests::{
     ProcessHyperlaneMessageRequest, QueryGmpParamsRequest, QueryHyperlaneDeliveryRequest,
-    QueryHyperlaneNonceRequest, SettleGmpPaymentRequest, WarpRouteTransferRequest,
+    QueryHyperlaneNonceRequest, SettleGmpPaymentRequest, UpdateGmpParamsRequest,
+    WarpRouteTransferRequest,
 };
 pub use types::{
     GmpParams, HyperlaneParams, ProcessHyperlaneResult, ProtocolInfo,
-    SettleGmpPaymentResult, WarpRouteTransferResult,
+    SettleGmpPaymentResult, WarpRouteConfig, WarpRouteToken, WarpRouteTransferResult,
 };
 
 pub const VERSION: &str = env!("CARGO_PKG_VERSION");

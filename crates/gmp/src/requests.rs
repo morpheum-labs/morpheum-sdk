@@ -34,26 +34,6 @@ impl WarpRouteTransferRequest {
     }
 }
 
-/// Request to process a Hyperlane message (relayer entry point).
-#[derive(Clone, Debug)]
-pub struct ProcessHyperlaneMessageRequest {
-    pub metadata: Vec<u8>,
-    pub message: Vec<u8>,
-}
-
-impl ProcessHyperlaneMessageRequest {
-    pub fn to_any(&self) -> morpheum_proto::google::protobuf::Any {
-        let msg = pb::MsgProcessHyperlaneMessage {
-            metadata: self.metadata.clone(),
-            message: self.message.clone(),
-        };
-        morpheum_proto::google::protobuf::Any {
-            type_url: "/gmp.v1.MsgProcessHyperlaneMessage".into(),
-            value: msg.encode_to_vec(),
-        }
-    }
-}
-
 /// Request to settle a generic GMP payment.
 #[derive(Clone, Debug)]
 pub struct SettleGmpPaymentRequest {
@@ -93,16 +73,6 @@ impl UpdateGmpParamsRequest {
         }
     }
 }
-
-/// Query request for Hyperlane delivery status.
-#[derive(Clone, Debug)]
-pub struct QueryHyperlaneDeliveryRequest {
-    pub message_id: String,
-}
-
-/// Query request for Hyperlane nonce.
-#[derive(Clone, Debug)]
-pub struct QueryHyperlaneNonceRequest;
 
 /// Query request for GMP params.
 #[derive(Clone, Debug)]

@@ -44,28 +44,6 @@ impl GmpClient {
         Ok(resp.protocols.into_iter().map(ProtocolInfo::from).collect())
     }
 
-    /// Query the current outbound Hyperlane mailbox nonce.
-    pub async fn query_hyperlane_nonce(&self) -> Result<u32, SdkError> {
-        let req = pb::QueryHyperlaneNonceRequest {};
-        let data = self.query("/gmp.v1.QueryHyperlaneNonceRequest", req.encode_to_vec()).await?;
-        let resp = pb::QueryHyperlaneNonceResponse::decode(data.as_slice())?;
-        Ok(resp.nonce)
-    }
-
-    /// Check whether a Hyperlane message has been delivered.
-    pub async fn query_hyperlane_delivery(
-        &self,
-        message_id: impl Into<String>,
-    ) -> Result<bool, SdkError> {
-        let req = pb::QueryHyperlaneDeliveryRequest {
-            message_id: message_id.into(),
-        };
-        let data = self
-            .query("/gmp.v1.QueryHyperlaneDeliveryRequest", req.encode_to_vec())
-            .await?;
-        let resp = pb::QueryHyperlaneDeliveryResponse::decode(data.as_slice())?;
-        Ok(resp.delivered)
-    }
 }
 
 #[async_trait(?Send)]

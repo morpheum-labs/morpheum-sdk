@@ -15,7 +15,7 @@ use std::collections::BTreeMap;
 use morpheum_sdk_core::SdkError;
 
 use crate::requests::{
-    ProcessHyperlaneMessageRequest, SettleGmpPaymentRequest, UpdateGmpParamsRequest,
+    SettleGmpPaymentRequest, UpdateGmpParamsRequest,
     WarpRouteTransferRequest,
 };
 use crate::types;
@@ -89,40 +89,6 @@ impl WarpRouteTransferBuilder {
             asset_index,
             amount,
         })
-    }
-}
-
-/// Builder for `MsgProcessHyperlaneMessage`.
-#[derive(Default)]
-pub struct ProcessHyperlaneMessageBuilder {
-    metadata: Option<Vec<u8>>,
-    message: Option<Vec<u8>>,
-}
-
-impl ProcessHyperlaneMessageBuilder {
-    pub fn new() -> Self {
-        Self::default()
-    }
-
-    pub fn metadata(mut self, metadata: Vec<u8>) -> Self {
-        self.metadata = Some(metadata);
-        self
-    }
-
-    pub fn message(mut self, message: Vec<u8>) -> Self {
-        self.message = Some(message);
-        self
-    }
-
-    pub fn build(self) -> Result<ProcessHyperlaneMessageRequest, SdkError> {
-        let metadata = self
-            .metadata
-            .ok_or_else(|| SdkError::InvalidInput("metadata is required".into()))?;
-        let message = self
-            .message
-            .ok_or_else(|| SdkError::InvalidInput("message is required".into()))?;
-
-        Ok(ProcessHyperlaneMessageRequest { metadata, message })
     }
 }
 

@@ -78,14 +78,6 @@ pub struct WarpRouteTransferResult {
     pub message_id: Vec<u8>,
 }
 
-/// Result of processing a Hyperlane message.
-#[derive(Clone, Debug)]
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-pub struct ProcessHyperlaneResult {
-    pub success: bool,
-    pub message_id: Vec<u8>,
-}
-
 /// Result of settling a GMP payment.
 #[derive(Clone, Debug)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
@@ -197,15 +189,6 @@ impl From<pb::ProtocolInfo> for ProtocolInfo {
 
 impl From<pb::WarpRouteTransferResponse> for WarpRouteTransferResult {
     fn from(r: pb::WarpRouteTransferResponse) -> Self {
-        Self {
-            success: r.success,
-            message_id: r.message_id,
-        }
-    }
-}
-
-impl From<pb::ProcessHyperlaneMessageResponse> for ProcessHyperlaneResult {
-    fn from(r: pb::ProcessHyperlaneMessageResponse) -> Self {
         Self {
             success: r.success,
             message_id: r.message_id,

@@ -15,17 +15,16 @@ pub mod requests;
 pub mod types;
 
 pub use builder::{
-    HyperlaneParamsBuilder, ProcessHyperlaneMessageBuilder, SettleGmpPaymentBuilder,
+    HyperlaneParamsBuilder, SettleGmpPaymentBuilder,
     UpdateGmpParamsBuilder, WarpRouteConfigBuilder, WarpRouteTransferBuilder,
 };
 pub use client::GmpClient;
 pub use requests::{
-    ProcessHyperlaneMessageRequest, QueryGmpParamsRequest, QueryHyperlaneDeliveryRequest,
-    QueryHyperlaneNonceRequest, SettleGmpPaymentRequest, UpdateGmpParamsRequest,
+    QueryGmpParamsRequest, SettleGmpPaymentRequest, UpdateGmpParamsRequest,
     WarpRouteTransferRequest,
 };
 pub use types::{
-    GmpParams, HyperlaneParams, ProcessHyperlaneResult, ProtocolInfo,
+    GmpParams, HyperlaneParams, ProtocolInfo,
     SettleGmpPaymentResult, WarpRouteConfig, WarpRouteToken, WarpRouteTransferResult,
 };
 

@@ -1,0 +1,72 @@
+# Default Solana chain configuration for Morpheum CLI bridge operations.
+#
+# Override values in your local config at:
+#   ~/.config/morpheum/solana-chains.toml
+#
+# Program IDs marked with placeholder values should be updated with actual
+# deployment addresses for your environment.
+
+# ─── Mainnet ────────────────────────────────────────────────────────
+
+[chains.solana]
+rpc_url = "https://api.mainnet-beta.solana.com"
+hyperlane_domain = 1399811149
+explorer = "https://explorer.solana.com"
+
+[chains.solana.tokens.USDC]
+mint = "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"
+decimals = 6
+morpheum_asset_index = 1
+
+[chains.solana.tokens.USDT]
+mint = "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB"
+decimals = 6
+morpheum_asset_index = 2
+
+# ─── Eclipse (SVM L2) ──────────────────────────────────────────────
+
+[chains.eclipse]
+rpc_url = "https://mainnetbeta-rpc.eclipse.xyz"
+hyperlane_domain = 1408864445
+explorer = "https://eclipsescan.xyz"
+
+[chains.eclipse.tokens.USDC]
+mint = "AKEWE7Bgh87GPp171b4cJPSSZfmZwQ3KaqYqXoKLNAEE"
+decimals = 6
+morpheum_asset_index = 1
+
+# ─── Devnet ─────────────────────────────────────────────────────────
+
+[chains.devnet]
+rpc_url = "https://api.devnet.solana.com"
+hyperlane_domain = 1399811150
+explorer = "https://explorer.solana.com?cluster=devnet"
+
+[chains.devnet.tokens.USDC]
+mint = "4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU"
+decimals = 6
+morpheum_asset_index = 1
+
+# ─── Testnet ────────────────────────────────────────────────────────
+
+[chains.testnet]
+rpc_url = "https://api.testnet.solana.com"
+hyperlane_domain = 1399811151
+explorer = "https://explorer.solana.com?cluster=testnet"
+
+[chains.testnet.tokens.USDC]
+mint = "CpMah17kQEL2wqyMKt3mZBdTnZbkbfx4nqmQMFDP5vwp"
+decimals = 6
+morpheum_asset_index = 1
+
+# ─── Local Development ──────────────────────────────────────────────
+
+[chains.localnet]
+rpc_url = "http://127.0.0.1:8899"
+hyperlane_domain = 13988111
+x402_settlement_program = "95mAeRSnfH8KtP72sNJ5Ks8zSwf91WbhXn7E6HLjKSKZ"
+
+[chains.localnet.tokens.USDC]
+mint = "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"
+decimals = 6
+morpheum_asset_index = 1

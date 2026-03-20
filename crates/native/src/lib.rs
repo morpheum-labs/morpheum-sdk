@@ -85,6 +85,15 @@ pub use morpheum_sdk_x402 as x402;
 #[cfg(feature = "gmp")]
 pub use morpheum_sdk_gmp as gmp;
 
+#[cfg(feature = "evm")]
+pub use morpheum_sdk_evm as evm;
+
+#[cfg(feature = "svm")]
+pub use morpheum_sdk_svm as svm;
+
+#[cfg(feature = "cosmwasm")]
+pub use morpheum_sdk_cosmwasm as cosmwasm;
+
 // Re-export commonly used core types
 pub use core::{
     AccountId,

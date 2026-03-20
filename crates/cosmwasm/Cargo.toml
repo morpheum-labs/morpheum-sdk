@@ -1,0 +1,27 @@
+[package]
+name = "morpheum-sdk-cosmwasm"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+homepage.workspace = true
+description = "Morpheum SDK — CosmWasm contract interaction: builders for MsgExecuteContract, MsgInstantiateContract, MsgStoreCode, Warp Route transfers, and contract query helpers."
+
+[features]
+default = ["std"]
+std = []
+serde = ["dep:serde"]
+full = ["std", "serde"]
+
+[dependencies]
+morpheum-sdk-core = { path = "../core", default-features = false }
+morpheum-proto = { workspace = true }
+prost = { workspace = true }
+async-trait = { workspace = true }
+serde = { workspace = true, features = ["derive"], optional = true }
+serde_json = { workspace = true }
+thiserror = { workspace = true }
+
+[lints.rust]
+unsafe_code = "forbid"

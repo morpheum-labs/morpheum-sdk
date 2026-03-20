@@ -50,6 +50,7 @@ pub enum Scheme {
     Unspecified,
     Exact,
     ExactEvm,
+    ExactSvm,
 }
 
 impl From<i32> for Scheme {
@@ -58,6 +59,7 @@ impl From<i32> for Scheme {
             proto::X402Scheme::SchemeUnspecified => Self::Unspecified,
             proto::X402Scheme::SchemeExact => Self::Exact,
             proto::X402Scheme::SchemeExactEvm => Self::ExactEvm,
+            proto::X402Scheme::SchemeExactSvm => Self::ExactSvm,
         }
     }
 }
@@ -68,6 +70,7 @@ impl From<Scheme> for i32 {
             Scheme::Unspecified => proto::X402Scheme::SchemeUnspecified as i32,
             Scheme::Exact => proto::X402Scheme::SchemeExact as i32,
             Scheme::ExactEvm => proto::X402Scheme::SchemeExactEvm as i32,
+            Scheme::ExactSvm => proto::X402Scheme::SchemeExactSvm as i32,
         }
     }
 }

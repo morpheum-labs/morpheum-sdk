@@ -22,6 +22,9 @@ members = [
     "crates/upgrade",
     "crates/x402",
     "crates/gmp",
+    "crates/evm",
+    "crates/svm",
+    "crates/cosmwasm",
     "crates/native",
     "crates/wasm",
     "examples",
@@ -50,6 +53,15 @@ morpheum-proto = { path = "../morpheum-proto", default-features = false }
 # Signing (the official Morpheum signing library — local sibling repo)
 morpheum-signing-core = { path = "../morpheum-signing/crates/core", default-features = false, features = ["std"] }
 morpheum-signing-native = { path = "../morpheum-signing/crates/native", features = ["full"] }
+
+# EVM interaction
+morpheum-sdk-evm = { path = "crates/evm" }
+
+# SVM (Solana) interaction
+morpheum-sdk-svm = { path = "crates/svm" }
+
+# CosmWasm contract interaction (on Morpheum)
+morpheum-sdk-cosmwasm = { path = "crates/cosmwasm" }
 
 # Shared dependencies
 prost = { version = "0.14", default-features = false, features = ["derive"] }

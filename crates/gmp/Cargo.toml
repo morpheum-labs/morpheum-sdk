@@ -14,6 +14,7 @@ full = ["std", "serde"]
 [dependencies]
 morpheum-sdk-core = { path = "../core" }
 morpheum-proto = { path = "../../../morpheum-proto" }
+morpheum-primitives = { path = "../../../morpheum-primitives" }
 prost = { workspace = true }
 async-trait = { workspace = true }
 serde = { workspace = true, features = ["derive"], optional = true }

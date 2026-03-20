@@ -19,6 +19,8 @@ sol! {
         event Approval(address indexed owner, address indexed spender, uint256 value);
     }
 
+    /// Official Hyperlane HypERC20Collateral ABI.
+    /// Deployed via `hyperlane warp deploy` as a TransparentUpgradeableProxy.
     #[sol(rpc)]
     contract IHypERC20Collateral {
         event SentTransferRemote(
@@ -40,6 +42,10 @@ sol! {
         ) external payable returns (bytes32 messageId);
 
         function balanceOf(address account) external view returns (uint256);
+        function wrappedToken() external view returns (address);
+        function owner() external view returns (address);
+        function mailbox() external view returns (address);
+        function routers(uint32 domain) external view returns (bytes32);
     }
 
     #[sol(rpc)]

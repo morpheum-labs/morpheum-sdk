@@ -126,7 +126,7 @@ explorer = "https://sepolia.basescan.org"
 [chains.base-sepolia.tokens.USDC]
 address = "0x036CbD53842c5426634e7929541eC2318f3dCF7e"
 decimals = 6
-collateral_contract = "0xe735218a47b49022e89553A5a1AA125138bc93d4"
+collateral_contract = "0x167373E0B6A1933870758935Ed038e8B38F70630"
 settlement_contract = "0xeCB6991Ce267B8E5c64fD7AD228A37a165dC01aC"
 morpheum_asset_index = 1
 
@@ -140,7 +140,7 @@ explorer = "https://sepolia.arbiscan.io"
 [chains.arbitrum-sepolia.tokens.USDC]
 address = "0x75faf114eafb1BDbe2F0316DF893fd58CE46AA4d"
 decimals = 6
-collateral_contract = "0x30C3Ca30909e5b1BC9B1ec2fA2A3F14f34651735"
+collateral_contract = "0x8Aba00D9d479e575400fB369c92e822B41c1E324"
 settlement_contract = "0x9adc866D7E8dFd43Ec575AFB30F698dc6F9C729D"
 morpheum_asset_index = 1
 

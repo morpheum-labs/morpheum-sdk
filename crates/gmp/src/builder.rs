@@ -12,6 +12,7 @@ use alloc::{
 #[cfg(feature = "std")]
 use std::collections::BTreeMap;
 
+use morpheum_primitives::address::GOVERNANCE_ADDRESS;
 use morpheum_sdk_core::SdkError;
 
 use crate::requests::{
@@ -299,7 +300,7 @@ impl UpdateGmpParamsBuilder {
         Self::default()
     }
 
-    /// Governance authority address (defaults to `"morm1governance"`).
+    /// Governance authority address (defaults to the deterministic governance module address).
     pub fn authority(mut self, authority: impl Into<String>) -> Self {
         self.authority = Some(authority.into());
         self
@@ -324,7 +325,7 @@ impl UpdateGmpParamsBuilder {
 
         let authority = self
             .authority
-            .unwrap_or_else(|| "morm1governance".into());
+            .unwrap_or_else(|| GOVERNANCE_ADDRESS.into());
 
         Ok(UpdateGmpParamsRequest {
             authority,

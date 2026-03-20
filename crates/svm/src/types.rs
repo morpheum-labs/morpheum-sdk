@@ -72,3 +72,9 @@ pub enum SvmError {
     #[error("address parse error: {0}")]
     AddressParse(String),
 }
+
+impl From<SvmError> for morpheum_sdk_core::SdkError {
+    fn from(e: SvmError) -> Self {
+        Self::Other(e.to_string().into())
+    }
+}

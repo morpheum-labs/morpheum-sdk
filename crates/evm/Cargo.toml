@@ -13,6 +13,7 @@ default = ["std"]
 std = []
 
 [dependencies]
+morpheum-sdk-core = { workspace = true, features = ["chain-registry"] }
 alloy = { version = "1", features = ["full"] }
 thiserror = { workspace = true }
 serde = { workspace = true }

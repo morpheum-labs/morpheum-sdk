@@ -22,6 +22,8 @@ std = [
 ]
 # Enables serde support for types (std-only)
 serde = ["dep:serde", "morpheum-proto/serde"]
+# Enables the ChainRegistryOps trait for VM-specific chain config loading
+chain-registry = ["std", "dep:dirs-next"]
 # WASM support (enables wasm-bindgen + tsify optional deps)
 wasm = ["dep:wasm-bindgen", "dep:tsify"]
 # Convenience feature for full std + all capabilities
@@ -51,6 +53,9 @@ async-trait = "0.1"
 
 # Optional serialization (only enabled via "serde" feature)
 serde = { version = "1.0", optional = true, default-features = false, features = ["derive"] }
+
+# User config directory resolution (optional, for chain-registry feature)
+dirs-next = { version = "2.0", optional = true }
 
 # WASM support (optional)
 wasm-bindgen = { version = "0.2", optional = true }

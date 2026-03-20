@@ -6,9 +6,9 @@
 //! addresses and parameters via this registry.
 
 use std::collections::HashMap;
-use std::path::Path;
 
 use alloy::primitives::Address;
+use morpheum_sdk_core::ChainRegistryOps;
 use serde::{Deserialize, Serialize};
 
 use crate::types::EvmError;
@@ -75,38 +75,14 @@ pub struct ResolvedToken {
     pub morpheum_asset_index: u64,
 }
 
-impl ChainRegistry {
-    /// Loads a `ChainRegistry` from a TOML file.
-    pub fn from_file(path: &Path) -> Result<Self, EvmError> {
-        let content = std::fs::read_to_string(path)
-            .map_err(|e| EvmError::Config(format!("failed to read {}: {e}", path.display())))?;
-        Self::from_toml(&content)
-    }
+impl ChainRegistryOps for ChainRegistry {
+    type Error = EvmError;
 
-    /// Parses a `ChainRegistry` from a TOML string.
-    pub fn from_toml(content: &str) -> Result<Self, EvmError> {
+    fn from_toml(content: &str) -> Result<Self, EvmError> {
         toml::from_str(content).map_err(|e| EvmError::Config(format!("TOML parse error: {e}")))
     }
 
-    /// Loads the default config, then merges user overrides from
-    /// `~/.config/morpheum/chains.toml` (if present).
-    pub fn load_with_defaults(default_toml: &str) -> Result<Self, EvmError> {
-        let mut registry = Self::from_toml(default_toml)?;
-
-        if let Some(config_dir) = dirs_next::config_dir() {
-            let user_path = config_dir.join("morpheum").join("chains.toml");
-            if user_path.exists() {
-                let user = Self::from_file(&user_path)?;
-                registry.merge(user);
-            }
-        }
-
-        Ok(registry)
-    }
-
-    /// Merges another registry into this one. The `other` registry's values
-    /// take precedence (override) on a per-chain, per-token basis.
-    pub fn merge(&mut self, other: Self) {
+    fn merge(&mut self, other: Self) {
         for (chain_name, other_chain) in other.chains {
             match self.chains.get_mut(&chain_name) {
                 Some(existing) => {
@@ -127,6 +103,16 @@ impl ChainRegistry {
         }
     }
 
+    fn override_filename() -> &'static str {
+        "chains.toml"
+    }
+
+    fn config_error(msg: String) -> EvmError {
+        EvmError::Config(msg)
+    }
+}
+
+impl ChainRegistry {
     /// Resolves a chain by its human-friendly name (case-insensitive).
     pub fn get_chain(&self, name: &str) -> Option<&ChainConfig> {
         let lower = name.to_ascii_lowercase();

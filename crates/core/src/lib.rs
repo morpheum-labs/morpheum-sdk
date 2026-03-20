@@ -25,6 +25,9 @@ pub mod transport;
 pub mod client;
 pub mod builder;
 
+#[cfg(feature = "chain-registry")]
+pub mod chain_registry;
+
 // ── Root-level re-exports for ergonomic `crate::SdkError` style access ──
 
 pub use error::SdkError;
@@ -32,6 +35,9 @@ pub use types::{AccountId, ChainId, SignedTx};
 pub use config::SdkConfig;
 pub use transport::{Transport, BroadcastResult};
 pub use client::MorpheumClient;
+
+#[cfg(feature = "chain-registry")]
+pub use chain_registry::ChainRegistryOps;
 
 /// Current version of the Morpheum SDK core (from Cargo.toml).
 pub const VERSION: &str = env!("CARGO_PKG_VERSION");

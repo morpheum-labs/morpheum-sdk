@@ -5,8 +5,8 @@
 //! like `--chain solana --token USDC` to concrete addresses and parameters.
 
 use std::collections::HashMap;
-use std::path::Path;
 
+use morpheum_sdk_core::ChainRegistryOps;
 use serde::{Deserialize, Serialize};
 use solana_sdk::pubkey::Pubkey;
 
@@ -71,37 +71,14 @@ pub struct ResolvedSolanaToken {
     pub morpheum_asset_index: u64,
 }
 
-impl SolanaChainRegistry {
-    /// Loads from a TOML file.
-    pub fn from_file(path: &Path) -> Result<Self, SvmError> {
-        let content = std::fs::read_to_string(path)
-            .map_err(|e| SvmError::Config(format!("failed to read {}: {e}", path.display())))?;
-        Self::from_toml(&content)
-    }
+impl ChainRegistryOps for SolanaChainRegistry {
+    type Error = SvmError;
 
-    /// Parses from a TOML string.
-    pub fn from_toml(content: &str) -> Result<Self, SvmError> {
+    fn from_toml(content: &str) -> Result<Self, SvmError> {
         toml::from_str(content).map_err(|e| SvmError::Config(format!("TOML parse error: {e}")))
     }
 
-    /// Loads the default config, then merges user overrides from
-    /// `~/.config/morpheum/solana-chains.toml` (if present).
-    pub fn load_with_defaults(default_toml: &str) -> Result<Self, SvmError> {
-        let mut registry = Self::from_toml(default_toml)?;
-
-        if let Some(config_dir) = dirs_next::config_dir() {
-            let user_path = config_dir.join("morpheum").join("solana-chains.toml");
-            if user_path.exists() {
-                let user = Self::from_file(&user_path)?;
-                registry.merge(user);
-            }
-        }
-
-        Ok(registry)
-    }
-
-    /// Merges another registry into this one (other takes precedence).
-    pub fn merge(&mut self, other: Self) {
+    fn merge(&mut self, other: Self) {
         for (name, other_chain) in other.chains {
             match self.chains.get_mut(&name) {
                 Some(existing) => {
@@ -133,6 +110,16 @@ impl SolanaChainRegistry {
         }
     }
 
+    fn override_filename() -> &'static str {
+        "solana-chains.toml"
+    }
+
+    fn config_error(msg: String) -> SvmError {
+        SvmError::Config(msg)
+    }
+}
+
+impl SolanaChainRegistry {
     /// Resolves a chain by name (case-insensitive, with aliases).
     pub fn get_chain(&self, name: &str) -> Option<&SolanaChainConfig> {
         let lower = name.to_ascii_lowercase();

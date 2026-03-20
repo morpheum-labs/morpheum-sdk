@@ -13,6 +13,7 @@ default = ["std"]
 std = []
 
 [dependencies]
+morpheum-sdk-core = { workspace = true, features = ["chain-registry"] }
 solana-sdk = "2.1"
 solana-client = "2.1"
 spl-token = { version = "7", default-features = false }

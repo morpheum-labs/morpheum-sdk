@@ -25,6 +25,7 @@ members = [
     "crates/evm",
     "crates/svm",
     "crates/cosmwasm",
+    "crates/cctp",
     "crates/native",
     "crates/wasm",
     "examples",
@@ -62,6 +63,9 @@ morpheum-sdk-svm = { path = "crates/svm" }
 
 # CosmWasm contract interaction (on Morpheum)
 morpheum-sdk-cosmwasm = { path = "crates/cosmwasm" }
+
+# CCTP handler contract interaction (canonical types + typed queries)
+morpheum-sdk-cctp = { path = "crates/cctp" }
 
 # Shared dependencies
 prost = { version = "0.14", default-features = false, features = ["derive"] }

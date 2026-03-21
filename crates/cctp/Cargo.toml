@@ -1,0 +1,25 @@
+[package]
+name = "morpheum-sdk-cctp"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+homepage.workspace = true
+description = "Morpheum SDK — CCTP contract interaction: canonical types re-exported from hpl-cctp-handler and typed query helpers for pending transfers, config, and routes."
+
+[features]
+default = ["std"]
+std = []
+
+[dependencies]
+morpheum-sdk-core = { path = "../core", default-features = false }
+morpheum-sdk-cosmwasm = { path = "../cosmwasm" }
+hpl-cctp-handler = { path = "../../../contracts/cosmwasm/contracts/hpl-cctp-handler", features = ["library"] }
+cosmwasm-std = "2.2"
+serde = { workspace = true, features = ["derive"] }
+serde_json = { workspace = true }
+thiserror = { workspace = true }
+
+[lints.rust]
+unsafe_code = "forbid"

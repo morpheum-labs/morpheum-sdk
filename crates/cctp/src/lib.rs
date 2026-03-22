@@ -13,10 +13,14 @@
 
 #![forbid(unsafe_code)]
 
+pub mod builder;
 pub mod client;
 pub mod error;
 pub mod types;
 
+pub use builder::{
+    EnrollRemoteRouterBuilder, FulfillCctpBuilder, SetPostMintHookBuilder, UpdateAttestersBuilder,
+};
 pub use client::{query_config, query_pending_by_hash, query_pending_transfers, query_routes};
 pub use error::CctpError;
 pub use types::{

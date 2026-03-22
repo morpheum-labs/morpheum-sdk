@@ -13,6 +13,7 @@
 #![forbid(unsafe_code)]
 
 pub mod bridge;
+pub mod cctp;
 pub mod config;
 pub mod contracts;
 pub mod provider;
@@ -20,6 +21,7 @@ pub mod types;
 pub mod x402;
 
 pub use bridge::{approve_erc20, parse_dispatch_id, transfer_remote};
+pub use cctp::{bridge_usdc, quote_cctp_dispatch, CctpBridgeResult, ICctpHyperlaneWrapper};
 pub use config::{ChainConfig, ChainRegistry, TokenConfig, DEFAULT_CHAINS_TOML};
 pub use contracts::{IERC20, IHypERC20Collateral, IMailbox, IX402Settlement};
 pub use provider::{build_provider, EvmProvider};

@@ -12,10 +12,13 @@ pub enum CctpError {
 
     #[error("deserialization error: {0}")]
     Deserialization(String),
+
+    #[error("builder error: {0}")]
+    Builder(String),
 }
 
 impl From<CctpError> for morpheum_sdk_core::SdkError {
     fn from(e: CctpError) -> Self {
-        Self::Other(e.to_string().into())
+        Self::Other(e.to_string())
     }
 }

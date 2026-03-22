@@ -33,19 +33,21 @@ pub async fn query_config(
     smart_query(client, handler, &QueryMsg::Config {}).await
 }
 
-/// Queries a specific pending transfer by its message hash (hex string).
+/// Queries a specific pending transfer by (source_domain, nonce).
 ///
-/// Returns `None` if no transfer exists for the given hash.
-pub async fn query_pending_by_hash(
+/// Returns `None` if no transfer exists for the given key.
+pub async fn query_pending_by_nonce(
     client: &CosmWasmClient,
     handler: &str,
-    hash: &str,
+    source_domain: u32,
+    nonce: u64,
 ) -> Result<Option<PendingTransfer>, CctpError> {
     let resp: PendingTransferResponse = smart_query(
         client,
         handler,
-        &QueryMsg::PendingByHash {
-            hash: hash.to_string(),
+        &QueryMsg::PendingByNonce {
+            source_domain,
+            nonce,
         },
     )
     .await?;

@@ -11,6 +11,7 @@ description = "Morpheum SDK — CCTP contract interaction: canonical types re-ex
 [features]
 default = ["std"]
 std = []
+iris = ["dep:reqwest", "dep:tokio", "dep:hex", "dep:sha3", "dep:tracing"]
 
 [dependencies]
 morpheum-sdk-core = { path = "../core", default-features = false }
@@ -20,6 +21,12 @@ cosmwasm-std = "2.2"
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
 thiserror = { workspace = true }
+
+reqwest = { version = "0.12", features = ["json"], optional = true }
+tokio = { version = "1", features = ["time"], optional = true }
+hex = { version = "0.4", optional = true }
+sha3 = { version = "0.10", optional = true }
+tracing = { version = "0.1", optional = true }
 
 [lints.rust]
 unsafe_code = "forbid"

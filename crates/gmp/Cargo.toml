@@ -9,7 +9,17 @@ description = "Morpheum SDK — GMP (General Message Passing) module client: bui
 default = ["std"]
 std = []
 serde = ["dep:serde"]
-full = ["std", "serde"]
+relay = [
+    "dep:morpheum-sdk-evm",
+    "dep:morpheum-sdk-cosmwasm",
+    "dep:sha3",
+    "dep:k256",
+    "dep:hex",
+    "dep:serde_json",
+    "dep:tracing",
+    "dep:tonic",
+]
+full = ["std", "serde", "relay"]
 
 [dependencies]
 morpheum-sdk-core = { path = "../core" }
@@ -18,6 +28,16 @@ morpheum-primitives = { path = "../../../morpheum-primitives" }
 prost = { workspace = true }
 async-trait = { workspace = true }
 serde = { workspace = true, features = ["derive"], optional = true }
+thiserror = { workspace = true }
+
+morpheum-sdk-evm = { path = "../evm", optional = true }
+morpheum-sdk-cosmwasm = { path = "../cosmwasm", features = ["grpc"], optional = true }
+sha3 = { version = "0.10", optional = true }
+k256 = { version = "0.13", features = ["ecdsa"], optional = true }
+hex = { version = "0.4", optional = true }
+serde_json = { workspace = true, optional = true }
+tracing = { version = "0.1", optional = true }
+tonic = { version = "0.14", optional = true }
 
 [lints.rust]
 unsafe_code = "forbid"

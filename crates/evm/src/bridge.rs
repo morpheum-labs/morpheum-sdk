@@ -7,7 +7,7 @@ use alloy::providers::WalletProvider;
 use alloy::rpc::types::TransactionReceipt;
 use alloy::sol_types::SolEvent;
 
-use crate::contracts::{IERC20, IHypERC20Collateral, IMailbox};
+use crate::contracts::{IERC20, IHypERC20Collateral, IMailbox, IWarpFee};
 use crate::provider::EvmProvider;
 use crate::types::{DispatchResult, EvmError};
 
@@ -91,6 +91,65 @@ pub async fn balance_of(
 /// Returns the wallet's own ERC-20 balance.
 pub async fn my_balance(provider: &EvmProvider, token: Address) -> Result<U256, EvmError> {
     balance_of(provider, token, provider.default_signer_address()).await
+}
+
+/// Queries the Hyperlane dispatch fee for a warp route `transferRemote`.
+///
+/// Works for both `WarpCollateral` (ERC-20) and `WarpNative` (native ETH)
+/// contracts — they both implement the same `quoteDispatch` interface.
+pub async fn quote_warp_fee(
+    provider: &EvmProvider,
+    warp_contract: Address,
+    destination: u32,
+    recipient: FixedBytes<32>,
+    amount: U256,
+) -> Result<U256, EvmError> {
+    let contract = IWarpFee::new(warp_contract, provider);
+    contract
+        .quoteDispatch(destination, recipient, amount)
+        .call()
+        .await
+        .map_err(|e| EvmError::ContractCall(format!("quoteDispatch: {e}")))
+}
+
+/// Locks native ETH in a WarpNative contract and dispatches a Hyperlane message.
+///
+/// Unlike [`transfer_remote`] for ERC-20 collateral, the native variant
+/// requires `msg.value = amount + fee` (the contract splits them internally).
+/// This function automatically queries the fee via [`quote_warp_fee`].
+pub async fn transfer_remote_native(
+    provider: &EvmProvider,
+    warp_native: Address,
+    destination: u32,
+    recipient: FixedBytes<32>,
+    amount: U256,
+) -> Result<DispatchResult, EvmError> {
+    let fee = quote_warp_fee(provider, warp_native, destination, recipient, amount).await?;
+    let total_value = amount + fee;
+
+    let contract = IHypERC20Collateral::new(warp_native, provider);
+    let pending = contract
+        .transferRemote(destination, recipient, amount)
+        .value(total_value)
+        .send()
+        .await
+        .map_err(|e| EvmError::ContractCall(format!("transferRemote (native) send: {e}")))?;
+
+    let receipt = pending
+        .get_receipt()
+        .await
+        .map_err(|e| EvmError::TransactionFailed(format!("transferRemote (native) receipt: {e}")))?;
+
+    let tx_hash = receipt.transaction_hash;
+    let message_id = parse_dispatch_id(&receipt).unwrap_or(FixedBytes::from(tx_hash));
+
+    Ok(DispatchResult {
+        message_id,
+        destination,
+        recipient,
+        amount,
+        tx_hash,
+    })
 }
 
 /// Extracts the Hyperlane message ID from a `DispatchId(bytes32 indexed messageId)` log.

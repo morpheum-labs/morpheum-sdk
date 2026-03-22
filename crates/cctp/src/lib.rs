@@ -16,6 +16,8 @@
 pub mod builder;
 pub mod client;
 pub mod error;
+#[cfg(feature = "iris")]
+pub mod fulfill;
 pub mod types;
 
 pub use builder::{

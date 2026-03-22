@@ -12,7 +12,8 @@ description = "Morpheum SDK — CosmWasm contract interaction: builders for MsgE
 default = ["std"]
 std = []
 serde = ["dep:serde"]
-full = ["std", "serde"]
+grpc = ["dep:tonic", "dep:tonic-prost", "dep:http", "dep:tracing", "serde"]
+full = ["std", "serde", "grpc"]
 
 [dependencies]
 morpheum-sdk-core = { path = "../core", default-features = false }
@@ -22,6 +23,11 @@ async-trait = { workspace = true }
 serde = { workspace = true, features = ["derive"], optional = true }
 serde_json = { workspace = true }
 thiserror = { workspace = true }
+
+tonic = { version = "0.14", optional = true }
+tonic-prost = { version = "0.14", optional = true }
+http = { version = "1", optional = true }
+tracing = { version = "0.1", optional = true }
 
 [lints.rust]
 unsafe_code = "forbid"

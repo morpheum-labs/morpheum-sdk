@@ -51,6 +51,26 @@ sol! {
     #[sol(rpc)]
     contract IMailbox {
         event DispatchId(bytes32 indexed messageId);
+
+        function process(bytes calldata _metadata, bytes calldata _message) external;
+    }
+
+    /// Warp Route fee quoting — implemented by both WarpCollateral (ERC-20)
+    /// and WarpNative (native ETH) contracts.
+    #[sol(rpc)]
+    interface IWarpFee {
+        function quoteDispatch(
+            uint32 destination,
+            bytes32 recipient,
+            uint256 amount
+        ) external view returns (uint256);
+    }
+
+    /// Hyperlane MerkleTreeHook — used by relayers to read on-chain merkle state.
+    #[sol(rpc)]
+    interface IMerkleTreeHook {
+        function root() external view returns (bytes32);
+        function count() external view returns (uint32);
     }
 
     #[sol(rpc)]

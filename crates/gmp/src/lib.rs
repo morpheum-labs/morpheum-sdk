@@ -11,6 +11,8 @@ extern crate alloc;
 
 pub mod builder;
 pub mod client;
+#[cfg(feature = "relay")]
+pub mod relay;
 pub mod requests;
 pub mod types;
 

@@ -10,7 +10,7 @@ use async_trait::async_trait;
 use morpheum_sdk_core::{MorpheumClient, SdkConfig, SdkError, Transport};
 
 use crate::requests::{QueryRawRequest, QuerySmartRequest};
-use crate::types::ContractInfo;
+use crate::types::{ContractInfo, CosmWasmError};
 
 /// Client for querying CosmWasm contracts on Morpheum.
 pub struct CosmWasmClient {
@@ -53,6 +53,30 @@ impl CosmWasmClient {
             .await?;
 
         decode_raw_response(&resp_bytes)
+    }
+
+    /// Typed wrapper: deserializes the query response into `T`.
+    ///
+    /// Combines [`query_smart`](Self::query_smart) with serde deserialization
+    /// so callers don't need to manually decode JSON bytes.
+    ///
+    /// Requires the `serde` feature.
+    #[cfg(feature = "serde")]
+    pub async fn query_smart_typed<T: serde::de::DeserializeOwned>(
+        &self,
+        contract: &str,
+        query: &impl serde::Serialize,
+    ) -> Result<T, SdkError> {
+        let query_data = serde_json::to_vec(query)
+            .map_err(|e| CosmWasmError::Serialization(e.to_string()))?;
+
+        let req = QuerySmartRequest {
+            contract: contract.to_string(),
+            query_data,
+        };
+        let resp_bytes = self.query_smart(&req).await?;
+        serde_json::from_slice(&resp_bytes)
+            .map_err(|e| CosmWasmError::Deserialization(e.to_string()).into())
     }
 
     /// Queries contract metadata (code_id, admin, label).

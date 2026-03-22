@@ -3,7 +3,8 @@
 //! High-level functions for EVM -> Morpheum canonical USDC bridging via
 //! Circle CCTP + Hyperlane messaging.
 
-use alloy::primitives::{Address, Bytes, FixedBytes, TxHash, U256};
+use alloy::primitives::{keccak256, Address, Bytes, FixedBytes, TxHash, U256};
+use alloy::rpc::types::TransactionReceipt;
 use alloy::sol;
 use alloy::sol_types::SolEvent;
 
@@ -111,4 +112,28 @@ pub async fn bridge_usdc(
         message_id,
         cctp_nonce,
     })
+}
+
+/// Extracts the raw CCTP message bytes from a `MessageSent(bytes)` event
+/// in a transaction receipt.
+///
+/// The `MessageTransmitter` contract emits `MessageSent(bytes message)` for
+/// every CCTP burn. Returns the ABI-decoded `message` payload.
+pub fn extract_cctp_message(receipt: &TransactionReceipt) -> Result<Vec<u8>, EvmError> {
+    let topic0 = keccak256(b"MessageSent(bytes)");
+
+    for log in receipt.inner.logs() {
+        if log.topics().first() == Some(&topic0) {
+            let data = log.data().data.as_ref();
+            if data.len() >= 64 {
+                let offset = U256::from_be_slice(&data[0..32]).to::<usize>();
+                let length = U256::from_be_slice(&data[offset..offset + 32]).to::<usize>();
+                return Ok(data[offset + 32..offset + 32 + length].to_vec());
+            }
+        }
+    }
+
+    Err(EvmError::ContractCall(
+        "MessageSent event not found in tx receipt".into(),
+    ))
 }

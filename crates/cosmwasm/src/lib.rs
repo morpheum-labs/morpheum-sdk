@@ -20,6 +20,8 @@ extern crate alloc;
 
 pub mod builder;
 pub mod client;
+#[cfg(feature = "grpc")]
+pub mod grpc;
 pub mod requests;
 pub mod types;
 

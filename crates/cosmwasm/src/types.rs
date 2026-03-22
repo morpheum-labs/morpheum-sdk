@@ -39,6 +39,9 @@ pub enum CosmWasmError {
     #[error("serialization error: {0}")]
     Serialization(String),
 
+    #[error("deserialization error: {0}")]
+    Deserialization(String),
+
     #[error("transport error: {0}")]
     Transport(String),
 

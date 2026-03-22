@@ -36,9 +36,22 @@ pub struct ChainConfig {
     pub rpc_url: String,
     pub hyperlane_domain: u32,
     #[serde(default)]
+    pub hyperlane_mailbox: Option<String>,
+    #[serde(default)]
+    pub hyperlane_merkle_tree_hook: Option<String>,
+    #[serde(default)]
     pub explorer: Option<String>,
     #[serde(default)]
     pub tokens: HashMap<String, TokenConfig>,
+}
+
+/// Warp route token type on the EVM side.
+#[derive(Clone, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum TokenType {
+    #[default]
+    Erc20,
+    Native,
 }
 
 /// Configuration for a single token on a chain.
@@ -47,9 +60,13 @@ pub struct TokenConfig {
     pub address: String,
     pub decimals: u8,
     #[serde(default)]
+    pub token_type: TokenType,
+    #[serde(default)]
     pub collateral_contract: Option<String>,
     #[serde(default)]
     pub settlement_contract: Option<String>,
+    #[serde(default)]
+    pub morpheum_warp_route: Option<String>,
     #[serde(default)]
     pub morpheum_asset_index: u64,
 }
@@ -61,6 +78,8 @@ pub struct ResolvedChain {
     pub chain_id: u64,
     pub rpc_url: String,
     pub hyperlane_domain: u32,
+    pub hyperlane_mailbox: Option<Address>,
+    pub hyperlane_merkle_tree_hook: Option<Address>,
     pub explorer: Option<String>,
 }
 
@@ -70,8 +89,10 @@ pub struct ResolvedToken {
     pub symbol: String,
     pub address: Address,
     pub decimals: u8,
+    pub token_type: TokenType,
     pub collateral_contract: Option<Address>,
     pub settlement_contract: Option<Address>,
+    pub morpheum_warp_route: Option<String>,
     pub morpheum_asset_index: u64,
 }
 
@@ -89,6 +110,13 @@ impl ChainRegistryOps for ChainRegistry {
                     existing.rpc_url = other_chain.rpc_url;
                     existing.chain_id = other_chain.chain_id;
                     existing.hyperlane_domain = other_chain.hyperlane_domain;
+                    if other_chain.hyperlane_mailbox.is_some() {
+                        existing.hyperlane_mailbox = other_chain.hyperlane_mailbox;
+                    }
+                    if other_chain.hyperlane_merkle_tree_hook.is_some() {
+                        existing.hyperlane_merkle_tree_hook =
+                            other_chain.hyperlane_merkle_tree_hook;
+                    }
                     if other_chain.explorer.is_some() {
                         existing.explorer = other_chain.explorer;
                     }
@@ -114,15 +142,23 @@ impl ChainRegistryOps for ChainRegistry {
 
 impl ChainRegistry {
     /// Resolves a chain by its human-friendly name (case-insensitive).
+    ///
+    /// Supports common aliases and both underscore/hyphen variants for
+    /// testnet names (e.g. `base_sepolia` resolves to `base-sepolia`).
     pub fn get_chain(&self, name: &str) -> Option<&ChainConfig> {
         let lower = name.to_ascii_lowercase();
         self.chains.get(&lower).or_else(|| {
+            let normalized = lower.replace('_', "-");
+            self.chains.get(&normalized)
+        }).or_else(|| {
             let alias = match lower.as_str() {
                 "eth" => "ethereum",
                 "arb" => "arbitrum",
+                "arb-sepolia" | "arb_sepolia" => "arbitrum-sepolia",
                 "op" => "optimism",
                 "avax" => "avalanche",
                 "matic" => "polygon",
+                "amoy" | "polygon_amoy" => "polygon-amoy",
                 "bsc" | "binance" => "bsc",
                 "local" => "anvil",
                 _ => return None,
@@ -152,10 +188,22 @@ impl ChainRegistry {
         let collateral = token
             .collateral_contract
             .as_deref()
+            .filter(|s| *s != "0x...")
             .map(parse_address)
             .transpose()?;
         let settlement = token
             .settlement_contract
+            .as_deref()
+            .filter(|s| *s != "0x...")
+            .map(parse_address)
+            .transpose()?;
+        let mailbox = chain
+            .hyperlane_mailbox
+            .as_deref()
+            .map(parse_address)
+            .transpose()?;
+        let merkle_hook = chain
+            .hyperlane_merkle_tree_hook
             .as_deref()
             .map(parse_address)
             .transpose()?;
@@ -166,14 +214,18 @@ impl ChainRegistry {
                 chain_id: chain.chain_id,
                 rpc_url: chain.rpc_url.clone(),
                 hyperlane_domain: chain.hyperlane_domain,
+                hyperlane_mailbox: mailbox,
+                hyperlane_merkle_tree_hook: merkle_hook,
                 explorer: chain.explorer.clone(),
             },
             ResolvedToken {
                 symbol: upper,
                 address: token_address,
                 decimals: token.decimals,
+                token_type: token.token_type.clone(),
                 collateral_contract: collateral,
                 settlement_contract: settlement,
+                morpheum_warp_route: token.morpheum_warp_route.clone(),
                 morpheum_asset_index: token.morpheum_asset_index,
             },
         ))

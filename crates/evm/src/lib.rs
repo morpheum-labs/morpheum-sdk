@@ -20,10 +20,17 @@ pub mod provider;
 pub mod types;
 pub mod x402;
 
-pub use bridge::{approve_erc20, parse_dispatch_id, transfer_remote};
-pub use cctp::{bridge_usdc, quote_cctp_dispatch, CctpBridgeResult, ICctpHyperlaneWrapper};
-pub use config::{ChainConfig, ChainRegistry, TokenConfig, DEFAULT_CHAINS_TOML};
-pub use contracts::{IERC20, IHypERC20Collateral, IMailbox, IX402Settlement};
+pub use bridge::{
+    approve_erc20, parse_dispatch_id, quote_warp_fee, transfer_remote, transfer_remote_native,
+};
+pub use cctp::{
+    bridge_usdc, extract_cctp_message, quote_cctp_dispatch, CctpBridgeResult,
+    ICctpHyperlaneWrapper,
+};
+pub use config::{ChainConfig, ChainRegistry, TokenConfig, TokenType, DEFAULT_CHAINS_TOML};
+pub use contracts::{
+    IERC20, IHypERC20Collateral, IMailbox, IMerkleTreeHook, IWarpFee, IX402Settlement,
+};
 pub use provider::{build_provider, EvmProvider};
 pub use types::{DispatchResult, EvmError, PaymentInfo, PaymentResult, X402PayParams};
 pub use x402::{get_payment, pay_x402, quote_fee};

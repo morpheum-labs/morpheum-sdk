@@ -9,6 +9,7 @@
 //! - **`x402`** — x402 settlement helpers (`pay_x402`, `get_payment`)
 //! - **`config`** — Solana chain registry (`SolanaChainRegistry`, `chains.toml` loader)
 //! - **`types`** — Domain types (`DispatchResult`, `PaymentResult`, `SvmError`)
+//! - **`usdc`** — USDC native program instruction builders for Morpheum's internal SVM engine
 
 #![forbid(unsafe_code)]
 
@@ -17,6 +18,7 @@ pub mod config;
 pub mod contracts;
 pub mod provider;
 pub mod types;
+pub mod usdc;
 pub mod x402;
 
 pub use bridge::{balance_of, create_ata_if_needed, transfer_remote};
@@ -26,6 +28,7 @@ pub use contracts::{
 };
 pub use provider::{build_provider, SvmProvider};
 pub use types::{DispatchResult, PaymentResult, SvmError};
+pub use usdc::{usdc_program_id, USDC_ASSET_INDEX};
 pub use x402::{get_payment, pay_x402};
 
 pub use solana_sdk;

@@ -14,6 +14,7 @@ std = []
 
 [dependencies]
 morpheum-sdk-core = { workspace = true, features = ["chain-registry"] }
+morpheum-proto = { workspace = true, features = ["std"] }
 solana-sdk = "2.1"
 solana-client = "2.1"
 spl-token = { version = "7", default-features = false }
@@ -25,6 +26,8 @@ toml = "0.8"
 dirs-next = "2.0"
 bs58 = "0.5"
 borsh = { version = "1", features = ["derive"] }
+blake3 = "1"
+hex = "0.4"
 
 [lints.rust]
 unsafe_code = "forbid"

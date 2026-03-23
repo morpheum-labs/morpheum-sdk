@@ -119,6 +119,14 @@ settlement_contract = "0xE29685AB05cB22169ee2D2947848F2fEcab67F7B"
 morpheum_asset_index = 1
 morpheum_warp_route = "morm1k6nu0yqla4ncrpqffucje0tq6vy4hhru9ea5ah"
 
+[chains.sepolia.tokens.ETH]
+address = "0x0000000000000000000000000000000000000000"
+decimals = 18
+token_type = "native"
+collateral_contract = "0xA726e397911fCD25b421BeeA0Cd266566819a65e"
+morpheum_asset_index = 3
+morpheum_warp_route = "morm16269e6ql8d2nwp8vhu5qlln97g59za74nd5mx8"
+
 [chains.base-sepolia]
 chain_id = 84532
 rpc_url = "https://sepolia.base.org"

@@ -34,6 +34,8 @@ pub struct SolanaChainConfig {
     #[serde(default)]
     pub warp_route_program: Option<String>,
     #[serde(default)]
+    pub native_warp_route_program: Option<String>,
+    #[serde(default)]
     pub x402_settlement_program: Option<String>,
     #[serde(default)]
     pub hyperlane_mailbox_program: Option<String>,
@@ -41,13 +43,26 @@ pub struct SolanaChainConfig {
     pub tokens: HashMap<String, SolanaTokenConfig>,
 }
 
-/// Configuration for a single SPL token on a Solana chain.
+/// Warp route token type on the Solana side.
+#[derive(Clone, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum SvmTokenType {
+    #[default]
+    Spl,
+    Native,
+}
+
+/// Configuration for a single token on a Solana chain.
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct SolanaTokenConfig {
     pub mint: String,
     pub decimals: u8,
     #[serde(default)]
+    pub token_type: SvmTokenType,
+    #[serde(default)]
     pub morpheum_asset_index: u64,
+    #[serde(default)]
+    pub morpheum_warp_route: Option<String>,
 }
 
 /// Resolved Solana chain configuration with parsed addresses.
@@ -58,17 +73,20 @@ pub struct ResolvedSolanaChain {
     pub hyperlane_domain: u32,
     pub explorer: Option<String>,
     pub warp_route_program: Option<Pubkey>,
+    pub native_warp_route_program: Option<Pubkey>,
     pub x402_settlement_program: Option<Pubkey>,
     pub hyperlane_mailbox_program: Option<Pubkey>,
 }
 
-/// Resolved SPL token configuration with parsed addresses.
+/// Resolved token configuration with parsed addresses.
 #[derive(Clone, Debug)]
 pub struct ResolvedSolanaToken {
     pub symbol: String,
     pub mint: Pubkey,
     pub decimals: u8,
+    pub token_type: SvmTokenType,
     pub morpheum_asset_index: u64,
+    pub morpheum_warp_route: Option<String>,
 }
 
 impl ChainRegistryOps for SolanaChainRegistry {
@@ -95,6 +113,10 @@ impl ChainRegistryOps for SolanaChainRegistry {
                     }
                     if other_chain.x402_settlement_program.is_some() {
                         existing.x402_settlement_program = other_chain.x402_settlement_program;
+                    }
+                    if other_chain.native_warp_route_program.is_some() {
+                        existing.native_warp_route_program =
+                            other_chain.native_warp_route_program;
                     }
                     if other_chain.hyperlane_mailbox_program.is_some() {
                         existing.hyperlane_mailbox_program = other_chain.hyperlane_mailbox_program;
@@ -158,6 +180,11 @@ impl SolanaChainRegistry {
             .as_deref()
             .map(parse_pubkey)
             .transpose()?;
+        let native_warp_route = chain
+            .native_warp_route_program
+            .as_deref()
+            .map(parse_pubkey)
+            .transpose()?;
         let x402 = chain
             .x402_settlement_program
             .as_deref()
@@ -176,6 +203,7 @@ impl SolanaChainRegistry {
                 hyperlane_domain: chain.hyperlane_domain,
                 explorer: chain.explorer.clone(),
                 warp_route_program: warp_route,
+                native_warp_route_program: native_warp_route,
                 x402_settlement_program: x402,
                 hyperlane_mailbox_program: mailbox,
             },
@@ -183,7 +211,9 @@ impl SolanaChainRegistry {
                 symbol: upper,
                 mint,
                 decimals: token.decimals,
+                token_type: token.token_type.clone(),
                 morpheum_asset_index: token.morpheum_asset_index,
+                morpheum_warp_route: token.morpheum_warp_route.clone(),
             },
         ))
     }

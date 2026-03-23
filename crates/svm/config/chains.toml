@@ -41,15 +41,23 @@ morpheum_asset_index = 1
 rpc_url = "https://api.devnet.solana.com"
 hyperlane_domain = 1399811150
 x402_settlement_program = "95mAeRSnfH8KtP72sNJ5Ks8zSwf91WbhXn7E6HLjKSKZ"
-mailbox_program = "AMEEkHHcnw6GBLnPvRcYvqzHs4aDQYSKCzy3P4MWs76P"
-ism_program = "HeJaNu2twhGT8h3XqmQwk2FhWhxZfCNWxiv9Pt5qJa8h"
+hyperlane_mailbox_program = "AMEEkHHcnw6GBLnPvRcYvqzHs4aDQYSKCzy3P4MWs76P"
 warp_route_program = "5Z9rb3QCWcfswXAJwy3urjbPfvcXKpxE7jgbePqu5Ewa"
+native_warp_route_program = "Fobp8qLxQ2gNA522Qkz5RgoJMMx9RaMWrYKxjnvJ3qs"
 explorer = "https://explorer.solana.com?cluster=devnet"
 
 [chains.devnet.tokens.USDC]
 mint = "4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU"
 decimals = 6
 morpheum_asset_index = 1
+morpheum_warp_route = "morm1k6nu0yqla4ncrpqffucje0tq6vy4hhru9ea5ah"
+
+[chains.devnet.tokens.SOL]
+mint = "11111111111111111111111111111111"
+decimals = 9
+token_type = "native"
+morpheum_asset_index = 5
+morpheum_warp_route = "morm19nn22fcpe33emdxx27knevg75t84q5us2cdzwy"
 
 # ─── Testnet ────────────────────────────────────────────────────────
 

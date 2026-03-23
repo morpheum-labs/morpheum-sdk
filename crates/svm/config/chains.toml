@@ -41,6 +41,9 @@ morpheum_asset_index = 1
 rpc_url = "https://api.devnet.solana.com"
 hyperlane_domain = 1399811150
 x402_settlement_program = "95mAeRSnfH8KtP72sNJ5Ks8zSwf91WbhXn7E6HLjKSKZ"
+mailbox_program = "AMEEkHHcnw6GBLnPvRcYvqzHs4aDQYSKCzy3P4MWs76P"
+ism_program = "HeJaNu2twhGT8h3XqmQwk2FhWhxZfCNWxiv9Pt5qJa8h"
+warp_route_program = "5Z9rb3QCWcfswXAJwy3urjbPfvcXKpxE7jgbePqu5Ewa"
 explorer = "https://explorer.solana.com?cluster=devnet"
 
 [chains.devnet.tokens.USDC]

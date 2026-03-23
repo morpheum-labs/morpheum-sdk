@@ -17,6 +17,7 @@ morpheum-sdk-core = { workspace = true, features = ["chain-registry"] }
 morpheum-proto = { workspace = true, features = ["std"] }
 solana-sdk = "2.1"
 solana-client = "2.1"
+solana-transaction-status = "2.1"
 spl-token = { version = "7", default-features = false }
 spl-associated-token-account = { version = "6", default-features = false, features = ["no-entrypoint"] }
 thiserror = { workspace = true }
@@ -28,6 +29,7 @@ bs58 = "0.5"
 borsh = { version = "1", features = ["derive"] }
 blake3 = "1"
 hex = "0.4"
+tracing = "0.1"
 
 [lints.rust]
 unsafe_code = "forbid"

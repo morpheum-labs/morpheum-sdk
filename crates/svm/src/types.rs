@@ -7,7 +7,7 @@ use thiserror::Error;
 /// Result of a Hyperlane Warp Route `transfer_remote` dispatch on Solana.
 #[derive(Clone, Debug)]
 pub struct DispatchResult {
-    /// Hyperlane message ID (sha256 of the serialized message).
+    /// Hyperlane message ID (keccak256 of the serialized message).
     pub message_id: [u8; 32],
     /// Destination Hyperlane domain.
     pub destination: u32,
@@ -17,6 +17,8 @@ pub struct DispatchResult {
     pub amount: u64,
     /// Solana transaction signature.
     pub signature: Signature,
+    /// Dispatched message PDA address (for reading the full message bytes).
+    pub message_storage_pda: Pubkey,
 }
 
 /// Result of an x402 `pay` instruction on Solana.
@@ -75,6 +77,6 @@ pub enum SvmError {
 
 impl From<SvmError> for morpheum_sdk_core::SdkError {
     fn from(e: SvmError) -> Self {
-        Self::Other(e.to_string().into())
+        Self::Other(e.to_string())
     }
 }

@@ -6,12 +6,11 @@
 use solana_sdk::instruction::{AccountMeta, Instruction};
 use solana_sdk::pubkey::Pubkey;
 
-/// Hyperlane Sealevel Warp Route program (collateral variant).
+/// Hyperlane Sealevel Warp Route program (collateral variant) on Devnet.
 ///
 /// Deployed from `hyperlane-xyz/hyperlane-monorepo/rust/sealevel/programs/hyperlane-sealevel-token-collateral`.
-/// This is a placeholder -- replace with the actual deployed program ID.
 pub const HYPERLANE_WARP_ROUTE_PROGRAM_ID: Pubkey =
-    solana_sdk::pubkey!("HypWarpCoLLRt111111111111111111111111111111");
+    solana_sdk::pubkey!("5Z9rb3QCWcfswXAJwy3urjbPfvcXKpxE7jgbePqu5Ewa");
 
 /// x402 Settlement Anchor program (from `contracts/solana/programs/x402-settlement`).
 pub const X402_SETTLEMENT_PROGRAM_ID: Pubkey =
@@ -49,6 +48,127 @@ pub fn escrow_pda(payment_id: &[u8; 32]) -> (Pubkey, u8) {
 /// Derives the associated token account for a given wallet and mint.
 pub fn associated_token_address(wallet: &Pubkey, mint: &Pubkey) -> Pubkey {
     spl_associated_token_account::get_associated_token_address(wallet, mint)
+}
+
+// ── Hyperlane Sealevel PDA helpers ───────────────────────────────────
+
+/// Derives the Hyperlane token storage/config PDA.
+///
+/// Seeds: `["hyperlane_message_recipient", "-", "handle", "-", "account_metas"]`
+/// (from `hyperlane_token_pda_seeds!()` in hyperlane-sealevel-token-lib).
+pub fn hyperlane_token_pda(program_id: &Pubkey) -> (Pubkey, u8) {
+    Pubkey::find_program_address(
+        &[b"hyperlane_message_recipient", b"-", b"handle", b"-", b"account_metas"],
+        program_id,
+    )
+}
+
+/// Derives the Hyperlane warp route escrow PDA (holds locked collateral).
+///
+/// Seeds: `["hyperlane_token", "-", "escrow"]`
+pub fn warp_route_escrow_pda(program_id: &Pubkey) -> (Pubkey, u8) {
+    Pubkey::find_program_address(&[b"hyperlane_token", b"-", b"escrow"], program_id)
+}
+
+/// Derives the Hyperlane warp route ATA payer PDA.
+///
+/// Seeds: `["hyperlane_token", "-", "ata_payer"]`
+pub fn warp_route_ata_payer_pda(program_id: &Pubkey) -> (Pubkey, u8) {
+    Pubkey::find_program_address(&[b"hyperlane_token", b"-", b"ata_payer"], program_id)
+}
+
+/// Derives the Hyperlane mailbox dispatch authority PDA for a sending program.
+///
+/// Seeds: `["hyperlane_dispatcher", "-", "dispatch_authority"]`
+/// (from `mailbox_message_dispatch_authority_pda_seeds!()` in the mailbox program).
+pub fn mailbox_dispatch_authority_pda(program_id: &Pubkey) -> (Pubkey, u8) {
+    Pubkey::find_program_address(
+        &[b"hyperlane_dispatcher", b"-", b"dispatch_authority"],
+        program_id,
+    )
+}
+
+/// Derives the Hyperlane mailbox inbox PDA.
+pub fn mailbox_inbox_pda(program_id: &Pubkey) -> (Pubkey, u8) {
+    Pubkey::find_program_address(&[b"hyperlane", b"-", b"inbox"], program_id)
+}
+
+/// Derives the Hyperlane mailbox outbox PDA.
+pub fn mailbox_outbox_pda(program_id: &Pubkey) -> (Pubkey, u8) {
+    Pubkey::find_program_address(&[b"hyperlane", b"-", b"outbox"], program_id)
+}
+
+/// Derives the Hyperlane dispatched message PDA from a unique message pubkey.
+///
+/// Seeds: `["hyperlane", "-", "dispatched_message", "-", unique_msg_pubkey]`
+pub fn mailbox_dispatched_message_pda(
+    mailbox_program: &Pubkey,
+    unique_message_pubkey: &Pubkey,
+) -> (Pubkey, u8) {
+    Pubkey::find_program_address(
+        &[
+            b"hyperlane",
+            b"-",
+            b"dispatched_message",
+            b"-",
+            unique_message_pubkey.as_ref(),
+        ],
+        mailbox_program,
+    )
+}
+
+/// Derives the Hyperlane mailbox process authority PDA for a recipient program.
+///
+/// Seeds: `["hyperlane", "-", "process_authority", "-", recipient_pubkey]`
+pub fn mailbox_process_authority_pda(
+    mailbox_program: &Pubkey,
+    recipient_pubkey: &Pubkey,
+) -> (Pubkey, u8) {
+    Pubkey::find_program_address(
+        &[
+            b"hyperlane",
+            b"-",
+            b"process_authority",
+            b"-",
+            recipient_pubkey.as_ref(),
+        ],
+        mailbox_program,
+    )
+}
+
+/// Derives the Hyperlane processed message PDA.
+///
+/// Seeds: `["hyperlane", "-", "processed_message", "-", message_id]`
+pub fn mailbox_processed_message_pda(
+    mailbox_program: &Pubkey,
+    message_id: &[u8; 32],
+) -> (Pubkey, u8) {
+    Pubkey::find_program_address(
+        &[
+            b"hyperlane",
+            b"-",
+            b"processed_message",
+            b"-",
+            message_id,
+        ],
+        mailbox_program,
+    )
+}
+
+/// Derives the MultisigISM domain data PDA for a given origin domain.
+///
+/// Seeds: `["multisig_ism_message_id", "-", domain_le_bytes, "-", "domain_data"]`
+pub fn ism_domain_data_pda(ism_program: &Pubkey, domain: u32) -> (Pubkey, u8) {
+    Pubkey::find_program_address(
+        &[
+            b"multisig_ism_message_id",
+            b"-",
+            &domain.to_le_bytes(),
+            b"-",
+            b"domain_data",
+        ],
+        ism_program,
+    )
 }
 
 /// Builds the Anchor instruction discriminator from a method name.

@@ -77,6 +77,17 @@ pub fn warp_route_ata_payer_pda(program_id: &Pubkey) -> (Pubkey, u8) {
     Pubkey::find_program_address(&[b"hyperlane_token", b"-", b"ata_payer"], program_id)
 }
 
+/// Derives the Hyperlane warp route native collateral PDA (holds locked lamports).
+///
+/// Seeds: `["hyperlane_token", "-", "native_collateral"]`
+/// Used by `hyperlane-sealevel-token-native` (not the SPL collateral variant).
+pub fn warp_route_native_collateral_pda(program_id: &Pubkey) -> (Pubkey, u8) {
+    Pubkey::find_program_address(
+        &[b"hyperlane_token", b"-", b"native_collateral"],
+        program_id,
+    )
+}
+
 /// Derives the Hyperlane mailbox dispatch authority PDA for a sending program.
 ///
 /// Seeds: `["hyperlane_dispatcher", "-", "dispatch_authority"]`

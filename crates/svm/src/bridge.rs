@@ -1,7 +1,7 @@
 //! Warp Route bridge helpers for Solana.
 //!
-//! High-level functions for SVM <-> Morpheum token bridging via the
-//! Hyperlane Sealevel Warp Route collateral program.
+//! High-level functions for SVM <-> Morpheum token bridging via Hyperlane
+//! Sealevel Warp Route programs (both SPL collateral and native variants).
 
 use solana_client::rpc_client::RpcClient;
 use solana_sdk::commitment_config::CommitmentConfig;
@@ -158,6 +158,78 @@ pub fn my_balance(provider: &SvmProvider, mint: &Pubkey) -> Result<u64, SvmError
     balance_of(provider.client(), &provider.address(), mint)
 }
 
+/// Returns the native SOL (lamport) balance for a given public key.
+pub fn native_balance(client: &RpcClient, pubkey: &Pubkey) -> Result<u64, SvmError> {
+    client
+        .get_balance(pubkey)
+        .map_err(|e| SvmError::Rpc(format!("get_balance: {e}")))
+}
+
+/// Calls `transfer_remote` on the Hyperlane Sealevel Warp Route **native** program.
+///
+/// Transfers lamports from the payer into the native collateral PDA and dispatches
+/// a Hyperlane message to the destination domain. Uses the same wire format as the
+/// SPL collateral variant but with a different account layout (no mint, ATA, or
+/// SPL token program — only system transfers).
+pub fn transfer_remote_native(
+    provider: &SvmProvider,
+    warp_route_program: &Pubkey,
+    mailbox_program: &Pubkey,
+    destination: u32,
+    recipient: [u8; 32],
+    amount: u64,
+) -> Result<DispatchResult, SvmError> {
+    let payer = provider.keypair().pubkey();
+
+    let unique_message_keypair = Keypair::new();
+    let (message_storage_pda, _) = contracts::mailbox_dispatched_message_pda(
+        mailbox_program,
+        &unique_message_keypair.pubkey(),
+    );
+
+    let ix = build_transfer_remote_native_instruction(
+        warp_route_program,
+        mailbox_program,
+        &payer,
+        &unique_message_keypair.pubkey(),
+        destination,
+        recipient,
+        amount,
+    );
+
+    let recent_blockhash = provider
+        .client()
+        .get_latest_blockhash()
+        .map_err(|e| SvmError::Rpc(format!("get_latest_blockhash: {e}")))?;
+
+    let tx = Transaction::new_signed_with_payer(
+        &[ix],
+        Some(&payer),
+        &[provider.keypair(), &unique_message_keypair],
+        recent_blockhash,
+    );
+
+    let signature = provider
+        .client()
+        .send_and_confirm_transaction(&tx)
+        .map_err(|e| SvmError::TransactionFailed(format!("transfer_remote_native: {e}")))?;
+
+    let message_id = extract_message_id_from_logs(provider.client(), &signature)
+        .unwrap_or_else(|e| {
+            tracing::warn!("failed to extract message ID from logs: {e}");
+            [0u8; 32]
+        });
+
+    Ok(DispatchResult {
+        message_id,
+        destination,
+        recipient,
+        amount,
+        signature,
+        message_storage_pda,
+    })
+}
+
 /// Reads the full Hyperlane message bytes from a dispatched message PDA.
 ///
 /// Account layout (AccountData wrapper adds 1-byte initialized flag):
@@ -251,6 +323,60 @@ fn build_transfer_remote_instruction(
             AccountMeta::new(*mint, false),
             AccountMeta::new(*payer_ata, false),
             AccountMeta::new(escrow_pda, false),
+        ],
+        data,
+    }
+}
+
+/// Builds the `TransferRemote` instruction for the Hyperlane Sealevel
+/// Warp Route **native** program.
+///
+/// Account layout (no IGP):
+///   0.  system_program           (executable)
+///   1.  spl_noop                 (executable)
+///   2.  token PDA                (readonly)
+///   3.  mailbox program          (executable)
+///   4.  mailbox outbox           (writable)
+///   5.  dispatch authority        (readonly)
+///   6.  payer / lamport sender   (signer, writable)
+///   7.  unique message keypair   (signer)
+///   8.  message storage PDA      (writable)
+///   9.  system_program           (plugin: transfer_in)
+///   10. native collateral PDA    (writable, plugin: transfer_in)
+fn build_transfer_remote_native_instruction(
+    warp_route_program: &Pubkey,
+    mailbox_program: &Pubkey,
+    payer: &Pubkey,
+    unique_message_pubkey: &Pubkey,
+    destination: u32,
+    recipient: [u8; 32],
+    amount: u64,
+) -> Instruction {
+    let (token_pda, _) = contracts::hyperlane_token_pda(warp_route_program);
+    let (outbox_pda, _) = contracts::mailbox_outbox_pda(mailbox_program);
+    let (dispatch_authority, _) =
+        contracts::mailbox_dispatch_authority_pda(warp_route_program);
+    let (message_storage_pda, _) =
+        contracts::mailbox_dispatched_message_pda(mailbox_program, unique_message_pubkey);
+    let (native_collateral_pda, _) =
+        contracts::warp_route_native_collateral_pda(warp_route_program);
+
+    let data = encode_transfer_remote(destination, recipient, amount);
+
+    Instruction {
+        program_id: *warp_route_program,
+        accounts: vec![
+            AccountMeta::new_readonly(solana_sdk::system_program::ID, false),
+            AccountMeta::new_readonly(SPL_NOOP_PROGRAM_ID, false),
+            AccountMeta::new_readonly(token_pda, false),
+            AccountMeta::new_readonly(*mailbox_program, false),
+            AccountMeta::new(outbox_pda, false),
+            AccountMeta::new_readonly(dispatch_authority, false),
+            AccountMeta::new(*payer, true),
+            AccountMeta::new_readonly(*unique_message_pubkey, true),
+            AccountMeta::new(message_storage_pda, false),
+            AccountMeta::new_readonly(solana_sdk::system_program::ID, false),
+            AccountMeta::new(native_collateral_pda, false),
         ],
         data,
     }

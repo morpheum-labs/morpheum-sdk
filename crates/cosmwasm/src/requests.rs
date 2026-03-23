@@ -17,15 +17,19 @@ pub struct StoreCodeRequest {
 }
 
 impl StoreCodeRequest {
-    /// Encodes as `/cosmwasm.wasm.v1.MsgStoreCode`.
+    /// Encodes as `/cosmwasm.wasm.v1.MsgStoreCode` (JSON wire format).
+    ///
+    /// Mormcore's CosmWasm actor deserialises message bytes with
+    /// `serde_json::from_slice`, so we must produce JSON — not protobuf.
     pub fn to_any(&self) -> morpheum_proto::google::protobuf::Any {
-        let mut value = Vec::new();
-        prost::encoding::string::encode(1, &self.sender, &mut value);
-        prost::encoding::bytes::encode(2, &self.wasm_byte_code, &mut value);
+        let value = serde_json::json!({
+            "sender": self.sender,
+            "wasm_byte_code": self.wasm_byte_code,
+        });
 
         morpheum_proto::google::protobuf::Any {
             type_url: "/cosmwasm.wasm.v1.MsgStoreCode".into(),
-            value,
+            value: serde_json::to_vec(&value).unwrap_or_default(),
         }
     }
 }
@@ -49,27 +53,27 @@ pub struct CoinProto {
 }
 
 impl InstantiateContractRequest {
-    /// Encodes as `/cosmwasm.wasm.v1.MsgInstantiateContract`.
+    /// Encodes as `/cosmwasm.wasm.v1.MsgInstantiateContract` (JSON wire format).
+    ///
+    /// Mormcore's CosmWasm actor deserialises message bytes with
+    /// `serde_json::from_slice`, so we must produce JSON — not protobuf.
     pub fn to_any(&self) -> morpheum_proto::google::protobuf::Any {
-        let mut value = Vec::new();
-        prost::encoding::string::encode(1, &self.sender, &mut value);
-        if let Some(ref admin) = self.admin {
-            prost::encoding::string::encode(2, admin, &mut value);
-        }
-        prost::encoding::uint64::encode(3, &self.code_id, &mut value);
-        prost::encoding::string::encode(4, &self.label, &mut value);
-        prost::encoding::bytes::encode(5, &self.msg, &mut value);
+        let funds: Vec<serde_json::Value> = self.funds.iter().map(|c| {
+            serde_json::json!({ "denom": c.denom, "amount": c.amount })
+        }).collect();
 
-        for coin in &self.funds {
-            let mut coin_buf = Vec::new();
-            prost::encoding::string::encode(1, &coin.denom, &mut coin_buf);
-            prost::encoding::string::encode(2, &coin.amount, &mut coin_buf);
-            prost::encoding::message::encode(6, &EncodedMessage(coin_buf), &mut value);
-        }
+        let value = serde_json::json!({
+            "sender": self.sender,
+            "admin": self.admin,
+            "code_id": self.code_id,
+            "label": self.label,
+            "msg": self.msg,
+            "funds": funds,
+        });
 
         morpheum_proto::google::protobuf::Any {
             type_url: "/cosmwasm.wasm.v1.MsgInstantiateContract".into(),
-            value,
+            value: serde_json::to_vec(&value).unwrap_or_default(),
         }
     }
 }
@@ -84,23 +88,25 @@ pub struct ExecuteContractRequest {
 }
 
 impl ExecuteContractRequest {
-    /// Encodes as `/cosmwasm.wasm.v1.MsgExecuteContract`.
+    /// Encodes as `/cosmwasm.wasm.v1.MsgExecuteContract` (JSON wire format).
+    ///
+    /// Mormcore's CosmWasm actor deserialises message bytes with
+    /// `serde_json::from_slice`, so we must produce JSON — not protobuf.
     pub fn to_any(&self) -> morpheum_proto::google::protobuf::Any {
-        let mut value = Vec::new();
-        prost::encoding::string::encode(1, &self.sender, &mut value);
-        prost::encoding::string::encode(2, &self.contract, &mut value);
-        prost::encoding::bytes::encode(3, &self.msg, &mut value);
+        let funds: Vec<serde_json::Value> = self.funds.iter().map(|c| {
+            serde_json::json!({ "denom": c.denom, "amount": c.amount })
+        }).collect();
 
-        for coin in &self.funds {
-            let mut coin_buf = Vec::new();
-            prost::encoding::string::encode(1, &coin.denom, &mut coin_buf);
-            prost::encoding::string::encode(2, &coin.amount, &mut coin_buf);
-            prost::encoding::message::encode(5, &EncodedMessage(coin_buf), &mut value);
-        }
+        let value = serde_json::json!({
+            "sender": self.sender,
+            "contract": self.contract,
+            "msg": self.msg,
+            "funds": funds,
+        });
 
         morpheum_proto::google::protobuf::Any {
             type_url: "/cosmwasm.wasm.v1.MsgExecuteContract".into(),
-            value,
+            value: serde_json::to_vec(&value).unwrap_or_default(),
         }
     }
 }
@@ -119,29 +125,3 @@ pub struct QueryRawRequest {
     pub key: Vec<u8>,
 }
 
-/// Helper to encode pre-serialized bytes as a prost message.
-struct EncodedMessage(Vec<u8>);
-
-impl prost::Message for EncodedMessage {
-    fn encode_raw(&self, buf: &mut impl prost::bytes::BufMut) {
-        buf.put_slice(&self.0);
-    }
-
-    fn merge_field(
-        &mut self,
-        _tag: u32,
-        _wire_type: prost::encoding::WireType,
-        _buf: &mut impl prost::bytes::Buf,
-        _ctx: prost::encoding::DecodeContext,
-    ) -> Result<(), prost::DecodeError> {
-        Ok(())
-    }
-
-    fn encoded_len(&self) -> usize {
-        self.0.len()
-    }
-
-    fn clear(&mut self) {
-        self.0.clear();
-    }
-}

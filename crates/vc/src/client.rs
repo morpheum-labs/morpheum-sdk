@@ -14,7 +14,7 @@ use async_trait::async_trait;
 use prost::Message as _;
 
 use morpheum_sdk_core::{
-    AccountId, MorpheumClient, SdkConfig, SdkError, Transport,
+    MorpheumClient, SdkConfig, SdkError, Transport,
 };
 
 use crate::{
@@ -96,7 +96,7 @@ impl VcClient {
     /// Queries all VCs issued by a specific issuer (paginated).
     pub async fn query_vcs_by_issuer(
         &self,
-        issuer: impl Into<AccountId>,
+        issuer: impl Into<String>,
         limit: u32,
         offset: u32,
     ) -> Result<Vec<Vc>, SdkError> {
@@ -119,7 +119,7 @@ impl VcClient {
     /// Queries all VCs issued to a specific subject (paginated).
     pub async fn query_vcs_by_subject(
         &self,
-        subject: impl Into<AccountId>,
+        subject: impl Into<String>,
         limit: u32,
         offset: u32,
     ) -> Result<Vec<Vc>, SdkError> {
@@ -142,7 +142,7 @@ impl VcClient {
     /// Queries the revocation bitmap for an issuer (for cross-chain verification).
     pub async fn query_revocation_bitmap(
         &self,
-        issuer: impl Into<AccountId>,
+        issuer: impl Into<String>,
     ) -> Result<Vec<u8>, SdkError> {
         let req = QueryRevocationBitmapRequest::new(issuer);
         let proto_req: morpheum_proto::vc::v1::QueryRevocationBitmapRequest = req.into();

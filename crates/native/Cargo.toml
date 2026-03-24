@@ -24,31 +24,32 @@ full = [
     "std",
 ]
 
-# Individual modules (feature-gated for minimal builds)
-identity = ["dep:morpheum-sdk-identity"]
-market = ["dep:morpheum-sdk-market"]
-vc = ["dep:morpheum-sdk-vc"]
-auth = ["dep:morpheum-sdk-auth"]
-agent_registry = ["dep:morpheum-sdk-agent-registry"]
-inference_registry = ["dep:morpheum-sdk-inference-registry"]
-interop = ["dep:morpheum-sdk-interop"]
-job = ["dep:morpheum-sdk-job"]
-bank = ["dep:morpheum-sdk-bank"]
-staking = ["dep:morpheum-sdk-staking"]
-reputation = ["dep:morpheum-sdk-reputation"]
-validation = ["dep:morpheum-sdk-validation"]
-memory = ["dep:morpheum-sdk-memory"]
-intent = ["dep:morpheum-sdk-intent"]
-marketplace = ["dep:morpheum-sdk-marketplace"]
-directory = ["dep:morpheum-sdk-directory"]
-x402 = ["dep:morpheum-sdk-x402"]
-gmp = ["dep:morpheum-sdk-gmp"]
+# Individual modules (feature-gated for minimal builds).
+# Each module activates its serde feature so response types are serializable.
+identity = ["dep:morpheum-sdk-identity", "morpheum-sdk-identity?/serde"]
+market = ["dep:morpheum-sdk-market", "morpheum-sdk-market?/serde"]
+vc = ["dep:morpheum-sdk-vc", "morpheum-sdk-vc?/serde"]
+auth = ["dep:morpheum-sdk-auth", "morpheum-sdk-auth?/serde"]
+agent_registry = ["dep:morpheum-sdk-agent-registry", "morpheum-sdk-agent-registry?/serde"]
+inference_registry = ["dep:morpheum-sdk-inference-registry", "morpheum-sdk-inference-registry?/serde"]
+interop = ["dep:morpheum-sdk-interop", "morpheum-sdk-interop?/serde"]
+job = ["dep:morpheum-sdk-job", "morpheum-sdk-job?/serde"]
+bank = ["dep:morpheum-sdk-bank", "morpheum-sdk-bank?/serde"]
+staking = ["dep:morpheum-sdk-staking", "morpheum-sdk-staking?/serde"]
+reputation = ["dep:morpheum-sdk-reputation", "morpheum-sdk-reputation?/serde"]
+validation = ["dep:morpheum-sdk-validation", "morpheum-sdk-validation?/serde"]
+memory = ["dep:morpheum-sdk-memory", "morpheum-sdk-memory?/serde"]
+intent = ["dep:morpheum-sdk-intent", "morpheum-sdk-intent?/serde"]
+marketplace = ["dep:morpheum-sdk-marketplace", "morpheum-sdk-marketplace?/serde"]
+directory = ["dep:morpheum-sdk-directory", "morpheum-sdk-directory?/serde"]
+x402 = ["dep:morpheum-sdk-x402", "morpheum-sdk-x402?/serde"]
+gmp = ["dep:morpheum-sdk-gmp", "morpheum-sdk-gmp?/serde"]
 evm = ["dep:morpheum-sdk-evm"]
 svm = ["dep:morpheum-sdk-svm"]
-cosmwasm = ["dep:morpheum-sdk-cosmwasm"]
+cosmwasm = ["dep:morpheum-sdk-cosmwasm", "morpheum-sdk-cosmwasm?/serde"]
 
 # Transport backends
-grpc = ["dep:tonic", "dep:tokio"]
+grpc = ["dep:tonic", "dep:tokio", "dep:prost", "dep:http"]
 http = ["dep:reqwest", "dep:tokio"]
 
 # Enables std support across the SDK
@@ -106,7 +107,13 @@ async-trait = "0.1"
 tokio = { version = "1", optional = true, features = ["full"] }
 
 # gRPC transport (tonic)
-tonic = { version = "0.12", optional = true, features = ["tls", "tls-roots"] }
+tonic = { version = "0.14", optional = true, features = ["transport"] }
+
+# Protobuf encoding (for GrpcTransport broadcast_tx decode/encode)
+prost = { version = "0.14", optional = true, default-features = false }
+
+# HTTP types (PathAndQuery for raw gRPC calls)
+http = { version = "1", optional = true }
 
 # HTTP transport (reqwest)
 reqwest = { version = "0.12", optional = true, features = ["json", "rustls-tls"] }

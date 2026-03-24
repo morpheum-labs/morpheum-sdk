@@ -112,6 +112,14 @@ pub use signing::{
 // Claim types are in signing-core, re-exported through native
 pub use signing::claim::{TradingKeyClaim, VcClaimBuilder};
 
+// ==================== gRPC TRANSPORT ====================
+
+#[cfg(feature = "grpc")]
+pub mod grpc_transport;
+
+#[cfg(feature = "grpc")]
+pub use grpc_transport::GrpcTransport;
+
 // ==================== PLACEHOLDER TRANSPORT ====================
 
 /// A placeholder transport that returns errors for all operations.
@@ -247,6 +255,9 @@ pub mod prelude {
 
     #[cfg(feature = "staking")]
     pub use super::staking::StakingClient;
+
+    #[cfg(feature = "grpc")]
+    pub use super::GrpcTransport;
 }
 
 // Current version of the native SDK

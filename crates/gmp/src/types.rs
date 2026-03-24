@@ -85,6 +85,14 @@ pub struct SettleGmpPaymentResult {
     pub success: bool,
 }
 
+/// Hyperlane message delivery status.
+#[derive(Clone, Debug)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+pub struct HyperlaneDeliveryStatus {
+    pub message_id: String,
+    pub delivered: bool,
+}
+
 // ── Proto conversions: pb -> SDK ────────────────────────────────────
 
 impl From<pb::Params> for GmpParams {

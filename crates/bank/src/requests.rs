@@ -546,6 +546,27 @@ impl From<QueryBalancesRequest> for proto::QueryBalancesRequest {
     }
 }
 
+/// Query all registered assets in the bank's asset registry.
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+pub struct QueryAssetsRequest {
+    pub type_filter: Option<i32>,
+}
+
+impl QueryAssetsRequest {
+    pub fn new(type_filter: Option<i32>) -> Self {
+        Self { type_filter }
+    }
+}
+
+impl From<QueryAssetsRequest> for proto::QueryAssetsRequest {
+    fn from(req: QueryAssetsRequest) -> Self {
+        Self {
+            type_filter: req.type_filter,
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

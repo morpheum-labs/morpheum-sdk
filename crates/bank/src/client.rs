@@ -15,8 +15,8 @@ use prost::Message as _;
 
 use morpheum_sdk_core::{MorpheumClient, SdkConfig, SdkError, Transport};
 
-use crate::requests::{QueryBalanceRequest, QueryBalancesRequest};
-use crate::types::Balance;
+use crate::requests::{QueryAssetsRequest, QueryBalanceRequest, QueryBalancesRequest};
+use crate::types::{Asset, AssetsResponse, Balance};
 
 /// Primary client for all bank-related queries.
 ///
@@ -91,10 +91,43 @@ impl BankClient {
             .collect())
     }
 
+    /// Queries all registered assets in the bank's asset registry.
+    pub async fn query_assets(
+        &self,
+        type_filter: Option<i32>,
+    ) -> Result<AssetsResponse, SdkError> {
+        let req = QueryAssetsRequest::new(type_filter);
+        let proto_req: morpheum_proto::bank::v1::QueryAssetsRequest = req.into();
+
+        let path = "/bank.v1.Query/QueryAssets";
+        let data = proto_req.encode_to_vec();
+        let response_bytes = self.query(path, data).await?;
+
+        let proto_res = morpheum_proto::bank::v1::QueryAssetsResponse::decode(
+            response_bytes.as_slice(),
+        )
+        .map_err(SdkError::Decode)?;
+
+        Ok(AssetsResponse {
+            total_count: proto_res.total_count,
+            assets: proto_res
+                .assets
+                .into_iter()
+                .map(|a| Asset {
+                    asset_index: a.asset_index,
+                    symbol: a.symbol,
+                    asset_type: a.r#type,
+                    decimals: a.metadata.as_ref().map_or(0, |m| m.decimals),
+                    is_native: a.is_native,
+                })
+                .collect(),
+        })
+    }
 }
 
 /// Response from a single-asset balance query.
 #[derive(Clone, Debug, PartialEq, Eq)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct BalanceResponse {
     pub address: String,
     pub balance: String,

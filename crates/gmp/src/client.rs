@@ -11,7 +11,7 @@ use prost::Message;
 use morpheum_proto::gmp::v1 as pb;
 use morpheum_sdk_core::{MorpheumClient, SdkConfig, SdkError, Transport};
 
-use crate::types::{GmpParams, ProtocolInfo};
+use crate::types::{GmpParams, HyperlaneDeliveryStatus, ProtocolInfo};
 
 /// Client for querying the GMP module.
 pub struct GmpClient {
@@ -44,6 +44,24 @@ impl GmpClient {
         Ok(resp.protocols.into_iter().map(ProtocolInfo::from).collect())
     }
 
+    /// Query Hyperlane message delivery status by message ID.
+    pub async fn query_hyperlane_delivery(
+        &self,
+        message_id: impl Into<String>,
+    ) -> Result<HyperlaneDeliveryStatus, SdkError> {
+        let id = message_id.into();
+        let req = pb::QueryHyperlaneDeliveryRequest {
+            message_id: id.clone(),
+        };
+        let data = self
+            .query("/gmp.v1.Query/QueryHyperlaneDelivery", req.encode_to_vec())
+            .await?;
+        let resp = pb::QueryHyperlaneDeliveryResponse::decode(data.as_slice())?;
+        Ok(HyperlaneDeliveryStatus {
+            message_id: id,
+            delivered: resp.delivered,
+        })
+    }
 }
 
 #[async_trait(?Send)]

@@ -26,7 +26,7 @@ pub use requests::{
     WarpRouteTransferRequest,
 };
 pub use types::{
-    GmpParams, HyperlaneParams, ProtocolInfo,
+    GmpParams, HyperlaneDeliveryStatus, HyperlaneParams, ProtocolInfo,
     SettleGmpPaymentResult, WarpRouteConfig, WarpRouteToken, WarpRouteTransferResult,
 };
 

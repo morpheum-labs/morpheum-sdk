@@ -5,6 +5,7 @@
 //! to/from protobuf while remaining strictly `no_std` compatible.
 
 use alloc::string::String;
+use alloc::vec::Vec;
 
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
@@ -81,6 +82,47 @@ pub struct Balance {
     pub locked_balance: String,
 }
 
+// ====================== ASSET ======================
+
+/// On-chain asset metadata from the bank module's asset registry.
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+pub struct Asset {
+    pub asset_index: u64,
+    pub symbol: String,
+    pub asset_type: i32,
+    pub decimals: u32,
+    pub is_native: bool,
+}
+
+/// Response from `query_assets`.
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+pub struct AssetsResponse {
+    pub assets: Vec<Asset>,
+    pub total_count: u64,
+}
+
+// ====================== ASSET INDEX RESOLUTION ======================
+
+/// Well-known asset name → registry index mapping.
+///
+/// Centralises the lookup so that CLI, SDK callers, and test harnesses all
+/// resolve the same indices without duplicating magic numbers.
+pub fn resolve_asset_index(name: &str) -> Result<u64, morpheum_sdk_core::SdkError> {
+    match name.to_ascii_uppercase().as_str() {
+        "MORM" => Ok(0),
+        "USDC" => Ok(1),
+        "BTC" => Ok(2),
+        "ETH" => Ok(3),
+        "USDT" => Ok(4),
+        "SOL" => Ok(5),
+        _ => Err(morpheum_sdk_core::SdkError::invalid_input(alloc::format!(
+            "unknown asset name '{name}' — known: MORM (0), USDC (1), BTC (2), ETH (3), USDT (4), SOL (5)"
+        ))),
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -106,5 +148,17 @@ mod tests {
 
         let by_sym = AssetIdentifier::symbol("MORM");
         assert_eq!(by_sym, AssetIdentifier::BySymbol("MORM".into()));
+    }
+
+    #[test]
+    fn resolve_asset_index_known() {
+        assert_eq!(resolve_asset_index("MORM").unwrap(), 0);
+        assert_eq!(resolve_asset_index("usdc").unwrap(), 1);
+        assert_eq!(resolve_asset_index("Sol").unwrap(), 5);
+    }
+
+    #[test]
+    fn resolve_asset_index_unknown() {
+        assert!(resolve_asset_index("DOGE").is_err());
     }
 }

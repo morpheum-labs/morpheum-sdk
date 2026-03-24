@@ -301,13 +301,13 @@ impl From<proto::QueryVcStatusResponse> for QueryVcStatusResponse {
 #[derive(Clone, Debug, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct QueryVcsByIssuerRequest {
-    pub issuer: AccountId,
+    pub issuer: String,
     pub limit: u32,
     pub offset: u32,
 }
 
 impl QueryVcsByIssuerRequest {
-    pub fn new(issuer: impl Into<AccountId>, limit: u32, offset: u32) -> Self {
+    pub fn new(issuer: impl Into<String>, limit: u32, offset: u32) -> Self {
         Self { issuer: issuer.into(), limit, offset }
     }
 }
@@ -315,7 +315,7 @@ impl QueryVcsByIssuerRequest {
 impl From<QueryVcsByIssuerRequest> for proto::QueryVcsByIssuerRequest {
     fn from(req: QueryVcsByIssuerRequest) -> Self {
         Self {
-            issuer_agent_hash: req.issuer.to_string(),
+            issuer_agent_hash: req.issuer,
             limit: req.limit,
             offset: req.offset,
         }
@@ -326,13 +326,13 @@ impl From<QueryVcsByIssuerRequest> for proto::QueryVcsByIssuerRequest {
 #[derive(Clone, Debug, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct QueryVcsBySubjectRequest {
-    pub subject: AccountId,
+    pub subject: String,
     pub limit: u32,
     pub offset: u32,
 }
 
 impl QueryVcsBySubjectRequest {
-    pub fn new(subject: impl Into<AccountId>, limit: u32, offset: u32) -> Self {
+    pub fn new(subject: impl Into<String>, limit: u32, offset: u32) -> Self {
         Self { subject: subject.into(), limit, offset }
     }
 }
@@ -340,7 +340,7 @@ impl QueryVcsBySubjectRequest {
 impl From<QueryVcsBySubjectRequest> for proto::QueryVcsBySubjectRequest {
     fn from(req: QueryVcsBySubjectRequest) -> Self {
         Self {
-            subject_agent_hash: req.subject.to_string(),
+            subject_agent_hash: req.subject,
             limit: req.limit,
             offset: req.offset,
         }
@@ -351,11 +351,11 @@ impl From<QueryVcsBySubjectRequest> for proto::QueryVcsBySubjectRequest {
 #[derive(Clone, Debug, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct QueryRevocationBitmapRequest {
-    pub issuer: AccountId,
+    pub issuer: String,
 }
 
 impl QueryRevocationBitmapRequest {
-    pub fn new(issuer: impl Into<AccountId>) -> Self {
+    pub fn new(issuer: impl Into<String>) -> Self {
         Self { issuer: issuer.into() }
     }
 }
@@ -363,7 +363,7 @@ impl QueryRevocationBitmapRequest {
 impl From<QueryRevocationBitmapRequest> for proto::QueryRevocationBitmapRequest {
     fn from(req: QueryRevocationBitmapRequest) -> Self {
         Self {
-            issuer_agent_hash: req.issuer.to_string(),
+            issuer_agent_hash: req.issuer,
         }
     }
 }

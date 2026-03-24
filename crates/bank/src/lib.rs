@@ -19,10 +19,13 @@ pub mod builder;
 // ==================== PUBLIC RE-EXPORTS ====================
 
 /// Main client for all bank query operations.
-pub use client::BankClient;
+pub use client::{BankClient, BalanceResponse};
 
 /// Core domain types for bank operations.
-pub use types::{AssetIdentifier, Balance, ChainType};
+pub use types::{Asset, AssetIdentifier, AssetsResponse, Balance, ChainType};
+
+/// Well-known asset name → registry index resolver.
+pub use types::resolve_asset_index;
 
 /// Request and response wrappers for transaction construction and queries.
 pub use requests::*;
@@ -56,9 +59,12 @@ pub use morpheum_sdk_core::{
 pub mod prelude {
     pub use super::{
         BankClient,
+        Asset,
         AssetIdentifier,
+        AssetsResponse,
         Balance,
         ChainType,
+        resolve_asset_index,
         TransferBuilder,
         CrossChainTransferBuilder,
         MintBuilder,

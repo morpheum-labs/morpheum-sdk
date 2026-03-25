@@ -1,6 +1,6 @@
 //! Domain types for the Inference Registry module.
 //!
-//! Clean, idiomatic Rust representations of the inference_registry protobuf
+//! Clean, idiomatic Rust representations of the inferreg protobuf
 //! messages. Full round-trip conversion to/from protobuf and `no_std` compatible.
 
 use alloc::string::String;
@@ -10,7 +10,7 @@ use core::fmt;
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
-use morpheum_proto::inference_registry::v1 as proto;
+use morpheum_proto::inferreg::v1 as proto;
 
 // ====================== SUPPORTED OPS BITFLAGS ======================
 
@@ -110,7 +110,7 @@ impl fmt::Display for ModelStatus {
 /// Canonical on-chain record for a registered inference model.
 ///
 /// One record per model, governance-controlled, zk-commitment backed.
-/// Used by AgentCore VM, validation, agent_registry, and memory modules.
+/// Used by AgentCore VM, validation, agentreg, and memory modules.
 #[derive(Clone, Debug, Default, PartialEq)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct ModelCommitment {

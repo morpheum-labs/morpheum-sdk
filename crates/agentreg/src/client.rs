@@ -1,4 +1,4 @@
-//! AgentRegistryClient — the main entry point for agent-registry queries
+//! AgentRegistryClient — the main entry point for agentreg queries
 //! in the Morpheum SDK.
 //!
 //! Provides high-level, type-safe methods for querying agent records, resolving
@@ -23,7 +23,7 @@ use crate::{
     types::{AgentRecord, ExportStatus, Params},
 };
 
-/// Primary client for all agent-registry queries.
+/// Primary client for all agentreg queries.
 ///
 /// Transaction construction (trigger protocol sync, update params) is delegated
 /// to the fluent builders in `builder.rs` for maximum ergonomics and type safety.
@@ -46,14 +46,14 @@ impl AgentRegistryClient {
         agent_hash: impl Into<alloc::string::String>,
     ) -> Result<Option<AgentRecord>, SdkError> {
         let req = QueryAgentRecordRequest::new(agent_hash);
-        let proto_req: morpheum_proto::agent_registry::v1::QueryAgentRecordRequest = req.into();
+        let proto_req: morpheum_proto::agentreg::v1::QueryAgentRecordRequest = req.into();
 
-        let path = "/agent_registry.v1.Query/QueryAgentRecord";
+        let path = "/agentreg.v1.Query/QueryAgentRecord";
         let data = proto_req.encode_to_vec();
         let response_bytes = self.query(path, data).await?;
 
         let proto_res =
-            morpheum_proto::agent_registry::v1::QueryAgentRecordResponse::decode(
+            morpheum_proto::agentreg::v1::QueryAgentRecordResponse::decode(
                 response_bytes.as_slice(),
             )
             .map_err(SdkError::Decode)?;
@@ -70,14 +70,14 @@ impl AgentRegistryClient {
         caip_id: impl Into<alloc::string::String>,
     ) -> Result<Option<AgentRecord>, SdkError> {
         let req = QueryAgentByCaipRequest::new(caip_id);
-        let proto_req: morpheum_proto::agent_registry::v1::QueryAgentByCaipRequest = req.into();
+        let proto_req: morpheum_proto::agentreg::v1::QueryAgentByCaipRequest = req.into();
 
-        let path = "/agent_registry.v1.Query/QueryAgentByCAIP";
+        let path = "/agentreg.v1.Query/QueryAgentByCAIP";
         let data = proto_req.encode_to_vec();
         let response_bytes = self.query(path, data).await?;
 
         let proto_res =
-            morpheum_proto::agent_registry::v1::QueryAgentByCaipResponse::decode(
+            morpheum_proto::agentreg::v1::QueryAgentByCaipResponse::decode(
                 response_bytes.as_slice(),
             )
             .map_err(SdkError::Decode)?;
@@ -95,14 +95,14 @@ impl AgentRegistryClient {
         protocols: Vec<alloc::string::String>,
     ) -> Result<Vec<ExportStatus>, SdkError> {
         let req = QueryExportStatusRequest::new(agent_hash, protocols);
-        let proto_req: morpheum_proto::agent_registry::v1::QueryExportStatusRequest = req.into();
+        let proto_req: morpheum_proto::agentreg::v1::QueryExportStatusRequest = req.into();
 
-        let path = "/agent_registry.v1.Query/QueryExportStatus";
+        let path = "/agentreg.v1.Query/QueryExportStatus";
         let data = proto_req.encode_to_vec();
         let response_bytes = self.query(path, data).await?;
 
         let proto_res =
-            morpheum_proto::agent_registry::v1::QueryExportStatusResponse::decode(
+            morpheum_proto::agentreg::v1::QueryExportStatusResponse::decode(
                 response_bytes.as_slice(),
             )
             .map_err(SdkError::Decode)?;
@@ -114,14 +114,14 @@ impl AgentRegistryClient {
     /// Queries the current module parameters.
     pub async fn query_params(&self) -> Result<Option<Params>, SdkError> {
         let req = crate::requests::QueryParamsRequest;
-        let proto_req: morpheum_proto::agent_registry::v1::QueryParamsRequest = req.into();
+        let proto_req: morpheum_proto::agentreg::v1::QueryParamsRequest = req.into();
 
-        let path = "/agent_registry.v1.Query/QueryParams";
+        let path = "/agentreg.v1.Query/QueryParams";
         let data = proto_req.encode_to_vec();
         let response_bytes = self.query(path, data).await?;
 
         let proto_res =
-            morpheum_proto::agent_registry::v1::QueryParamsResponse::decode(
+            morpheum_proto::agentreg::v1::QueryParamsResponse::decode(
                 response_bytes.as_slice(),
             )
             .map_err(SdkError::Decode)?;
@@ -156,14 +156,14 @@ mod tests {
             &self,
             _tx_bytes: Vec<u8>,
         ) -> Result<morpheum_sdk_core::BroadcastResult, SdkError> {
-            unimplemented!("not needed for agent_registry query tests")
+            unimplemented!("not needed for agentreg query tests")
         }
 
         async fn query(&self, path: &str, _data: Vec<u8>) -> Result<Vec<u8>, SdkError> {
             match path {
-                "/agent_registry.v1.Query/QueryAgentRecord" => {
-                    let dummy = morpheum_proto::agent_registry::v1::QueryAgentRecordResponse {
-                        record: Some(morpheum_proto::agent_registry::v1::AgentRecord {
+                "/agentreg.v1.Query/QueryAgentRecord" => {
+                    let dummy = morpheum_proto::agentreg::v1::QueryAgentRecordResponse {
+                        record: Some(morpheum_proto::agentreg::v1::AgentRecord {
                             agent_hash: vec![0xAA; 32],
                             version: 3,
                             ..Default::default()
@@ -171,9 +171,9 @@ mod tests {
                     };
                     Ok(prost::Message::encode_to_vec(&dummy))
                 }
-                "/agent_registry.v1.Query/QueryAgentByCAIP" => {
-                    let dummy = morpheum_proto::agent_registry::v1::QueryAgentByCaipResponse {
-                        record: Some(morpheum_proto::agent_registry::v1::AgentRecord {
+                "/agentreg.v1.Query/QueryAgentByCAIP" => {
+                    let dummy = morpheum_proto::agentreg::v1::QueryAgentByCaipResponse {
+                        record: Some(morpheum_proto::agentreg::v1::AgentRecord {
                             agent_hash: vec![0xBB; 32],
                             version: 1,
                             ..Default::default()
@@ -181,10 +181,10 @@ mod tests {
                     };
                     Ok(prost::Message::encode_to_vec(&dummy))
                 }
-                "/agent_registry.v1.Query/QueryExportStatus" => {
-                    let dummy = morpheum_proto::agent_registry::v1::QueryExportStatusResponse {
+                "/agentreg.v1.Query/QueryExportStatus" => {
+                    let dummy = morpheum_proto::agentreg::v1::QueryExportStatusResponse {
                         export_statuses: vec![
-                            morpheum_proto::agent_registry::v1::ExportStatus {
+                            morpheum_proto::agentreg::v1::ExportStatus {
                                 protocol: "erc8004".into(),
                                 success: true,
                                 ..Default::default()
@@ -193,9 +193,9 @@ mod tests {
                     };
                     Ok(prost::Message::encode_to_vec(&dummy))
                 }
-                "/agent_registry.v1.Query/QueryParams" => {
-                    let dummy = morpheum_proto::agent_registry::v1::QueryParamsResponse {
-                        params: Some(morpheum_proto::agent_registry::v1::Params {
+                "/agentreg.v1.Query/QueryParams" => {
+                    let dummy = morpheum_proto::agentreg::v1::QueryParamsResponse {
+                        params: Some(morpheum_proto::agentreg::v1::Params {
                             max_metadata_size_bytes: 1_048_576,
                             sync_timeout_ms: 100,
                             enable_auto_export: true,

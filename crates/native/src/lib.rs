@@ -43,11 +43,11 @@ pub use morpheum_sdk_vc as vc;
 #[cfg(feature = "auth")]
 pub use morpheum_sdk_auth as auth;
 
-#[cfg(feature = "agent_registry")]
-pub use morpheum_sdk_agent_registry as agent_registry;
+#[cfg(feature = "agentreg")]
+pub use morpheum_sdk_agentreg as agentreg;
 
-#[cfg(feature = "inference_registry")]
-pub use morpheum_sdk_inference_registry as inference_registry;
+#[cfg(feature = "inferreg")]
+pub use morpheum_sdk_inferreg as inferreg;
 
 #[cfg(feature = "interop")]
 pub use morpheum_sdk_interop as interop;
@@ -238,11 +238,11 @@ pub mod prelude {
     #[cfg(feature = "auth")]
     pub use super::auth::AuthClient;
 
-    #[cfg(feature = "agent_registry")]
-    pub use super::agent_registry::AgentRegistryClient;
+    #[cfg(feature = "agentreg")]
+    pub use super::agentreg::AgentRegistryClient;
 
-    #[cfg(feature = "inference_registry")]
-    pub use super::inference_registry::InferenceRegistryClient;
+    #[cfg(feature = "inferreg")]
+    pub use super::inferreg::InferenceRegistryClient;
 
     #[cfg(feature = "interop")]
     pub use super::interop::InteropClient;

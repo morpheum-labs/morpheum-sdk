@@ -49,7 +49,7 @@ The Morpheum SDK is a **modular, dual-target** SDK that provides a unified API f
                                 ▼
 ┌─────────────────────────────────────────────────────────────────┐
 │                     Module Layer                                  │
-│  market │ vc │ auth │ identity │ agent_registry │ bank │ ...    │
+│  market │ vc │ auth │ identity │ agentreg │ bank │ ...    │
 │  (MarketClient, VcClient, AuthClient, etc.)                       │
 └─────────────────────────────────────────────────────────────────┘
                                 │

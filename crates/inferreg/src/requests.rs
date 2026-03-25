@@ -13,7 +13,7 @@ use prost::Message as _;
 use serde::{Deserialize, Serialize};
 
 use morpheum_proto::google::protobuf::Any as ProtoAny;
-use morpheum_proto::inference_registry::v1 as proto;
+use morpheum_proto::inferreg::v1 as proto;
 
 use crate::types::{ModelCommitment, Params, QuantFormat};
 
@@ -22,7 +22,7 @@ use crate::types::{ModelCommitment, Params, QuantFormat};
 /// Request to register a new model (governance only).
 ///
 /// Creates a `ModelCommitment`, registers the precompile in AgentCore VM,
-/// and triggers export to `agent_registry` for instant visibility.
+/// and triggers export to `agentreg` for instant visibility.
 #[derive(Clone, Debug, PartialEq)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct RegisterModelRequest {
@@ -68,7 +68,7 @@ impl RegisterModelRequest {
     pub fn to_any(&self) -> ProtoAny {
         let msg: proto::MsgRegisterModel = self.clone().into();
         ProtoAny {
-            type_url: "/inference_registry.v1.MsgRegisterModel".into(),
+            type_url: "/inferreg.v1.MsgRegisterModel".into(),
             value: msg.encode_to_vec(),
         }
     }
@@ -260,7 +260,7 @@ mod tests {
             1,
         );
         let any = req.to_any();
-        assert_eq!(any.type_url, "/inference_registry.v1.MsgRegisterModel");
+        assert_eq!(any.type_url, "/inferreg.v1.MsgRegisterModel");
         assert!(!any.value.is_empty());
     }
 

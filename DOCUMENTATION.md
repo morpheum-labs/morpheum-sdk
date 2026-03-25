@@ -256,8 +256,8 @@ Identity resolution and management.
 
 ### Other Modules
 
-- `agent_registry` — Agent registration
-- `inference_registry` — Inference model registry
+- `agentreg` — Agent registration
+- `inferreg` — Inference model registry
 - `interop` — Cross-chain interoperability
 - `job` — Job scheduling
 - `bank` — Token transfers

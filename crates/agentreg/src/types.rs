@@ -1,6 +1,6 @@
 //! Domain types for the Agent Registry module.
 //!
-//! Clean, idiomatic Rust representations of the agent_registry protobuf
+//! Clean, idiomatic Rust representations of the agentreg protobuf
 //! messages. Full round-trip conversion to/from protobuf and `no_std` compatible.
 
 use alloc::string::String;
@@ -10,7 +10,7 @@ use core::fmt;
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
-use morpheum_proto::agent_registry::v1 as proto;
+use morpheum_proto::agentreg::v1 as proto;
 
 // ====================== VISIBILITY LEVEL ======================
 

@@ -30,8 +30,8 @@ identity = ["dep:morpheum-sdk-identity", "morpheum-sdk-identity?/serde"]
 market = ["dep:morpheum-sdk-market", "morpheum-sdk-market?/serde"]
 vc = ["dep:morpheum-sdk-vc", "morpheum-sdk-vc?/serde"]
 auth = ["dep:morpheum-sdk-auth", "morpheum-sdk-auth?/serde"]
-agent_registry = ["dep:morpheum-sdk-agent-registry", "morpheum-sdk-agent-registry?/serde"]
-inference_registry = ["dep:morpheum-sdk-inference-registry", "morpheum-sdk-inference-registry?/serde"]
+agentreg = ["dep:morpheum-sdk-agentreg", "morpheum-sdk-agentreg?/serde"]
+inferreg = ["dep:morpheum-sdk-inferreg", "morpheum-sdk-inferreg?/serde"]
 interop = ["dep:morpheum-sdk-interop", "morpheum-sdk-interop?/serde"]
 job = ["dep:morpheum-sdk-job", "morpheum-sdk-job?/serde"]
 bank = ["dep:morpheum-sdk-bank", "morpheum-sdk-bank?/serde"]
@@ -60,8 +60,8 @@ std = [
     "morpheum-sdk-market?/std",
     "morpheum-sdk-vc?/std",
     "morpheum-sdk-auth?/std",
-    "morpheum-sdk-agent-registry?/std",
-    "morpheum-sdk-inference-registry?/std",
+    "morpheum-sdk-agentreg?/std",
+    "morpheum-sdk-inferreg?/std",
     "morpheum-sdk-interop?/std",
     "morpheum-sdk-job?/std",
     "morpheum-sdk-bank?/std",
@@ -79,8 +79,8 @@ morpheum-sdk-identity = { path = "../identity", optional = true, default-feature
 morpheum-sdk-market = { path = "../market", optional = true, default-features = false }
 morpheum-sdk-vc = { path = "../vc", optional = true, default-features = false }
 morpheum-sdk-auth = { path = "../auth", optional = true, default-features = false }
-morpheum-sdk-agent-registry = { path = "../agent_registry", optional = true, default-features = false }
-morpheum-sdk-inference-registry = { path = "../inference_registry", optional = true, default-features = false }
+morpheum-sdk-agentreg = { path = "../agentreg", optional = true, default-features = false }
+morpheum-sdk-inferreg = { path = "../inferreg", optional = true, default-features = false }
 morpheum-sdk-interop = { path = "../interop", optional = true, default-features = false }
 morpheum-sdk-job = { path = "../job", optional = true, default-features = false }
 morpheum-sdk-bank = { path = "../bank", optional = true, default-features = false }

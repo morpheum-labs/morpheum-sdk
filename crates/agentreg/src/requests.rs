@@ -13,7 +13,7 @@ use prost::Message as _;
 use serde::{Deserialize, Serialize};
 
 use morpheum_proto::google::protobuf::Any as ProtoAny;
-use morpheum_proto::agent_registry::v1 as proto;
+use morpheum_proto::agentreg::v1 as proto;
 
 use crate::types::{AgentRecord, ExportStatus, Params};
 
@@ -46,7 +46,7 @@ impl TriggerProtocolSyncRequest {
     pub fn to_any(&self) -> ProtoAny {
         let msg: proto::MsgTriggerProtocolSync = self.clone().into();
         ProtoAny {
-            type_url: "/agent_registry.v1.MsgTriggerProtocolSync".into(),
+            type_url: "/agentreg.v1.MsgTriggerProtocolSync".into(),
             value: msg.encode_to_vec(),
         }
     }
@@ -233,7 +233,7 @@ mod tests {
             vec!["erc8004".into(), "a2a".into()],
         );
         let any = req.to_any();
-        assert_eq!(any.type_url, "/agent_registry.v1.MsgTriggerProtocolSync");
+        assert_eq!(any.type_url, "/agentreg.v1.MsgTriggerProtocolSync");
         assert!(!any.value.is_empty());
     }
 

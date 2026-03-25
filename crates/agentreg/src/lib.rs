@@ -1,6 +1,6 @@
 //! Agent Registry module for the Morpheum SDK.
 //!
-//! The agent_registry is a thin, event-driven meta-registry that maintains
+//! The agentreg is a thin, event-driven meta-registry that maintains
 //! a canonical superset `AgentRecord` by aggregating live views from identity,
 //! reputation, validation, memory, and inference registries. It handles
 //! CAIP-10/CAIP-2 ID generation and powers the central sync engine for
@@ -13,7 +13,7 @@
 //!
 //! # Quick Start
 //! ```rust,ignore
-//! use morpheum_sdk_agent_registry::prelude::*;
+//! use morpheum_sdk_agentreg::prelude::*;
 //!
 //! // Build a trigger-protocol-sync request
 //! let request = TriggerProtocolSyncBuilder::new()

@@ -142,7 +142,7 @@ Full Rust SDK for CLI, bots, and agents.
 
 - **Core:** `core`, `AccountId`, `ChainId`, `SdkConfig`, `SdkError`, `SignedTx`
 - **Signing:** `NativeSigner`, `AgentSigner`, `TradingKeyClaim`, `VcClaimBuilder`
-- **Modules (feature-gated):** `market`, `vc`, `auth`, `identity`, `agent_registry`, `inference_registry`, `interop`, `job`, `bank`, `staking`
+- **Modules (feature-gated):** `market`, `vc`, `auth`, `identity`, `agentreg`, `inferreg`, `interop`, `job`, `bank`, `staking`
 
 ### Prelude
 
@@ -296,11 +296,11 @@ Client for nonce queries, TradingKey management, account state.
 - **Requests:** `RegisterAgentRequest`, `TransferOwnershipRequest`, `UpdateMetadataRequest`, `UpdateStatusRequest`, `BurnAgentRequest`
 - **Queries:** `QueryAgentRequest`, `QueryAgentByOwnerRequest`, `QueryMetadataCardRequest`, `QueryAgentStatusRequest`
 
-### Agent Registry (`morpheum-sdk-agent-registry`)
+### Agent Registry (`morpheum-sdk-agentreg`)
 
 - **Client:** `AgentRegistryClient`
 
-### Inference Registry (`morpheum-sdk-inference-registry`)
+### Inference Registry (`morpheum-sdk-inferreg`)
 
 - **Client:** `InferenceRegistryClient`
 

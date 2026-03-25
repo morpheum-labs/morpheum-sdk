@@ -1,6 +1,6 @@
 //! Inference Registry module for the Morpheum SDK.
 //!
-//! The inference_registry is a tiny, high-leverage MormModule that makes
+//! The inferreg is a tiny, high-leverage MormModule that makes
 //! inference a first-class, on-chain, provable primitive. It maintains a
 //! governance-controlled registry of quantized open models (Llama-3.1,
 //! Qwen2.5, DeepSeek-R1, etc.) with zk commitments, supported-ops bitflags,
@@ -17,7 +17,7 @@
 //!
 //! # Quick Start
 //! ```rust,ignore
-//! use morpheum_sdk_inference_registry::prelude::*;
+//! use morpheum_sdk_inferreg::prelude::*;
 //!
 //! let request = RegisterModelBuilder::new()
 //!     .authority("morpheum1gov")

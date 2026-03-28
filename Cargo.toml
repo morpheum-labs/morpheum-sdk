@@ -27,6 +27,7 @@ members = [
     "crates/cosmwasm",
     "crates/cctp",
     "crates/native",
+    "crates/ws",
     "crates/wasm",
     "examples",
     "tests",
@@ -66,6 +67,12 @@ morpheum-sdk-cosmwasm = { path = "crates/cosmwasm" }
 
 # CCTP handler contract interaction (canonical types + typed queries)
 morpheum-sdk-cctp = { path = "crates/cctp" }
+
+# WebSocket streaming client
+morpheum-sdk-ws = { path = "crates/ws" }
+
+# Shared primitives (sibling repo)
+morpheum-primitives = { path = "../morpheum-primitives", default-features = false }
 
 # Shared dependencies
 prost = { version = "0.14", default-features = false, features = ["derive"] }

@@ -94,6 +94,9 @@ pub use morpheum_sdk_svm as svm;
 #[cfg(feature = "cosmwasm")]
 pub use morpheum_sdk_cosmwasm as cosmwasm;
 
+#[cfg(feature = "ws")]
+pub use morpheum_sdk_ws as ws;
+
 // Re-export commonly used core types
 pub use core::{
     AccountId,
@@ -258,6 +261,9 @@ pub mod prelude {
 
     #[cfg(feature = "grpc")]
     pub use super::GrpcTransport;
+
+    #[cfg(feature = "ws")]
+    pub use super::ws::WsClient;
 }
 
 // Current version of the native SDK

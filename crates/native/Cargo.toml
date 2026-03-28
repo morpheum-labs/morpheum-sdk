@@ -47,6 +47,7 @@ gmp = ["dep:morpheum-sdk-gmp", "morpheum-sdk-gmp?/serde"]
 evm = ["dep:morpheum-sdk-evm"]
 svm = ["dep:morpheum-sdk-svm"]
 cosmwasm = ["dep:morpheum-sdk-cosmwasm", "morpheum-sdk-cosmwasm?/serde"]
+ws = ["dep:morpheum-sdk-ws", "morpheum-sdk-ws?/serde"]
 
 # Transport backends
 grpc = ["dep:tonic", "dep:tokio", "dep:prost", "dep:http"]
@@ -96,6 +97,7 @@ morpheum-sdk-gmp = { path = "../gmp", optional = true, default-features = false 
 morpheum-sdk-evm = { path = "../evm", optional = true }
 morpheum-sdk-svm = { path = "../svm", optional = true }
 morpheum-sdk-cosmwasm = { path = "../cosmwasm", optional = true, default-features = false }
+morpheum-sdk-ws = { path = "../ws", optional = true }
 
 # Official Morpheum signing library (native version with full crypto, BIP-39, claims)
 morpheum-signing-native = { workspace = true }

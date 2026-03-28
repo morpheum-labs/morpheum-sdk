@@ -133,9 +133,6 @@ struct RawServerMessage {
     channel: String,
     #[serde(default)]
     data: serde_json::Value,
-    // Flatten catches any extra top-level fields the server may add.
-    #[serde(flatten)]
-    _extra: serde_json::Map<String, serde_json::Value>,
 }
 
 impl From<RawServerMessage> for ServerMessage {

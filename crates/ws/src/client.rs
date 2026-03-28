@@ -115,6 +115,24 @@ impl WsClient {
         Ok(Subscription::new(spec, event_rx))
     }
 
+    /// Subscribes to multiple channels concurrently and returns all
+    /// [`Subscription`] handles.
+    ///
+    /// All subscribe requests are sent in parallel over the single multiplexed
+    /// connection, reducing total latency from `N * RTT` to approximately
+    /// `1 RTT` when the actor processes them in sequence from its command
+    /// buffer.
+    ///
+    /// If any individual subscription fails, the entire batch fails and all
+    /// successfully created subscriptions in this batch are dropped.
+    pub async fn subscribe_many(
+        &self,
+        specs: Vec<ChannelSpec>,
+    ) -> Result<Vec<Subscription>, WsError> {
+        let futs = specs.into_iter().map(|s| self.subscribe(s));
+        futures_util::future::try_join_all(futs).await
+    }
+
     /// Removes a subscription. The corresponding [`Subscription`] stream will
     /// end after this call.
     pub async fn unsubscribe(&self, spec: &ChannelSpec) -> Result<(), WsError> {

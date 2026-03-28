@@ -415,7 +415,15 @@ impl ChannelSpec {
     /// Subscribe to an arbitrary channel type not covered by the typed
     /// constructors. Use this for new or module-specific channels.
     pub fn custom(channel_type: impl Into<String>) -> Self {
-        Self::bare(&channel_type.into())
+        Self {
+            channel_type: channel_type.into(),
+            coin: None,
+            symbols: None,
+            interval: None,
+            depth: None,
+            agent_id: None,
+            address: None,
+        }
     }
 
     /// Attach a coin filter to a custom channel spec.

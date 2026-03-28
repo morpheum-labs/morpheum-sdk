@@ -91,13 +91,8 @@ impl ConnectionActor {
                     self.connected.store(false, Ordering::SeqCst);
                     self.notify_subscribers_error(&err);
 
-                    if !self.should_reconnect() {
-                        error!("reconnection disabled — actor exiting");
-                        break;
-                    }
-
-                    if !self.attempt_reconnect().await {
-                        error!("max reconnection retries exhausted — actor exiting");
+                    if !self.wait_before_reconnect().await {
+                        error!("reconnection exhausted or disabled — actor exiting");
                         break;
                     }
                 }
@@ -117,10 +112,9 @@ impl ConnectionActor {
 
         let (mut ws_sink, mut ws_source) = ws_stream.split();
 
-        // If we are reconnecting, re-auth and re-subscribe automatically.
+        // On reconnect: re-authenticate and re-subscribe with fresh snapshot state.
         if let Some(ref creds) = self.cached_auth.clone() {
             self.send_auth_to_ws(&mut ws_sink, creds.clone()).await?;
-            // Wait for auth response (best-effort — timeout after 10s)
             if let Some(msg) = tokio::time::timeout(
                 Duration::from_secs(10),
                 ws_source.next(),
@@ -129,18 +123,23 @@ impl ConnectionActor {
             .ok()
             .flatten()
             {
-                self.handle_ws_frame(msg?, None)?;
+                if let WsMessage::Text(text) = msg? {
+                    if let Ok(ServerMessage::Auth(auth)) = serde_json::from_str::<ServerMessage>(&text) {
+                        if auth.status != "ok" {
+                            let msg = auth.message.unwrap_or(auth.status);
+                            return Err(WsError::Auth(msg));
+                        }
+                    }
+                }
             }
             self.resubscribe_all(&mut ws_sink).await?;
         }
 
-        // Pending auth reply — only one outstanding at a time.
         let mut pending_auth: Option<oneshot::Sender<Result<AuthResponse, WsError>>> = None;
-        let mut pending_sub: Option<(String, oneshot::Sender<Result<(), WsError>>)> = None;
+        let mut pending_subs: HashMap<String, oneshot::Sender<Result<(), WsError>>> = HashMap::new();
 
         loop {
             tokio::select! {
-                // ── Inbound WebSocket frame ──
                 frame = ws_source.next() => {
                     let frame = match frame {
                         Some(Ok(f)) => f,
@@ -149,26 +148,22 @@ impl ConnectionActor {
                     };
                     match frame {
                         WsMessage::Text(text) => {
-                            match self.process_server_message(
+                            if let Err(e) = self.process_server_message(
                                 &text,
                                 &mut pending_auth,
-                                &mut pending_sub,
+                                &mut pending_subs,
                             ) {
-                                Ok(()) => {}
-                                Err(e) => {
-                                    warn!(%e, "error processing server message");
-                                }
+                                warn!(%e, "error processing server message");
                             }
                         }
                         WsMessage::Close(_) => return Err(WsError::Closed),
                         WsMessage::Ping(payload) => {
                             let _ = ws_sink.send(WsMessage::Pong(payload)).await;
                         }
-                        _ => {} // ignore binary, pong, etc.
+                        _ => {}
                     }
                 }
 
-                // ── Commands from client handle ──
                 cmd = self.cmd_rx.recv() => {
                     let cmd = match cmd {
                         Some(c) => c,
@@ -194,12 +189,13 @@ impl ConnectionActor {
                             if let Err(e) = self.send_json(&mut ws_sink, &msg).await {
                                 let _ = reply.send(Err(e));
                             } else {
-                                pending_sub = Some((key, reply));
+                                pending_subs.insert(key, reply);
                             }
                         }
                         Command::Unsubscribe { spec, reply } => {
                             let key = spec.routing_key();
                             self.subscriptions.remove(&key);
+                            pending_subs.remove(&key);
                             let msg = ClientMessage::unsubscribe(spec);
                             match self.send_json(&mut ws_sink, &msg).await {
                                 Ok(()) => { let _ = reply.send(Ok(())); }
@@ -222,7 +218,7 @@ impl ConnectionActor {
         &mut self,
         text: &str,
         pending_auth: &mut Option<oneshot::Sender<Result<AuthResponse, WsError>>>,
-        pending_sub: &mut Option<(String, oneshot::Sender<Result<(), WsError>>)>,
+        pending_subs: &mut HashMap<String, oneshot::Sender<Result<(), WsError>>>,
     ) -> Result<(), WsError> {
         let msg: ServerMessage = serde_json::from_str(text)?;
         match msg {
@@ -243,11 +239,24 @@ impl ConnectionActor {
                 }
             }
             ServerMessage::SubscriptionResponse(sub_data) => {
-                if let Some((key, reply)) = pending_sub.take() {
+                let matched_key = sub_data
+                    .subscription
+                    .as_ref()
+                    .map(|s| s.routing_key())
+                    .and_then(|k| pending_subs.remove(&k));
+
+                let reply = matched_key.or_else(|| {
+                    let first_key = pending_subs.keys().next().cloned();
+                    first_key.and_then(|k| pending_subs.remove(&k))
+                });
+
+                if let Some(reply) = reply {
                     if sub_data.success {
                         let _ = reply.send(Ok(()));
                     } else {
-                        self.subscriptions.remove(&key);
+                        if let Some(ref spec) = sub_data.subscription {
+                            self.subscriptions.remove(&spec.routing_key());
+                        }
                         let msg = sub_data
                             .message
                             .unwrap_or_else(|| "subscription rejected".into());
@@ -256,11 +265,10 @@ impl ConnectionActor {
                 }
             }
             ServerMessage::Error(err_data) => {
-                // Route to pending operations if any, otherwise log.
                 if let Some(reply) = pending_auth.take() {
                     let _ = reply.send(Err(WsError::Auth(err_data.message.clone())));
                 }
-                if let Some((_key, reply)) = pending_sub.take() {
+                if let Some((_key, reply)) = pending_subs.drain().next() {
                     let _ = reply.send(Err(WsError::protocol(err_data.message.clone())));
                 }
                 warn!(message = %err_data.message, "server error");
@@ -272,25 +280,7 @@ impl ConnectionActor {
         Ok(())
     }
 
-    fn handle_ws_frame(
-        &mut self,
-        msg: WsMessage,
-        _pending_auth: Option<&mut oneshot::Sender<Result<AuthResponse, WsError>>>,
-    ) -> Result<(), WsError> {
-        if let WsMessage::Text(text) = msg {
-            let server_msg: ServerMessage = serde_json::from_str(&text)?;
-            if let ServerMessage::Auth(auth) = server_msg {
-                if auth.status != "ok" {
-                    let msg = auth.message.unwrap_or(auth.status);
-                    return Err(WsError::Auth(msg));
-                }
-            }
-        }
-        Ok(())
-    }
-
     fn route_data_frame(&mut self, channel: &str, data: serde_json::Value) {
-        // Resolve the routing key: try exact match, fall back to channel_type match.
         let key = if self.subscriptions.contains_key(channel) {
             Some(channel.to_owned())
         } else {
@@ -346,13 +336,22 @@ impl ConnectionActor {
         self.send_json(sink, &msg).await
     }
 
-    async fn resubscribe_all<S>(&self, sink: &mut S) -> Result<(), WsError>
+    async fn resubscribe_all<S>(&mut self, sink: &mut S) -> Result<(), WsError>
     where
         S: futures_util::Sink<WsMessage, Error = tokio_tungstenite::tungstenite::Error>
             + Unpin,
     {
-        for entry in self.subscriptions.values() {
-            let msg = ClientMessage::subscribe(entry.spec.clone());
+        let specs: Vec<ChannelSpec> = self
+            .subscriptions
+            .values_mut()
+            .map(|entry| {
+                entry.snapshot_received = false;
+                entry.spec.clone()
+            })
+            .collect();
+
+        for spec in specs {
+            let msg = ClientMessage::subscribe(spec);
             self.send_json(sink, &msg).await?;
         }
         Ok(())
@@ -360,53 +359,45 @@ impl ConnectionActor {
 
     // ── Reconnection ─────────────────────────────────────────────────────
 
-    fn should_reconnect(&self) -> bool {
-        !matches!(self.config.reconnect_policy, ReconnectPolicy::Disabled)
-    }
-
-    async fn attempt_reconnect(&mut self) -> bool {
-        match self.config.reconnect_policy.clone() {
+    /// Waits according to the reconnect policy before the next attempt.
+    /// Returns `false` if reconnection is disabled or retries are exhausted.
+    /// The actual connection retry happens in the outer `run()` loop via
+    /// `connect_and_serve`, avoiding the waste of a throwaway probe connection.
+    async fn wait_before_reconnect(&mut self) -> bool {
+        match self.config.reconnect_policy {
             ReconnectPolicy::Disabled => false,
             ReconnectPolicy::FixedDelay {
                 interval,
-                max_retries,
+                ref mut max_retries,
             } => {
-                let max = max_retries.unwrap_or(u32::MAX);
-                for attempt in 1..=max {
-                    info!(attempt, max = %max, "reconnecting (fixed delay)");
-                    tokio::time::sleep(interval).await;
-                    if self.try_ping_connect().await {
-                        return true;
+                if let Some(ref mut remaining) = max_retries {
+                    if *remaining == 0 {
+                        return false;
                     }
+                    *remaining -= 1;
                 }
-                false
+                info!(delay_ms = %interval.as_millis(), "waiting before reconnect (fixed delay)");
+                tokio::time::sleep(interval).await;
+                true
             }
             ReconnectPolicy::ExponentialBackoff {
-                initial,
+                ref mut initial,
                 max,
-                max_retries,
+                ref mut max_retries,
             } => {
-                let max_attempts = max_retries.unwrap_or(u32::MAX);
-                let mut delay = initial;
-                for attempt in 1..=max_attempts {
-                    info!(attempt, max = %max_attempts, delay_ms = %delay.as_millis(), "reconnecting (exponential backoff)");
-                    tokio::time::sleep(delay).await;
-                    if self.try_ping_connect().await {
-                        return true;
+                if let Some(ref mut remaining) = max_retries {
+                    if *remaining == 0 {
+                        return false;
                     }
-                    delay = (delay * 2).min(max);
+                    *remaining -= 1;
                 }
-                false
+                let delay = *initial;
+                info!(delay_ms = %delay.as_millis(), "waiting before reconnect (exponential backoff)");
+                tokio::time::sleep(delay).await;
+                *initial = (delay * 2).min(max);
+                true
             }
         }
-    }
-
-    /// Lightweight connection probe — succeeds if the WebSocket handshake
-    /// completes. The actual connection lifecycle resumes in `connect_and_serve`.
-    async fn try_ping_connect(&self) -> bool {
-        tokio_tungstenite::connect_async(&self.config.url)
-            .await
-            .is_ok()
     }
 
     fn notify_subscribers_error(&self, err: &WsError) {

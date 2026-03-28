@@ -56,6 +56,9 @@ pub(crate) struct ConnectionActor {
     connected: Arc<AtomicBool>,
     subscriptions: HashMap<String, SubscriptionEntry>,
     cached_auth: Option<AuthCredentials>,
+    /// One-shot signal for the initial connection attempt. `Some` only for
+    /// the first call to `connect_and_serve`; consumed on success or failure.
+    connect_signal: Option<oneshot::Sender<Result<(), WsError>>>,
 }
 
 impl ConnectionActor {
@@ -63,6 +66,7 @@ impl ConnectionActor {
         config: WsConfig,
         cmd_rx: mpsc::Receiver<Command>,
         connected: Arc<AtomicBool>,
+        connect_signal: oneshot::Sender<Result<(), WsError>>,
     ) -> Self {
         Self {
             config,
@@ -70,6 +74,7 @@ impl ConnectionActor {
             connected,
             subscriptions: HashMap::new(),
             cached_auth: None,
+            connect_signal: Some(connect_signal),
         }
     }
 
@@ -104,11 +109,22 @@ impl ConnectionActor {
     // ── Core loop ────────────────────────────────────────────────────────
 
     async fn connect_and_serve(&mut self) -> Result<ShutdownReason, WsError> {
-        let (ws_stream, _) = tokio_tungstenite::connect_async(&self.config.url)
-            .await
-            .map_err(WsError::from)?;
+        let (ws_stream, _) = match tokio_tungstenite::connect_async(&self.config.url).await {
+            Ok(pair) => pair,
+            Err(e) => {
+                let err = WsError::from(e);
+                if let Some(signal) = self.connect_signal.take() {
+                    let _ = signal.send(Err(WsError::Connection(err.to_string())));
+                }
+                return Err(err);
+            }
+        };
         self.connected.store(true, Ordering::SeqCst);
         info!(url = %self.config.url, "WebSocket connected");
+
+        if let Some(signal) = self.connect_signal.take() {
+            let _ = signal.send(Ok(()));
+        }
 
         let (mut ws_sink, mut ws_source) = ws_stream.split();
 
@@ -251,17 +267,7 @@ impl ConnectionActor {
                 });
 
                 if let Some(reply) = reply {
-                    if sub_data.success {
-                        let _ = reply.send(Ok(()));
-                    } else {
-                        if let Some(ref spec) = sub_data.subscription {
-                            self.subscriptions.remove(&spec.routing_key());
-                        }
-                        let msg = sub_data
-                            .message
-                            .unwrap_or_else(|| "subscription rejected".into());
-                        let _ = reply.send(Err(WsError::QuotaExceeded(msg)));
-                    }
+                    let _ = reply.send(Ok(()));
                 }
             }
             ServerMessage::Error(err_data) => {

@@ -51,14 +51,18 @@ impl WsClient {
 
     /// Connects with a fully customised [`WsConfig`].
     ///
-    /// If `config.auth` is set, the client authenticates automatically before
-    /// returning.
+    /// Blocks until the WebSocket handshake completes. If `config.auth` is
+    /// set, the client authenticates automatically before returning.
     pub async fn connect_with_config(config: WsConfig) -> Result<Self, WsError> {
         let (cmd_tx, cmd_rx) = mpsc::channel(CMD_CHANNEL_CAPACITY);
         let connected = Arc::new(AtomicBool::new(false));
+        let (connect_tx, connect_rx) = oneshot::channel();
 
-        let actor = ConnectionActor::new(config.clone(), cmd_rx, Arc::clone(&connected));
+        let actor =
+            ConnectionActor::new(config.clone(), cmd_rx, Arc::clone(&connected), connect_tx);
         tokio::spawn(actor.run());
+
+        connect_rx.await.map_err(|_| WsError::Closed)??;
 
         let client = Self {
             inner: Arc::new(ClientInner {
@@ -68,7 +72,6 @@ impl WsClient {
             }),
         };
 
-        // Auto-authenticate if credentials were provided in config.
         if let Some(ref credentials) = config.auth {
             client.authenticate(credentials.clone()).await?;
         }

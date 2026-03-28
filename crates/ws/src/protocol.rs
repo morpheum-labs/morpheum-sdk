@@ -107,12 +107,13 @@ pub struct AuthResponseData {
 }
 
 /// Subscription confirmation payload.
+///
+/// The server sends `{"method":"subscribe"|"unsubscribe","subscription":{…}}`
+/// for success; failures are delivered via the `error` channel instead.
 #[derive(Clone, Debug, Deserialize)]
 pub struct SubscriptionResponseData {
     #[serde(default)]
-    pub success: bool,
-    #[serde(default)]
-    pub message: Option<String>,
+    pub method: Option<String>,
     #[serde(default)]
     pub subscription: Option<ChannelSpec>,
 }
@@ -231,10 +232,13 @@ mod tests {
 
     #[test]
     fn server_subscription_response_parses() {
-        let json = r#"{"channel":"subscriptionResponse","data":{"success":true}}"#;
+        let json = r#"{"channel":"subscriptionResponse","data":{"method":"subscribe","subscription":{"type":"priceFeed","coin":"BTC"}}}"#;
         let msg: ServerMessage = serde_json::from_str(json).unwrap();
         match msg {
-            ServerMessage::SubscriptionResponse(s) => assert!(s.success),
+            ServerMessage::SubscriptionResponse(s) => {
+                assert_eq!(s.method.as_deref(), Some("subscribe"));
+                assert!(s.subscription.is_some());
+            }
             _ => panic!("expected SubscriptionResponse variant"),
         }
     }

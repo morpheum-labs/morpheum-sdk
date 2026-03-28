@@ -677,7 +677,7 @@ mod tests {
     #[test]
     fn query_active_listings_response_conversion() {
         let proto_res = proto::QueryActiveListingsResponse {
-            listings: vec![Default::default(), Default::default()],
+            listings: vec![proto::AgentListing::default(), proto::AgentListing::default()],
             total_count: 2,
         };
         let res: QueryActiveListingsResponse = proto_res.into();

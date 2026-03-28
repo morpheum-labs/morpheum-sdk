@@ -213,7 +213,7 @@ mod tests {
                 }
                 "/marketplace.v1.Query/QueryListings" => {
                     let dummy = proto::QueryListingsResponse {
-                        listings: vec![Default::default()],
+                        listings: vec![proto::AgentListing::default()],
                         total_count: 1,
                     };
                     Ok(prost::Message::encode_to_vec(&dummy))
@@ -234,7 +234,7 @@ mod tests {
                 }
                 "/marketplace.v1.Query/QueryActiveListings" => {
                     let dummy = proto::QueryActiveListingsResponse {
-                        listings: vec![Default::default(), Default::default()],
+                        listings: vec![proto::AgentListing::default(), proto::AgentListing::default()],
                         total_count: 2,
                     };
                     Ok(prost::Message::encode_to_vec(&dummy))

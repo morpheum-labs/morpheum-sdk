@@ -31,6 +31,12 @@ pub use types::{
     MarketType,
     MarketStatus,
     MarketCategory,
+    MarketTypeConfig,
+    MarketTypeStats,
+    ClobMarketConfig,
+    ClobStats,
+    PredictionMarketConfig,
+    PredictionStats,
     PerpConfig,
     MarketUpdate,
 };

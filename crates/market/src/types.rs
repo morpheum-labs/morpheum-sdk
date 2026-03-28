@@ -1,8 +1,12 @@
 //! Domain types for the Market module.
 //!
-//! These are clean, idiomatic Rust representations of the market protobuf messages.
+//! Clean, idiomatic Rust representations of the market protobuf messages.
 //! They provide type safety, ergonomic APIs, and full round-trip conversion to/from
 //! protobuf while remaining strictly `no_std` compatible.
+//!
+//! The proto schema uses `oneof type_config` (for market-type-specific parameters)
+//! and `oneof type_stats` (for market-type-specific statistics). The SDK mirrors this
+//! with [`MarketTypeConfig`] and [`MarketTypeStats`] enums respectively.
 
 use alloc::{collections::BTreeMap, string::String, vec::Vec};
 
@@ -11,7 +15,9 @@ use serde::{Deserialize, Serialize};
 
 use morpheum_proto::market::v1 as proto;
 
-/// Market type enum.
+// ====================== ENUMS ======================
+
+/// Market type enum — matches `market.v1.MarketType` proto enum.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub enum MarketType {
@@ -20,7 +26,7 @@ pub enum MarketType {
     Perp,
     Future,
     Option,
-    Custom,
+    Prediction,
 }
 
 impl From<i32> for MarketType {
@@ -31,7 +37,7 @@ impl From<i32> for MarketType {
             proto::MarketType::Perp => Self::Perp,
             proto::MarketType::Future => Self::Future,
             proto::MarketType::Option => Self::Option,
-            proto::MarketType::Custom => Self::Custom,
+            proto::MarketType::Prediction => Self::Prediction,
         }
     }
 }
@@ -44,7 +50,7 @@ impl From<MarketType> for i32 {
             MarketType::Perp => proto::MarketType::Perp as i32,
             MarketType::Future => proto::MarketType::Future as i32,
             MarketType::Option => proto::MarketType::Option as i32,
-            MarketType::Custom => proto::MarketType::Custom as i32,
+            MarketType::Prediction => proto::MarketType::Prediction as i32,
         }
     }
 }
@@ -116,6 +122,8 @@ impl From<MarketCategory> for i32 {
     }
 }
 
+// ====================== TYPE-SPECIFIC CONFIGURATION ======================
+
 /// PerpConfig — perpetual futures specific configuration.
 #[derive(Clone, Debug, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
@@ -151,95 +159,312 @@ impl From<PerpConfig> for proto::PerpConfig {
     }
 }
 
-/// MarketParams — trading parameters for a market.
-///
-/// Provides sensible defaults via [`Default`] for common use cases:
-/// - `tick_size`: `"0.01"`, `lot_size`: `"1"`, `min_order_size`: `"1"`
-/// - `max_leverage`: `"10"`, margins: `10%` initial / `5%` maintenance
-/// - `taker_fee_rate`: `"0.001"` (10 bps), `maker_fee_rate`: `"0.0005"` (5 bps)
-/// - Both market and stop orders allowed
-///
-/// Override only the fields you need:
-/// ```rust,ignore
-/// let params = MarketParams {
-///     tick_size: "0.001".into(),
-///     min_order_size: "0.1".into(),
-///     ..Default::default()
-/// };
-/// ```
+/// CLOB/order-book-specific trading parameters.
 #[derive(Clone, Debug, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-pub struct MarketParams {
-    pub min_order_size: String,
+pub struct ClobMarketConfig {
     pub tick_size: String,
     pub lot_size: String,
     pub max_leverage: String,
     pub initial_margin_ratio: String,
     pub maintenance_margin_ratio: String,
-    pub taker_fee_rate: String,
-    pub maker_fee_rate: String,
     pub allow_market_orders: bool,
     pub allow_stop_orders: bool,
     pub perp_config: Option<PerpConfig>,
+}
+
+impl Default for ClobMarketConfig {
+    fn default() -> Self {
+        Self {
+            tick_size: "0.01".into(),
+            lot_size: "1".into(),
+            max_leverage: "10".into(),
+            initial_margin_ratio: "0.1".into(),
+            maintenance_margin_ratio: "0.05".into(),
+            allow_market_orders: true,
+            allow_stop_orders: true,
+            perp_config: None,
+        }
+    }
+}
+
+impl From<proto::ClobMarketConfig> for ClobMarketConfig {
+    fn from(p: proto::ClobMarketConfig) -> Self {
+        Self {
+            tick_size: p.tick_size,
+            lot_size: p.lot_size,
+            max_leverage: p.max_leverage,
+            initial_margin_ratio: p.initial_margin_ratio,
+            maintenance_margin_ratio: p.maintenance_margin_ratio,
+            allow_market_orders: p.allow_market_orders,
+            allow_stop_orders: p.allow_stop_orders,
+            perp_config: p.perp_config.map(Into::into),
+        }
+    }
+}
+
+impl From<ClobMarketConfig> for proto::ClobMarketConfig {
+    fn from(c: ClobMarketConfig) -> Self {
+        Self {
+            tick_size: c.tick_size,
+            lot_size: c.lot_size,
+            max_leverage: c.max_leverage,
+            initial_margin_ratio: c.initial_margin_ratio,
+            maintenance_margin_ratio: c.maintenance_margin_ratio,
+            allow_market_orders: c.allow_market_orders,
+            allow_stop_orders: c.allow_stop_orders,
+            perp_config: c.perp_config.map(Into::into),
+        }
+    }
+}
+
+/// Prediction market-specific parameters.
+#[derive(Clone, Debug, PartialEq, Eq)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+pub struct PredictionMarketConfig {
+    pub feed_id: String,
+    pub num_outcomes: u32,
+    pub spread_bps: u32,
+}
+
+impl From<proto::PredictionMarketConfig> for PredictionMarketConfig {
+    fn from(p: proto::PredictionMarketConfig) -> Self {
+        Self {
+            feed_id: p.feed_id,
+            num_outcomes: p.num_outcomes,
+            spread_bps: p.spread_bps,
+        }
+    }
+}
+
+impl From<PredictionMarketConfig> for proto::PredictionMarketConfig {
+    fn from(c: PredictionMarketConfig) -> Self {
+        Self {
+            feed_id: c.feed_id,
+            num_outcomes: c.num_outcomes,
+            spread_bps: c.spread_bps,
+        }
+    }
+}
+
+/// Market-type-specific configuration — mirrors the proto `oneof type_config`.
+#[derive(Clone, Debug, PartialEq, Eq)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+pub enum MarketTypeConfig {
+    Clob(ClobMarketConfig),
+    Prediction(PredictionMarketConfig),
+}
+
+// ====================== MARKET PARAMS ======================
+
+/// MarketParams — trading parameters for a market.
+///
+/// Universal fields (`min_order_size`, `taker_fee_rate`, `maker_fee_rate`) apply to
+/// all market types. Market-type-specific configuration lives in [`type_config`](Self::type_config).
+///
+/// ```rust,ignore
+/// let params = MarketParams::clob_default();
+/// ```
+#[derive(Clone, Debug, PartialEq, Eq)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+pub struct MarketParams {
+    pub min_order_size: String,
+    pub taker_fee_rate: String,
+    pub maker_fee_rate: String,
     pub additional_params: BTreeMap<String, String>,
+    pub type_config: Option<MarketTypeConfig>,
 }
 
 impl Default for MarketParams {
     fn default() -> Self {
         Self {
             min_order_size: "1".into(),
-            tick_size: "0.01".into(),
-            lot_size: "1".into(),
-            max_leverage: "10".into(),
-            initial_margin_ratio: "0.1".into(),
-            maintenance_margin_ratio: "0.05".into(),
             taker_fee_rate: "0.001".into(),
             maker_fee_rate: "0.0005".into(),
-            allow_market_orders: true,
-            allow_stop_orders: true,
-            perp_config: None,
             additional_params: BTreeMap::new(),
+            type_config: None,
+        }
+    }
+}
+
+impl MarketParams {
+    /// Returns CLOB market params with sensible defaults.
+    pub fn clob_default() -> Self {
+        Self {
+            type_config: Some(MarketTypeConfig::Clob(ClobMarketConfig::default())),
+            ..Self::default()
         }
     }
 }
 
 impl From<proto::MarketParams> for MarketParams {
+    #[allow(deprecated)]
     fn from(p: proto::MarketParams) -> Self {
+        let type_config = match p.type_config {
+            Some(proto::market_params::TypeConfig::ClobConfig(c)) => {
+                Some(MarketTypeConfig::Clob(c.into()))
+            }
+            Some(proto::market_params::TypeConfig::PredictionConfig(c)) => {
+                Some(MarketTypeConfig::Prediction(c.into()))
+            }
+            None => {
+                // Backward compat: reconstruct ClobMarketConfig from deprecated fields
+                // if any non-default value is present.
+                let has_legacy = !p.tick_size.is_empty()
+                    || !p.lot_size.is_empty()
+                    || !p.max_leverage.is_empty()
+                    || !p.initial_margin_ratio.is_empty()
+                    || !p.maintenance_margin_ratio.is_empty()
+                    || p.allow_market_orders
+                    || p.allow_stop_orders
+                    || p.perp_config.is_some();
+
+                if has_legacy {
+                    Some(MarketTypeConfig::Clob(ClobMarketConfig {
+                        tick_size: p.tick_size,
+                        lot_size: p.lot_size,
+                        max_leverage: p.max_leverage,
+                        initial_margin_ratio: p.initial_margin_ratio,
+                        maintenance_margin_ratio: p.maintenance_margin_ratio,
+                        allow_market_orders: p.allow_market_orders,
+                        allow_stop_orders: p.allow_stop_orders,
+                        perp_config: p.perp_config.map(Into::into),
+                    }))
+                } else {
+                    None
+                }
+            }
+        };
+
         Self {
             min_order_size: p.min_order_size,
-            tick_size: p.tick_size,
-            lot_size: p.lot_size,
-            max_leverage: p.max_leverage,
-            initial_margin_ratio: p.initial_margin_ratio,
-            maintenance_margin_ratio: p.maintenance_margin_ratio,
             taker_fee_rate: p.taker_fee_rate,
             maker_fee_rate: p.maker_fee_rate,
-            allow_market_orders: p.allow_market_orders,
-            allow_stop_orders: p.allow_stop_orders,
-            perp_config: p.perp_config.map(Into::into),
             additional_params: p.additional_params.into_iter().collect(),
+            type_config,
         }
     }
 }
 
 impl From<MarketParams> for proto::MarketParams {
+    #[allow(deprecated)]
     fn from(p: MarketParams) -> Self {
+        let type_config = p.type_config.as_ref().map(|tc| match tc {
+            MarketTypeConfig::Clob(c) => {
+                proto::market_params::TypeConfig::ClobConfig(c.clone().into())
+            }
+            MarketTypeConfig::Prediction(c) => {
+                proto::market_params::TypeConfig::PredictionConfig(c.clone().into())
+            }
+        });
+
+        // Populate deprecated fields from ClobMarketConfig for wire compat.
+        let (tick_size, lot_size, max_leverage, initial_margin_ratio, maintenance_margin_ratio,
+            allow_market_orders, allow_stop_orders, perp_config) =
+            match &p.type_config {
+                Some(MarketTypeConfig::Clob(c)) => (
+                    c.tick_size.clone(),
+                    c.lot_size.clone(),
+                    c.max_leverage.clone(),
+                    c.initial_margin_ratio.clone(),
+                    c.maintenance_margin_ratio.clone(),
+                    c.allow_market_orders,
+                    c.allow_stop_orders,
+                    c.perp_config.clone().map(Into::into),
+                ),
+                _ => Default::default(),
+            };
+
         Self {
             min_order_size: p.min_order_size,
-            tick_size: p.tick_size,
-            lot_size: p.lot_size,
-            max_leverage: p.max_leverage,
-            initial_margin_ratio: p.initial_margin_ratio,
-            maintenance_margin_ratio: p.maintenance_margin_ratio,
             taker_fee_rate: p.taker_fee_rate,
             maker_fee_rate: p.maker_fee_rate,
-            allow_market_orders: p.allow_market_orders,
-            allow_stop_orders: p.allow_stop_orders,
-            perp_config: p.perp_config.map(Into::into),
             additional_params: p.additional_params.into_iter().collect(),
+            type_config,
+            tick_size,
+            lot_size,
+            max_leverage,
+            initial_margin_ratio,
+            maintenance_margin_ratio,
+            allow_market_orders,
+            allow_stop_orders,
+            perp_config,
         }
     }
 }
+
+// ====================== TYPE-SPECIFIC STATISTICS ======================
+
+/// CLOB/order-book-specific statistics.
+#[derive(Clone, Debug, PartialEq, Eq)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+pub struct ClobStats {
+    pub open_interest: String,
+    pub best_bid: String,
+    pub best_ask: String,
+    pub spread: String,
+}
+
+impl From<proto::ClobStats> for ClobStats {
+    fn from(p: proto::ClobStats) -> Self {
+        Self {
+            open_interest: p.open_interest,
+            best_bid: p.best_bid,
+            best_ask: p.best_ask,
+            spread: p.spread,
+        }
+    }
+}
+
+impl From<ClobStats> for proto::ClobStats {
+    fn from(s: ClobStats) -> Self {
+        Self {
+            open_interest: s.open_interest,
+            best_bid: s.best_bid,
+            best_ask: s.best_ask,
+            spread: s.spread,
+        }
+    }
+}
+
+/// Prediction market-specific statistics.
+#[derive(Clone, Debug, PartialEq, Eq)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+pub struct PredictionStats {
+    pub implied_probability: u32,
+    pub total_pot_usdc: String,
+    pub num_participants: u32,
+}
+
+impl From<proto::PredictionStats> for PredictionStats {
+    fn from(p: proto::PredictionStats) -> Self {
+        Self {
+            implied_probability: p.implied_probability,
+            total_pot_usdc: p.total_pot_usdc,
+            num_participants: p.num_participants,
+        }
+    }
+}
+
+impl From<PredictionStats> for proto::PredictionStats {
+    fn from(s: PredictionStats) -> Self {
+        Self {
+            implied_probability: s.implied_probability,
+            total_pot_usdc: s.total_pot_usdc,
+            num_participants: s.num_participants,
+        }
+    }
+}
+
+/// Market-type-specific statistics — mirrors the proto `oneof type_stats`.
+#[derive(Clone, Debug, PartialEq, Eq)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+pub enum MarketTypeStats {
+    Clob(ClobStats),
+    Prediction(PredictionStats),
+}
+
+// ====================== MARKET ======================
 
 /// Helper to safely extract seconds from an optional Timestamp.
 fn timestamp_seconds(ts: Option<morpheum_proto::google::protobuf::Timestamp>) -> u64 {
@@ -259,8 +484,8 @@ pub struct Market {
     pub orderbook_type: String,
     pub status: MarketStatus,
     pub params: MarketParams,
-    pub created_at: u64,      // Unix seconds
-    pub activated_at: u64,    // Unix seconds
+    pub created_at: u64,
+    pub activated_at: u64,
     pub total_volume_quote: String,
     pub mmf: u32,
     pub additional_metadata: BTreeMap<String, String>,
@@ -284,20 +509,7 @@ impl From<proto::Market> for Market {
             market_type: MarketType::from(p.market_type),
             orderbook_type: p.orderbook_type,
             status: MarketStatus::from(p.status),
-            params: p.params.map(Into::into).unwrap_or_else(|| MarketParams {
-                min_order_size: String::new(),
-                tick_size: String::new(),
-                lot_size: String::new(),
-                max_leverage: String::new(),
-                initial_margin_ratio: String::new(),
-                maintenance_margin_ratio: String::new(),
-                taker_fee_rate: String::new(),
-                maker_fee_rate: String::new(),
-                allow_market_orders: false,
-                allow_stop_orders: false,
-                perp_config: None,
-                additional_params: BTreeMap::new(),
-            }),
+            params: p.params.map(Into::into).unwrap_or_default(),
             created_at: timestamp_seconds(p.created_at),
             activated_at: timestamp_seconds(p.activated_at),
             total_volume_quote: p.total_volume_quote,
@@ -334,6 +546,8 @@ impl From<Market> for proto::Market {
     }
 }
 
+// ====================== MARKET STATS ======================
+
 /// Market statistics.
 #[derive(Clone, Debug, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
@@ -347,13 +561,32 @@ pub struct MarketStats {
     pub last_price: String,
     pub price_change: String,
     pub price_change_percent: String,
-    pub open_interest: String,
     pub trade_count: i64,
     pub last_trade_at: u64,
+    pub type_stats: Option<MarketTypeStats>,
 }
 
 impl From<proto::MarketStats> for MarketStats {
+    #[allow(deprecated)]
     fn from(p: proto::MarketStats) -> Self {
+        let type_stats = match p.type_stats {
+            Some(proto::market_stats::TypeStats::ClobStats(s)) => {
+                Some(MarketTypeStats::Clob(s.into()))
+            }
+            Some(proto::market_stats::TypeStats::PredictionStats(s)) => {
+                Some(MarketTypeStats::Prediction(s.into()))
+            }
+            None if !p.open_interest.is_empty() => {
+                Some(MarketTypeStats::Clob(ClobStats {
+                    open_interest: p.open_interest,
+                    best_bid: String::new(),
+                    best_ask: String::new(),
+                    spread: String::new(),
+                }))
+            }
+            None => None,
+        };
+
         Self {
             market_index: p.market_index,
             name: p.name,
@@ -364,12 +597,14 @@ impl From<proto::MarketStats> for MarketStats {
             last_price: p.last_price,
             price_change: p.price_change,
             price_change_percent: p.price_change_percent,
-            open_interest: p.open_interest,
             trade_count: p.trade_count,
             last_trade_at: timestamp_seconds(p.last_trade_at),
+            type_stats,
         }
     }
 }
+
+// ====================== MARKET UPDATE ======================
 
 /// Market update event.
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -416,17 +651,19 @@ mod tests {
             status: MarketStatus::Active,
             params: MarketParams {
                 min_order_size: "0.001".into(),
-                tick_size: "0.01".into(),
-                lot_size: "1".into(),
-                max_leverage: "100".into(),
-                initial_margin_ratio: "0.1".into(),
-                maintenance_margin_ratio: "0.05".into(),
                 taker_fee_rate: "0.0005".into(),
                 maker_fee_rate: "0.0002".into(),
-                allow_market_orders: true,
-                allow_stop_orders: true,
-                perp_config: None,
                 additional_params: BTreeMap::new(),
+                type_config: Some(MarketTypeConfig::Clob(ClobMarketConfig {
+                    tick_size: "0.01".into(),
+                    lot_size: "1".into(),
+                    max_leverage: "100".into(),
+                    initial_margin_ratio: "0.1".into(),
+                    maintenance_margin_ratio: "0.05".into(),
+                    allow_market_orders: true,
+                    allow_stop_orders: true,
+                    perp_config: None,
+                })),
             },
             created_at: 1_700_000_000,
             activated_at: 1_700_001_000,
@@ -452,20 +689,7 @@ mod tests {
             market_type: MarketType::Spot,
             orderbook_type: "".into(),
             status: MarketStatus::Active,
-            params: MarketParams {
-                min_order_size: "".into(),
-                tick_size: "".into(),
-                lot_size: "".into(),
-                max_leverage: "".into(),
-                initial_margin_ratio: "".into(),
-                maintenance_margin_ratio: "".into(),
-                taker_fee_rate: "".into(),
-                maker_fee_rate: "".into(),
-                allow_market_orders: true,
-                allow_stop_orders: true,
-                perp_config: None,
-                additional_params: BTreeMap::new(),
-            },
+            params: MarketParams::default(),
             created_at: 0,
             activated_at: 0,
             total_volume_quote: "".into(),
@@ -477,5 +701,55 @@ mod tests {
 
         market.status = MarketStatus::Suspended;
         assert!(!market.is_active());
+    }
+
+    #[test]
+    fn prediction_market_config_roundtrip() {
+        let config = PredictionMarketConfig {
+            feed_id: "pyth:btc-usd".into(),
+            num_outcomes: 2,
+            spread_bps: 50,
+        };
+
+        let proto_config: proto::PredictionMarketConfig = config.clone().into();
+        let back: PredictionMarketConfig = proto_config.into();
+        assert_eq!(config, back);
+    }
+
+    #[test]
+    fn clob_default_params() {
+        let params = MarketParams::clob_default();
+        assert!(matches!(params.type_config, Some(MarketTypeConfig::Clob(_))));
+    }
+
+    #[test]
+    fn legacy_proto_compat() {
+        #[allow(deprecated)]
+        let proto_params = proto::MarketParams {
+            min_order_size: "0.1".into(),
+            taker_fee_rate: "0.001".into(),
+            maker_fee_rate: "0.0005".into(),
+            additional_params: Default::default(),
+            type_config: None,
+            tick_size: "0.01".into(),
+            lot_size: "1".into(),
+            max_leverage: "10".into(),
+            initial_margin_ratio: "0.1".into(),
+            maintenance_margin_ratio: "0.05".into(),
+            allow_market_orders: true,
+            allow_stop_orders: false,
+            perp_config: None,
+        };
+
+        let params: MarketParams = proto_params.into();
+        match &params.type_config {
+            Some(MarketTypeConfig::Clob(c)) => {
+                assert_eq!(c.tick_size, "0.01");
+                assert_eq!(c.max_leverage, "10");
+                assert!(c.allow_market_orders);
+                assert!(!c.allow_stop_orders);
+            }
+            _ => panic!("expected ClobMarketConfig from legacy fields"),
+        }
     }
 }

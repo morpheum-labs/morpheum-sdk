@@ -262,6 +262,7 @@ impl From<Params> for proto::Params {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use alloc::string::ToString;
     use alloc::vec;
 
     #[test]

@@ -10,7 +10,9 @@ use async_trait::async_trait;
 use morpheum_sdk_core::{MorpheumClient, SdkConfig, SdkError, Transport};
 
 use crate::requests::{QueryRawRequest, QuerySmartRequest};
-use crate::types::{ContractInfo, CosmWasmError};
+use crate::types::ContractInfo;
+#[cfg(feature = "serde")]
+use crate::types::CosmWasmError;
 
 /// Client for querying CosmWasm contracts on Morpheum.
 pub struct CosmWasmClient {

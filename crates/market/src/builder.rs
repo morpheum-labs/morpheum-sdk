@@ -351,17 +351,21 @@ mod tests {
         let from = AccountId::new([1u8; 32]);
         let params = crate::types::MarketParams {
             min_order_size: "0.001".into(),
-            tick_size: "0.01".into(),
-            lot_size: "1".into(),
-            max_leverage: "100".into(),
-            initial_margin_ratio: "0.1".into(),
-            maintenance_margin_ratio: "0.05".into(),
             taker_fee_rate: "0.0005".into(),
             maker_fee_rate: "0.0002".into(),
-            allow_market_orders: true,
-            allow_stop_orders: true,
-            perp_config: None,
             additional_params: alloc::collections::BTreeMap::new(),
+            type_config: Some(crate::types::MarketTypeConfig::Clob(
+                crate::types::ClobMarketConfig {
+                    tick_size: "0.01".into(),
+                    lot_size: "1".into(),
+                    max_leverage: "100".into(),
+                    initial_margin_ratio: "0.1".into(),
+                    maintenance_margin_ratio: "0.05".into(),
+                    allow_market_orders: true,
+                    allow_stop_orders: true,
+                    perp_config: None,
+                },
+            )),
         };
 
         let request = MarketCreateBuilder::new()

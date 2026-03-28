@@ -51,6 +51,6 @@ pub enum CosmWasmError {
 
 impl From<CosmWasmError> for morpheum_sdk_core::SdkError {
     fn from(e: CosmWasmError) -> Self {
-        Self::Other(e.to_string().into())
+        Self::Other(e.to_string())
     }
 }

@@ -181,6 +181,8 @@ mod tests {
                             priority_boost: 5,
                             status: 0, // Pending
                             created_at: 1_700_000_000,
+                            blob_merkle_root: alloc::vec::Vec::new(),
+                            context_data: alloc::vec::Vec::new(),
                         }),
                         found: true,
                     };

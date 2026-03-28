@@ -45,8 +45,29 @@ directory = ["dep:morpheum-sdk-directory", "morpheum-sdk-directory?/serde"]
 x402 = ["dep:morpheum-sdk-x402", "morpheum-sdk-x402?/serde"]
 gmp = ["dep:morpheum-sdk-gmp", "morpheum-sdk-gmp?/serde"]
 evm = ["dep:morpheum-sdk-evm"]
+fundingrate = ["dep:morpheum-sdk-fundingrate", "morpheum-sdk-fundingrate?/serde"]
+insurance = ["dep:morpheum-sdk-insurance", "morpheum-sdk-insurance?/serde"]
+kline = ["dep:morpheum-sdk-kline", "morpheum-sdk-kline?/serde"]
+liquidity = ["dep:morpheum-sdk-liquidity", "morpheum-sdk-liquidity?/serde"]
+markprice = ["dep:morpheum-sdk-markprice", "morpheum-sdk-markprice?/serde"]
+osa = ["dep:morpheum-sdk-osa", "morpheum-sdk-osa?/serde"]
+outcomefeed = ["dep:morpheum-sdk-outcomefeed", "morpheum-sdk-outcomefeed?/serde"]
+prediction = ["dep:morpheum-sdk-prediction", "morpheum-sdk-prediction?/serde"]
+pricefeed = ["dep:morpheum-sdk-pricefeed", "morpheum-sdk-pricefeed?/serde"]
+risk = ["dep:morpheum-sdk-risk", "morpheum-sdk-risk?/serde"]
+token = ["dep:morpheum-sdk-token", "morpheum-sdk-token?/serde"]
+treasury = ["dep:morpheum-sdk-treasury", "morpheum-sdk-treasury?/serde"]
+twap = ["dep:morpheum-sdk-twap", "morpheum-sdk-twap?/serde"]
+vault = ["dep:morpheum-sdk-vault", "morpheum-sdk-vault?/serde"]
+vesting = ["dep:morpheum-sdk-vesting", "morpheum-sdk-vesting?/serde"]
 svm = ["dep:morpheum-sdk-svm"]
 cosmwasm = ["dep:morpheum-sdk-cosmwasm", "morpheum-sdk-cosmwasm?/serde"]
+bondingcurve = ["dep:morpheum-sdk-bondingcurve", "morpheum-sdk-bondingcurve?/serde"]
+bucket = ["dep:morpheum-sdk-bucket", "morpheum-sdk-bucket?/serde"]
+clamm = ["dep:morpheum-sdk-clamm", "morpheum-sdk-clamm?/serde"]
+clammgrad = ["dep:morpheum-sdk-clammgrad", "morpheum-sdk-clammgrad?/serde"]
+clob = ["dep:morpheum-sdk-clob", "morpheum-sdk-clob?/serde"]
+position = ["dep:morpheum-sdk-position", "morpheum-sdk-position?/serde"]
 ws = ["dep:morpheum-sdk-ws", "morpheum-sdk-ws?/serde"]
 
 # Transport backends
@@ -67,7 +88,28 @@ std = [
     "morpheum-sdk-job?/std",
     "morpheum-sdk-bank?/std",
     "morpheum-sdk-staking?/std",
+    "morpheum-sdk-bondingcurve?/std",
+    "morpheum-sdk-bucket?/std",
+    "morpheum-sdk-clamm?/std",
+    "morpheum-sdk-clammgrad?/std",
+    "morpheum-sdk-clob?/std",
+    "morpheum-sdk-fundingrate?/std",
+    "morpheum-sdk-insurance?/std",
+    "morpheum-sdk-kline?/std",
+    "morpheum-sdk-liquidity?/std",
+    "morpheum-sdk-markprice?/std",
+    "morpheum-sdk-osa?/std",
+    "morpheum-sdk-outcomefeed?/std",
+    "morpheum-sdk-prediction?/std",
+    "morpheum-sdk-pricefeed?/std",
+    "morpheum-sdk-risk?/std",
+    "morpheum-sdk-token?/std",
+    "morpheum-sdk-treasury?/std",
+    "morpheum-sdk-twap?/std",
+    "morpheum-sdk-vault?/std",
+    "morpheum-sdk-vesting?/std",
     "morpheum-sdk-gmp?/std",
+    "morpheum-sdk-position?/std",
 ]
 
 [dependencies]
@@ -95,8 +137,29 @@ morpheum-sdk-directory = { path = "../directory", optional = true, default-featu
 morpheum-sdk-x402 = { path = "../x402", optional = true, default-features = false }
 morpheum-sdk-gmp = { path = "../gmp", optional = true, default-features = false }
 morpheum-sdk-evm = { path = "../evm", optional = true }
+morpheum-sdk-fundingrate = { path = "../fundingrate", optional = true, default-features = false }
+morpheum-sdk-insurance = { path = "../insurance", optional = true, default-features = false }
+morpheum-sdk-kline = { path = "../kline", optional = true, default-features = false }
+morpheum-sdk-liquidity = { path = "../liquidity", optional = true, default-features = false }
+morpheum-sdk-markprice = { path = "../markprice", optional = true, default-features = false }
+morpheum-sdk-osa = { path = "../osa", optional = true, default-features = false }
+morpheum-sdk-outcomefeed = { path = "../outcomefeed", optional = true, default-features = false }
+morpheum-sdk-prediction = { path = "../prediction", optional = true, default-features = false }
+morpheum-sdk-pricefeed = { path = "../pricefeed", optional = true, default-features = false }
+morpheum-sdk-risk = { path = "../risk", optional = true, default-features = false }
+morpheum-sdk-token = { path = "../token", optional = true, default-features = false }
+morpheum-sdk-treasury = { path = "../treasury", optional = true, default-features = false }
+morpheum-sdk-twap = { path = "../twap", optional = true, default-features = false }
+morpheum-sdk-vault = { path = "../vault", optional = true, default-features = false }
+morpheum-sdk-vesting = { path = "../vesting", optional = true, default-features = false }
 morpheum-sdk-svm = { path = "../svm", optional = true }
 morpheum-sdk-cosmwasm = { path = "../cosmwasm", optional = true, default-features = false }
+morpheum-sdk-bondingcurve = { path = "../bondingcurve", optional = true, default-features = false }
+morpheum-sdk-bucket = { path = "../bucket", optional = true, default-features = false }
+morpheum-sdk-clamm = { path = "../clamm", optional = true, default-features = false }
+morpheum-sdk-clammgrad = { path = "../clammgrad", optional = true, default-features = false }
+morpheum-sdk-clob = { path = "../clob", optional = true, default-features = false }
+morpheum-sdk-position = { path = "../position", optional = true, default-features = false }
 morpheum-sdk-ws = { path = "../ws", optional = true }
 
 # Official Morpheum signing library (native version with full crypto, BIP-39, claims)

@@ -88,11 +88,74 @@ pub use morpheum_sdk_gmp as gmp;
 #[cfg(feature = "evm")]
 pub use morpheum_sdk_evm as evm;
 
+#[cfg(feature = "fundingrate")]
+pub use morpheum_sdk_fundingrate as fundingrate;
+
+#[cfg(feature = "insurance")]
+pub use morpheum_sdk_insurance as insurance;
+
+#[cfg(feature = "kline")]
+pub use morpheum_sdk_kline as kline;
+
+#[cfg(feature = "liquidity")]
+pub use morpheum_sdk_liquidity as liquidity;
+
+#[cfg(feature = "markprice")]
+pub use morpheum_sdk_markprice as markprice;
+
+#[cfg(feature = "osa")]
+pub use morpheum_sdk_osa as osa;
+
+#[cfg(feature = "outcomefeed")]
+pub use morpheum_sdk_outcomefeed as outcomefeed;
+
+#[cfg(feature = "prediction")]
+pub use morpheum_sdk_prediction as prediction;
+
+#[cfg(feature = "pricefeed")]
+pub use morpheum_sdk_pricefeed as pricefeed;
+
+#[cfg(feature = "risk")]
+pub use morpheum_sdk_risk as risk;
+
+#[cfg(feature = "token")]
+pub use morpheum_sdk_token as token;
+
+#[cfg(feature = "treasury")]
+pub use morpheum_sdk_treasury as treasury;
+
+#[cfg(feature = "twap")]
+pub use morpheum_sdk_twap as twap;
+
+#[cfg(feature = "vault")]
+pub use morpheum_sdk_vault as vault;
+
+#[cfg(feature = "vesting")]
+pub use morpheum_sdk_vesting as vesting;
+
 #[cfg(feature = "svm")]
 pub use morpheum_sdk_svm as svm;
 
+#[cfg(feature = "bondingcurve")]
+pub use morpheum_sdk_bondingcurve as bondingcurve;
+
+#[cfg(feature = "bucket")]
+pub use morpheum_sdk_bucket as bucket;
+
+#[cfg(feature = "clamm")]
+pub use morpheum_sdk_clamm as clamm;
+
+#[cfg(feature = "clammgrad")]
+pub use morpheum_sdk_clammgrad as clammgrad;
+
+#[cfg(feature = "clob")]
+pub use morpheum_sdk_clob as clob;
+
 #[cfg(feature = "cosmwasm")]
 pub use morpheum_sdk_cosmwasm as cosmwasm;
+
+#[cfg(feature = "position")]
+pub use morpheum_sdk_position as position;
 
 #[cfg(feature = "ws")]
 pub use morpheum_sdk_ws as ws;
@@ -259,8 +322,71 @@ pub mod prelude {
     #[cfg(feature = "staking")]
     pub use super::staking::StakingClient;
 
+    #[cfg(feature = "fundingrate")]
+    pub use super::fundingrate::FundingRateClient;
+
+    #[cfg(feature = "insurance")]
+    pub use super::insurance::InsuranceClient;
+
+    #[cfg(feature = "kline")]
+    pub use super::kline::KlineClient;
+
+    #[cfg(feature = "liquidity")]
+    pub use super::liquidity::LiquidityClient;
+
+    #[cfg(feature = "markprice")]
+    pub use super::markprice::MarkPriceClient;
+
+    #[cfg(feature = "osa")]
+    pub use super::osa::OsaClient;
+
+    #[cfg(feature = "outcomefeed")]
+    pub use super::outcomefeed::OutcomeFeedClient;
+
+    #[cfg(feature = "prediction")]
+    pub use super::prediction::PredictionClient;
+
+    #[cfg(feature = "pricefeed")]
+    pub use super::pricefeed::PriceFeedClient;
+
+    #[cfg(feature = "risk")]
+    pub use super::risk::RiskClient;
+
+    #[cfg(feature = "token")]
+    pub use super::token::TokenClient;
+
+    #[cfg(feature = "treasury")]
+    pub use super::treasury::TreasuryClient;
+
+    #[cfg(feature = "twap")]
+    pub use super::twap::TwapClient;
+
+    #[cfg(feature = "vault")]
+    pub use super::vault::VaultClient;
+
+    #[cfg(feature = "vesting")]
+    pub use super::vesting::VestingClient;
+
     #[cfg(feature = "grpc")]
     pub use super::GrpcTransport;
+
+    #[cfg(feature = "bondingcurve")]
+    pub use super::bondingcurve::BondingCurveClient;
+
+    #[cfg(feature = "bucket")]
+    pub use super::bucket::BucketClient;
+
+    #[cfg(feature = "clamm")]
+    pub use super::clamm::ClammClient;
+
+    #[cfg(feature = "clammgrad")]
+    pub use super::clammgrad::ClammGradClient;
+
+    #[cfg(feature = "clob")]
+    pub use super::clob::ClobClient;
+
+    #[cfg(feature = "position")]
+    pub use super::position::PositionClient;
 
     #[cfg(feature = "ws")]
     pub use super::ws::WsClient;

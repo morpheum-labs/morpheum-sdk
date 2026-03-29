@@ -4,7 +4,6 @@
 //! `TxBuilder`. Query requests convert to proto via `From` impls.
 
 use alloc::string::String;
-use alloc::vec::Vec;
 
 use prost::Message as _;
 

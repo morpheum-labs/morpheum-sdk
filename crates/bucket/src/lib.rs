@@ -1,13 +1,12 @@
 //! Bucket module for the Morpheum SDK.
 //!
 //! This module provides full support for managing collateralized margin buckets
-//! on Morpheum, including bucket creation, position lifecycle management (open,
-//! update leverage, close), margin transfers between buckets and to the bank,
-//! PnL queries, health monitoring, and liquidation history.
+//! on Morpheum, including bucket creation, margin transfers between buckets and
+//! to the bank, bucket PnL queries, health monitoring, and liquidation history.
 //!
 //! Buckets can be either **isolated** (one position per bucket) or **cross**
-//! (multiple positions sharing margin), and support both linear and power
-//! perpetual position types.
+//! (multiple positions sharing margin). Position lifecycle management (close,
+//! update leverage) is handled by the `position` module.
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
@@ -44,14 +43,12 @@ pub use types::{
 
 pub use requests::{
     CloseBucketRequest,
-    ClosePositionRequest,
     CreateBucketRequest,
     ExecuteAdlRequest,
-    LiquidatePositionRequest,
+    LiquidateBucketRequest,
     QueryAdlHistoryRequest,
     QueryAddressPnLRequest,
     QueryAllBucketsBalanceByAddressRequest,
-    QueryAllPositionsByMarketRequest,
     QueryBucketPnLRequest,
     QueryBucketRequest,
     QueryBucketStatusRequest,
@@ -59,25 +56,18 @@ pub use requests::{
     QueryLiquidationMetricsRequest,
     QueryLiquidationsRequest,
     QueryPositionHealthRequest,
-    QueryPositionPnLRequest,
-    QueryPositionsByAddressRequest,
     QueryPositionsByBucketRequest,
     TransferBetweenBucketsRequest,
     TransferToBankRequest,
-    UpdatePositionLeverageRequest,
-    UpdatePositionRequest,
 };
 
 pub use builder::{
     CloseBucketBuilder,
-    ClosePositionBuilder,
     CreateBucketBuilder,
     ExecuteAdlBuilder,
-    LiquidatePositionBuilder,
+    LiquidateBucketBuilder,
     TransferBetweenBucketsBuilder,
     TransferToBankBuilder,
-    UpdatePositionBuilder,
-    UpdatePositionLeverageBuilder,
 };
 
 pub use morpheum_sdk_core::{AccountId, ChainId, SdkError, SignedTx};
@@ -101,8 +91,6 @@ pub mod prelude {
         PositionHealth,
         Side,
         CreateBucketBuilder,
-        ClosePositionBuilder,
-        UpdatePositionLeverageBuilder,
         TransferBetweenBucketsBuilder,
         TransferToBankBuilder,
         CloseBucketBuilder,

@@ -176,6 +176,106 @@ pub struct LongShortVolume {
     pub short_volume: u64,
 }
 
+// ====================== CLIENT-FACING POSITION ======================
+
+/// Primitives side enum (Buy / Sell), maps to `primitives.v1.Side`.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+pub enum Side {
+    Unspecified,
+    Buy,
+    Sell,
+}
+
+impl From<i32> for Side {
+    fn from(v: i32) -> Self {
+        match v {
+            1 => Self::Buy,
+            2 => Self::Sell,
+            _ => Self::Unspecified,
+        }
+    }
+}
+
+/// Full client-facing position representation (REST/WebSocket wire type).
+#[derive(Clone, Debug, PartialEq, Eq)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+pub struct Position {
+    pub position_id: String,
+    pub bucket_id: String,
+    pub position_type: String,
+    pub market_index: u64,
+    pub address: String,
+    pub symbol: String,
+    pub size: String,
+    pub side: Side,
+    pub average_entry_price: String,
+    pub mark_price: String,
+    pub leverage: String,
+    pub unrealized_profit: String,
+    pub unrealized_loss: String,
+    pub maintenance_margin_requirement: String,
+    pub margin_balance: String,
+    pub status: String,
+    pub created_at: u64,
+    pub updated_at: u64,
+    pub liquidation_price: String,
+    pub market_type: String,
+    pub realized_profit: String,
+    pub realized_loss: String,
+    pub position_side: String,
+    pub margin_ratio: String,
+    pub timestamp: u64,
+    pub update_reason: String,
+    pub sequence_id: i64,
+}
+
+impl From<proto::Position> for Position {
+    fn from(p: proto::Position) -> Self {
+        Self {
+            position_id: p.position_id,
+            bucket_id: p.bucket_id,
+            position_type: p.r#type,
+            market_index: p.market_index,
+            address: p.address,
+            symbol: p.symbol,
+            size: p.size,
+            side: Side::from(p.side),
+            average_entry_price: p.average_entry_price,
+            mark_price: p.mark_price,
+            leverage: p.leverage,
+            unrealized_profit: p.unrealized_profit,
+            unrealized_loss: p.unrealized_loss,
+            maintenance_margin_requirement: p.maintenance_margin_requirement,
+            margin_balance: p.margin_balance,
+            status: p.status,
+            created_at: p.created_at.map(|t| t.seconds as u64).unwrap_or(0),
+            updated_at: p.updated_at.map(|t| t.seconds as u64).unwrap_or(0),
+            liquidation_price: p.liquidation_price,
+            market_type: p.market_type,
+            realized_profit: p.realized_profit,
+            realized_loss: p.realized_loss,
+            position_side: p.position_side,
+            margin_ratio: p.margin_ratio,
+            timestamp: p.timestamp.map(|t| t.seconds as u64).unwrap_or(0),
+            update_reason: p.update_reason,
+            sequence_id: p.sequence_id,
+        }
+    }
+}
+
+/// PnL for a single position.
+#[derive(Clone, Debug, PartialEq, Eq)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+pub struct PositionPnL {
+    pub unrealized_profit: String,
+    pub unrealized_loss: String,
+    pub realized_profit: String,
+    pub realized_loss: String,
+    pub net_profit: String,
+    pub net_loss: String,
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

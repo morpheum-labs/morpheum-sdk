@@ -1,11 +1,13 @@
 //! Position module for the Morpheum SDK.
 //!
-//! This module provides full support for managing trading positions on Morpheum,
-//! including opening, updating, closing positions (both direct and bucket-scoped),
-//! and querying position state, open positions, and aggregated long/short volume.
+//! Position lifecycle:
+//! - Positions are CREATED from CLOB order fills via the PositionFillApplier hot path.
+//!   There is no user-facing "OpenPosition" RPC.
+//! - Position SIZE CHANGES come from subsequent fills.
+//! - Users can close/reduce positions (ClosePosition) and change leverage (UpdatePositionLeverage).
 //!
-//! It integrates with the bucket, risk, and CLOB modules, and supports both
-//! linear and power perpetual position types.
+//! This module provides query support for position state, open positions, long/short volume,
+//! positions by address, positions by market, and position PnL.
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
@@ -22,34 +24,35 @@ pub use client::PositionClient;
 
 pub use types::{
     LongShortVolume,
+    Position,
     PositionConfig,
     PositionEntry,
+    PositionPnL,
     PositionSide,
     PositionState,
+    Side,
 };
 
 pub use requests::{
-    CloseBucketPositionRequest,
     ClosePositionRequest,
     GetLongShortVolumeRequest,
     GetPositionRequest,
     ListOpenPositionsRequest,
-    OpenPositionRequest,
-    UpdatePositionRequest,
+    QueryAllPositionsByMarketRequest,
+    QueryPositionPnLRequest,
+    QueryPositionsByAddressRequest,
+    UpdatePositionLeverageRequest,
 };
 
 pub use builder::{
-    CloseBucketPositionBuilder,
     ClosePositionBuilder,
-    OpenPositionBuilder,
-    UpdatePositionBuilder,
+    UpdatePositionLeverageBuilder,
 };
 
 pub use morpheum_sdk_core::{AccountId, ChainId, SdkError, SignedTx};
 
 /// Recommended prelude for the position module.
 ///
-/// Most users should start with:
 /// ```rust
 /// use morpheum_sdk_position::prelude::*;
 /// ```
@@ -61,10 +64,8 @@ pub mod prelude {
         PositionEntry,
         PositionConfig,
         LongShortVolume,
-        OpenPositionBuilder,
-        UpdatePositionBuilder,
         ClosePositionBuilder,
-        CloseBucketPositionBuilder,
+        UpdatePositionLeverageBuilder,
         AccountId,
         ChainId,
         SdkError,

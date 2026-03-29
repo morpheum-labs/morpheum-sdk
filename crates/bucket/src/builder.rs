@@ -9,9 +9,8 @@ use alloc::string::String;
 use morpheum_sdk_core::SdkError;
 
 use crate::requests::{
-    CloseBucketRequest, ClosePositionRequest, CreateBucketRequest, ExecuteAdlRequest,
-    LiquidatePositionRequest, TransferBetweenBucketsRequest, TransferToBankRequest,
-    UpdatePositionLeverageRequest, UpdatePositionRequest,
+    CloseBucketRequest, CreateBucketRequest, ExecuteAdlRequest,
+    LiquidateBucketRequest, TransferBetweenBucketsRequest, TransferToBankRequest,
 };
 use crate::types::BucketType;
 
@@ -72,184 +71,6 @@ impl CreateBucketBuilder {
         Ok(CreateBucketRequest::new(
             address, bucket_id, bucket_type, collateral_asset_index, initial_margin,
         ))
-    }
-}
-
-// ====================== UPDATE POSITION ======================
-
-/// Fluent builder for updating a position within a bucket.
-#[derive(Default)]
-pub struct UpdatePositionBuilder {
-    address: Option<String>,
-    market_index: Option<u64>,
-    position_id: Option<String>,
-    size_delta: Option<String>,
-    leverage: Option<String>,
-    price: Option<String>,
-}
-
-impl UpdatePositionBuilder {
-    pub fn new() -> Self {
-        Self::default()
-    }
-
-    pub fn address(mut self, address: impl Into<String>) -> Self {
-        self.address = Some(address.into());
-        self
-    }
-
-    pub fn market_index(mut self, index: u64) -> Self {
-        self.market_index = Some(index);
-        self
-    }
-
-    pub fn position_id(mut self, id: impl Into<String>) -> Self {
-        self.position_id = Some(id.into());
-        self
-    }
-
-    pub fn size_delta(mut self, delta: impl Into<String>) -> Self {
-        self.size_delta = Some(delta.into());
-        self
-    }
-
-    pub fn leverage(mut self, lev: impl Into<String>) -> Self {
-        self.leverage = Some(lev.into());
-        self
-    }
-
-    pub fn price(mut self, price: impl Into<String>) -> Self {
-        self.price = Some(price.into());
-        self
-    }
-
-    pub fn build(self) -> Result<UpdatePositionRequest, SdkError> {
-        let address = self.address
-            .ok_or_else(|| SdkError::invalid_input("address is required to update a position"))?;
-        let market_index = self.market_index
-            .ok_or_else(|| SdkError::invalid_input("market_index is required"))?;
-
-        let mut req = UpdatePositionRequest::new(address, market_index);
-        if let Some(pid) = self.position_id { req = req.position_id(pid); }
-        if let Some(sd) = self.size_delta { req = req.size_delta(sd); }
-        if let Some(l) = self.leverage { req = req.leverage(l); }
-        if let Some(p) = self.price { req = req.price(p); }
-        Ok(req)
-    }
-}
-
-// ====================== UPDATE POSITION LEVERAGE ======================
-
-/// Fluent builder for changing a position's leverage.
-#[derive(Default)]
-pub struct UpdatePositionLeverageBuilder {
-    address: Option<String>,
-    market_index: Option<u64>,
-    new_leverage: Option<String>,
-    position_id: Option<String>,
-    bucket_id: Option<String>,
-}
-
-impl UpdatePositionLeverageBuilder {
-    pub fn new() -> Self {
-        Self::default()
-    }
-
-    pub fn address(mut self, address: impl Into<String>) -> Self {
-        self.address = Some(address.into());
-        self
-    }
-
-    pub fn market_index(mut self, index: u64) -> Self {
-        self.market_index = Some(index);
-        self
-    }
-
-    pub fn new_leverage(mut self, leverage: impl Into<String>) -> Self {
-        self.new_leverage = Some(leverage.into());
-        self
-    }
-
-    pub fn position_id(mut self, id: impl Into<String>) -> Self {
-        self.position_id = Some(id.into());
-        self
-    }
-
-    pub fn bucket_id(mut self, id: impl Into<String>) -> Self {
-        self.bucket_id = Some(id.into());
-        self
-    }
-
-    pub fn build(self) -> Result<UpdatePositionLeverageRequest, SdkError> {
-        let address = self.address
-            .ok_or_else(|| SdkError::invalid_input("address is required"))?;
-        let market_index = self.market_index
-            .ok_or_else(|| SdkError::invalid_input("market_index is required"))?;
-        let new_leverage = self.new_leverage
-            .ok_or_else(|| SdkError::invalid_input("new_leverage is required"))?;
-
-        let mut req = UpdatePositionLeverageRequest::new(address, market_index, new_leverage);
-        if let Some(pid) = self.position_id { req = req.position_id(pid); }
-        if let Some(bid) = self.bucket_id { req = req.bucket_id(bid); }
-        Ok(req)
-    }
-}
-
-// ====================== CLOSE POSITION ======================
-
-/// Fluent builder for closing a position.
-#[derive(Default)]
-pub struct ClosePositionBuilder {
-    address: Option<String>,
-    market_index: Option<u64>,
-    close_size: Option<String>,
-    market_price: Option<String>,
-    position_id: Option<String>,
-}
-
-impl ClosePositionBuilder {
-    pub fn new() -> Self {
-        Self::default()
-    }
-
-    pub fn address(mut self, address: impl Into<String>) -> Self {
-        self.address = Some(address.into());
-        self
-    }
-
-    pub fn market_index(mut self, index: u64) -> Self {
-        self.market_index = Some(index);
-        self
-    }
-
-    pub fn close_size(mut self, size: impl Into<String>) -> Self {
-        self.close_size = Some(size.into());
-        self
-    }
-
-    pub fn market_price(mut self, price: impl Into<String>) -> Self {
-        self.market_price = Some(price.into());
-        self
-    }
-
-    pub fn position_id(mut self, id: impl Into<String>) -> Self {
-        self.position_id = Some(id.into());
-        self
-    }
-
-    pub fn build(self) -> Result<ClosePositionRequest, SdkError> {
-        let address = self.address
-            .ok_or_else(|| SdkError::invalid_input("address is required to close a position"))?;
-        let market_index = self.market_index
-            .ok_or_else(|| SdkError::invalid_input("market_index is required"))?;
-        let close_size = self.close_size
-            .ok_or_else(|| SdkError::invalid_input("close_size is required"))?;
-        let market_price = self.market_price
-            .ok_or_else(|| SdkError::invalid_input("market_price is required"))?;
-
-        let mut req = ClosePositionRequest::new(address, market_index, close_size, market_price);
-        if let Some(pid) = self.position_id { req = req.position_id(pid); }
-        Ok(req)
     }
 }
 
@@ -403,24 +224,30 @@ impl CloseBucketBuilder {
     }
 }
 
-// ====================== LIQUIDATE POSITION ======================
+// ====================== LIQUIDATE BUCKET ======================
 
-/// Fluent builder for liquidating a position.
+/// Fluent builder for liquidating a bucket (permissioned).
 #[derive(Default)]
-pub struct LiquidatePositionBuilder {
-    address: Option<String>,
+pub struct LiquidateBucketBuilder {
+    from_address: Option<String>,
+    bucket_id: Option<String>,
     market_index: Option<u64>,
     liquidation_price: Option<String>,
     reason: Option<String>,
 }
 
-impl LiquidatePositionBuilder {
+impl LiquidateBucketBuilder {
     pub fn new() -> Self {
         Self::default()
     }
 
-    pub fn address(mut self, address: impl Into<String>) -> Self {
-        self.address = Some(address.into());
+    pub fn from_address(mut self, address: impl Into<String>) -> Self {
+        self.from_address = Some(address.into());
+        self
+    }
+
+    pub fn bucket_id(mut self, id: impl Into<String>) -> Self {
+        self.bucket_id = Some(id.into());
         self
     }
 
@@ -439,15 +266,17 @@ impl LiquidatePositionBuilder {
         self
     }
 
-    pub fn build(self) -> Result<LiquidatePositionRequest, SdkError> {
-        let address = self.address
-            .ok_or_else(|| SdkError::invalid_input("address is required"))?;
+    pub fn build(self) -> Result<LiquidateBucketRequest, SdkError> {
+        let from_address = self.from_address
+            .ok_or_else(|| SdkError::invalid_input("from_address is required"))?;
+        let bucket_id = self.bucket_id
+            .ok_or_else(|| SdkError::invalid_input("bucket_id is required"))?;
         let market_index = self.market_index
             .ok_or_else(|| SdkError::invalid_input("market_index is required"))?;
         let liquidation_price = self.liquidation_price
             .ok_or_else(|| SdkError::invalid_input("liquidation_price is required"))?;
 
-        let mut req = LiquidatePositionRequest::new(address, market_index, liquidation_price);
+        let mut req = LiquidateBucketRequest::new(from_address, bucket_id, market_index, liquidation_price);
         if let Some(r) = self.reason { req = req.reason(r); }
         Ok(req)
     }
@@ -455,13 +284,14 @@ impl LiquidatePositionBuilder {
 
 // ====================== EXECUTE ADL ======================
 
-/// Fluent builder for executing auto-deleveraging.
+/// Fluent builder for executing auto-deleveraging (permissioned).
 #[derive(Default)]
 pub struct ExecuteAdlBuilder {
-    execution_id: Option<String>,
+    from_address: Option<String>,
     market_index: Option<u64>,
-    symbol: Option<String>,
     mark_price: Option<String>,
+    oi_imbalance: Option<String>,
+    trigger_reason: Option<String>,
 }
 
 impl ExecuteAdlBuilder {
@@ -469,8 +299,8 @@ impl ExecuteAdlBuilder {
         Self::default()
     }
 
-    pub fn execution_id(mut self, id: impl Into<String>) -> Self {
-        self.execution_id = Some(id.into());
+    pub fn from_address(mut self, address: impl Into<String>) -> Self {
+        self.from_address = Some(address.into());
         self
     }
 
@@ -479,27 +309,33 @@ impl ExecuteAdlBuilder {
         self
     }
 
-    pub fn symbol(mut self, sym: impl Into<String>) -> Self {
-        self.symbol = Some(sym.into());
-        self
-    }
-
     pub fn mark_price(mut self, price: impl Into<String>) -> Self {
         self.mark_price = Some(price.into());
         self
     }
 
+    pub fn oi_imbalance(mut self, imbalance: impl Into<String>) -> Self {
+        self.oi_imbalance = Some(imbalance.into());
+        self
+    }
+
+    pub fn trigger_reason(mut self, reason: impl Into<String>) -> Self {
+        self.trigger_reason = Some(reason.into());
+        self
+    }
+
     pub fn build(self) -> Result<ExecuteAdlRequest, SdkError> {
-        let execution_id = self.execution_id
-            .ok_or_else(|| SdkError::invalid_input("execution_id is required"))?;
+        let from_address = self.from_address
+            .ok_or_else(|| SdkError::invalid_input("from_address is required"))?;
         let market_index = self.market_index
             .ok_or_else(|| SdkError::invalid_input("market_index is required"))?;
-        let symbol = self.symbol
-            .ok_or_else(|| SdkError::invalid_input("symbol is required"))?;
         let mark_price = self.mark_price
             .ok_or_else(|| SdkError::invalid_input("mark_price is required"))?;
 
-        Ok(ExecuteAdlRequest::new(execution_id, market_index, symbol, mark_price))
+        let mut req = ExecuteAdlRequest::new(from_address, market_index, mark_price);
+        if let Some(oi) = self.oi_imbalance { req = req.oi_imbalance(oi); }
+        if let Some(r) = self.trigger_reason { req = req.trigger_reason(r); }
+        Ok(req)
     }
 }
 
@@ -528,55 +364,6 @@ mod tests {
     #[test]
     fn create_bucket_builder_validation() {
         assert!(CreateBucketBuilder::new().build().is_err());
-    }
-
-    #[test]
-    fn update_position_builder_works() {
-        let req = UpdatePositionBuilder::new()
-            .address("morpheum1abc")
-            .market_index(42)
-            .size_delta("1000")
-            .price("50000")
-            .build()
-            .unwrap();
-
-        assert_eq!(req.address, "morpheum1abc");
-        assert_eq!(req.market_index, 42);
-    }
-
-    #[test]
-    fn update_position_leverage_builder_works() {
-        let req = UpdatePositionLeverageBuilder::new()
-            .address("morpheum1abc")
-            .market_index(42)
-            .new_leverage("20000000000")
-            .position_id("pos-1")
-            .build()
-            .unwrap();
-
-        assert_eq!(req.new_leverage, "20000000000");
-        assert_eq!(req.position_id, Some("pos-1".into()));
-    }
-
-    #[test]
-    fn close_position_builder_works() {
-        let req = ClosePositionBuilder::new()
-            .address("morpheum1abc")
-            .market_index(42)
-            .close_size("1000")
-            .market_price("52000")
-            .position_id("pos-1")
-            .build()
-            .unwrap();
-
-        assert_eq!(req.close_size, "1000");
-        assert_eq!(req.position_id, Some("pos-1".into()));
-    }
-
-    #[test]
-    fn close_position_builder_validation() {
-        assert!(ClosePositionBuilder::new().build().is_err());
-        assert!(ClosePositionBuilder::new().address("x").build().is_err());
     }
 
     #[test]
@@ -621,31 +408,35 @@ mod tests {
     }
 
     #[test]
-    fn liquidate_position_builder_works() {
-        let req = LiquidatePositionBuilder::new()
-            .address("morpheum1abc")
+    fn liquidate_bucket_builder_works() {
+        let req = LiquidateBucketBuilder::new()
+            .from_address("morpheum1risk")
+            .bucket_id("bucket-1")
             .market_index(42)
             .liquidation_price("48000")
-            .reason("below maintenance margin")
+            .reason("equity ratio breach")
             .build()
             .unwrap();
 
+        assert_eq!(req.bucket_id, "bucket-1");
         assert_eq!(req.liquidation_price, "48000");
-        assert_eq!(req.reason, Some("below maintenance margin".into()));
+        assert_eq!(req.reason, Some("equity ratio breach".into()));
     }
 
     #[test]
     fn execute_adl_builder_works() {
         let req = ExecuteAdlBuilder::new()
-            .execution_id("adl-1")
+            .from_address("morpheum1risk")
             .market_index(42)
-            .symbol("BTCUSDC")
             .mark_price("50000")
+            .oi_imbalance("1000000")
+            .trigger_reason("insurance depleted")
             .build()
             .unwrap();
 
-        assert_eq!(req.execution_id, "adl-1");
+        assert_eq!(req.from_address, "morpheum1risk");
         assert_eq!(req.market_index, 42);
+        assert_eq!(req.trigger_reason, "insurance depleted");
     }
 
     #[test]

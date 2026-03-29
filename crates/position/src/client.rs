@@ -2,8 +2,9 @@
 //! in the Morpheum SDK.
 //!
 //! This client provides high-level, type-safe methods for querying positions,
-//! open positions, and long/short volume. Transaction operations (open, update,
-//! close) are handled via the fluent builders in `builder.rs` + `TxBuilder`.
+//! open positions, long/short volume, positions by address, positions by market,
+//! and position PnL. Transaction operations (close, update leverage) are handled
+//! via the fluent builders in `builder.rs` + `TxBuilder`.
 
 use alloc::boxed::Box;
 use alloc::string::String;
@@ -15,8 +16,12 @@ use prost::Message as _;
 use morpheum_sdk_core::{MorpheumClient, SdkConfig, SdkError, Transport};
 
 use crate::{
-    requests::{GetLongShortVolumeRequest, GetPositionRequest, ListOpenPositionsRequest},
-    types::{LongShortVolume, PositionState},
+    requests::{
+        GetLongShortVolumeRequest, GetPositionRequest, ListOpenPositionsRequest,
+        QueryAllPositionsByMarketRequest, QueryPositionPnLRequest,
+        QueryPositionsByAddressRequest,
+    },
+    types::{LongShortVolume, Position, PositionPnL, PositionState},
 };
 
 /// Primary client for all position-related queries.
@@ -106,6 +111,68 @@ impl PositionClient {
             short_volume: proto_res.short_volume,
         })
     }
+
+    /// Queries all positions for an address across all buckets.
+    pub async fn query_positions_by_address(
+        &self,
+        address: impl Into<String>,
+        active_only: bool,
+    ) -> Result<Vec<Position>, SdkError> {
+        use morpheum_proto::position::v1 as proto;
+        let req = QueryPositionsByAddressRequest::new(address).active_only(active_only);
+        let proto_req: proto::QueryPositionsByAddressRequest = req.into();
+        let resp = self.query("/position.v1.Query/QueryPositionsByAddress", proto_req.encode_to_vec()).await?;
+        let p = proto::QueryPositionsByAddressResponse::decode(resp.as_slice()).map_err(SdkError::Decode)?;
+        check_success(p.success, &p.error_message)?;
+        Ok(p.positions.into_iter().map(Into::into).collect())
+    }
+
+    /// Queries all positions in a specific market across all addresses.
+    pub async fn query_all_positions_by_market(
+        &self,
+        request: QueryAllPositionsByMarketRequest,
+    ) -> Result<Vec<Position>, SdkError> {
+        use morpheum_proto::position::v1 as proto;
+        let proto_req: proto::QueryAllPositionsByMarketRequest = request.into();
+        let resp = self.query("/position.v1.Query/QueryAllPositionsByMarket", proto_req.encode_to_vec()).await?;
+        let p = proto::QueryAllPositionsByMarketResponse::decode(resp.as_slice()).map_err(SdkError::Decode)?;
+        check_success(p.success, &p.error_message)?;
+        Ok(p.positions.into_iter().map(Into::into).collect())
+    }
+
+    /// Queries PnL for a specific position.
+    pub async fn query_position_pnl(
+        &self,
+        address: impl Into<String>,
+        market_index: u64,
+    ) -> Result<PositionPnL, SdkError> {
+        use morpheum_proto::position::v1 as proto;
+        let req = QueryPositionPnLRequest::new(address, market_index);
+        let proto_req: proto::QueryPositionPnLRequest = req.into();
+        let resp = self.query("/position.v1.Query/QueryPositionPnL", proto_req.encode_to_vec()).await?;
+        let p = proto::QueryPositionPnLResponse::decode(resp.as_slice()).map_err(SdkError::Decode)?;
+        check_success(p.success, &p.error_message)?;
+        Ok(PositionPnL {
+            unrealized_profit: p.unrealized_profit,
+            unrealized_loss: p.unrealized_loss,
+            realized_profit: p.realized_profit,
+            realized_loss: p.realized_loss,
+            net_profit: p.net_profit,
+            net_loss: p.net_loss,
+        })
+    }
+}
+
+fn check_success(success: bool, error_message: &str) -> Result<(), SdkError> {
+    if success {
+        Ok(())
+    } else {
+        Err(SdkError::transport(if error_message.is_empty() {
+            "position query failed"
+        } else {
+            error_message
+        }))
+    }
 }
 
 #[async_trait(?Send)]
@@ -159,6 +226,27 @@ mod tests {
                     };
                     Ok(prost::Message::encode_to_vec(&dummy))
                 }
+                "/position.v1.Query/QueryPositionsByAddress" => {
+                    let dummy = morpheum_proto::position::v1::QueryPositionsByAddressResponse {
+                        success: true,
+                        ..Default::default()
+                    };
+                    Ok(prost::Message::encode_to_vec(&dummy))
+                }
+                "/position.v1.Query/QueryAllPositionsByMarket" => {
+                    let dummy = morpheum_proto::position::v1::QueryAllPositionsByMarketResponse {
+                        success: true,
+                        ..Default::default()
+                    };
+                    Ok(prost::Message::encode_to_vec(&dummy))
+                }
+                "/position.v1.Query/QueryPositionPnL" => {
+                    let dummy = morpheum_proto::position::v1::QueryPositionPnLResponse {
+                        success: true,
+                        ..Default::default()
+                    };
+                    Ok(prost::Message::encode_to_vec(&dummy))
+                }
                 _ => Err(SdkError::transport("unexpected query path in test")),
             }
         }
@@ -194,5 +282,35 @@ mod tests {
         let volume = result.unwrap();
         assert_eq!(volume.long_volume, 1000);
         assert_eq!(volume.short_volume, 800);
+    }
+
+    #[tokio::test]
+    async fn position_client_query_positions_by_address_works() {
+        let config = SdkConfig::new("https://sentry.morpheum.xyz", "morpheum-test-1");
+        let client = PositionClient::new(config, Box::new(DummyTransport));
+
+        let result = client.query_positions_by_address("morpheum1abc", true).await;
+        assert!(result.is_ok());
+        assert!(result.unwrap().is_empty());
+    }
+
+    #[tokio::test]
+    async fn position_client_query_all_positions_by_market_works() {
+        let config = SdkConfig::new("https://sentry.morpheum.xyz", "morpheum-test-1");
+        let client = PositionClient::new(config, Box::new(DummyTransport));
+
+        let req = crate::requests::QueryAllPositionsByMarketRequest::new(42);
+        let result = client.query_all_positions_by_market(req).await;
+        assert!(result.is_ok());
+        assert!(result.unwrap().is_empty());
+    }
+
+    #[tokio::test]
+    async fn position_client_query_position_pnl_works() {
+        let config = SdkConfig::new("https://sentry.morpheum.xyz", "morpheum-test-1");
+        let client = PositionClient::new(config, Box::new(DummyTransport));
+
+        let result = client.query_position_pnl("morpheum1abc", 42).await;
+        assert!(result.is_ok());
     }
 }

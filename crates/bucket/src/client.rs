@@ -18,7 +18,7 @@ use morpheum_sdk_core::{MorpheumClient, SdkConfig, SdkError, Transport};
 use crate::requests;
 use crate::types::{
     AddressPnL, AllBucketsBalance, Bucket, BucketPnL, BucketStatus,
-    LiquidationEvent, LiquidationMetrics, Position, PositionHealth, PositionPnL,
+    LiquidationEvent, LiquidationMetrics, Position, PositionHealth,
 };
 
 use morpheum_proto::bucket::v1 as proto;
@@ -114,20 +114,6 @@ impl BucketClient {
         })
     }
 
-    /// Gets all positions for an address.
-    pub async fn query_positions_by_address(
-        &self,
-        address: impl Into<String>,
-        active_only: bool,
-    ) -> Result<Vec<Position>, SdkError> {
-        let req = requests::QueryPositionsByAddressRequest::new(address).active_only(active_only);
-        let proto_req: proto::QueryPositionsByAddressRequest = req.into();
-        let resp = self.query("/bucket.v1.Query/QueryPositionsByAddress", proto_req.encode_to_vec()).await?;
-        let p = proto::QueryPositionsByAddressResponse::decode(resp.as_slice()).map_err(SdkError::Decode)?;
-        check_success(p.success, &p.error_message)?;
-        Ok(p.positions.into_iter().map(Into::into).collect())
-    }
-
     /// Gets all positions in a specific bucket.
     pub async fn query_positions_by_bucket(
         &self,
@@ -141,27 +127,6 @@ impl BucketClient {
         Ok(p.positions.into_iter().map(Into::into).collect())
     }
 
-    /// Gets PnL for a specific position.
-    pub async fn query_position_pnl(
-        &self,
-        address: impl Into<String>,
-        market_index: u64,
-    ) -> Result<PositionPnL, SdkError> {
-        let req = requests::QueryPositionPnLRequest::new(address, market_index);
-        let proto_req: proto::QueryPositionPnLRequest = req.into();
-        let resp = self.query("/bucket.v1.Query/QueryPositionPnL", proto_req.encode_to_vec()).await?;
-        let p = proto::QueryPositionPnLResponse::decode(resp.as_slice()).map_err(SdkError::Decode)?;
-        check_success(p.success, &p.error_message)?;
-        Ok(PositionPnL {
-            unrealized_profit: p.unrealized_profit,
-            unrealized_loss: p.unrealized_loss,
-            realized_profit: p.realized_profit,
-            realized_loss: p.realized_loss,
-            net_profit: p.net_profit,
-            net_loss: p.net_loss,
-        })
-    }
-
     /// Queries liquidation events with optional filters.
     pub async fn query_liquidations(
         &self,
@@ -171,18 +136,6 @@ impl BucketClient {
         let resp = self.query("/bucket.v1.Query/QueryLiquidations", proto_req.encode_to_vec()).await?;
         let p = proto::QueryLiquidationsResponse::decode(resp.as_slice()).map_err(SdkError::Decode)?;
         Ok(p.liquidations.into_iter().map(Into::into).collect())
-    }
-
-    /// Gets all positions for a market across all addresses.
-    pub async fn query_all_positions_by_market(
-        &self,
-        request: requests::QueryAllPositionsByMarketRequest,
-    ) -> Result<Vec<Position>, SdkError> {
-        let proto_req: proto::QueryAllPositionsByMarketRequest = request.into();
-        let resp = self.query("/bucket.v1.Query/QueryAllPositionsByMarket", proto_req.encode_to_vec()).await?;
-        let p = proto::QueryAllPositionsByMarketResponse::decode(resp.as_slice()).map_err(SdkError::Decode)?;
-        check_success(p.success, &p.error_message)?;
-        Ok(p.positions.into_iter().map(Into::into).collect())
     }
 
     /// Checks a bucket's status.
@@ -346,20 +299,6 @@ mod tests {
                     };
                     Ok(prost::Message::encode_to_vec(&r))
                 }
-                "/bucket.v1.Query/QueryPositionsByAddress" => {
-                    let r = proto::QueryPositionsByAddressResponse {
-                        success: true,
-                        ..Default::default()
-                    };
-                    Ok(prost::Message::encode_to_vec(&r))
-                }
-                "/bucket.v1.Query/QueryPositionPnL" => {
-                    let r = proto::QueryPositionPnLResponse {
-                        success: true,
-                        ..Default::default()
-                    };
-                    Ok(prost::Message::encode_to_vec(&r))
-                }
                 "/bucket.v1.Query/QueryBucketStatus" => {
                     let r = proto::QueryBucketStatusResponse {
                         success: true,
@@ -420,20 +359,6 @@ mod tests {
     async fn query_bucket_pnl_works() {
         let client = make_client();
         let result = client.query_bucket_pnl("bucket-1").await;
-        assert!(result.is_ok());
-    }
-
-    #[tokio::test]
-    async fn query_positions_by_address_works() {
-        let client = make_client();
-        let result = client.query_positions_by_address("morpheum1abc", true).await;
-        assert!(result.is_ok());
-    }
-
-    #[tokio::test]
-    async fn query_position_pnl_works() {
-        let client = make_client();
-        let result = client.query_position_pnl("morpheum1abc", 42).await;
         assert!(result.is_ok());
     }
 

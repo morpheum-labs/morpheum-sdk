@@ -40,6 +40,7 @@ pub use requests::{
     CancelOrderRequest,
     GetChecksumRequest,
     ModifyOrderRequest,
+    PlaceBatchOrdersRequest,
     PlaceOrderRequest,
     ProvideMarketMakerQuoteRequest,
     QueryActiveMarketMakerQuotesRequest,
@@ -58,6 +59,7 @@ pub use builder::{
     CancelMarketMakerQuoteBuilder,
     CancelOrderBuilder,
     ModifyOrderBuilder,
+    PlaceBatchOrdersBuilder,
     PlaceOrderBuilder,
     ProvideMarketMakerQuoteBuilder,
 };
@@ -84,6 +86,7 @@ pub mod prelude {
         FundingRate,
         MarketMakerQuote,
         PlaceOrderBuilder,
+        PlaceBatchOrdersBuilder,
         ModifyOrderBuilder,
         CancelOrderBuilder,
         AccountId,

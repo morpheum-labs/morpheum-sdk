@@ -190,6 +190,51 @@ impl From<CancelOrderRequest> for proto::MsgCancelOrderRequest {
     }
 }
 
+/// Request to place multiple orders atomically.
+#[derive(Clone, Debug, PartialEq)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+pub struct PlaceBatchOrdersRequest {
+    pub from_address: String,
+    pub orders: alloc::vec::Vec<PlaceOrderRequest>,
+    pub orders_hash: String,
+}
+
+impl PlaceBatchOrdersRequest {
+    pub fn new(
+        from_address: impl Into<String>,
+        orders: alloc::vec::Vec<PlaceOrderRequest>,
+    ) -> Self {
+        Self {
+            from_address: from_address.into(),
+            orders,
+            orders_hash: String::new(),
+        }
+    }
+
+    pub fn orders_hash(mut self, orders_hash: impl Into<String>) -> Self {
+        self.orders_hash = orders_hash.into();
+        self
+    }
+
+    pub fn to_any(&self) -> ProtoAny {
+        let msg: proto::MsgPlaceBatchOrdersRequest = self.clone().into();
+        ProtoAny {
+            type_url: "/clob.v1.MsgPlaceBatchOrdersRequest".into(),
+            value: msg.encode_to_vec(),
+        }
+    }
+}
+
+impl From<PlaceBatchOrdersRequest> for proto::MsgPlaceBatchOrdersRequest {
+    fn from(r: PlaceBatchOrdersRequest) -> Self {
+        Self {
+            from_address: r.from_address,
+            orders: r.orders.into_iter().map(Into::into).collect(),
+            orders_hash: r.orders_hash,
+        }
+    }
+}
+
 /// Request to provide a market-maker quote.
 #[derive(Clone, Debug, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
@@ -533,6 +578,21 @@ mod tests {
         let req = CancelOrderRequest::new("morpheum1abc", "order-1");
         let any = req.to_any();
         assert_eq!(any.type_url, "/clob.v1.MsgCancelOrderRequest");
+    }
+
+    #[test]
+    fn place_batch_orders_to_any() {
+        let order = PlaceOrderRequest::new(
+            "morpheum1abc",
+            42,
+            "50000",
+            "100",
+            Side::Buy,
+            OrderType::Limit,
+        );
+        let req = PlaceBatchOrdersRequest::new("morpheum1abc", alloc::vec![order]);
+        let any = req.to_any();
+        assert_eq!(any.type_url, "/clob.v1.MsgPlaceBatchOrdersRequest");
     }
 
     #[test]

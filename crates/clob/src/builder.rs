@@ -8,8 +8,8 @@ use alloc::string::String;
 use morpheum_sdk_core::SdkError;
 
 use crate::requests::{
-    CancelMarketMakerQuoteRequest, CancelOrderRequest, ModifyOrderRequest, PlaceOrderRequest,
-    ProvideMarketMakerQuoteRequest,
+    CancelMarketMakerQuoteRequest, CancelOrderRequest, ModifyOrderRequest, PlaceBatchOrdersRequest,
+    PlaceOrderRequest, ProvideMarketMakerQuoteRequest,
 };
 use crate::types::{OrderType, Side, TimeInForce};
 
@@ -104,6 +104,55 @@ impl ModifyOrderBuilder {
         if let Some(v) = self.symbol { req = req.symbol(v); }
         if let Some(v) = self.new_price { req = req.new_price(v); }
         if let Some(v) = self.new_quantity { req = req.new_quantity(v); }
+        Ok(req)
+    }
+}
+
+// ====================== PLACE BATCH ORDERS ======================
+
+/// Fluent builder for placing multiple orders atomically.
+#[derive(Default)]
+pub struct PlaceBatchOrdersBuilder {
+    from_address: Option<String>,
+    orders: alloc::vec::Vec<PlaceOrderRequest>,
+    orders_hash: Option<String>,
+}
+
+impl PlaceBatchOrdersBuilder {
+    pub fn new() -> Self { Self::default() }
+
+    pub fn from_address(mut self, a: impl Into<String>) -> Self {
+        self.from_address = Some(a.into());
+        self
+    }
+
+    pub fn order(mut self, order: PlaceOrderRequest) -> Self {
+        self.orders.push(order);
+        self
+    }
+
+    pub fn orders(mut self, orders: alloc::vec::Vec<PlaceOrderRequest>) -> Self {
+        self.orders.extend(orders);
+        self
+    }
+
+    pub fn orders_hash(mut self, h: impl Into<String>) -> Self {
+        self.orders_hash = Some(h.into());
+        self
+    }
+
+    pub fn build(self) -> Result<PlaceBatchOrdersRequest, SdkError> {
+        let from_address = self
+            .from_address
+            .ok_or_else(|| SdkError::invalid_input("from_address is required"))?;
+        if self.orders.is_empty() {
+            return Err(SdkError::invalid_input("at least one order is required"));
+        }
+
+        let mut req = PlaceBatchOrdersRequest::new(from_address, self.orders);
+        if let Some(v) = self.orders_hash {
+            req = req.orders_hash(v);
+        }
         Ok(req)
     }
 }
@@ -235,6 +284,28 @@ mod tests {
             .side(Side::Buy).price("50000").amount("100")
             .build().unwrap();
         assert_eq!(req.provider, "morpheum1mm");
+    }
+
+    #[test]
+    fn place_batch_orders_builder_works() {
+        let order = PlaceOrderBuilder::new()
+            .address("morpheum1abc")
+            .market_index(42)
+            .price("50000")
+            .quantity("100")
+            .side(Side::Buy)
+            .order_type(OrderType::Limit)
+            .build()
+            .unwrap();
+
+        let req = PlaceBatchOrdersBuilder::new()
+            .from_address("morpheum1abc")
+            .order(order)
+            .build()
+            .unwrap();
+
+        assert_eq!(req.from_address, "morpheum1abc");
+        assert_eq!(req.orders.len(), 1);
     }
 
     #[test]

@@ -2,14 +2,20 @@
 //!
 //! This crate provides browser-ready bindings for React, Vue, Svelte, Next.js,
 //! and other web applications. It exposes a clean JavaScript/TypeScript API
-//! while delegating all heavy logic to the core SDK and signing library.
+//! while delegating all heavy logic to the core SDK, module crates, and signing library.
 //!
 //! **Recommended usage in TypeScript:**
 //! ```ts
 //! import { MorpheumSdkWasm, setPanicHook } from '@morpheum/sdk';
 //!
 //! setPanicHook();
-//! const sdk = await MorpheumSdkWasm.newMetamask("https://sentry.morpheum.xyz");
+//! const sdk = await MorpheumSdkWasm.newMetamask("https://sentry.morpheum.xyz", "morm-1");
+//! const result = await sdk.createBucket({
+//!   bucketId: "my-bucket",
+//!   bucketType: "cross",
+//!   collateralAssetIndex: 1,
+//!   initialMargin: "1000000000",
+//! });
 //! ```
 
 #![cfg_attr(not(feature = "std"), no_std)]
@@ -18,7 +24,6 @@
 
 extern crate alloc;
 
-// When the "std" feature is enabled (which it is in full-wasm), we bring in std.
 #[cfg(feature = "std")]
 extern crate std;
 
@@ -49,10 +54,8 @@ pub fn version() -> String {
 
 // ==================== RE-EXPORTS ====================
 
-// Re-export the main WASM bindings (MorpheumSdkWasm and related classes)
 pub use crate::bindings::*;
 
-// Feature-gated module clients (only exported when features are enabled)
 #[cfg(feature = "morpheum-sdk-market")]
 pub use morpheum_sdk_market as market;
 
@@ -62,7 +65,6 @@ pub use morpheum_sdk_vc as vc;
 #[cfg(feature = "morpheum-sdk-auth")]
 pub use morpheum_sdk_auth as auth;
 
-// Re-export core types commonly used in WASM
 pub use morpheum_sdk_core::{
     AccountId,
     ChainId,
@@ -70,17 +72,11 @@ pub use morpheum_sdk_core::{
     SignedTx,
 };
 
-// Re-export key signing types for agent flows
 pub use morpheum_sdk_core::signing::claim::{TradingKeyClaim, VcClaimBuilder};
 
 // ==================== WASM-SPECIFIC PRELUDE ====================
 
 /// Recommended prelude for WASM/TypeScript usage.
-///
-/// In Rust (if used directly):
-/// ```rust
-/// use morpheum_sdk_wasm::prelude::*;
-/// ```
 pub mod prelude {
     pub use super::{
         set_panic_hook,
@@ -93,7 +89,6 @@ pub mod prelude {
         VcClaimBuilder,
     };
 
-    // Main WASM facade
     pub use super::bindings::MorpheumSdkWasm;
 }
 

@@ -76,6 +76,7 @@ morpheum-proto = { path = "../morpheum-proto", default-features = false }
 # Signing (the official Morpheum signing library — local sibling repo)
 morpheum-signing-core = { path = "../morpheum-signing/crates/core", default-features = false, features = ["std"] }
 morpheum-signing-native = { path = "../morpheum-signing/crates/native", features = ["full"] }
+morpheum-signing-wasm-lib = { path = "../morpheum-signing/crates/wasm-lib" }
 
 # EVM interaction
 morpheum-sdk-evm = { path = "crates/evm" }

@@ -22,6 +22,7 @@ full-wasm = [
     "console_error_panic_hook",
     "morpheum-sdk-core/wasm",
     "morpheum-sdk-core/serde",
+    "morpheum-sdk-bucket/full",
     "morpheum-sdk-market?/full",
     "morpheum-sdk-vc?/full",
     "morpheum-sdk-auth?/full",
@@ -31,27 +32,32 @@ full-wasm = [
 # Core SDK foundation with WASM support
 morpheum-sdk-core = { path = "../core", default-features = false, features = ["std"] }
 
+# Module clients for typed builders
+morpheum-sdk-bucket = { path = "../bucket", default-features = false }
+
 # Feature-gated module clients (optional via features)
 morpheum-sdk-market = { path = "../market", optional = true, default-features = false }
 morpheum-sdk-vc = { path = "../vc", optional = true, default-features = false }
 morpheum-sdk-auth = { path = "../auth", optional = true, default-features = false }
 
-# Canonical protobuf definitions (for message construction in bindings)
-morpheum-proto = { workspace = true }
+# Signing: shared WASM adapters + core TxBuilder
+morpheum-signing-wasm-lib = { workspace = true }
+morpheum-signing-core = { workspace = true, features = ["wasm", "dynamic-signer-info"] }
 
-# WASM interop stack
+# Proto types for message encoding
+morpheum-proto = { workspace = true }
+prost = { workspace = true }
+
+# Hashing & encoding
+sha2 = "0.10"
+hex = "0.4"
+
+# WASM interop
 wasm-bindgen = "0.2"
 wasm-bindgen-futures = "0.4"
-tsify = { version = "0.4", features = ["js"] }
 js-sys = "0.3"
+serde = { workspace = true }
 serde-wasm-bindgen = "0.6"
-
-# Browser APIs
-web-sys = { version = "0.3", features = [
-    "Window",
-    "Navigator",
-    "console",
-] }
 
 # Better panic messages in browser console (optional but enabled in full-wasm)
 console_error_panic_hook = { version = "0.1", optional = true }

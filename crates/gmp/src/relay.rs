@@ -138,6 +138,16 @@ fn build_ism_metadata(
     metadata
 }
 
+/// Parameters required to relay a Hyperlane message from EVM into Morpheum.
+pub struct InboundRelayRequest<'a> {
+    pub morpheum_sender: &'a str,
+    pub morpheum_mailbox: &'a str,
+    pub tx_hash: B256,
+    pub validator_private_key: &'a [u8; 32],
+    pub origin_domain: u32,
+    pub merkle_tree_hook: Address,
+}
+
 /// Relays a dispatched Hyperlane message from an EVM chain to Morpheum.
 ///
 /// Extracts the `Dispatch` event from the given EVM tx, reads the
@@ -146,15 +156,10 @@ fn build_ism_metadata(
 pub async fn relay_inbound(
     evm_provider: &EvmProvider,
     channel: &tonic::transport::Channel,
-    morpheum_sender: &str,
-    morpheum_mailbox: &str,
-    tx_hash: B256,
-    validator_private_key: &[u8; 32],
-    origin_domain: u32,
-    merkle_tree_hook: Address,
+    request: InboundRelayRequest<'_>,
 ) -> Result<(), RelayError> {
     let receipt = evm_provider
-        .get_transaction_receipt(tx_hash)
+        .get_transaction_receipt(request.tx_hash)
         .await
         .map_err(|e| RelayError::Evm(format!("get tx receipt: {e}")))?
         .ok_or_else(|| RelayError::Evm("receipt not found".into()))?;
@@ -195,12 +200,12 @@ pub async fn relay_inbound(
     );
 
     let (merkle_root, merkle_index) =
-        read_evm_merkle_state(evm_provider, merkle_tree_hook).await?;
+        read_evm_merkle_state(evm_provider, request.merkle_tree_hook).await?;
 
-    let origin_merkle_tree = pad_address_to_32(merkle_tree_hook);
+    let origin_merkle_tree = pad_address_to_32(request.merkle_tree_hook);
     let signature = sign_checkpoint(
-        validator_private_key,
-        origin_domain,
+        request.validator_private_key,
+        request.origin_domain,
         &origin_merkle_tree,
         &merkle_root,
         merkle_index,
@@ -218,7 +223,12 @@ pub async fn relay_inbound(
     let msg_json = serde_json::to_vec(&process_msg)
         .map_err(|e| RelayError::Validation(format!("serialize process msg: {e}")))?;
 
-    grpc::broadcast_execute_contract(channel, morpheum_sender, morpheum_mailbox, &msg_json)
+    grpc::broadcast_execute_contract(
+        channel,
+        request.morpheum_sender,
+        request.morpheum_mailbox,
+        &msg_json,
+    )
         .await
         .map_err(|e| RelayError::Grpc(format!("Mailbox.process BroadcastTx: {e}")))?;
 

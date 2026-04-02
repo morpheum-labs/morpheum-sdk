@@ -5,7 +5,7 @@ use alloc::vec::Vec;
 
 use morpheum_sdk_core::SdkError;
 
-use crate::requests::{CreatePoolRequest, RebalancePoolRequest, UpdatePoolParamsRequest};
+use crate::requests::{CreatePoolRequest, UpdatePoolParamsRequest};
 
 // ====================== CREATE POOL ======================
 
@@ -91,29 +91,6 @@ impl UpdatePoolParamsBuilder {
     }
 }
 
-// ====================== REBALANCE POOL ======================
-
-/// Fluent builder for rebalancing pool depth.
-#[derive(Default)]
-pub struct RebalancePoolBuilder {
-    pool_id: Option<String>,
-    target_liquidity: Option<String>,
-}
-
-impl RebalancePoolBuilder {
-    pub fn new() -> Self { Self::default() }
-
-    pub fn pool_id(mut self, v: impl Into<String>) -> Self { self.pool_id = Some(v.into()); self }
-    pub fn target_liquidity(mut self, v: impl Into<String>) -> Self { self.target_liquidity = Some(v.into()); self }
-
-    pub fn build(self) -> Result<RebalancePoolRequest, SdkError> {
-        Ok(RebalancePoolRequest::new(
-            self.pool_id.ok_or_else(|| SdkError::invalid_input("pool_id is required"))?,
-            self.target_liquidity.ok_or_else(|| SdkError::invalid_input("target_liquidity is required"))?,
-        ))
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -146,16 +123,4 @@ mod tests {
         assert!(UpdatePoolParamsBuilder::new().build().is_err());
     }
 
-    #[test]
-    fn rebalance_pool_builder_works() {
-        let req = RebalancePoolBuilder::new()
-            .pool_id("pool1").target_liquidity("2000")
-            .build().unwrap();
-        assert_eq!(req.target_liquidity, "2000");
-    }
-
-    #[test]
-    fn rebalance_pool_builder_validation() {
-        assert!(RebalancePoolBuilder::new().build().is_err());
-    }
 }

@@ -44,7 +44,6 @@ pub use types::{
 pub use requests::{
     CloseBucketRequest,
     CreateBucketRequest,
-    ExecuteAdlRequest,
     LiquidateBucketRequest,
     QueryAdlHistoryRequest,
     QueryAddressPnLRequest,
@@ -64,7 +63,6 @@ pub use requests::{
 pub use builder::{
     CloseBucketBuilder,
     CreateBucketBuilder,
-    ExecuteAdlBuilder,
     LiquidateBucketBuilder,
     TransferBetweenBucketsBuilder,
     TransferToBankBuilder,

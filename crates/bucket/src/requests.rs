@@ -259,63 +259,6 @@ impl From<LiquidateBucketRequest> for proto::MsgLiquidateBucketRequest {
     }
 }
 
-/// Request to execute auto-deleveraging (permissioned: risk module / governance).
-#[derive(Clone, Debug, PartialEq, Eq)]
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-pub struct ExecuteAdlRequest {
-    pub from_address: String,
-    pub market_index: u64,
-    pub mark_price: String,
-    pub oi_imbalance: String,
-    pub trigger_reason: String,
-}
-
-impl ExecuteAdlRequest {
-    pub fn new(
-        from_address: impl Into<String>,
-        market_index: u64,
-        mark_price: impl Into<String>,
-    ) -> Self {
-        Self {
-            from_address: from_address.into(),
-            market_index,
-            mark_price: mark_price.into(),
-            oi_imbalance: String::new(),
-            trigger_reason: String::new(),
-        }
-    }
-
-    pub fn oi_imbalance(mut self, imbalance: impl Into<String>) -> Self {
-        self.oi_imbalance = imbalance.into();
-        self
-    }
-
-    pub fn trigger_reason(mut self, reason: impl Into<String>) -> Self {
-        self.trigger_reason = reason.into();
-        self
-    }
-
-    pub fn to_any(&self) -> ProtoAny {
-        let msg: proto::MsgExecuteAdlRequest = self.clone().into();
-        ProtoAny {
-            type_url: "/bucket.v1.MsgExecuteADLRequest".into(),
-            value: msg.encode_to_vec(),
-        }
-    }
-}
-
-impl From<ExecuteAdlRequest> for proto::MsgExecuteAdlRequest {
-    fn from(req: ExecuteAdlRequest) -> Self {
-        Self {
-            from_address: req.from_address,
-            market_index: req.market_index,
-            mark_price: req.mark_price,
-            oi_imbalance: req.oi_imbalance,
-            trigger_reason: req.trigger_reason,
-        }
-    }
-}
-
 // ====================== QUERY REQUESTS ======================
 
 /// Query a specific bucket by ID.

@@ -1,8 +1,7 @@
 //! CLAMM Graduation module for the Morpheum SDK.
 //!
 //! Provides support for the CLAMM-to-CLOB venue transition lifecycle:
-//! initiating graduation, executing steps (drain, market creation),
-//! cancellation, querying graduation state, listing eligible tokens,
+//! initiating graduation, cancellation, querying graduation state, listing eligible tokens,
 //! and reading module parameters.
 
 #![cfg_attr(not(feature = "std"), no_std)]
@@ -34,7 +33,6 @@ pub use types::{
 
 pub use requests::{
     CancelGraduationRequest,
-    ExecuteGraduationStepRequest,
     GetGraduationStateRequest,
     GetParamsRequest,
     InitiateGraduationRequest,
@@ -44,7 +42,6 @@ pub use requests::{
 
 pub use builder::{
     CancelGraduationBuilder,
-    ExecuteStepBuilder,
     InitiateGraduationBuilder,
 };
 
@@ -62,7 +59,6 @@ pub mod prelude {
         GraduationState,
         GraduationStatus,
         InitiateGraduationBuilder,
-        ExecuteStepBuilder,
         CancelGraduationBuilder,
         AccountId,
         ChainId,

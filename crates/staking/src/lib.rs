@@ -2,7 +2,7 @@
 //!
 //! This module provides full support for the staking lifecycle on Morpheum,
 //! including validator staking/unstaking, delegation/undelegation/redelegation,
-//! reward claiming, fee accrual, epoch-based distribution, misbehavior
+//! reward claiming, misbehavior
 //! reporting, slashing votes, and comprehensive staking queries.
 
 #![cfg_attr(not(feature = "std"), no_std)]
@@ -30,7 +30,6 @@ pub use builder::{
     StakeBuilder, UnstakeBuilder,
     DelegateBuilder, UndelegateBuilder, RedelegateBuilder,
     ClaimRewardsBuilder,
-    AccrueFeesBuilder, PoolRewardsBuilder, DistributeRewardsBuilder,
     ReportMisbehaviorBuilder, VoteOnSlashingBuilder, ApplySlashingBuilder,
 };
 

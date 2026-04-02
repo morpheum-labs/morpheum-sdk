@@ -16,157 +16,9 @@ use crate::types::Params;
 use morpheum_proto::google::protobuf::Any as ProtoAny;
 use morpheum_proto::reputation::v1 as proto;
 
-use crate::types::{RecoveryActionType, ReputationEvent, ReputationScore};
+use crate::types::{ReputationEvent, ReputationScore};
 
 // ====================== TRANSACTION REQUESTS ======================
-
-/// Request to apply a penalty to an agent's reputation.
-///
-/// This message is typically sent by governance or an authorised module signer
-/// (e.g. risk-monitor, liquidation engine).
-#[derive(Clone, Debug, PartialEq, Eq)]
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-pub struct ApplyPenaltyRequest {
-    /// Target agent hash.
-    pub agent_hash: String,
-    /// Base penalty amount (before multiplier).
-    pub base_amount: u64,
-    /// Multiplier (100 = 1.0×, 200 = 2.0×).
-    pub multiplier: u32,
-    /// Human-readable reason for the penalty.
-    pub reason: String,
-    /// Signer (governance or module authority).
-    pub signer: Vec<u8>,
-}
-
-impl ApplyPenaltyRequest {
-    /// Creates a new penalty request.
-    pub fn new(
-        agent_hash: impl Into<String>,
-        base_amount: u64,
-        multiplier: u32,
-        reason: impl Into<String>,
-        signer: Vec<u8>,
-    ) -> Self {
-        Self {
-            agent_hash: agent_hash.into(),
-            base_amount,
-            multiplier,
-            reason: reason.into(),
-            signer,
-        }
-    }
-
-    /// Converts this request into a protobuf `Any` ready for `TxBuilder::add_message`.
-    pub fn to_any(&self) -> ProtoAny {
-        let msg: proto::MsgApplyPenalty = self.clone().into();
-        ProtoAny {
-            type_url: "/reputation.v1.MsgApplyPenalty".into(),
-            value: msg.encode_to_vec(),
-        }
-    }
-}
-
-impl From<ApplyPenaltyRequest> for proto::MsgApplyPenalty {
-    fn from(req: ApplyPenaltyRequest) -> Self {
-        Self {
-            agent_hash: req.agent_hash,
-            base_amount: req.base_amount,
-            multiplier: req.multiplier,
-            reason: req.reason,
-            signer: req.signer,
-        }
-    }
-}
-
-/// Response from a penalty application.
-#[derive(Clone, Debug, Default, PartialEq, Eq)]
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-pub struct ApplyPenaltyResponse {
-    /// Score after the penalty was applied.
-    pub new_score: u64,
-    /// Whether the Immortal floor prevented further reduction.
-    pub floor_protected: bool,
-}
-
-impl From<proto::ApplyPenaltyResponse> for ApplyPenaltyResponse {
-    fn from(p: proto::ApplyPenaltyResponse) -> Self {
-        Self {
-            new_score: p.new_score,
-            floor_protected: p.floor_protected,
-        }
-    }
-}
-
-/// Request to apply a recovery / positive boost to an agent's reputation.
-#[derive(Clone, Debug, PartialEq, Eq)]
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-pub struct ApplyRecoveryRequest {
-    /// Target agent hash.
-    pub agent_hash: String,
-    /// Type of recovery action.
-    pub action_type: RecoveryActionType,
-    /// Amount of reputation to add.
-    pub amount: u64,
-    /// Human-readable reason.
-    pub reason: String,
-}
-
-impl ApplyRecoveryRequest {
-    /// Creates a new recovery request.
-    pub fn new(
-        agent_hash: impl Into<String>,
-        action_type: RecoveryActionType,
-        amount: u64,
-        reason: impl Into<String>,
-    ) -> Self {
-        Self {
-            agent_hash: agent_hash.into(),
-            action_type,
-            amount,
-            reason: reason.into(),
-        }
-    }
-
-    /// Converts this request into a protobuf `Any` ready for `TxBuilder::add_message`.
-    pub fn to_any(&self) -> ProtoAny {
-        let msg: proto::MsgApplyRecovery = self.clone().into();
-        ProtoAny {
-            type_url: "/reputation.v1.MsgApplyRecovery".into(),
-            value: msg.encode_to_vec(),
-        }
-    }
-}
-
-impl From<ApplyRecoveryRequest> for proto::MsgApplyRecovery {
-    fn from(req: ApplyRecoveryRequest) -> Self {
-        Self {
-            agent_hash: req.agent_hash,
-            action_type: req.action_type.to_proto(),
-            amount: req.amount,
-            reason: req.reason,
-        }
-    }
-}
-
-/// Response from a recovery application.
-#[derive(Clone, Debug, Default, PartialEq, Eq)]
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-pub struct ApplyRecoveryResponse {
-    /// Score after recovery was applied.
-    pub new_score: u64,
-    /// Whether a milestone was reached as a result.
-    pub milestone_reached: bool,
-}
-
-impl From<proto::ApplyRecoveryResponse> for ApplyRecoveryResponse {
-    fn from(p: proto::ApplyRecoveryResponse) -> Self {
-        Self {
-            new_score: p.new_score,
-            milestone_reached: p.milestone_reached,
-        }
-    }
-}
 
 /// Request to force a milestone (governance only).
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -228,6 +80,47 @@ impl From<proto::ForceMilestoneResponse> for ForceMilestoneResponse {
             success: p.success,
             new_score: p.new_score,
         }
+    }
+}
+
+/// Governance request to update reputation module parameters.
+#[derive(Clone, Debug, PartialEq, Eq)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+pub struct UpdateParamsRequest {
+    pub authority: String,
+    pub params: Params,
+}
+
+impl UpdateParamsRequest {
+    pub fn new(authority: impl Into<String>, params: Params) -> Self {
+        Self {
+            authority: authority.into(),
+            params,
+        }
+    }
+
+    pub fn to_any(&self) -> ProtoAny {
+        let msg = proto::MsgUpdateParams {
+            authority: self.authority.clone(),
+            params: Some(self.params.clone().into()),
+        };
+        ProtoAny {
+            type_url: "/reputation.v1.MsgUpdateParams".into(),
+            value: msg.encode_to_vec(),
+        }
+    }
+}
+
+/// Response from a params update.
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+pub struct UpdateParamsResponse {
+    pub success: bool,
+}
+
+impl From<proto::UpdateParamsResponse> for UpdateParamsResponse {
+    fn from(p: proto::UpdateParamsResponse) -> Self {
+        Self { success: p.success }
     }
 }
 
@@ -365,35 +258,7 @@ impl From<proto::QueryParamsResponse> for QueryParamsResponse {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use alloc::vec;
     use crate::types::ReputationEventType;
-
-    #[test]
-    fn apply_penalty_request_to_any() {
-        let req = ApplyPenaltyRequest::new(
-            "agent123",
-            5000,
-            200,
-            "front-running detected",
-            vec![1u8; 64],
-        );
-        let any = req.to_any();
-        assert_eq!(any.type_url, "/reputation.v1.MsgApplyPenalty");
-        assert!(!any.value.is_empty());
-    }
-
-    #[test]
-    fn apply_recovery_request_to_any() {
-        let req = ApplyRecoveryRequest::new(
-            "agent456",
-            RecoveryActionType::TradeFill,
-            1000,
-            "successful trade fill",
-        );
-        let any = req.to_any();
-        assert_eq!(any.type_url, "/reputation.v1.MsgApplyRecovery");
-        assert!(!any.value.is_empty());
-    }
 
     #[test]
     fn force_milestone_request_to_any() {
@@ -403,25 +268,19 @@ mod tests {
     }
 
     #[test]
-    fn apply_penalty_response_conversion() {
-        let proto_res = proto::ApplyPenaltyResponse {
-            new_score: 500_000,
-            floor_protected: true,
-        };
-        let res: ApplyPenaltyResponse = proto_res.into();
-        assert_eq!(res.new_score, 500_000);
-        assert!(res.floor_protected);
-    }
-
-    #[test]
-    fn apply_recovery_response_conversion() {
-        let proto_res = proto::ApplyRecoveryResponse {
-            new_score: 600_000,
-            milestone_reached: true,
-        };
-        let res: ApplyRecoveryResponse = proto_res.into();
-        assert_eq!(res.new_score, 600_000);
-        assert!(res.milestone_reached);
+    fn update_params_request_to_any() {
+        let req = UpdateParamsRequest::new("morpheum1gov", Params {
+            daily_recovery_cap_bps: 3000,
+            min_reputation_to_register: 0,
+            enable_reputation_priority: true,
+            slashing_multiplier: 100,
+            milestone_thresholds: vec![10_000, 50_000, 100_000],
+            milestone_rewards: vec![500, 1_000, 2_000],
+            perk_multiplier_bps: 1500,
+        });
+        let any = req.to_any();
+        assert_eq!(any.type_url, "/reputation.v1.MsgUpdateParams");
+        assert!(!any.value.is_empty());
     }
 
     #[test]

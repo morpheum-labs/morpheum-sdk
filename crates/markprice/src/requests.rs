@@ -1,5 +1,7 @@
 //! Request wrappers for the mark price module.
 
+use alloc::string::String;
+
 use prost::Message as _;
 
 #[cfg(feature = "serde")]
@@ -16,17 +18,27 @@ use crate::types::MarkConfig;
 #[derive(Clone, Debug, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct UpdateMarkConfigRequest {
+    pub authority: String,
     pub market_index: u64,
     pub config: MarkConfig,
 }
 
 impl UpdateMarkConfigRequest {
-    pub fn new(market_index: u64, config: MarkConfig) -> Self {
-        Self { market_index, config }
+    pub fn new(
+        authority: impl Into<String>,
+        market_index: u64,
+        config: MarkConfig,
+    ) -> Self {
+        Self {
+            authority: authority.into(),
+            market_index,
+            config,
+        }
     }
 
     pub fn to_any(&self) -> ProtoAny {
         let msg = proto::MsgUpdateMarkConfig {
+            authority: self.authority.clone(),
             market_index: self.market_index,
             config: Some(self.config.clone().into()),
         };
@@ -77,7 +89,7 @@ mod tests {
             weight_kline_bps: 500, staleness_blocks: 10,
             strategy: "linear_perp".into(),
         };
-        let any = UpdateMarkConfigRequest::new(42, cfg).to_any();
+        let any = UpdateMarkConfigRequest::new("morpheum1gov", 42, cfg).to_any();
         assert_eq!(any.type_url, "/markprice.v1.MsgUpdateMarkConfig");
         assert!(!any.value.is_empty());
     }

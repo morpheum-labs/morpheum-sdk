@@ -18,6 +18,7 @@
 //! });
 //! ```
 
+#![cfg(target_arch = "wasm32")]
 #![cfg_attr(not(feature = "std"), no_std)]
 #![forbid(unsafe_code)]
 #![cfg_attr(docsrs, feature(doc_auto_cfg))]

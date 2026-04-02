@@ -1,8 +1,8 @@
 //! Outcome Settlement Account (OSA) module for the Morpheum SDK.
 //!
 //! Provides support for creating per-outcome settlement accounts,
-//! buying/selling shares, merging positions, settling outcomes after
-//! oracle resolution, and claiming payouts for prediction markets.
+//! buying/selling shares, merging positions, and claiming payouts for
+//! prediction markets.
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
@@ -33,7 +33,6 @@ pub use requests::{
     GetBalanceRequest,
     MergePositionsRequest,
     SellSharesRequest,
-    SettleOutcomeRequest,
 };
 
 pub use builder::{
@@ -42,7 +41,6 @@ pub use builder::{
     CreateAccountBuilder,
     MergePositionsBuilder,
     SellSharesBuilder,
-    SettleOutcomeBuilder,
 };
 
 pub use morpheum_sdk_core::{AccountId, ChainId, SdkError, SignedTx};

@@ -28,25 +28,6 @@ impl InitiateGraduationRequest {
     }
 }
 
-/// Request to execute a specific graduation step.
-#[derive(Clone, Debug, PartialEq, Eq)]
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-pub struct ExecuteGraduationStepRequest {
-    pub token_index: String,
-    pub step: u32,
-}
-
-impl ExecuteGraduationStepRequest {
-    pub fn new(token_index: impl Into<String>, step: u32) -> Self {
-        Self { token_index: token_index.into(), step }
-    }
-
-    pub fn to_any(&self) -> ProtoAny {
-        let msg = proto::ExecuteGraduationStepRequest { token_index: self.token_index.clone(), step: self.step };
-        ProtoAny { type_url: "/clammgrad.v1.ExecuteGraduationStepRequest".into(), value: msg.encode_to_vec() }
-    }
-}
-
 /// Request to cancel an in-progress graduation.
 #[derive(Clone, Debug, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
@@ -153,12 +134,6 @@ mod tests {
         let any = InitiateGraduationRequest::new("42").to_any();
         assert_eq!(any.type_url, "/clammgrad.v1.InitiateClammGraduationRequest");
         assert!(!any.value.is_empty());
-    }
-
-    #[test]
-    fn execute_step_to_any() {
-        let any = ExecuteGraduationStepRequest::new("42", 2).to_any();
-        assert_eq!(any.type_url, "/clammgrad.v1.ExecuteGraduationStepRequest");
     }
 
     #[test]

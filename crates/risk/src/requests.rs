@@ -17,46 +17,22 @@ use crate::types::RiskConfig;
 /// Trigger an epoch-level risk tick for a market.
 #[derive(Clone, Debug, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-pub struct EpochRiskTickRequest {
-    pub epoch_id: u64,
+pub struct TriggerLiquidationRequest {
     pub market_index: u64,
-    pub logical_timestamp: u64,
+    pub bucket_id: u64,
 }
 
-impl EpochRiskTickRequest {
-    pub fn new(epoch_id: u64, market_index: u64, logical_timestamp: u64) -> Self {
-        Self { epoch_id, market_index, logical_timestamp }
+impl TriggerLiquidationRequest {
+    pub fn new(market_index: u64, bucket_id: u64) -> Self {
+        Self { market_index, bucket_id }
     }
 
     pub fn to_any(&self) -> ProtoAny {
-        let msg = proto::MsgEpochRiskTick {
-            epoch_id: self.epoch_id, market_index: self.market_index,
-            logical_timestamp: self.logical_timestamp,
+        let msg = proto::MsgTriggerLiquidation {
+            market_index: self.market_index,
+            bucket_id: self.bucket_id,
         };
-        ProtoAny { type_url: "/risk.v1.MsgEpochRiskTick".into(), value: msg.encode_to_vec() }
-    }
-}
-
-/// Trigger a liquidation check for a market at a given mark price.
-#[derive(Clone, Debug, PartialEq, Eq)]
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-pub struct LiquidationCheckRequest {
-    pub market_index: u64,
-    pub mark_price: u64,
-    pub logical_timestamp: u64,
-}
-
-impl LiquidationCheckRequest {
-    pub fn new(market_index: u64, mark_price: u64, logical_timestamp: u64) -> Self {
-        Self { market_index, mark_price, logical_timestamp }
-    }
-
-    pub fn to_any(&self) -> ProtoAny {
-        let msg = proto::MsgLiquidationCheck {
-            market_index: self.market_index, mark_price: self.mark_price,
-            logical_timestamp: self.logical_timestamp,
-        };
-        ProtoAny { type_url: "/risk.v1.MsgLiquidationCheck".into(), value: msg.encode_to_vec() }
+        ProtoAny { type_url: "/risk.v1.MsgTriggerLiquidation".into(), value: msg.encode_to_vec() }
     }
 }
 
@@ -64,71 +40,24 @@ impl LiquidationCheckRequest {
 #[derive(Clone, Debug, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct UpdateRiskConfigRequest {
+    pub authority: String,
     pub config: RiskConfig,
 }
 
 impl UpdateRiskConfigRequest {
-    pub fn new(config: RiskConfig) -> Self { Self { config } }
+    pub fn new(authority: impl Into<String>, config: RiskConfig) -> Self {
+        Self {
+            authority: authority.into(),
+            config,
+        }
+    }
 
     pub fn to_any(&self) -> ProtoAny {
         let msg = proto::MsgUpdateRiskConfig {
+            authority: self.authority.clone(),
             config: Some(self.config.clone().into()),
         };
         ProtoAny { type_url: "/risk.v1.MsgUpdateRiskConfig".into(), value: msg.encode_to_vec() }
-    }
-}
-
-/// Report a liquidation shortfall.
-#[derive(Clone, Debug, PartialEq, Eq)]
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-pub struct ShortfallReportRequest {
-    pub bucket_id: u64,
-    pub liquidation_id: u64,
-    pub market_index: u64,
-    pub shortfall_amount: u64,
-}
-
-impl ShortfallReportRequest {
-    pub fn new(bucket_id: u64, liquidation_id: u64, market_index: u64, shortfall_amount: u64) -> Self {
-        Self { bucket_id, liquidation_id, market_index, shortfall_amount }
-    }
-
-    pub fn to_any(&self) -> ProtoAny {
-        let msg = proto::MsgShortfallReport {
-            bucket_id: self.bucket_id, liquidation_id: self.liquidation_id,
-            market_index: self.market_index, shortfall_amount: self.shortfall_amount,
-        };
-        ProtoAny { type_url: "/risk.v1.MsgShortfallReport".into(), value: msg.encode_to_vec() }
-    }
-}
-
-/// Notify that a bucket liquidation has been executed.
-#[derive(Clone, Debug, PartialEq, Eq)]
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-pub struct BucketLiquidationExecutedRequest {
-    pub bucket_id: u64,
-    pub liquidation_id: u64,
-    pub market_index: u64,
-    pub shortfall_sat: u64,
-    pub block_height: u64,
-    pub shard_id: u64,
-}
-
-impl BucketLiquidationExecutedRequest {
-    pub fn new(
-        bucket_id: u64, liquidation_id: u64, market_index: u64,
-        shortfall_sat: u64, block_height: u64, shard_id: u64,
-    ) -> Self {
-        Self { bucket_id, liquidation_id, market_index, shortfall_sat, block_height, shard_id }
-    }
-
-    pub fn to_any(&self) -> ProtoAny {
-        let msg = proto::MsgBucketLiquidationExecuted {
-            bucket_id: self.bucket_id, liquidation_id: self.liquidation_id,
-            market_index: self.market_index, shortfall_sat: self.shortfall_sat,
-            block_height: self.block_height, shard_id: self.shard_id,
-        };
-        ProtoAny { type_url: "/risk.v1.MsgBucketLiquidationExecuted".into(), value: msg.encode_to_vec() }
     }
 }
 
@@ -201,28 +130,35 @@ mod tests {
     use super::*;
 
     #[test]
-    fn epoch_risk_tick_to_any() {
-        let any = EpochRiskTickRequest::new(1, 0, 100).to_any();
-        assert_eq!(any.type_url, "/risk.v1.MsgEpochRiskTick");
+    fn trigger_liquidation_to_any() {
+        let any = TriggerLiquidationRequest::new(0, 1).to_any();
+        assert_eq!(any.type_url, "/risk.v1.MsgTriggerLiquidation");
         assert!(!any.value.is_empty());
     }
 
     #[test]
-    fn liquidation_check_to_any() {
-        let any = LiquidationCheckRequest::new(0, 50000_00000000, 100).to_any();
-        assert_eq!(any.type_url, "/risk.v1.MsgLiquidationCheck");
-    }
-
-    #[test]
-    fn shortfall_report_to_any() {
-        let any = ShortfallReportRequest::new(1, 2, 0, 5000).to_any();
-        assert_eq!(any.type_url, "/risk.v1.MsgShortfallReport");
-    }
-
-    #[test]
-    fn bucket_liquidation_executed_to_any() {
-        let any = BucketLiquidationExecutedRequest::new(1, 2, 0, 5000, 100, 0).to_any();
-        assert_eq!(any.type_url, "/risk.v1.MsgBucketLiquidationExecuted");
+    fn update_risk_config_to_any() {
+        let any = UpdateRiskConfigRequest::new("morpheum1gov", RiskConfig {
+            band_width_bps: 100,
+            num_bands_above_below: 10,
+            imbalance_threshold_bps: 500,
+            imbalance_hysteresis_bps: 100,
+            cascade_max_per_market_per_epoch: 5,
+            max_scan_limit: 100,
+            liquidation_margin_ratio_bps: 500,
+            prediction_margin_ratio_bps: 700,
+            price_move_threshold_bps: 300,
+            partial_band_shift_enabled: true,
+            var_confidence_bps: 9900,
+            var_horizon_hours: 24,
+            enable_vrf_fairness: false,
+            enable_proactive_liquidation_events: true,
+            enable_pre_trade_simulation: true,
+            enable_spot_risk_integration: false,
+            contagion_threshold_sat: 1_000_000,
+        }).to_any();
+        assert_eq!(any.type_url, "/risk.v1.MsgUpdateRiskConfig");
+        assert!(!any.value.is_empty());
     }
 
     #[test]

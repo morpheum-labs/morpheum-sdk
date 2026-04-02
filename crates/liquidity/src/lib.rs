@@ -20,7 +20,6 @@ pub use client::LiquidityClient;
 pub use types::{
     DepthMetrics,
     LiquidityProviderType,
-    LpPosition,
     PageInfo,
     Pool,
     PoolHealth,
@@ -35,13 +34,11 @@ pub use requests::{
     GetPoolRequest,
     GetPoolsByMarketRequest,
     ListPoolsRequest,
-    RebalancePoolRequest,
     UpdatePoolParamsRequest,
 };
 
 pub use builder::{
     CreatePoolBuilder,
-    RebalancePoolBuilder,
     UpdatePoolParamsBuilder,
 };
 

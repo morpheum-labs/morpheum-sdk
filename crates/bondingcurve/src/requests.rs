@@ -56,15 +56,15 @@ impl CreateAgentTokenRequest {
     }
 
     pub fn to_any(&self) -> ProtoAny {
-        let msg: proto::MsgCreateAgentToken = self.clone().into();
-        ProtoAny { type_url: "/bondingcurve.v1.MsgCreateAgentToken".into(), value: msg.encode_to_vec() }
+        let msg: proto::MsgLaunchToken = self.clone().into();
+        ProtoAny { type_url: "/bondingcurve.v1.MsgLaunchToken".into(), value: msg.encode_to_vec() }
     }
 }
 
-impl From<CreateAgentTokenRequest> for proto::MsgCreateAgentToken {
+impl From<CreateAgentTokenRequest> for proto::MsgLaunchToken {
     fn from(r: CreateAgentTokenRequest) -> Self {
         Self {
-            sender: r.sender, agent_creator_did: r.agent_creator_did,
+            sender: r.sender, creator_did: r.agent_creator_did,
             name: r.name, symbol: r.symbol, decimals: r.decimals,
             icon_url: r.icon_url.unwrap_or_default(),
             description: r.description.unwrap_or_default(),
@@ -191,7 +191,7 @@ mod tests {
         let req = CreateAgentTokenRequest::new("morpheum1abc", "did:morpheum:agent1", "AgentCoin", "AGNT", 8)
             .initial_k("1000000");
         let any = req.to_any();
-        assert_eq!(any.type_url, "/bondingcurve.v1.MsgCreateAgentToken");
+        assert_eq!(any.type_url, "/bondingcurve.v1.MsgLaunchToken");
         assert!(!any.value.is_empty());
     }
 

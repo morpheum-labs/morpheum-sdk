@@ -136,8 +136,8 @@ mod tests {
                 "/liquidity.v1.LiquidityService/GetPoolHealth" => {
                     Ok(prost::Message::encode_to_vec(&proto::GetPoolHealthResponse {
                         success: true,
-                        health: Some(proto::PoolHealth {
-                            pool_id: "pool1".into(), health_score: "9500".into(),
+                        health: Some(proto::PoolHealthSnapshot {
+                            pool_id: "pool1".into(), health_score_bps: 9500,
                             utilization_rate: "6500".into(), apy: "1200".into(),
                             timestamp: None,
                         }),
@@ -179,6 +179,6 @@ mod tests {
     #[tokio::test]
     async fn get_pool_health_works() {
         let h = make_client().get_pool_health("pool1").await.unwrap();
-        assert_eq!(h.health_score, "9500");
+        assert_eq!(h.health_score_bps, 9500);
     }
 }

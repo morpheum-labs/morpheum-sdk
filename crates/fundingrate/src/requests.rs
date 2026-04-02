@@ -1,7 +1,6 @@
 //! Request wrappers for the funding-rate module.
 
 use alloc::string::String;
-use alloc::vec::Vec;
 
 use prost::Message as _;
 
@@ -11,80 +10,35 @@ use serde::{Deserialize, Serialize};
 use morpheum_proto::fundingrate::v1 as proto;
 use morpheum_proto::google::protobuf::Any as ProtoAny;
 
-use crate::types::{FundingMarketProfile, FundingPosition};
+use crate::types::FundingMarketProfile;
 
 // ====================== TRANSACTION REQUESTS ======================
-
-/// Trigger funding application at an epoch boundary.
-#[derive(Clone, Debug, PartialEq, Eq)]
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-pub struct EpochTickRequest {
-    pub epoch_id: u64,
-    pub logical_timestamp: u64,
-}
-
-impl EpochTickRequest {
-    pub fn new(epoch_id: u64, logical_timestamp: u64) -> Self {
-        Self { epoch_id, logical_timestamp }
-    }
-
-    pub fn to_any(&self) -> ProtoAny {
-        let msg = proto::EpochTickRequest { epoch_id: self.epoch_id, logical_timestamp: self.logical_timestamp };
-        ProtoAny { type_url: "/fundingrate.v1.EpochTickRequest".into(), value: msg.encode_to_vec() }
-    }
-}
-
-/// Apply funding rate to positions within a shard.
-#[derive(Clone, Debug, PartialEq)]
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-pub struct ApplyShardedFundingRequest {
-    pub shard_id: String,
-    pub market_index: u64,
-    pub rate_satoshi: i64,
-    pub logical_timestamp: u64,
-    pub positions: Vec<FundingPosition>,
-}
-
-impl ApplyShardedFundingRequest {
-    pub fn new(
-        shard_id: impl Into<String>, market_index: u64,
-        rate_satoshi: i64, logical_timestamp: u64,
-    ) -> Self {
-        Self {
-            shard_id: shard_id.into(), market_index,
-            rate_satoshi, logical_timestamp, positions: Vec::new(),
-        }
-    }
-
-    pub fn positions(mut self, positions: Vec<FundingPosition>) -> Self {
-        self.positions = positions; self
-    }
-
-    pub fn to_any(&self) -> ProtoAny {
-        let msg = proto::ApplyShardedFundingRequest {
-            shard_id: self.shard_id.clone(), market_index: self.market_index,
-            rate_satoshi: self.rate_satoshi, logical_timestamp: self.logical_timestamp,
-            positions: self.positions.iter().cloned().map(Into::into).collect(),
-        };
-        ProtoAny { type_url: "/fundingrate.v1.ApplyShardedFundingRequest".into(), value: msg.encode_to_vec() }
-    }
-}
 
 /// Update a market's funding profile (governance only).
 #[derive(Clone, Debug, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct UpdateMarketProfileRequest {
+    pub authority: String,
     pub market_index: u64,
     pub profile: FundingMarketProfile,
 }
 
 impl UpdateMarketProfileRequest {
-    pub fn new(market_index: u64, profile: FundingMarketProfile) -> Self {
-        Self { market_index, profile }
+    pub fn new(
+        authority: impl Into<String>,
+        market_index: u64,
+        profile: FundingMarketProfile,
+    ) -> Self {
+        Self {
+            authority: authority.into(),
+            market_index,
+            profile,
+        }
     }
 
     pub fn to_any(&self) -> ProtoAny {
         let msg = proto::UpdateMarketProfileRequest {
+            authority: self.authority.clone(),
             market_index: self.market_index,
             profile: Some(self.profile.clone().into()),
         };
@@ -145,19 +99,12 @@ mod tests {
     use crate::types::FundingApplicationMode;
 
     #[test]
-    fn epoch_tick_to_any() {
-        let any = EpochTickRequest::new(1, 1_700_000_000).to_any();
-        assert_eq!(any.type_url, "/fundingrate.v1.EpochTickRequest");
-        assert!(!any.value.is_empty());
-    }
-
-    #[test]
     fn update_market_profile_to_any() {
         let profile = FundingMarketProfile {
             mode: FundingApplicationMode::BothSides,
             vrf_bias_bps: 0, protocol_cut_bps: 0, lp_incentive_bps: 0,
         };
-        let any = UpdateMarketProfileRequest::new(42, profile).to_any();
+        let any = UpdateMarketProfileRequest::new("morpheum1gov", 42, profile).to_any();
         assert_eq!(any.type_url, "/fundingrate.v1.UpdateMarketProfileRequest");
     }
 

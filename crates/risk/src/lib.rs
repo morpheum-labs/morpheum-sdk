@@ -2,7 +2,7 @@
 //!
 //! Provides support for querying liquidation heatmaps, OI ratios,
 //! maintenance margin calculations, risk configuration updates,
-//! shortfall reporting, and consuming streaming risk events.
+//! liquidation triggering, and consuming streaming risk events.
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
@@ -37,21 +37,15 @@ pub use types::{
 };
 
 pub use requests::{
-    BucketLiquidationExecutedRequest,
-    EpochRiskTickRequest,
     GetHeatmapRequest,
     GetMaintenanceMarginRequest,
     GetOiRatioRequest,
-    LiquidationCheckRequest,
-    ShortfallReportRequest,
+    TriggerLiquidationRequest,
     UpdateRiskConfigRequest,
 };
 
 pub use builder::{
-    BucketLiquidationExecutedBuilder,
-    EpochRiskTickBuilder,
-    LiquidationCheckBuilder,
-    ShortfallReportBuilder,
+    TriggerLiquidationBuilder,
     UpdateRiskConfigBuilder,
 };
 

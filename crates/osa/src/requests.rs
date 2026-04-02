@@ -134,33 +134,6 @@ impl MergePositionsRequest {
     }
 }
 
-/// Settle an outcome — sets the redemption rate after oracle resolution.
-#[derive(Clone, Debug, PartialEq, Eq)]
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-pub struct SettleOutcomeRequest {
-    pub signer: String,
-    pub account_id: String,
-    /// Scaled: 10000 = 1.0; 0 = loser.
-    pub redemption_rate: u64,
-}
-
-impl SettleOutcomeRequest {
-    pub fn new(
-        signer: impl Into<String>, account_id: impl Into<String>,
-        redemption_rate: u64,
-    ) -> Self {
-        Self { signer: signer.into(), account_id: account_id.into(), redemption_rate }
-    }
-
-    pub fn to_any(&self) -> ProtoAny {
-        let msg = proto::MsgSettleOutcome {
-            signer: self.signer.clone(), account_id: self.account_id.clone(),
-            redemption_rate: self.redemption_rate,
-        };
-        ProtoAny { type_url: "/osa.v1.MsgSettleOutcome".into(), value: msg.encode_to_vec() }
-    }
-}
-
 /// Claim payout — winners redeem shares for collateral.
 #[derive(Clone, Debug, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]

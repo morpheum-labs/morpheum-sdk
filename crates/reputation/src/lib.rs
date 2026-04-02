@@ -3,8 +3,6 @@
 //! This module provides full support for the Morpheum reputation system,
 //! including:
 //! - Querying agent reputation scores, event history, and milestone status
-//! - Applying penalties (governance/module-authorised)
-//! - Applying recovery / positive boosts
 //! - Forcing milestones (governance only)
 //! - Governance-controlled parameter updates
 //!
@@ -28,9 +26,8 @@ pub use client::ReputationClient;
 
 /// Fluent builders for reputation transaction construction.
 pub use builder::{
-    ApplyPenaltyBuilder,
-    ApplyRecoveryBuilder,
     ForceMilestoneBuilder,
+    UpdateParamsBuilder,
 };
 
 /// Core domain types for the reputation module.
@@ -62,9 +59,8 @@ pub use morpheum_sdk_core::{
 pub mod prelude {
     pub use super::{
         ReputationClient,
-        ApplyPenaltyBuilder,
-        ApplyRecoveryBuilder,
         ForceMilestoneBuilder,
+        UpdateParamsBuilder,
         MilestoneStatus,
         Params,
         RecoveryActionType,

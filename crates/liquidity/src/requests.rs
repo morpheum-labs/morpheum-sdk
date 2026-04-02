@@ -129,36 +129,6 @@ impl UpdatePoolParamsRequest {
     }
 }
 
-/// Rebalance pool depth.
-#[derive(Clone, Debug, PartialEq, Eq)]
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-pub struct RebalancePoolRequest {
-    pub pool_id: String,
-    pub target_liquidity: String,
-    pub rebalancer_external_address: Option<String>,
-    pub rebalancer_chain_type: Option<i32>,
-}
-
-impl RebalancePoolRequest {
-    pub fn new(pool_id: impl Into<String>, target_liquidity: impl Into<String>) -> Self {
-        Self {
-            pool_id: pool_id.into(), target_liquidity: target_liquidity.into(),
-            rebalancer_external_address: None, rebalancer_chain_type: None,
-        }
-    }
-
-    pub fn to_any(&self) -> ProtoAny {
-        let msg = proto::RebalancePoolRequest {
-            pool_id: self.pool_id.clone(),
-            target_liquidity: self.target_liquidity.clone(),
-            timestamp: None,
-            rebalancer_external_address: self.rebalancer_external_address.clone(),
-            rebalancer_chain_type: self.rebalancer_chain_type,
-        };
-        ProtoAny { type_url: "/liquidity.v1.RebalancePoolRequest".into(), value: msg.encode_to_vec() }
-    }
-}
-
 // ====================== QUERY REQUESTS ======================
 
 /// Query a specific pool by ID.
@@ -272,12 +242,6 @@ mod tests {
         let any = CreatePoolRequest::new(1, 2, "1000", 1).to_any();
         assert_eq!(any.type_url, "/liquidity.v1.CreatePoolRequest");
         assert!(!any.value.is_empty());
-    }
-
-    #[test]
-    fn rebalance_pool_to_any() {
-        let any = RebalancePoolRequest::new("pool1", "2000").to_any();
-        assert_eq!(any.type_url, "/liquidity.v1.RebalancePoolRequest");
     }
 
     #[test]

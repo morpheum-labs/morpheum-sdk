@@ -10,6 +10,7 @@ use crate::types::MarkConfig;
 /// Fluent builder for updating a market's mark price configuration.
 #[derive(Default)]
 pub struct UpdateMarkConfigBuilder {
+    authority: Option<String>,
     market_index: Option<u64>,
     weight_twap_bps: Option<u32>,
     weight_oracle_index_bps: Option<u32>,
@@ -21,6 +22,7 @@ pub struct UpdateMarkConfigBuilder {
 impl UpdateMarkConfigBuilder {
     pub fn new() -> Self { Self::default() }
 
+    pub fn authority(mut self, v: impl Into<String>) -> Self { self.authority = Some(v.into()); self }
     pub fn market_index(mut self, v: u64) -> Self { self.market_index = Some(v); self }
     pub fn weight_twap_bps(mut self, v: u32) -> Self { self.weight_twap_bps = Some(v); self }
     pub fn weight_oracle_index_bps(mut self, v: u32) -> Self { self.weight_oracle_index_bps = Some(v); self }
@@ -47,6 +49,7 @@ impl UpdateMarkConfigBuilder {
         };
 
         Ok(UpdateMarkConfigRequest::new(
+            self.authority.ok_or_else(|| SdkError::invalid_input("authority is required"))?,
             self.market_index.ok_or_else(|| SdkError::invalid_input("market_index is required"))?,
             config,
         ))
@@ -60,10 +63,12 @@ mod tests {
     #[test]
     fn builder_works() {
         let req = UpdateMarkConfigBuilder::new()
+            .authority("morpheum1gov")
             .market_index(42)
             .weight_twap_bps(8000).weight_oracle_index_bps(1500).weight_kline_bps(500)
             .strategy("linear_perp")
             .build().unwrap();
+        assert_eq!(req.authority, "morpheum1gov");
         assert_eq!(req.market_index, 42);
         assert_eq!(req.config.weight_twap_bps, 8000);
     }
@@ -76,6 +81,7 @@ mod tests {
     #[test]
     fn builder_validation_weights_must_sum_to_10000() {
         let result = UpdateMarkConfigBuilder::new()
+            .authority("morpheum1gov")
             .market_index(1)
             .weight_twap_bps(5000).weight_oracle_index_bps(3000).weight_kline_bps(1000)
             .strategy("linear_perp")
@@ -86,6 +92,7 @@ mod tests {
     #[test]
     fn builder_valid_weights() {
         let result = UpdateMarkConfigBuilder::new()
+            .authority("morpheum1gov")
             .market_index(1)
             .weight_twap_bps(5000).weight_oracle_index_bps(3000).weight_kline_bps(2000)
             .strategy("spot")

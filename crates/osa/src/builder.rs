@@ -7,7 +7,7 @@ use morpheum_sdk_core::SdkError;
 
 use crate::requests::{
     BuySharesRequest, ClaimPayoutRequest, CreateAccountRequest,
-    MergePositionsRequest, SellSharesRequest, SettleOutcomeRequest,
+    MergePositionsRequest, SellSharesRequest,
 };
 
 // ====================== CREATE ACCOUNT ======================
@@ -126,32 +126,6 @@ impl MergePositionsBuilder {
     }
 }
 
-// ====================== SETTLE OUTCOME ======================
-
-#[derive(Default)]
-pub struct SettleOutcomeBuilder {
-    signer: Option<String>,
-    account_id: Option<String>,
-    redemption_rate: Option<u64>,
-}
-
-impl SettleOutcomeBuilder {
-    pub fn new() -> Self { Self::default() }
-
-    pub fn signer(mut self, v: impl Into<String>) -> Self { self.signer = Some(v.into()); self }
-    pub fn account_id(mut self, v: impl Into<String>) -> Self { self.account_id = Some(v.into()); self }
-    /// Scaled: 10000 = 1.0; 0 = loser.
-    pub fn redemption_rate(mut self, v: u64) -> Self { self.redemption_rate = Some(v); self }
-
-    pub fn build(self) -> Result<SettleOutcomeRequest, SdkError> {
-        Ok(SettleOutcomeRequest::new(
-            self.signer.ok_or_else(|| SdkError::invalid_input("signer is required"))?,
-            self.account_id.ok_or_else(|| SdkError::invalid_input("account_id is required"))?,
-            self.redemption_rate.ok_or_else(|| SdkError::invalid_input("redemption_rate is required"))?,
-        ))
-    }
-}
-
 // ====================== CLAIM PAYOUT ======================
 
 #[derive(Default)]
@@ -227,14 +201,6 @@ mod tests {
             .min_collateral_received(500)
             .build().unwrap();
         assert_eq!(req.account_ids.len(), 2);
-    }
-
-    #[test]
-    fn settle_outcome_builder_works() {
-        let req = SettleOutcomeBuilder::new()
-            .signer("morph1gov").account_id("acct1").redemption_rate(10000)
-            .build().unwrap();
-        assert_eq!(req.redemption_rate, 10000);
     }
 
     #[test]

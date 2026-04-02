@@ -2,65 +2,10 @@
 
 use alloc::string::String;
 
-use prost::Message as _;
-
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
 use morpheum_proto::kline::v1 as proto;
-use morpheum_proto::google::protobuf::Any as ProtoAny;
-
-use crate::types::{PositionSnapshot, TradeData};
-
-// ====================== TRANSACTION REQUESTS ======================
-
-/// Process a trade into OHLC candles.
-#[derive(Clone, Debug, PartialEq, Eq)]
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-pub struct ProcessTradeRequest {
-    pub trade: TradeData,
-}
-
-impl ProcessTradeRequest {
-    pub fn new(trade: TradeData) -> Self { Self { trade } }
-
-    pub fn to_any(&self) -> ProtoAny {
-        let msg = proto::ProcessTradeRequest { trade: Some(self.trade.clone().into()) };
-        ProtoAny { type_url: "/kline.v1.ProcessTradeRequest".into(), value: msg.encode_to_vec() }
-    }
-}
-
-/// Update a sentiment candle from a position snapshot.
-#[derive(Clone, Debug, PartialEq, Eq)]
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-pub struct UpdateSentimentRequest {
-    pub snapshot: PositionSnapshot,
-}
-
-impl UpdateSentimentRequest {
-    pub fn new(snapshot: PositionSnapshot) -> Self { Self { snapshot } }
-
-    pub fn to_any(&self) -> ProtoAny {
-        let msg = proto::UpdateSentimentRequest { snapshot: Some(self.snapshot.clone().into()) };
-        ProtoAny { type_url: "/kline.v1.UpdateSentimentRequest".into(), value: msg.encode_to_vec() }
-    }
-}
-
-/// Trigger epoch boundary processing (prune, archive, emit event).
-#[derive(Clone, Debug, PartialEq, Eq)]
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-pub struct EpochBoundaryRequest {
-    pub epoch_id: u64,
-}
-
-impl EpochBoundaryRequest {
-    pub fn new(epoch_id: u64) -> Self { Self { epoch_id } }
-
-    pub fn to_any(&self) -> ProtoAny {
-        let msg = proto::EpochBoundaryRequest { epoch_id: self.epoch_id };
-        ProtoAny { type_url: "/kline.v1.EpochBoundaryRequest".into(), value: msg.encode_to_vec() }
-    }
-}
 
 // ====================== QUERY REQUESTS ======================
 
@@ -172,24 +117,6 @@ impl From<QueryKlinesSnapshotRequest> for proto::QueryKlinesSnapshotRequest {
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    #[test]
-    fn process_trade_to_any() {
-        let trade = TradeData {
-            market_index: 1, price: 50000, quantity: "10".into(),
-            is_taker_buy: true, block_height: 100, logical_timestamp: 200,
-            feed_id: String::new(), outcome_id: 0,
-        };
-        let any = ProcessTradeRequest::new(trade).to_any();
-        assert_eq!(any.type_url, "/kline.v1.ProcessTradeRequest");
-        assert!(!any.value.is_empty());
-    }
-
-    #[test]
-    fn epoch_boundary_to_any() {
-        let any = EpochBoundaryRequest::new(42).to_any();
-        assert_eq!(any.type_url, "/kline.v1.EpochBoundaryRequest");
-    }
 
     #[test]
     fn query_conversions() {

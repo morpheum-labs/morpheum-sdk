@@ -1,8 +1,7 @@
 //! Kline (OHLC) module for the Morpheum SDK.
 //!
 //! Provides support for querying mark prices, VWAP, long/short
-//! sentiment ratios, last completed klines, kline snapshots, and
-//! submitting trades and epoch boundaries.
+//! sentiment ratios, last completed klines, and kline snapshots.
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
@@ -35,20 +34,11 @@ pub use types::{
 };
 
 pub use requests::{
-    EpochBoundaryRequest,
     GetLastKlineRequest,
     GetLongShortRatioRequest,
     GetMarkPriceWithSpreadRequest,
     GetVwapRequest,
-    ProcessTradeRequest,
     QueryKlinesSnapshotRequest,
-    UpdateSentimentRequest,
-};
-
-pub use builder::{
-    EpochBoundaryBuilder,
-    ProcessTradeBuilder,
-    UpdateSentimentBuilder,
 };
 
 pub use morpheum_sdk_core::{AccountId, ChainId, SdkError, SignedTx};

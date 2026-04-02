@@ -1,5 +1,7 @@
 //! Request wrappers for the TWAP module.
 
+use alloc::string::String;
+
 use prost::Message as _;
 
 #[cfg(feature = "serde")]
@@ -16,17 +18,27 @@ use crate::types::MarketTwapConfig;
 #[derive(Clone, Debug, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct UpdateTwapConfigRequest {
+    pub authority: String,
     pub market_index: u64,
     pub config: MarketTwapConfig,
 }
 
 impl UpdateTwapConfigRequest {
-    pub fn new(market_index: u64, config: MarketTwapConfig) -> Self {
-        Self { market_index, config }
+    pub fn new(
+        authority: impl Into<String>,
+        market_index: u64,
+        config: MarketTwapConfig,
+    ) -> Self {
+        Self {
+            authority: authority.into(),
+            market_index,
+            config,
+        }
     }
 
     pub fn to_any(&self) -> ProtoAny {
         let msg = proto::MsgUpdateTwapConfig {
+            authority: self.authority.clone(),
             market_index: self.market_index,
             config: Some(self.config.clone().into()),
         };
@@ -72,7 +84,7 @@ mod tests {
     #[test]
     fn update_config_to_any() {
         let cfg = MarketTwapConfig { windows: vec![60, 300], staleness_blocks: 10 };
-        let any = UpdateTwapConfigRequest::new(1, cfg).to_any();
+        let any = UpdateTwapConfigRequest::new("morpheum1gov", 1, cfg).to_any();
         assert_eq!(any.type_url, "/twap.v1.MsgUpdateTwapConfig");
         assert!(!any.value.is_empty());
     }

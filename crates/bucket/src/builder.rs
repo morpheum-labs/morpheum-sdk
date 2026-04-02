@@ -9,8 +9,8 @@ use alloc::string::String;
 use morpheum_sdk_core::SdkError;
 
 use crate::requests::{
-    CloseBucketRequest, CreateBucketRequest, ExecuteAdlRequest,
-    LiquidateBucketRequest, TransferBetweenBucketsRequest, TransferToBankRequest,
+    CloseBucketRequest, CreateBucketRequest, LiquidateBucketRequest,
+    TransferBetweenBucketsRequest, TransferToBankRequest,
 };
 use crate::types::BucketType;
 
@@ -282,63 +282,6 @@ impl LiquidateBucketBuilder {
     }
 }
 
-// ====================== EXECUTE ADL ======================
-
-/// Fluent builder for executing auto-deleveraging (permissioned).
-#[derive(Default)]
-pub struct ExecuteAdlBuilder {
-    from_address: Option<String>,
-    market_index: Option<u64>,
-    mark_price: Option<String>,
-    oi_imbalance: Option<String>,
-    trigger_reason: Option<String>,
-}
-
-impl ExecuteAdlBuilder {
-    pub fn new() -> Self {
-        Self::default()
-    }
-
-    pub fn from_address(mut self, address: impl Into<String>) -> Self {
-        self.from_address = Some(address.into());
-        self
-    }
-
-    pub fn market_index(mut self, index: u64) -> Self {
-        self.market_index = Some(index);
-        self
-    }
-
-    pub fn mark_price(mut self, price: impl Into<String>) -> Self {
-        self.mark_price = Some(price.into());
-        self
-    }
-
-    pub fn oi_imbalance(mut self, imbalance: impl Into<String>) -> Self {
-        self.oi_imbalance = Some(imbalance.into());
-        self
-    }
-
-    pub fn trigger_reason(mut self, reason: impl Into<String>) -> Self {
-        self.trigger_reason = Some(reason.into());
-        self
-    }
-
-    pub fn build(self) -> Result<ExecuteAdlRequest, SdkError> {
-        let from_address = self.from_address
-            .ok_or_else(|| SdkError::invalid_input("from_address is required"))?;
-        let market_index = self.market_index
-            .ok_or_else(|| SdkError::invalid_input("market_index is required"))?;
-        let mark_price = self.mark_price
-            .ok_or_else(|| SdkError::invalid_input("mark_price is required"))?;
-
-        let mut req = ExecuteAdlRequest::new(from_address, market_index, mark_price);
-        if let Some(oi) = self.oi_imbalance { req = req.oi_imbalance(oi); }
-        if let Some(r) = self.trigger_reason { req = req.trigger_reason(r); }
-        Ok(req)
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -423,24 +366,4 @@ mod tests {
         assert_eq!(req.reason, Some("equity ratio breach".into()));
     }
 
-    #[test]
-    fn execute_adl_builder_works() {
-        let req = ExecuteAdlBuilder::new()
-            .from_address("morpheum1risk")
-            .market_index(42)
-            .mark_price("50000")
-            .oi_imbalance("1000000")
-            .trigger_reason("insurance depleted")
-            .build()
-            .unwrap();
-
-        assert_eq!(req.from_address, "morpheum1risk");
-        assert_eq!(req.market_index, 42);
-        assert_eq!(req.trigger_reason, "insurance depleted");
-    }
-
-    #[test]
-    fn execute_adl_builder_validation() {
-        assert!(ExecuteAdlBuilder::new().build().is_err());
-    }
 }

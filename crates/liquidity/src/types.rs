@@ -153,44 +153,6 @@ impl From<proto::Pool> for Pool {
     }
 }
 
-/// LP position held by a provider.
-#[derive(Clone, Debug, PartialEq, Eq)]
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-pub struct LpPosition {
-    pub position_id: String,
-    pub address: String,
-    pub pool_id: String,
-    pub asset_index: u64,
-    pub asset_symbol: String,
-    pub amount: String,
-    pub shares: String,
-    pub pending_yield: String,
-    pub deposit_time: u64,
-    pub last_claim_time: u64,
-    pub external_address: Option<String>,
-    pub chain_type: Option<i32>,
-}
-
-impl From<proto::LpPosition> for LpPosition {
-    fn from(p: proto::LpPosition) -> Self {
-        let (asset_index, asset_symbol) = p.asset.map_or((0, String::new()), |a| (a.asset_index, a.symbol));
-        Self {
-            position_id: p.position_id,
-            address: p.address,
-            pool_id: p.pool_id,
-            asset_index,
-            asset_symbol,
-            amount: p.amount,
-            shares: p.shares,
-            pending_yield: p.pending_yield,
-            deposit_time: p.deposit_time.map_or(0, |t| t.seconds as u64),
-            last_claim_time: p.last_claim_time.map_or(0, |t| t.seconds as u64),
-            external_address: p.external_address,
-            chain_type: p.chain_type,
-        }
-    }
-}
-
 /// Depth metrics for a market.
 #[derive(Clone, Debug, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
@@ -219,17 +181,17 @@ impl From<proto::DepthMetrics> for DepthMetrics {
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct PoolHealth {
     pub pool_id: String,
-    pub health_score: String,
+    pub health_score_bps: u32,
     pub utilization_rate: String,
     pub apy: String,
     pub timestamp: u64,
 }
 
-impl From<proto::PoolHealth> for PoolHealth {
-    fn from(p: proto::PoolHealth) -> Self {
+impl From<proto::PoolHealthSnapshot> for PoolHealth {
+    fn from(p: proto::PoolHealthSnapshot) -> Self {
         Self {
             pool_id: p.pool_id,
-            health_score: p.health_score,
+            health_score_bps: p.health_score_bps,
             utilization_rate: p.utilization_rate,
             apy: p.apy,
             timestamp: p.timestamp.map_or(0, |t| t.seconds as u64),

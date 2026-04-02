@@ -1,8 +1,7 @@
 //! Funding-rate module for the Morpheum SDK.
 //!
 //! Provides support for querying funding rates, next funding times,
-//! market profiles, triggering epoch ticks, and applying sharded
-//! funding to positions.
+//! and market profiles, plus governance updates to funding profiles.
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
@@ -30,18 +29,13 @@ pub use types::{
 };
 
 pub use requests::{
-    ApplyShardedFundingRequest,
-    EpochTickRequest,
     GetFundingRateRequest,
     GetMarketProfileRequest,
     GetNextFundingTimeRequest,
     UpdateMarketProfileRequest,
 };
 
-pub use builder::{
-    EpochTickBuilder,
-    UpdateMarketProfileBuilder,
-};
+pub use builder::UpdateMarketProfileBuilder;
 
 pub use morpheum_sdk_core::{AccountId, ChainId, SdkError, SignedTx};
 

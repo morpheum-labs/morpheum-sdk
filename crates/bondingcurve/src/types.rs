@@ -203,8 +203,8 @@ pub struct BondingCurveParams {
     pub max_gated_duration_blocks: u64,
 }
 
-impl From<proto::BondingCurveParams> for BondingCurveParams {
-    fn from(p: proto::BondingCurveParams) -> Self {
+impl From<proto::Params> for BondingCurveParams {
+    fn from(p: proto::Params) -> Self {
         Self {
             min_reputation_for_launch: p.min_reputation_for_launch,
             reputation_bond_tiers: p.reputation_bond_tiers.into_iter().map(Into::into).collect(),

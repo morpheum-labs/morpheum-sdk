@@ -60,7 +60,7 @@ impl UpdateParamsRequest {
     pub fn to_any(&self) -> ProtoAny {
         let msg = proto::MsgUpdateParams {
             authority: self.authority.clone(),
-            params: Some(proto::ClammGraduationParams {
+            params: Some(proto::Params {
                 min_mcap_sat: self.params.min_mcap_sat.clone(),
                 min_tvl_sat: self.params.min_tvl_sat.clone(),
                 min_volume_30d_sat: self.params.min_volume_30d_sat.clone(),

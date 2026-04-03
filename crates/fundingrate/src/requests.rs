@@ -37,12 +37,12 @@ impl UpdateMarketProfileRequest {
     }
 
     pub fn to_any(&self) -> ProtoAny {
-        let msg = proto::UpdateMarketProfileRequest {
+        let msg = proto::MsgUpdateMarketConfig {
             authority: self.authority.clone(),
             market_index: self.market_index,
             profile: Some(self.profile.clone().into()),
         };
-        ProtoAny { type_url: "/fundingrate.v1.UpdateMarketProfileRequest".into(), value: msg.encode_to_vec() }
+        ProtoAny { type_url: "/fundingrate.v1.MsgUpdateMarketConfig".into(), value: msg.encode_to_vec() }
     }
 }
 
@@ -105,7 +105,7 @@ mod tests {
             vrf_bias_bps: 0, protocol_cut_bps: 0, lp_incentive_bps: 0,
         };
         let any = UpdateMarketProfileRequest::new("morpheum1gov", 42, profile).to_any();
-        assert_eq!(any.type_url, "/fundingrate.v1.UpdateMarketProfileRequest");
+        assert_eq!(any.type_url, "/fundingrate.v1.MsgUpdateMarketConfig");
     }
 
     #[test]

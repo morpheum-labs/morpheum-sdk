@@ -119,8 +119,8 @@ pub struct ClammGraduationParams {
     pub graduation_timeout_blocks: u64,
 }
 
-impl From<proto::ClammGraduationParams> for ClammGraduationParams {
-    fn from(p: proto::ClammGraduationParams) -> Self {
+impl From<proto::Params> for ClammGraduationParams {
+    fn from(p: proto::Params) -> Self {
         Self {
             min_mcap_sat: p.min_mcap_sat, min_tvl_sat: p.min_tvl_sat,
             min_volume_30d_sat: p.min_volume_30d_sat, min_age_blocks: p.min_age_blocks,

@@ -44,7 +44,6 @@ pub use types::{
 pub use requests::{
     CloseBucketRequest,
     CreateBucketRequest,
-    LiquidateBucketRequest,
     QueryAdlHistoryRequest,
     QueryAddressPnLRequest,
     QueryAllBucketsBalanceByAddressRequest,
@@ -63,7 +62,6 @@ pub use requests::{
 pub use builder::{
     CloseBucketBuilder,
     CreateBucketBuilder,
-    LiquidateBucketBuilder,
     TransferBetweenBucketsBuilder,
     TransferToBankBuilder,
 };

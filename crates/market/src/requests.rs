@@ -249,6 +249,7 @@ impl From<ChangeMarketMarginRatioRequest> for proto::MsgChangeMarketMarginRatioR
             new_maintenance_margin_ratio: req.new_maintenance_margin_ratio.unwrap_or_default(),
             reason: req.reason.unwrap_or_default(),
             timestamp: None,
+            authority: String::new(),
         }
     }
 }

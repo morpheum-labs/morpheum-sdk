@@ -4,14 +4,24 @@
 //! Query requests convert to proto via `From` impls.
 
 use alloc::string::String;
+#[cfg(feature = "std")]
+use alloc::{format, vec::Vec};
 
 use prost::Message as _;
 
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
+#[cfg(feature = "std")]
+use serde_json::json;
+#[cfg(feature = "std")]
+use sha3::{Digest, Keccak256};
+#[cfg(feature = "std")]
+use std::time::{SystemTime, UNIX_EPOCH};
 
 use morpheum_proto::clob::v1 as proto;
 use morpheum_proto::google::protobuf::Any as ProtoAny;
+#[cfg(feature = "std")]
+use morpheum_proto::google::protobuf::Timestamp;
 
 use crate::types::{OrderStatus, OrderType, Side, TimeInForce};
 
@@ -217,10 +227,38 @@ impl PlaceBatchOrdersRequest {
     }
 
     pub fn to_any(&self) -> ProtoAny {
+        #[cfg(feature = "std")]
+        let msg = self.to_proto_with_canonical_hash();
+        #[cfg(not(feature = "std"))]
         let msg: proto::MsgPlaceBatchOrdersRequest = self.clone().into();
         ProtoAny {
             type_url: "/clob.v1.MsgPlaceBatchOrdersRequest".into(),
             value: msg.encode_to_vec(),
+        }
+    }
+}
+
+#[cfg(feature = "std")]
+impl PlaceBatchOrdersRequest {
+    fn to_proto_with_canonical_hash(&self) -> proto::MsgPlaceBatchOrdersRequest {
+        let batch_timestamp_seconds = current_unix_timestamp_seconds();
+        let batch_timestamp_rfc3339 = format_rfc3339_opt(batch_timestamp_seconds as u64);
+        let orders: Vec<proto::MsgPlaceOrderRequest> = self
+            .orders
+            .iter()
+            .cloned()
+            .map(|order| order.into_batch_proto(&self.from_address, batch_timestamp_seconds))
+            .collect();
+        let orders_hash = if self.orders_hash.is_empty() {
+            compute_batch_orders_hash(&orders, &batch_timestamp_rfc3339)
+        } else {
+            self.orders_hash.clone()
+        };
+
+        proto::MsgPlaceBatchOrdersRequest {
+            from_address: self.from_address.clone(),
+            orders,
+            orders_hash,
         }
     }
 }
@@ -233,6 +271,125 @@ impl From<PlaceBatchOrdersRequest> for proto::MsgPlaceBatchOrdersRequest {
             orders_hash: r.orders_hash,
         }
     }
+}
+
+#[cfg(feature = "std")]
+impl PlaceOrderRequest {
+    fn into_batch_proto(
+        self,
+        fallback_address: &str,
+        timestamp_seconds: i64,
+    ) -> proto::MsgPlaceOrderRequest {
+        proto::MsgPlaceOrderRequest {
+            address: if self.address.is_empty() {
+                fallback_address.to_string()
+            } else {
+                self.address
+            },
+            market_index: self.market_index,
+            price: self.price,
+            quantity: self.quantity,
+            side: i32::from(self.side),
+            order_type: i32::from(self.order_type),
+            timestamp: Some(Timestamp {
+                seconds: timestamp_seconds,
+                nanos: 0,
+            }),
+            client_order_id: self.client_order_id.unwrap_or_default(),
+            leverage: self.leverage.unwrap_or_default(),
+            take_profit: self.take_profit.unwrap_or_default(),
+            stop_loss: self.stop_loss.unwrap_or_default(),
+            time_in_force: i32::from(self.time_in_force),
+            post_only: self.post_only,
+            hidden: self.hidden,
+            display_quantity: self.display_quantity.unwrap_or_default(),
+            reduce_only: self.reduce_only,
+            bucket_id: self.bucket_id.unwrap_or_default(),
+        }
+    }
+}
+
+#[cfg(feature = "std")]
+fn current_unix_timestamp_seconds() -> i64 {
+    SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .map(|duration| duration.as_secs() as i64)
+        .unwrap_or(0)
+}
+
+#[cfg(feature = "std")]
+fn format_rfc3339_opt(secs: u64) -> String {
+    let days = (secs / 86_400) as i32;
+    let rem = secs % 86_400;
+    let hours = rem / 3_600;
+    let minutes = (rem % 3_600) / 60;
+    let seconds = rem % 60;
+    let (year, month, day) = days_to_ymd(days);
+    format!(
+        "{year:04}-{month:02}-{day:02}T{hours:02}:{minutes:02}:{seconds:02}Z"
+    )
+}
+
+#[cfg(feature = "std")]
+fn days_to_ymd(days: i32) -> (u32, u32, u32) {
+    let z = days + 719_468;
+    let era = (if z >= 0 { z } else { z - 146_096 }) / 146_097;
+    let doe = z - era * 146_097;
+    let yoe = (doe - doe / 1_460 + doe / 36_524 - doe / 146_096) / 365;
+    let y = (yoe + era * 400) as u32;
+    let doy = doe - (365 * yoe + yoe / 4 - yoe / 100);
+    let mp = (5 * doy + 2) / 153;
+    let day = doy - (153 * mp + 2) / 5 + 1;
+    let month = if mp < 10 { mp + 3 } else { mp - 9 };
+    ((y as i32 + mp / 10) as u32, month as u32, day as u32)
+}
+
+#[cfg(feature = "std")]
+fn compute_batch_orders_hash(
+    orders: &[proto::MsgPlaceOrderRequest],
+    batch_timestamp_rfc3339: &str,
+) -> String {
+    let order_messages: Vec<_> = orders
+        .iter()
+        .map(|order| {
+            let mut order_msg = json!({
+                "address": order.address,
+                "marketIndex": order.market_index,
+                "price": if order.price.is_empty() { "0" } else { order.price.as_str() },
+                "quantity": order.quantity,
+                "side": order.side,
+                "orderType": order.order_type,
+                "timestamp": batch_timestamp_rfc3339,
+                "timeInForce": order.time_in_force,
+            });
+
+            if !order.leverage.is_empty() {
+                order_msg["leverage"] = json!(order.leverage);
+            }
+            if !order.stop_loss.is_empty() {
+                order_msg["stopPrice"] = json!(order.stop_loss);
+            }
+            if order.post_only {
+                order_msg["postOnly"] = json!(true);
+            }
+            if order.reduce_only {
+                order_msg["reduceOnly"] = json!(true);
+            }
+            if !order.bucket_id.is_empty() {
+                order_msg["bucketId"] = json!(order.bucket_id);
+            }
+
+            order_msg
+        })
+        .collect();
+
+    let encoded = serde_json::to_vec(&order_messages).unwrap_or_default();
+    if encoded.is_empty() {
+        return format!("0x{}", "0".repeat(64));
+    }
+
+    let digest = Keccak256::digest(encoded);
+    format!("0x{}", hex::encode(digest))
 }
 
 /// Request to provide a market-maker quote.
@@ -593,6 +750,37 @@ mod tests {
         let req = PlaceBatchOrdersRequest::new("morpheum1abc", alloc::vec![order]);
         let any = req.to_any();
         assert_eq!(any.type_url, "/clob.v1.MsgPlaceBatchOrdersRequest");
+    }
+
+    #[cfg(feature = "std")]
+    #[test]
+    fn place_batch_orders_to_any_populates_hash_and_timestamp() {
+        let order = PlaceOrderRequest::new(
+            "morpheum1abc",
+            42,
+            "50000",
+            "100",
+            Side::Buy,
+            OrderType::Limit,
+        );
+        let any = PlaceBatchOrdersRequest::new("morpheum1abc", alloc::vec![order]).to_any();
+        let msg = proto::MsgPlaceBatchOrdersRequest::decode(any.value.as_slice())
+            .expect("batch proto should decode");
+
+        assert_eq!(msg.orders.len(), 1);
+        assert!(
+            !msg.orders_hash.is_empty(),
+            "batch requests must auto-populate orders_hash"
+        );
+        assert_ne!(
+            msg.orders_hash,
+            format!("0x{}", "0".repeat(64)),
+            "non-empty batches must not use the zero hash"
+        );
+        assert!(
+            msg.orders[0].timestamp.is_some(),
+            "batch orders must carry a shared timestamp for canonical hashing"
+        );
     }
 
     #[test]

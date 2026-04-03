@@ -37,12 +37,12 @@ impl UpdateTwapConfigRequest {
     }
 
     pub fn to_any(&self) -> ProtoAny {
-        let msg = proto::MsgUpdateTwapConfig {
+        let msg = proto::MsgUpdateMarketConfig {
             authority: self.authority.clone(),
             market_index: self.market_index,
             config: Some(self.config.clone().into()),
         };
-        ProtoAny { type_url: "/twap.v1.MsgUpdateTwapConfig".into(), value: msg.encode_to_vec() }
+        ProtoAny { type_url: "/twap.v1.MsgUpdateMarketConfig".into(), value: msg.encode_to_vec() }
     }
 }
 
@@ -85,7 +85,7 @@ mod tests {
     fn update_config_to_any() {
         let cfg = MarketTwapConfig { windows: vec![60, 300], staleness_blocks: 10 };
         let any = UpdateTwapConfigRequest::new("morpheum1gov", 1, cfg).to_any();
-        assert_eq!(any.type_url, "/twap.v1.MsgUpdateTwapConfig");
+        assert_eq!(any.type_url, "/twap.v1.MsgUpdateMarketConfig");
         assert!(!any.value.is_empty());
     }
 

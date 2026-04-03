@@ -206,59 +206,6 @@ impl From<CloseBucketRequest> for proto::MsgCloseBucketRequest {
     }
 }
 
-/// Request to liquidate a bucket (permissioned: risk module / governance / keeper bot).
-#[derive(Clone, Debug, PartialEq, Eq)]
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-pub struct LiquidateBucketRequest {
-    pub from_address: String,
-    pub bucket_id: String,
-    pub market_index: u64,
-    pub liquidation_price: String,
-    pub reason: Option<String>,
-}
-
-impl LiquidateBucketRequest {
-    pub fn new(
-        from_address: impl Into<String>,
-        bucket_id: impl Into<String>,
-        market_index: u64,
-        liquidation_price: impl Into<String>,
-    ) -> Self {
-        Self {
-            from_address: from_address.into(),
-            bucket_id: bucket_id.into(),
-            market_index,
-            liquidation_price: liquidation_price.into(),
-            reason: None,
-        }
-    }
-
-    pub fn reason(mut self, reason: impl Into<String>) -> Self {
-        self.reason = Some(reason.into());
-        self
-    }
-
-    pub fn to_any(&self) -> ProtoAny {
-        let msg: proto::MsgLiquidateBucketRequest = self.clone().into();
-        ProtoAny {
-            type_url: "/bucket.v1.MsgLiquidateBucketRequest".into(),
-            value: msg.encode_to_vec(),
-        }
-    }
-}
-
-impl From<LiquidateBucketRequest> for proto::MsgLiquidateBucketRequest {
-    fn from(req: LiquidateBucketRequest) -> Self {
-        Self {
-            from_address: req.from_address,
-            bucket_id: req.bucket_id,
-            market_index: req.market_index,
-            liquidation_price: req.liquidation_price,
-            reason: req.reason.unwrap_or_default(),
-        }
-    }
-}
-
 // ====================== QUERY REQUESTS ======================
 
 /// Query a specific bucket by ID.
@@ -570,14 +517,6 @@ mod tests {
         let req = CloseBucketRequest::new("morpheum1abc", "bucket-1");
         let any = req.to_any();
         assert_eq!(any.type_url, "/bucket.v1.MsgCloseBucketRequest");
-    }
-
-    #[test]
-    fn liquidate_bucket_to_any() {
-        let req = LiquidateBucketRequest::new("morpheum1risk", "bucket-1", 42, "48000")
-            .reason("equity ratio breach");
-        let any = req.to_any();
-        assert_eq!(any.type_url, "/bucket.v1.MsgLiquidateBucketRequest");
     }
 
     #[test]

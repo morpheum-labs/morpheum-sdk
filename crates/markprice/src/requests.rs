@@ -37,12 +37,12 @@ impl UpdateMarkConfigRequest {
     }
 
     pub fn to_any(&self) -> ProtoAny {
-        let msg = proto::MsgUpdateMarkConfig {
+        let msg = proto::MsgUpdateMarketConfig {
             authority: self.authority.clone(),
             market_index: self.market_index,
             config: Some(self.config.clone().into()),
         };
-        ProtoAny { type_url: "/markprice.v1.MsgUpdateMarkConfig".into(), value: msg.encode_to_vec() }
+        ProtoAny { type_url: "/markprice.v1.MsgUpdateMarketConfig".into(), value: msg.encode_to_vec() }
     }
 }
 
@@ -90,7 +90,7 @@ mod tests {
             strategy: "linear_perp".into(),
         };
         let any = UpdateMarkConfigRequest::new("morpheum1gov", 42, cfg).to_any();
-        assert_eq!(any.type_url, "/markprice.v1.MsgUpdateMarkConfig");
+        assert_eq!(any.type_url, "/markprice.v1.MsgUpdateMarketConfig");
         assert!(!any.value.is_empty());
     }
 

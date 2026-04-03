@@ -124,6 +124,7 @@ impl UpdatePoolParamsRequest {
             description: self.description.clone(),
             tags: self.tags.clone(),
             logo_uri: self.logo_uri.clone(),
+            authority: String::new(),
         };
         ProtoAny { type_url: "/liquidity.v1.UpdatePoolParamsRequest".into(), value: msg.encode_to_vec() }
     }

@@ -325,8 +325,8 @@ impl Default for StakingParams {
     }
 }
 
-impl From<proto::StakingParams> for StakingParams {
-    fn from(p: proto::StakingParams) -> Self {
+impl From<proto::Params> for StakingParams {
+    fn from(p: proto::Params) -> Self {
         Self {
             asset_index: p.asset_index,
             unbonding_period_seconds: p.unbonding_period.map_or(0, |d| d.seconds),
@@ -340,7 +340,7 @@ impl From<proto::StakingParams> for StakingParams {
     }
 }
 
-impl From<StakingParams> for proto::StakingParams {
+impl From<StakingParams> for proto::Params {
     fn from(p: StakingParams) -> Self {
         use morpheum_proto::google::protobuf::Duration;
         Self {
@@ -415,7 +415,7 @@ mod tests {
     #[test]
     fn staking_params_roundtrip() {
         let params = StakingParams::default();
-        let proto_params: proto::StakingParams = params.clone().into();
+        let proto_params: proto::Params = params.clone().into();
         let back = StakingParams::from(proto_params);
         assert_eq!(params, back);
     }

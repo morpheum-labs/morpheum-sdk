@@ -9,7 +9,7 @@ use alloc::string::String;
 use morpheum_sdk_core::SdkError;
 
 use crate::requests::{
-    CloseBucketRequest, CreateBucketRequest, LiquidateBucketRequest,
+    CloseBucketRequest, CreateBucketRequest,
     TransferBetweenBucketsRequest, TransferToBankRequest,
 };
 use crate::types::BucketType;
@@ -224,64 +224,6 @@ impl CloseBucketBuilder {
     }
 }
 
-// ====================== LIQUIDATE BUCKET ======================
-
-/// Fluent builder for liquidating a bucket (permissioned).
-#[derive(Default)]
-pub struct LiquidateBucketBuilder {
-    from_address: Option<String>,
-    bucket_id: Option<String>,
-    market_index: Option<u64>,
-    liquidation_price: Option<String>,
-    reason: Option<String>,
-}
-
-impl LiquidateBucketBuilder {
-    pub fn new() -> Self {
-        Self::default()
-    }
-
-    pub fn from_address(mut self, address: impl Into<String>) -> Self {
-        self.from_address = Some(address.into());
-        self
-    }
-
-    pub fn bucket_id(mut self, id: impl Into<String>) -> Self {
-        self.bucket_id = Some(id.into());
-        self
-    }
-
-    pub fn market_index(mut self, index: u64) -> Self {
-        self.market_index = Some(index);
-        self
-    }
-
-    pub fn liquidation_price(mut self, price: impl Into<String>) -> Self {
-        self.liquidation_price = Some(price.into());
-        self
-    }
-
-    pub fn reason(mut self, reason: impl Into<String>) -> Self {
-        self.reason = Some(reason.into());
-        self
-    }
-
-    pub fn build(self) -> Result<LiquidateBucketRequest, SdkError> {
-        let from_address = self.from_address
-            .ok_or_else(|| SdkError::invalid_input("from_address is required"))?;
-        let bucket_id = self.bucket_id
-            .ok_or_else(|| SdkError::invalid_input("bucket_id is required"))?;
-        let market_index = self.market_index
-            .ok_or_else(|| SdkError::invalid_input("market_index is required"))?;
-        let liquidation_price = self.liquidation_price
-            .ok_or_else(|| SdkError::invalid_input("liquidation_price is required"))?;
-
-        let mut req = LiquidateBucketRequest::new(from_address, bucket_id, market_index, liquidation_price);
-        if let Some(r) = self.reason { req = req.reason(r); }
-        Ok(req)
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -348,22 +290,6 @@ mod tests {
             .unwrap();
 
         assert_eq!(req.bucket_id, "bucket-1");
-    }
-
-    #[test]
-    fn liquidate_bucket_builder_works() {
-        let req = LiquidateBucketBuilder::new()
-            .from_address("morpheum1risk")
-            .bucket_id("bucket-1")
-            .market_index(42)
-            .liquidation_price("48000")
-            .reason("equity ratio breach")
-            .build()
-            .unwrap();
-
-        assert_eq!(req.bucket_id, "bucket-1");
-        assert_eq!(req.liquidation_price, "48000");
-        assert_eq!(req.reason, Some("equity ratio breach".into()));
     }
 
 }

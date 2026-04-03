@@ -53,11 +53,14 @@ impl UpdateRiskConfigRequest {
     }
 
     pub fn to_any(&self) -> ProtoAny {
-        let msg = proto::MsgUpdateRiskConfig {
+        let msg = proto::MsgUpdateParams {
             authority: self.authority.clone(),
-            config: Some(self.config.clone().into()),
+            params: Some(proto::Params {
+                config: Some(self.config.clone().into()),
+                auction_params: None,
+            }),
         };
-        ProtoAny { type_url: "/risk.v1.MsgUpdateRiskConfig".into(), value: msg.encode_to_vec() }
+        ProtoAny { type_url: "/risk.v1.MsgUpdateParams".into(), value: msg.encode_to_vec() }
     }
 }
 
@@ -157,7 +160,7 @@ mod tests {
             enable_spot_risk_integration: false,
             contagion_threshold_sat: 1_000_000,
         }).to_any();
-        assert_eq!(any.type_url, "/risk.v1.MsgUpdateRiskConfig");
+        assert_eq!(any.type_url, "/risk.v1.MsgUpdateParams");
         assert!(!any.value.is_empty());
     }
 

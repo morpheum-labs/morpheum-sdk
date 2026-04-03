@@ -456,6 +456,28 @@ impl From<CancelMarketMakerQuoteRequest> for proto::MsgCancelMarketMakerQuoteReq
     }
 }
 
+/// Request to update CLOB module parameters (governance only).
+#[derive(Clone, Debug, PartialEq, Eq)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+pub struct UpdateParamsRequest {
+    pub authority: String,
+    pub params: crate::types::ClobParams,
+}
+
+impl UpdateParamsRequest {
+    pub fn new(authority: impl Into<String>, params: crate::types::ClobParams) -> Self {
+        Self { authority: authority.into(), params }
+    }
+
+    pub fn to_any(&self) -> ProtoAny {
+        let msg = proto::MsgUpdateParams {
+            authority: self.authority.clone(),
+            params: Some(self.params.clone().into()),
+        };
+        ProtoAny { type_url: "/clob.v1.MsgUpdateParams".into(), value: msg.encode_to_vec() }
+    }
+}
+
 // ====================== QUERY REQUESTS ======================
 
 /// Query orderbook snapshot.

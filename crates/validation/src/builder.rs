@@ -10,8 +10,29 @@ use alloc::vec::Vec;
 
 use morpheum_sdk_core::SdkError;
 
-use crate::requests::{RevokeProofRequest, SubmitProofRequest};
-use crate::types::{ProofType, ValidationProof};
+use crate::requests::{RevokeProofRequest, SubmitProofRequest, UpdateParamsRequest};
+use crate::types::{Params, ProofType, ValidationProof};
+
+/// Fluent builder for `UpdateParamsRequest` (governance-only parameter update).
+#[derive(Default)]
+pub struct UpdateParamsBuilder {
+    authority: Option<String>,
+    params: Option<Params>,
+}
+
+impl UpdateParamsBuilder {
+    pub fn new() -> Self { Self::default() }
+
+    pub fn authority(mut self, v: impl Into<String>) -> Self { self.authority = Some(v.into()); self }
+    pub fn params(mut self, p: Params) -> Self { self.params = Some(p); self }
+
+    pub fn build(self) -> Result<UpdateParamsRequest, SdkError> {
+        Ok(UpdateParamsRequest::new(
+            self.authority.ok_or_else(|| SdkError::invalid_input("authority is required"))?,
+            self.params.ok_or_else(|| SdkError::invalid_input("params is required"))?,
+        ))
+    }
+}
 
 /// Fluent builder for submitting a new validation proof.
 ///

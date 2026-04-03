@@ -19,6 +19,34 @@ use crate::types::{Params, ProofType, ValidationProof};
 
 // ====================== TRANSACTION REQUESTS ======================
 
+/// Request to update module parameters (governance only).
+#[derive(Clone, Debug, PartialEq, Eq)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+pub struct UpdateParamsRequest {
+    pub authority: String,
+    pub params: Params,
+}
+
+impl UpdateParamsRequest {
+    pub fn new(authority: impl Into<String>, params: Params) -> Self {
+        Self {
+            authority: authority.into(),
+            params,
+        }
+    }
+
+    pub fn to_any(&self) -> ProtoAny {
+        let msg = proto::MsgUpdateParams {
+            authority: self.authority.clone(),
+            params: Some(self.params.clone().into()),
+        };
+        ProtoAny {
+            type_url: "/validation.v1.MsgUpdateParams".into(),
+            value: msg.encode_to_vec(),
+        }
+    }
+}
+
 /// Request to submit a new validation proof.
 ///
 /// The `verifier_signature` authenticates the verifier that performed the

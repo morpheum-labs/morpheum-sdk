@@ -22,14 +22,15 @@ pub use types::{
     TwapData,
     TwapEvent,
     TwapModuleConfig,
+    TwapParams,
     TwapUpdated,
     WindowEntry,
     WindowSnapshot,
 };
 
-pub use requests::{GetTwapRequest, UpdateTwapConfigRequest};
+pub use requests::{GetTwapRequest, UpdateParamsRequest, UpdateTwapConfigRequest};
 
-pub use builder::UpdateTwapConfigBuilder;
+pub use builder::{UpdateParamsBuilder, UpdateTwapConfigBuilder};
 
 pub use morpheum_sdk_core::{AccountId, ChainId, SdkError, SignedTx};
 

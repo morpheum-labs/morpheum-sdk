@@ -407,6 +407,50 @@ pub struct OrderBookChecksum {
     pub is_valid: bool,
 }
 
+/// CLOB module global parameters (governance-settable).
+#[derive(Clone, Debug, PartialEq, Eq)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+pub struct ClobParams {
+    pub max_markets_per_shard: u64,
+    pub default_strategy: String,
+    pub hybrid_sync_interval_ms: u64,
+    pub atomic_snapshot_interval_ms: u64,
+    pub enable_telemetry: bool,
+    pub telemetry_interval_ms: u64,
+    pub enable_grid_integration: bool,
+    pub enable_simd_optimizations: bool,
+}
+
+impl From<proto::Params> for ClobParams {
+    fn from(p: proto::Params) -> Self {
+        Self {
+            max_markets_per_shard: p.max_markets_per_shard,
+            default_strategy: p.default_strategy,
+            hybrid_sync_interval_ms: p.hybrid_sync_interval_ms,
+            atomic_snapshot_interval_ms: p.atomic_snapshot_interval_ms,
+            enable_telemetry: p.enable_telemetry,
+            telemetry_interval_ms: p.telemetry_interval_ms,
+            enable_grid_integration: p.enable_grid_integration,
+            enable_simd_optimizations: p.enable_simd_optimizations,
+        }
+    }
+}
+
+impl From<ClobParams> for proto::Params {
+    fn from(p: ClobParams) -> Self {
+        Self {
+            max_markets_per_shard: p.max_markets_per_shard,
+            default_strategy: p.default_strategy,
+            hybrid_sync_interval_ms: p.hybrid_sync_interval_ms,
+            atomic_snapshot_interval_ms: p.atomic_snapshot_interval_ms,
+            enable_telemetry: p.enable_telemetry,
+            telemetry_interval_ms: p.telemetry_interval_ms,
+            enable_grid_integration: p.enable_grid_integration,
+            enable_simd_optimizations: p.enable_simd_optimizations,
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

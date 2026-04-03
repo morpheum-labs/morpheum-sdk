@@ -630,6 +630,34 @@ impl From<QueryRewardsRequest> for proto::QueryRewardsRequest {
     }
 }
 
+/// Governance-only request to update staking module parameters.
+#[derive(Clone, Debug, PartialEq)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+pub struct UpdateParamsRequest {
+    pub authority: String,
+    pub params: proto::Params,
+}
+
+impl UpdateParamsRequest {
+    pub fn new(authority: impl Into<String>, params: proto::Params) -> Self {
+        Self {
+            authority: authority.into(),
+            params,
+        }
+    }
+
+    pub fn to_any(&self) -> ProtoAny {
+        let msg = proto::MsgUpdateParams {
+            authority: self.authority.clone(),
+            params: Some(self.params.clone()),
+        };
+        ProtoAny {
+            type_url: "/staking.v1.MsgUpdateParams".into(),
+            value: msg.encode_to_vec(),
+        }
+    }
+}
+
 /// Query module parameters.
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]

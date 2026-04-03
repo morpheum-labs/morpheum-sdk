@@ -16,6 +16,7 @@ use crate::requests::{
     RevokeVcRequest,
     SelfRevokeVcRequest,
     UpdateClaimsRequest,
+    UpdateParamsRequest,
 };
 use crate::types::VcClaims;
 
@@ -281,6 +282,41 @@ impl UpdateClaimsBuilder {
         })?;
 
         Ok(UpdateClaimsRequest::new(vc_id, issuer, new_claims, issuer_signature))
+    }
+}
+
+/// Fluent builder for updating VC module parameters (governance-only).
+#[derive(Default)]
+pub struct UpdateModuleParamsBuilder {
+    authority: Option<String>,
+    params: Option<crate::types::Params>,
+}
+
+impl UpdateModuleParamsBuilder {
+    pub fn new() -> Self {
+        Self::default()
+    }
+
+    pub fn authority(mut self, authority: impl Into<String>) -> Self {
+        self.authority = Some(authority.into());
+        self
+    }
+
+    pub fn params(mut self, params: crate::types::Params) -> Self {
+        self.params = Some(params);
+        self
+    }
+
+    pub fn build(self) -> Result<UpdateParamsRequest, SdkError> {
+        let authority = self.authority.ok_or_else(|| {
+            SdkError::invalid_input("authority is required for UpdateParams")
+        })?;
+
+        let params = self.params.ok_or_else(|| {
+            SdkError::invalid_input("params are required for UpdateParams")
+        })?;
+
+        Ok(UpdateParamsRequest::new(authority, params))
     }
 }
 

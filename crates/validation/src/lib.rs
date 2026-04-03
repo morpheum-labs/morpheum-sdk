@@ -30,6 +30,7 @@ pub use client::ValidationClient;
 pub use builder::{
     RevokeProofBuilder,
     SubmitProofBuilder,
+    UpdateParamsBuilder,
 };
 
 /// Core domain types for the validation module.

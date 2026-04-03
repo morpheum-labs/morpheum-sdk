@@ -10,9 +10,37 @@ use serde::{Deserialize, Serialize};
 use morpheum_proto::twap::v1 as proto;
 use morpheum_proto::google::protobuf::Any as ProtoAny;
 
-use crate::types::MarketTwapConfig;
+use crate::types::{MarketTwapConfig, TwapParams};
 
 // ====================== TRANSACTION REQUESTS ======================
+
+/// Update module-level TWAP parameters (governance).
+#[derive(Clone, Debug, PartialEq, Eq)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+pub struct UpdateParamsRequest {
+    pub authority: String,
+    pub params: TwapParams,
+}
+
+impl UpdateParamsRequest {
+    pub fn new(authority: impl Into<String>, params: TwapParams) -> Self {
+        Self {
+            authority: authority.into(),
+            params,
+        }
+    }
+
+    pub fn to_any(&self) -> ProtoAny {
+        let msg = proto::MsgUpdateParams {
+            authority: self.authority.clone(),
+            params: Some(self.params.clone().into()),
+        };
+        ProtoAny {
+            type_url: "/twap.v1.MsgUpdateParams".into(),
+            value: msg.encode_to_vec(),
+        }
+    }
+}
 
 /// Update per-market TWAP configuration (governance).
 #[derive(Clone, Debug, PartialEq, Eq)]

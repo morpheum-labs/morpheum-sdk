@@ -463,6 +463,34 @@ impl ApplySlashingBuilder {
     }
 }
 
+// ============================================================================
+// UpdateParamsBuilder
+// ============================================================================
+
+/// Fluent builder for governance-gated staking parameter updates.
+#[derive(Default)]
+pub struct UpdateParamsBuilder {
+    authority: Option<String>,
+    params: Option<morpheum_proto::staking::v1::Params>,
+}
+
+impl UpdateParamsBuilder {
+    pub fn new() -> Self { Self::default() }
+
+    pub fn authority(mut self, authority: impl Into<String>) -> Self {
+        self.authority = Some(authority.into()); self
+    }
+    pub fn params(mut self, params: morpheum_proto::staking::v1::Params) -> Self {
+        self.params = Some(params); self
+    }
+
+    pub fn build(self) -> Result<UpdateParamsRequest, SdkError> {
+        let authority = self.authority.ok_or_else(|| SdkError::invalid_input("authority is required for update_params"))?;
+        let params = self.params.ok_or_else(|| SdkError::invalid_input("params is required for update_params"))?;
+        Ok(UpdateParamsRequest::new(authority, params))
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

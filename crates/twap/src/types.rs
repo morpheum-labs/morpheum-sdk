@@ -38,6 +38,32 @@ impl From<proto::TwapData> for TwapData {
     }
 }
 
+/// Governance-tunable module parameters (wraps `TwapModuleConfig`).
+#[derive(Clone, Debug, PartialEq, Eq)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+pub struct TwapParams {
+    pub module_config: TwapModuleConfig,
+}
+
+impl From<proto::Params> for TwapParams {
+    fn from(p: proto::Params) -> Self {
+        Self {
+            module_config: p
+                .module_config
+                .map(TwapModuleConfig::from)
+                .unwrap_or(TwapModuleConfig { default_staleness_blocks: 0 }),
+        }
+    }
+}
+
+impl From<TwapParams> for proto::Params {
+    fn from(p: TwapParams) -> Self {
+        Self {
+            module_config: Some(p.module_config.into()),
+        }
+    }
+}
+
 /// Module-level TWAP configuration.
 #[derive(Clone, Debug, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
@@ -48,6 +74,12 @@ pub struct TwapModuleConfig {
 impl From<proto::TwapModuleConfig> for TwapModuleConfig {
     fn from(p: proto::TwapModuleConfig) -> Self {
         Self { default_staleness_blocks: p.default_staleness_blocks }
+    }
+}
+
+impl From<TwapModuleConfig> for proto::TwapModuleConfig {
+    fn from(c: TwapModuleConfig) -> Self {
+        Self { default_staleness_blocks: c.default_staleness_blocks }
     }
 }
 

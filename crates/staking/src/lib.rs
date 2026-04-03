@@ -31,6 +31,7 @@ pub use builder::{
     DelegateBuilder, UndelegateBuilder, RedelegateBuilder,
     ClaimRewardsBuilder,
     ReportMisbehaviorBuilder, VoteOnSlashingBuilder, ApplySlashingBuilder,
+    UpdateParamsBuilder,
 };
 
 pub use morpheum_sdk_core::{

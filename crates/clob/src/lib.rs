@@ -20,6 +20,7 @@ pub mod builder;
 pub use client::ClobClient;
 
 pub use types::{
+    ClobParams,
     FundingRate,
     FundingRateEntry,
     MarketMakerQuote,
@@ -53,6 +54,7 @@ pub use requests::{
     QueryOrdersByMarketRequest,
     QueryTradesByAddressRequest,
     QueryTradesByMarketRequest,
+    UpdateParamsRequest,
 };
 
 pub use builder::{

@@ -5,8 +5,40 @@ use alloc::vec::Vec;
 
 use morpheum_sdk_core::SdkError;
 
-use crate::requests::UpdateTwapConfigRequest;
-use crate::types::MarketTwapConfig;
+use crate::requests::{UpdateParamsRequest, UpdateTwapConfigRequest};
+use crate::types::{MarketTwapConfig, TwapModuleConfig, TwapParams};
+
+/// Builder for `UpdateParamsRequest` (module-level governance parameters).
+#[derive(Default)]
+pub struct UpdateParamsBuilder {
+    authority: Option<String>,
+    default_staleness_blocks: Option<u64>,
+}
+
+impl UpdateParamsBuilder {
+    pub fn new() -> Self { Self::default() }
+
+    pub fn authority(mut self, v: impl Into<String>) -> Self { self.authority = Some(v.into()); self }
+    pub fn default_staleness_blocks(mut self, v: u64) -> Self { self.default_staleness_blocks = Some(v); self }
+
+    pub fn params(mut self, p: TwapParams) -> Self {
+        self.default_staleness_blocks = Some(p.module_config.default_staleness_blocks);
+        self
+    }
+
+    pub fn build(self) -> Result<UpdateParamsRequest, SdkError> {
+        Ok(UpdateParamsRequest::new(
+            self.authority.ok_or_else(|| SdkError::invalid_input("authority is required"))?,
+            TwapParams {
+                module_config: TwapModuleConfig {
+                    default_staleness_blocks: self
+                        .default_staleness_blocks
+                        .ok_or_else(|| SdkError::invalid_input("default_staleness_blocks is required"))?,
+                },
+            },
+        ))
+    }
+}
 
 /// Builder for `UpdateTwapConfigRequest`.
 #[derive(Default)]

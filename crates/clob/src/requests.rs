@@ -732,6 +732,21 @@ impl From<QueryMarketMakerQuoteByIdRequest> for proto::QueryMarketMakerQuoteById
     fn from(r: QueryMarketMakerQuoteByIdRequest) -> Self { Self { quote_id: r.quote_id } }
 }
 
+/// Query cumulative fee statistics for a market.
+#[derive(Clone, Debug, PartialEq, Eq)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+pub struct QueryMarketFeeStatsRequest {
+    pub market_index: u64,
+}
+
+impl QueryMarketFeeStatsRequest {
+    pub fn new(market_index: u64) -> Self { Self { market_index } }
+}
+
+impl From<QueryMarketFeeStatsRequest> for proto::QueryMarketFeeStatsRequest {
+    fn from(r: QueryMarketFeeStatsRequest) -> Self { Self { market_index: r.market_index } }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

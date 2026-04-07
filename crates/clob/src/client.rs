@@ -15,7 +15,7 @@ use morpheum_proto::clob::v1 as proto;
 
 use crate::requests;
 use crate::types::{
-    FundingRate, FundingRateEntry, MarketMakerQuote, Order, OrderBookChecksum,
+    FundingRate, FundingRateEntry, MarketFeeStats, MarketMakerQuote, Order, OrderBookChecksum,
     OrderBookSnapshot, PriceLevel, Trade,
 };
 
@@ -168,6 +168,17 @@ impl ClobClient {
         let resp = self.query("/clob.v1.Query/QueryMarketMakerQuoteById", proto_req.encode_to_vec()).await?;
         let p = proto::QueryMarketMakerQuoteByIdResponse::decode(resp.as_slice()).map_err(SdkError::Decode)?;
         Ok(p.quote.map(Into::into))
+    }
+
+    /// Queries cumulative fee statistics for a market.
+    pub async fn query_market_fee_stats(
+        &self, market_index: u64,
+    ) -> Result<MarketFeeStats, SdkError> {
+        let req = requests::QueryMarketFeeStatsRequest::new(market_index);
+        let proto_req: proto::QueryMarketFeeStatsRequest = req.into();
+        let resp = self.query("/clob.v1.Query/QueryMarketFeeStats", proto_req.encode_to_vec()).await?;
+        let p = proto::QueryMarketFeeStatsResponse::decode(resp.as_slice()).map_err(SdkError::Decode)?;
+        Ok(p.into())
     }
 }
 

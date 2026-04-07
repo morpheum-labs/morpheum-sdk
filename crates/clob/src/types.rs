@@ -393,6 +393,31 @@ impl From<proto::MarketMakerQuote> for MarketMakerQuote {
     }
 }
 
+// ====================== MARKET FEE STATS ======================
+
+/// Cumulative per-market fee statistics.
+#[derive(Clone, Debug, PartialEq, Eq)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+pub struct MarketFeeStats {
+    pub market_index: u64,
+    pub total_maker_fees: String,
+    pub total_taker_fees: String,
+    pub total_liquidation_penalties: String,
+    pub trade_count: u64,
+}
+
+impl From<proto::QueryMarketFeeStatsResponse> for MarketFeeStats {
+    fn from(p: proto::QueryMarketFeeStatsResponse) -> Self {
+        Self {
+            market_index: p.market_index,
+            total_maker_fees: p.total_maker_fees,
+            total_taker_fees: p.total_taker_fees,
+            total_liquidation_penalties: p.total_liquidation_penalties,
+            trade_count: p.trade_count,
+        }
+    }
+}
+
 // ====================== CHECKSUM ======================
 
 /// Orderbook checksum for data integrity validation.
@@ -419,6 +444,10 @@ pub struct ClobParams {
     pub telemetry_interval_ms: u64,
     pub enable_grid_integration: bool,
     pub enable_simd_optimizations: bool,
+    pub default_maker_fee_bps: u32,
+    pub default_taker_fee_bps: u32,
+    pub default_liquidation_penalty_bps: u32,
+    pub default_mm_quote_protocol_cut_bps: u32,
 }
 
 impl From<proto::Params> for ClobParams {
@@ -432,6 +461,10 @@ impl From<proto::Params> for ClobParams {
             telemetry_interval_ms: p.telemetry_interval_ms,
             enable_grid_integration: p.enable_grid_integration,
             enable_simd_optimizations: p.enable_simd_optimizations,
+            default_maker_fee_bps: p.default_maker_fee_bps,
+            default_taker_fee_bps: p.default_taker_fee_bps,
+            default_liquidation_penalty_bps: p.default_liquidation_penalty_bps,
+            default_mm_quote_protocol_cut_bps: p.default_mm_quote_protocol_cut_bps,
         }
     }
 }
@@ -447,6 +480,10 @@ impl From<ClobParams> for proto::Params {
             telemetry_interval_ms: p.telemetry_interval_ms,
             enable_grid_integration: p.enable_grid_integration,
             enable_simd_optimizations: p.enable_simd_optimizations,
+            default_maker_fee_bps: p.default_maker_fee_bps,
+            default_taker_fee_bps: p.default_taker_fee_bps,
+            default_liquidation_penalty_bps: p.default_liquidation_penalty_bps,
+            default_mm_quote_protocol_cut_bps: p.default_mm_quote_protocol_cut_bps,
         }
     }
 }

@@ -191,6 +191,29 @@ pub struct GlideSimulation {
     pub estimated_trades: String,
 }
 
+// ====================== FEE STATS ======================
+
+/// Cumulative per-pool fee statistics.
+#[derive(Clone, Debug, PartialEq, Eq)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+pub struct PoolFeeStats {
+    pub pool_id: String,
+    pub total_protocol_fees: String,
+    pub total_lp_fees: String,
+    pub swap_count: u64,
+}
+
+impl From<proto::QueryPoolFeeStatsResponse> for PoolFeeStats {
+    fn from(p: proto::QueryPoolFeeStatsResponse) -> Self {
+        Self {
+            pool_id: p.pool_id,
+            total_protocol_fees: p.total_protocol_fees,
+            total_lp_fees: p.total_lp_fees,
+            swap_count: p.swap_count,
+        }
+    }
+}
+
 // ====================== EVENTS ======================
 
 /// A swap executed on the CLAMM.

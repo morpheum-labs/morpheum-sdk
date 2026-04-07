@@ -352,6 +352,63 @@ impl From<SimulateReClammGlideRequest> for proto::SimulateReClammGlideRequest {
     }
 }
 
+// ====================== FEE STATS QUERY ======================
+
+/// Query cumulative fee statistics for a pool.
+#[derive(Clone, Debug, PartialEq, Eq)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+pub struct QueryPoolFeeStatsRequest {
+    pub pool_id: String,
+}
+
+impl QueryPoolFeeStatsRequest {
+    pub fn new(pool_id: impl Into<String>) -> Self { Self { pool_id: pool_id.into() } }
+}
+
+impl From<QueryPoolFeeStatsRequest> for proto::QueryPoolFeeStatsRequest {
+    fn from(r: QueryPoolFeeStatsRequest) -> Self { Self { pool_id: r.pool_id } }
+}
+
+// ====================== SWAP EXACT IN TX ======================
+
+/// Direct AMM swap (exact input).
+#[derive(Clone, Debug, PartialEq, Eq)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+pub struct SwapExactInRequest {
+    pub pool_id: String,
+    pub sender: String,
+    pub token_in: u64,
+    pub amount_in: String,
+    pub min_amount_out: String,
+}
+
+impl SwapExactInRequest {
+    pub fn new(
+        pool_id: impl Into<String>, sender: impl Into<String>,
+        token_in: u64, amount_in: impl Into<String>, min_amount_out: impl Into<String>,
+    ) -> Self {
+        Self {
+            pool_id: pool_id.into(), sender: sender.into(),
+            token_in, amount_in: amount_in.into(), min_amount_out: min_amount_out.into(),
+        }
+    }
+
+    pub fn to_any(&self) -> ProtoAny {
+        let msg: proto::SwapExactInRequest = self.clone().into();
+        ProtoAny { type_url: "/clamm.v1.SwapExactInRequest".into(), value: msg.encode_to_vec() }
+    }
+}
+
+impl From<SwapExactInRequest> for proto::SwapExactInRequest {
+    fn from(r: SwapExactInRequest) -> Self {
+        Self {
+            pool_id: r.pool_id, sender: r.sender,
+            token_in: r.token_in, amount_in: r.amount_in,
+            min_amount_out: r.min_amount_out, timestamp: None,
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

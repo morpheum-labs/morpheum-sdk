@@ -15,7 +15,7 @@ use morpheum_proto::generated::clamm::v1 as proto;
 use crate::requests;
 use crate::types::{
     BoostedBuffer, ClammPosition, GlideSimulation, LiquidityDepthBand,
-    PoolRiskSummary, QuoteResult, SwapSimulation,
+    PoolFeeStats, PoolRiskSummary, QuoteResult, SwapSimulation,
 };
 
 fn check_success(success: bool, err: &str) -> Result<(), SdkError> {
@@ -108,6 +108,17 @@ impl ClammClient {
             pool_id: p.pool_id, buffer_amount: p.buffer_amount,
             pending_yield: p.pending_yield, apy_estimate: p.apy_estimate,
         })
+    }
+
+    /// Queries cumulative fee statistics for a pool.
+    pub async fn query_pool_fee_stats(
+        &self, pool_id: impl Into<alloc::string::String>,
+    ) -> Result<PoolFeeStats, SdkError> {
+        let req = requests::QueryPoolFeeStatsRequest::new(pool_id);
+        let proto_req: proto::QueryPoolFeeStatsRequest = req.into();
+        let resp = self.query("/clamm.v1.Query/QueryPoolFeeStats", proto_req.encode_to_vec()).await?;
+        let p = proto::QueryPoolFeeStatsResponse::decode(resp.as_slice()).map_err(SdkError::Decode)?;
+        Ok(PoolFeeStats::from(p))
     }
 
     /// Simulates a ReClamm glide operation.

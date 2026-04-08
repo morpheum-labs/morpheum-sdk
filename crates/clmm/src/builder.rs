@@ -1,4 +1,4 @@
-//! Fluent builders for the CLAMM module.
+//! Fluent builders for the CLMM module.
 
 use alloc::string::String;
 
@@ -159,7 +159,7 @@ impl ClaimBoostedYieldBuilder {
 
 // ====================== FORCE GLIDE ======================
 
-/// Fluent builder for a governance-only ReClamm force-glide.
+/// Fluent builder for a governance-only ReClmm force-glide.
 #[derive(Default)]
 pub struct ForceGlideBuilder {
     pool_id: Option<String>,

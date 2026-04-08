@@ -142,11 +142,11 @@ pub use morpheum_sdk_bondingcurve as bondingcurve;
 #[cfg(feature = "bucket")]
 pub use morpheum_sdk_bucket as bucket;
 
-#[cfg(feature = "clamm")]
-pub use morpheum_sdk_clamm as clamm;
+#[cfg(feature = "clmm")]
+pub use morpheum_sdk_clmm as clmm;
 
-#[cfg(feature = "clammgrad")]
-pub use morpheum_sdk_clammgrad as clammgrad;
+#[cfg(feature = "clmmgrad")]
+pub use morpheum_sdk_clmmgrad as clmmgrad;
 
 #[cfg(feature = "clob")]
 pub use morpheum_sdk_clob as clob;
@@ -376,11 +376,11 @@ pub mod prelude {
     #[cfg(feature = "bucket")]
     pub use super::bucket::BucketClient;
 
-    #[cfg(feature = "clamm")]
-    pub use super::clamm::ClammClient;
+    #[cfg(feature = "clmm")]
+    pub use super::clmm::ClmmClient;
 
-    #[cfg(feature = "clammgrad")]
-    pub use super::clammgrad::ClammGradClient;
+    #[cfg(feature = "clmmgrad")]
+    pub use super::clmmgrad::ClmmGradClient;
 
     #[cfg(feature = "clob")]
     pub use super::clob::ClobClient;

@@ -259,6 +259,7 @@ impl From<proto::QueryParamsResponse> for QueryParamsResponse {
 mod tests {
     use super::*;
     use crate::types::ReputationEventType;
+    use alloc::vec;
 
     #[test]
     fn force_milestone_request_to_any() {

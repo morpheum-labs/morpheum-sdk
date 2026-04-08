@@ -113,6 +113,7 @@ impl UpdateParamsBuilder {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use alloc::vec;
 
     #[test]
     fn force_milestone_builder_works() {

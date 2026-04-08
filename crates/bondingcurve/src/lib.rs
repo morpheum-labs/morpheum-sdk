@@ -2,7 +2,7 @@
 //!
 //! Provides full support for interacting with Morpheum's bonding-curve
 //! launchpad, including agent token creation, buying/selling on the curve,
-//! graduation to CLAMM, querying curve state and pricing, and
+//! graduation to CLMM, querying curve state and pricing, and
 //! prediction-enhanced token support.
 
 #![cfg_attr(not(feature = "std"), no_std)]

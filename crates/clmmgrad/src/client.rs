@@ -1,4 +1,4 @@
-//! ClammGradClient — queries for CLAMM graduation state, eligibility, and params.
+//! ClmmGradClient — queries for CLMM graduation state, eligibility, and params.
 
 use alloc::boxed::Box;
 use alloc::string::String;
@@ -8,10 +8,10 @@ use async_trait::async_trait;
 use prost::Message as _;
 
 use morpheum_sdk_core::{MorpheumClient, SdkConfig, SdkError, Transport};
-use morpheum_proto::clammgrad::v1 as proto;
+use morpheum_proto::clmmgrad::v1 as proto;
 
 use crate::requests;
-use crate::types::{ClammGraduationParams, GraduationState};
+use crate::types::{ClmmGraduationParams, GraduationState};
 
 /// Eligible-tokens query result with pagination cursor.
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -20,13 +20,13 @@ pub struct EligibleTokensPage {
     pub next_offset: u64,
 }
 
-/// Primary client for CLAMM Graduation queries.
-pub struct ClammGradClient {
+/// Primary client for CLMM Graduation queries.
+pub struct ClmmGradClient {
     config: SdkConfig,
     transport: Box<dyn Transport>,
 }
 
-impl ClammGradClient {
+impl ClmmGradClient {
     pub fn new(config: SdkConfig, transport: Box<dyn Transport>) -> Self {
         Self { config, transport }
     }
@@ -38,7 +38,7 @@ impl ClammGradClient {
         let req = requests::GetGraduationStateRequest::new(token_index);
         let proto_req: proto::GetGraduationStateRequest = req.into();
         let resp = self.query(
-            "/clammgrad.v1.ClammGraduationService/GetGraduationState",
+            "/clmmgrad.v1.ClmmGraduationService/GetGraduationState",
             proto_req.encode_to_vec(),
         ).await?;
         let p = proto::GetGraduationStateResponse::decode(resp.as_slice()).map_err(SdkError::Decode)?;
@@ -51,7 +51,7 @@ impl ClammGradClient {
     ) -> Result<EligibleTokensPage, SdkError> {
         let proto_req: proto::ListEligibleTokensRequest = request.into();
         let resp = self.query(
-            "/clammgrad.v1.ClammGraduationService/ListEligibleTokens",
+            "/clmmgrad.v1.ClmmGraduationService/ListEligibleTokens",
             proto_req.encode_to_vec(),
         ).await?;
         let p = proto::ListEligibleTokensResponse::decode(resp.as_slice()).map_err(SdkError::Decode)?;
@@ -59,10 +59,10 @@ impl ClammGradClient {
     }
 
     /// Queries module-level graduation parameters.
-    pub async fn get_params(&self) -> Result<ClammGraduationParams, SdkError> {
+    pub async fn get_params(&self) -> Result<ClmmGraduationParams, SdkError> {
         let proto_req: proto::GetParamsRequest = requests::GetParamsRequest::new().into();
         let resp = self.query(
-            "/clammgrad.v1.ClammGraduationService/GetParams",
+            "/clmmgrad.v1.ClmmGraduationService/GetParams",
             proto_req.encode_to_vec(),
         ).await?;
         let p = proto::GetParamsResponse::decode(resp.as_slice()).map_err(SdkError::Decode)?;
@@ -71,7 +71,7 @@ impl ClammGradClient {
 }
 
 #[async_trait(?Send)]
-impl MorpheumClient for ClammGradClient {
+impl MorpheumClient for ClmmGradClient {
     fn config(&self) -> &SdkConfig { &self.config }
     fn transport(&self) -> &dyn Transport { &*self.transport }
 }
@@ -90,7 +90,7 @@ mod tests {
         }
         async fn query(&self, path: &str, _: Vec<u8>) -> Result<Vec<u8>, SdkError> {
             match path {
-                "/clammgrad.v1.ClammGraduationService/GetGraduationState" => {
+                "/clmmgrad.v1.ClmmGraduationService/GetGraduationState" => {
                     Ok(prost::Message::encode_to_vec(&proto::GetGraduationStateResponse {
                         state: Some(proto::GraduationState {
                             token_index: "42".into(), status: 1,
@@ -98,14 +98,14 @@ mod tests {
                         }),
                     }))
                 }
-                "/clammgrad.v1.ClammGraduationService/ListEligibleTokens" => {
+                "/clmmgrad.v1.ClmmGraduationService/ListEligibleTokens" => {
                     Ok(prost::Message::encode_to_vec(&proto::ListEligibleTokensResponse {
                         token_indexes: vec!["42".into(), "99".into()], next_offset: 2,
                     }))
                 }
-                "/clammgrad.v1.ClammGraduationService/GetParams" => {
+                "/clmmgrad.v1.ClmmGraduationService/GetParams" => {
                     Ok(prost::Message::encode_to_vec(&proto::GetParamsResponse {
-                        params: Some(proto::ClammGraduationParams::default()),
+                        params: Some(proto::Params::default()),
                     }))
                 }
                 _ => Err(SdkError::transport("unexpected path")),
@@ -113,8 +113,8 @@ mod tests {
         }
     }
 
-    fn make_client() -> ClammGradClient {
-        ClammGradClient::new(SdkConfig::new("https://sentry.morpheum.xyz", "morpheum-test-1"), Box::new(DummyTransport))
+    fn make_client() -> ClmmGradClient {
+        ClmmGradClient::new(SdkConfig::new("https://sentry.morpheum.xyz", "morpheum-test-1"), Box::new(DummyTransport))
     }
 
     #[tokio::test]

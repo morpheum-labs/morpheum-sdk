@@ -1,4 +1,4 @@
-//! Request wrappers for the CLAMM Graduation module.
+//! Request wrappers for the CLMM Graduation module.
 
 use alloc::string::String;
 
@@ -7,12 +7,12 @@ use prost::Message as _;
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
-use morpheum_proto::clammgrad::v1 as proto;
+use morpheum_proto::clmmgrad::v1 as proto;
 use morpheum_proto::google::protobuf::Any as ProtoAny;
 
 // ====================== TRANSACTION REQUESTS ======================
 
-/// Request to initiate CLAMM graduation for a token.
+/// Request to initiate CLMM graduation for a token.
 #[derive(Clone, Debug, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct InitiateGraduationRequest {
@@ -23,8 +23,8 @@ impl InitiateGraduationRequest {
     pub fn new(token_index: impl Into<String>) -> Self { Self { token_index: token_index.into() } }
 
     pub fn to_any(&self) -> ProtoAny {
-        let msg = proto::InitiateClammGraduationRequest { token_index: self.token_index.clone() };
-        ProtoAny { type_url: "/clammgrad.v1.InitiateClammGraduationRequest".into(), value: msg.encode_to_vec() }
+        let msg = proto::InitiateClmmGraduationRequest { token_index: self.token_index.clone() };
+        ProtoAny { type_url: "/clmmgrad.v1.InitiateClmmGraduationRequest".into(), value: msg.encode_to_vec() }
     }
 }
 
@@ -40,7 +40,7 @@ impl CancelGraduationRequest {
 
     pub fn to_any(&self) -> ProtoAny {
         let msg = proto::CancelGraduationRequest { token_index: self.token_index.clone() };
-        ProtoAny { type_url: "/clammgrad.v1.CancelGraduationRequest".into(), value: msg.encode_to_vec() }
+        ProtoAny { type_url: "/clmmgrad.v1.CancelGraduationRequest".into(), value: msg.encode_to_vec() }
     }
 }
 
@@ -49,11 +49,11 @@ impl CancelGraduationRequest {
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct UpdateParamsRequest {
     pub authority: String,
-    pub params: crate::types::ClammGraduationParams,
+    pub params: crate::types::ClmmGraduationParams,
 }
 
 impl UpdateParamsRequest {
-    pub fn new(authority: impl Into<String>, params: crate::types::ClammGraduationParams) -> Self {
+    pub fn new(authority: impl Into<String>, params: crate::types::ClmmGraduationParams) -> Self {
         Self { authority: authority.into(), params }
     }
 
@@ -73,7 +73,7 @@ impl UpdateParamsRequest {
                 reserved: alloc::vec::Vec::new(),
             }),
         };
-        ProtoAny { type_url: "/clammgrad.v1.MsgUpdateParams".into(), value: msg.encode_to_vec() }
+        ProtoAny { type_url: "/clmmgrad.v1.MsgUpdateParams".into(), value: msg.encode_to_vec() }
     }
 }
 
@@ -132,14 +132,14 @@ mod tests {
     #[test]
     fn initiate_to_any() {
         let any = InitiateGraduationRequest::new("42").to_any();
-        assert_eq!(any.type_url, "/clammgrad.v1.InitiateClammGraduationRequest");
+        assert_eq!(any.type_url, "/clmmgrad.v1.InitiateClmmGraduationRequest");
         assert!(!any.value.is_empty());
     }
 
     #[test]
     fn cancel_to_any() {
         let any = CancelGraduationRequest::new("42").to_any();
-        assert_eq!(any.type_url, "/clammgrad.v1.CancelGraduationRequest");
+        assert_eq!(any.type_url, "/clmmgrad.v1.CancelGraduationRequest");
     }
 
     #[test]

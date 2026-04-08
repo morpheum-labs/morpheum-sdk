@@ -230,14 +230,14 @@ impl ChannelSpec {
         Self::with_coin("staking", coin)
     }
 
-    /// CLAMM pool events.
-    pub fn clamm(coin: impl Into<String>) -> Self {
-        Self::with_coin("clamm", coin)
+    /// CLMM pool events.
+    pub fn clmm(coin: impl Into<String>) -> Self {
+        Self::with_coin("clmm", coin)
     }
 
-    /// CLAMM graduation events.
-    pub fn clamm_grad(coin: impl Into<String>) -> Self {
-        Self::with_coin("clammgrad", coin)
+    /// CLMM graduation events.
+    pub fn clmm_grad(coin: impl Into<String>) -> Self {
+        Self::with_coin("clmmgrad", coin)
     }
 
     /// Bonding curve events.

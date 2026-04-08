@@ -1,12 +1,12 @@
 [package]
-name = "morpheum-sdk-clammgrad"
+name = "morpheum-sdk-clmmgrad"
 version.workspace = true
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
 repository.workspace = true
 homepage.workspace = true
-description = "CLAMM Graduation module client for the Morpheum SDK — orchestrates CLAMM-to-CLOB venue transition, liquidity draining, market creation, and graduation lifecycle"
+description = "CLMM Graduation module client for the Morpheum SDK — orchestrates CLMM-to-CLOB venue transition, liquidity draining, market creation, and graduation lifecycle"
 
 [lib]
 crate-type = ["lib"]

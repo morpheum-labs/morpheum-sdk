@@ -1,12 +1,12 @@
 [package]
-name = "morpheum-sdk-clamm"
+name = "morpheum-sdk-clmm"
 version.workspace = true
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
 repository.workspace = true
 homepage.workspace = true
-description = "CLAMM (Concentrated Liquidity AMM) module client for the Morpheum SDK — liquidity provision, fee collection, swap simulation, depth queries, boosted pools, and ReClamm glide"
+description = "CLMM (Concentrated Liquidity AMM) module client for the Morpheum SDK — liquidity provision, fee collection, swap simulation, depth queries, boosted pools, and ReClmm glide"
 
 [lib]
 crate-type = ["lib"]

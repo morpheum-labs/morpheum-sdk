@@ -121,7 +121,7 @@ impl From<SellRequest> for proto::MsgSell {
     fn from(r: SellRequest) -> Self { Self { token_index: r.token_index, token_amount: r.token_amount } }
 }
 
-/// Request to execute graduation (transition to CLAMM pool).
+/// Request to execute graduation (transition to CLMM pool).
 #[derive(Clone, Debug, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct ExecuteGraduationRequest {

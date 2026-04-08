@@ -1,9 +1,9 @@
-//! CLAMM (Concentrated Liquidity AMM) module for the Morpheum SDK.
+//! CLMM (Concentrated Liquidity AMM) module for the Morpheum SDK.
 //!
 //! Provides full support for interacting with Morpheum's concentrated-liquidity
 //! AMM, including adding/removing liquidity with tick ranges, fee collection,
 //! yield claiming (standard and boosted), swap simulation, AMM quoting,
-//! liquidity depth queries, pool risk analysis, and ReClamm glide operations.
+//! liquidity depth queries, pool risk analysis, and ReClmm glide operations.
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
@@ -16,20 +16,20 @@ pub mod builder;
 
 // ==================== PUBLIC RE-EXPORTS ====================
 
-pub use client::ClammClient;
+pub use client::ClmmClient;
 
 pub use types::{
     BoostedBuffer,
     BurnEvent,
-    ClammPosition,
-    ClammQuote,
+    ClmmPosition,
+    ClmmQuote,
     CollectEvent,
     GlideSimulation,
     LiquidityDepthBand,
     MintEvent,
     PoolRiskSummary,
     QuoteResult,
-    ReClammGlideUpdated,
+    ReClmmGlideUpdated,
     Side,
     SwapExecuted,
     SwapSimulation,
@@ -47,7 +47,7 @@ pub use requests::{
     GetPositionRequest,
     GetQuoteRequest,
     RemoveLiquidityRequest,
-    SimulateReClammGlideRequest,
+    SimulateReClmmGlideRequest,
     SimulateSwapRequest,
 };
 
@@ -62,16 +62,16 @@ pub use builder::{
 
 pub use morpheum_sdk_core::{AccountId, ChainId, SdkError, SignedTx};
 
-/// Recommended prelude for the CLAMM module.
+/// Recommended prelude for the CLMM module.
 ///
 /// Most users should start with:
 /// ```rust
-/// use morpheum_sdk_clamm::prelude::*;
+/// use morpheum_sdk_clmm::prelude::*;
 /// ```
 pub mod prelude {
     pub use super::{
-        ClammClient,
-        ClammPosition,
+        ClmmClient,
+        ClmmPosition,
         Side,
         SwapSimulation,
         QuoteResult,
@@ -87,7 +87,7 @@ pub mod prelude {
     };
 }
 
-/// Current version of the CLAMM module (synchronized with workspace version).
+/// Current version of the CLMM module (synchronized with workspace version).
 pub const VERSION: &str = env!("CARGO_PKG_VERSION");
 
 #[cfg(test)]

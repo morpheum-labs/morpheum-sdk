@@ -64,8 +64,8 @@ svm = ["dep:morpheum-sdk-svm"]
 cosmwasm = ["dep:morpheum-sdk-cosmwasm", "morpheum-sdk-cosmwasm?/serde"]
 bondingcurve = ["dep:morpheum-sdk-bondingcurve", "morpheum-sdk-bondingcurve?/serde"]
 bucket = ["dep:morpheum-sdk-bucket", "morpheum-sdk-bucket?/serde"]
-clamm = ["dep:morpheum-sdk-clamm", "morpheum-sdk-clamm?/serde"]
-clammgrad = ["dep:morpheum-sdk-clammgrad", "morpheum-sdk-clammgrad?/serde"]
+clmm = ["dep:morpheum-sdk-clmm", "morpheum-sdk-clmm?/serde"]
+clmmgrad = ["dep:morpheum-sdk-clmmgrad", "morpheum-sdk-clmmgrad?/serde"]
 clob = ["dep:morpheum-sdk-clob", "morpheum-sdk-clob?/serde"]
 position = ["dep:morpheum-sdk-position", "morpheum-sdk-position?/serde"]
 ws = ["dep:morpheum-sdk-ws", "morpheum-sdk-ws?/serde"]
@@ -90,8 +90,8 @@ std = [
     "morpheum-sdk-staking?/std",
     "morpheum-sdk-bondingcurve?/std",
     "morpheum-sdk-bucket?/std",
-    "morpheum-sdk-clamm?/std",
-    "morpheum-sdk-clammgrad?/std",
+    "morpheum-sdk-clmm?/std",
+    "morpheum-sdk-clmmgrad?/std",
     "morpheum-sdk-clob?/std",
     "morpheum-sdk-fundingrate?/std",
     "morpheum-sdk-insurance?/std",
@@ -156,8 +156,8 @@ morpheum-sdk-svm = { path = "../svm", optional = true }
 morpheum-sdk-cosmwasm = { path = "../cosmwasm", optional = true, default-features = false }
 morpheum-sdk-bondingcurve = { path = "../bondingcurve", optional = true, default-features = false }
 morpheum-sdk-bucket = { path = "../bucket", optional = true, default-features = false }
-morpheum-sdk-clamm = { path = "../clamm", optional = true, default-features = false }
-morpheum-sdk-clammgrad = { path = "../clammgrad", optional = true, default-features = false }
+morpheum-sdk-clmm = { path = "../clmm", optional = true, default-features = false }
+morpheum-sdk-clmmgrad = { path = "../clmmgrad", optional = true, default-features = false }
 morpheum-sdk-clob = { path = "../clob", optional = true, default-features = false }
 morpheum-sdk-position = { path = "../position", optional = true, default-features = false }
 morpheum-sdk-ws = { path = "../ws", optional = true }

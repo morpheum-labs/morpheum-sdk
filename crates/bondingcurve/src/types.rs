@@ -342,7 +342,7 @@ impl From<proto::GraduationThresholdReached> for GraduationThresholdReached {
     }
 }
 
-/// Emitted when graduation to CLAMM is complete.
+/// Emitted when graduation to CLMM is complete.
 #[derive(Clone, Debug, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct GraduationComplete {

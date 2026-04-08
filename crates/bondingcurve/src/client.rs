@@ -94,7 +94,7 @@ mod tests {
                 }
                 "/bondingcurve.v1.Query/GetParams" => {
                     Ok(prost::Message::encode_to_vec(&proto::QueryParamsResponse {
-                        params: Some(proto::BondingCurveParams::default()),
+                        params: Some(proto::Params::default()),
                     }))
                 }
                 _ => Err(SdkError::transport("unexpected path")),

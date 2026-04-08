@@ -1,4 +1,4 @@
-//! Request wrappers for the CLAMM module.
+//! Request wrappers for the CLMM module.
 //!
 //! Transaction requests include `to_any()` for `TxBuilder` integration.
 //! Query requests convert to proto via `From` impls.
@@ -10,7 +10,7 @@ use prost::Message as _;
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
-use morpheum_proto::generated::clamm::v1 as proto;
+use morpheum_proto::generated::clmm::v1 as proto;
 use morpheum_proto::google::protobuf::Any as ProtoAny;
 
 use crate::types::Side;
@@ -50,7 +50,7 @@ impl AddLiquidityRequest {
 
     pub fn to_any(&self) -> ProtoAny {
         let msg: proto::AddLiquidityRequest = self.clone().into();
-        ProtoAny { type_url: "/clamm.v1.AddLiquidityRequest".into(), value: msg.encode_to_vec() }
+        ProtoAny { type_url: "/clmm.v1.AddLiquidityRequest".into(), value: msg.encode_to_vec() }
     }
 }
 
@@ -89,7 +89,7 @@ impl RemoveLiquidityRequest {
 
     pub fn to_any(&self) -> ProtoAny {
         let msg: proto::RemoveLiquidityRequest = self.clone().into();
-        ProtoAny { type_url: "/clamm.v1.RemoveLiquidityRequest".into(), value: msg.encode_to_vec() }
+        ProtoAny { type_url: "/clmm.v1.RemoveLiquidityRequest".into(), value: msg.encode_to_vec() }
     }
 }
 
@@ -116,7 +116,7 @@ impl CollectFeesRequest {
 
     pub fn to_any(&self) -> ProtoAny {
         let msg = proto::CollectFeesRequest { position_id: self.position_id.clone(), timestamp: None };
-        ProtoAny { type_url: "/clamm.v1.CollectFeesRequest".into(), value: msg.encode_to_vec() }
+        ProtoAny { type_url: "/clmm.v1.CollectFeesRequest".into(), value: msg.encode_to_vec() }
     }
 }
 
@@ -140,7 +140,7 @@ impl ClaimYieldRequest {
 
     pub fn to_any(&self) -> ProtoAny {
         let msg: proto::ClaimYieldRequest = self.clone().into();
-        ProtoAny { type_url: "/clamm.v1.ClaimYieldRequest".into(), value: msg.encode_to_vec() }
+        ProtoAny { type_url: "/clmm.v1.ClaimYieldRequest".into(), value: msg.encode_to_vec() }
     }
 }
 
@@ -170,7 +170,7 @@ impl ClaimBoostedYieldRequest {
 
     pub fn to_any(&self) -> ProtoAny {
         let msg: proto::ClaimBoostedYieldRequest = self.clone().into();
-        ProtoAny { type_url: "/clamm.v1.ClaimBoostedYieldRequest".into(), value: msg.encode_to_vec() }
+        ProtoAny { type_url: "/clmm.v1.ClaimBoostedYieldRequest".into(), value: msg.encode_to_vec() }
     }
 }
 
@@ -180,7 +180,7 @@ impl From<ClaimBoostedYieldRequest> for proto::ClaimBoostedYieldRequest {
     }
 }
 
-/// Request to force a ReClamm glide (governance only).
+/// Request to force a ReClmm glide (governance only).
 #[derive(Clone, Debug, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct ForceGlideRequest {
@@ -198,7 +198,7 @@ impl ForceGlideRequest {
 
     pub fn to_any(&self) -> ProtoAny {
         let msg: proto::ForceGlideRequest = self.clone().into();
-        ProtoAny { type_url: "/clamm.v1.ForceGlideRequest".into(), value: msg.encode_to_vec() }
+        ProtoAny { type_url: "/clmm.v1.ForceGlideRequest".into(), value: msg.encode_to_vec() }
     }
 }
 
@@ -210,7 +210,7 @@ impl From<ForceGlideRequest> for proto::ForceGlideRequest {
 
 // ====================== QUERY REQUESTS ======================
 
-/// Query a single CLAMM position by ID.
+/// Query a single CLMM position by ID.
 #[derive(Clone, Debug, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct GetPositionRequest {
@@ -225,7 +225,7 @@ impl From<GetPositionRequest> for proto::GetPositionRequest {
     fn from(r: GetPositionRequest) -> Self { Self { position_id: r.position_id } }
 }
 
-/// Simulate a swap on the CLAMM.
+/// Simulate a swap on the CLMM.
 #[derive(Clone, Debug, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct SimulateSwapRequest {
@@ -329,16 +329,16 @@ impl From<GetBoostedBufferRequest> for proto::GetBoostedBufferRequest {
     fn from(r: GetBoostedBufferRequest) -> Self { Self { pool_id: r.pool_id } }
 }
 
-/// Simulate a ReClamm glide operation.
+/// Simulate a ReClmm glide operation.
 #[derive(Clone, Debug, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-pub struct SimulateReClammGlideRequest {
+pub struct SimulateReClmmGlideRequest {
     pub pool_id: String,
     pub target_price: String,
     pub max_slippage_bps: Option<String>,
 }
 
-impl SimulateReClammGlideRequest {
+impl SimulateReClmmGlideRequest {
     pub fn new(pool_id: impl Into<String>, target_price: impl Into<String>) -> Self {
         Self { pool_id: pool_id.into(), target_price: target_price.into(), max_slippage_bps: None }
     }
@@ -346,8 +346,8 @@ impl SimulateReClammGlideRequest {
     pub fn max_slippage_bps(mut self, bps: impl Into<String>) -> Self { self.max_slippage_bps = Some(bps.into()); self }
 }
 
-impl From<SimulateReClammGlideRequest> for proto::SimulateReClammGlideRequest {
-    fn from(r: SimulateReClammGlideRequest) -> Self {
+impl From<SimulateReClmmGlideRequest> for proto::SimulateReClmmGlideRequest {
+    fn from(r: SimulateReClmmGlideRequest) -> Self {
         Self { pool_id: r.pool_id, target_price: r.target_price, max_slippage_bps: r.max_slippage_bps, timestamp: None }
     }
 }
@@ -395,7 +395,7 @@ impl SwapExactInRequest {
 
     pub fn to_any(&self) -> ProtoAny {
         let msg: proto::SwapExactInRequest = self.clone().into();
-        ProtoAny { type_url: "/clamm.v1.SwapExactInRequest".into(), value: msg.encode_to_vec() }
+        ProtoAny { type_url: "/clmm.v1.SwapExactInRequest".into(), value: msg.encode_to_vec() }
     }
 }
 
@@ -417,7 +417,7 @@ mod tests {
     fn add_liquidity_to_any() {
         let req = AddLiquidityRequest::new("0x1234", "morpheum1abc", -100, 100, "500", "500");
         let any = req.to_any();
-        assert_eq!(any.type_url, "/clamm.v1.AddLiquidityRequest");
+        assert_eq!(any.type_url, "/clmm.v1.AddLiquidityRequest");
         assert!(!any.value.is_empty());
     }
 
@@ -425,25 +425,25 @@ mod tests {
     fn remove_liquidity_to_any() {
         let req = RemoveLiquidityRequest::new("pos-1", "250").min_amounts("100", "100");
         let any = req.to_any();
-        assert_eq!(any.type_url, "/clamm.v1.RemoveLiquidityRequest");
+        assert_eq!(any.type_url, "/clmm.v1.RemoveLiquidityRequest");
     }
 
     #[test]
     fn collect_fees_to_any() {
         let any = CollectFeesRequest::new("pos-1").to_any();
-        assert_eq!(any.type_url, "/clamm.v1.CollectFeesRequest");
+        assert_eq!(any.type_url, "/clmm.v1.CollectFeesRequest");
     }
 
     #[test]
     fn claim_yield_to_any() {
         let any = ClaimYieldRequest::new("morpheum1abc", "0x1234").to_any();
-        assert_eq!(any.type_url, "/clamm.v1.ClaimYieldRequest");
+        assert_eq!(any.type_url, "/clmm.v1.ClaimYieldRequest");
     }
 
     #[test]
     fn force_glide_to_any() {
         let any = ForceGlideRequest::new("0x1234", "50000").authority("governance").to_any();
-        assert_eq!(any.type_url, "/clamm.v1.ForceGlideRequest");
+        assert_eq!(any.type_url, "/clmm.v1.ForceGlideRequest");
     }
 
     #[test]

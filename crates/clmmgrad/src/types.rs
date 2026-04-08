@@ -1,4 +1,4 @@
-//! Domain types for the CLAMM Graduation module.
+//! Domain types for the CLMM Graduation module.
 //!
 //! Covers the graduation state machine, parameters, checkpoints, and
 //! all lifecycle events from initiation through completion or failure.
@@ -9,7 +9,7 @@ use alloc::vec::Vec;
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
-use morpheum_proto::clammgrad::v1 as proto;
+use morpheum_proto::clmmgrad::v1 as proto;
 
 // ====================== ENUM ======================
 
@@ -75,7 +75,7 @@ pub struct GraduationState {
     pub status: GraduationStatus,
     pub spot_market_index: String,
     pub perp_market_index: String,
-    pub clamm_pool_id: String,
+    pub clmm_pool_id: String,
     pub initiated_at: u64,
     pub completed_at: u64,
     pub failure_reason: String,
@@ -91,7 +91,7 @@ impl From<proto::GraduationState> for GraduationState {
             status: GraduationStatus::from(p.status),
             spot_market_index: p.spot_market_index,
             perp_market_index: p.perp_market_index,
-            clamm_pool_id: p.clamm_pool_id,
+            clmm_pool_id: p.clmm_pool_id,
             initiated_at: p.initiated_at,
             completed_at: p.completed_at,
             failure_reason: p.failure_reason,
@@ -107,7 +107,7 @@ impl From<proto::GraduationState> for GraduationState {
 /// Module-level graduation parameters.
 #[derive(Clone, Debug, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-pub struct ClammGraduationParams {
+pub struct ClmmGraduationParams {
     pub min_mcap_sat: String,
     pub min_tvl_sat: String,
     pub min_volume_30d_sat: String,
@@ -119,7 +119,7 @@ pub struct ClammGraduationParams {
     pub graduation_timeout_blocks: u64,
 }
 
-impl From<proto::Params> for ClammGraduationParams {
+impl From<proto::Params> for ClmmGraduationParams {
     fn from(p: proto::Params) -> Self {
         Self {
             min_mcap_sat: p.min_mcap_sat, min_tvl_sat: p.min_tvl_sat,
@@ -148,7 +148,7 @@ impl From<proto::GraduationInitiated> for GraduationInitiated {
     }
 }
 
-/// Emitted when liquidity is drained from the CLAMM pool.
+/// Emitted when liquidity is drained from the CLMM pool.
 #[derive(Clone, Debug, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct LiquidityDrained {
@@ -278,7 +278,7 @@ mod tests {
         let p = proto::GraduationState {
             token_index: "42".into(), status: 1,
             spot_market_index: "100".into(), perp_market_index: "101".into(),
-            clamm_pool_id: "0x1234".into(), initiated_at: 1000, completed_at: 0,
+            clmm_pool_id: "0x1234".into(), initiated_at: 1000, completed_at: 0,
             failure_reason: String::new(),
             checkpoints: vec![proto::GraduationCheckpoint {
                 step: 1, description: "draining".into(),

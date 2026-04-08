@@ -6,7 +6,7 @@ rust-version.workspace = true
 license.workspace = true
 repository.workspace = true
 homepage.workspace = true
-description = "Bonding-curve module client for the Morpheum SDK — agent token launch, buy/sell on the curve, graduation to CLAMM, and prediction-enhanced tokens"
+description = "Bonding-curve module client for the Morpheum SDK — agent token launch, buy/sell on the curve, graduation to CLMM, and prediction-enhanced tokens"
 
 [lib]
 crate-type = ["lib"]

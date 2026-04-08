@@ -302,6 +302,8 @@ pub struct GovParams {
     pub max_proposals_per_epoch: u64,
     pub max_market_proposals_per_block: u64,
     pub min_grace_period: String,
+    /// Address authorized for governance-gated module updates (`MsgUpdateParams`, etc.).
+    pub governance_controller: String,
 }
 
 impl From<proto::GovParams> for GovParams {
@@ -328,6 +330,7 @@ impl From<proto::GovParams> for GovParams {
             max_proposals_per_epoch: p.max_proposals_per_epoch,
             max_market_proposals_per_block: p.max_market_proposals_per_block,
             min_grace_period: p.min_grace_period,
+            governance_controller: p.governance_controller,
         }
     }
 }
@@ -356,6 +359,7 @@ impl From<GovParams> for proto::GovParams {
             max_proposals_per_epoch: p.max_proposals_per_epoch,
             max_market_proposals_per_block: p.max_market_proposals_per_block,
             min_grace_period: p.min_grace_period,
+            governance_controller: p.governance_controller,
         }
     }
 }

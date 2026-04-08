@@ -1,14 +1,14 @@
-//! Domain types for the CLAMM module.
+//! Domain types for the CLMM module.
 //!
 //! Covers concentrated-liquidity positions, quotes, liquidity depth bands,
-//! and events (swap, mint, burn, collect, ReClamm glide).
+//! and events (swap, mint, burn, collect, ReClmm glide).
 
 use alloc::string::String;
 
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
-use morpheum_proto::generated::clamm::v1 as proto;
+use morpheum_proto::generated::clmm::v1 as proto;
 
 // ====================== ENUM ======================
 
@@ -44,7 +44,7 @@ fn ts_secs(ts: Option<morpheum_proto::google::protobuf::Timestamp>) -> u64 {
 /// A concentrated-liquidity position.
 #[derive(Clone, Debug, PartialEq)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-pub struct ClammPosition {
+pub struct ClmmPosition {
     pub position_id: String,
     pub address: String,
     pub pool_id: String,
@@ -63,8 +63,8 @@ pub struct ClammPosition {
     pub external_address: Option<String>,
 }
 
-impl From<proto::ClammPosition> for ClammPosition {
-    fn from(p: proto::ClammPosition) -> Self {
+impl From<proto::ClmmPosition> for ClmmPosition {
+    fn from(p: proto::ClmmPosition) -> Self {
         Self {
             position_id: p.position_id,
             address: p.address,
@@ -88,10 +88,10 @@ impl From<proto::ClammPosition> for ClammPosition {
 
 // ====================== QUOTE ======================
 
-/// A market-maker quote (CLAMM-side; deprecated in favour of CLOB quotes).
+/// A market-maker quote (CLMM-side; deprecated in favour of CLOB quotes).
 #[derive(Clone, Debug, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-pub struct ClammQuote {
+pub struct ClmmQuote {
     pub quote_id: String,
     pub pool_id: String,
     pub market_index: u64,
@@ -103,8 +103,8 @@ pub struct ClammQuote {
     pub created_at: u64,
 }
 
-impl From<proto::ClammQuote> for ClammQuote {
-    fn from(p: proto::ClammQuote) -> Self {
+impl From<proto::ClmmQuote> for ClmmQuote {
+    fn from(p: proto::ClmmQuote) -> Self {
         Self {
             quote_id: p.quote_id,
             pool_id: p.pool_id,
@@ -182,7 +182,7 @@ pub struct BoostedBuffer {
     pub apy_estimate: String,
 }
 
-/// ReClamm glide simulation result.
+/// ReClmm glide simulation result.
 #[derive(Clone, Debug, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct GlideSimulation {
@@ -216,7 +216,7 @@ impl From<proto::QueryPoolFeeStatsResponse> for PoolFeeStats {
 
 // ====================== EVENTS ======================
 
-/// A swap executed on the CLAMM.
+/// A swap executed on the CLMM.
 #[derive(Clone, Debug, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct SwapExecuted {
@@ -309,10 +309,10 @@ impl From<proto::CollectEvent> for CollectEvent {
     }
 }
 
-/// ReClamm glide update event.
+/// ReClmm glide update event.
 #[derive(Clone, Debug, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-pub struct ReClammGlideUpdated {
+pub struct ReClmmGlideUpdated {
     pub pool_id: String,
     pub virtual_price: String,
     pub glide_target: String,
@@ -320,8 +320,8 @@ pub struct ReClammGlideUpdated {
     pub timestamp: u64,
 }
 
-impl From<proto::ReClammGlideUpdated> for ReClammGlideUpdated {
-    fn from(p: proto::ReClammGlideUpdated) -> Self {
+impl From<proto::ReClmmGlideUpdated> for ReClmmGlideUpdated {
+    fn from(p: proto::ReClmmGlideUpdated) -> Self {
         Self {
             pool_id: p.pool_id, virtual_price: p.virtual_price,
             glide_target: p.glide_target, glide_speed: p.glide_speed,
@@ -343,8 +343,8 @@ mod tests {
     }
 
     #[test]
-    fn clamm_position_from_proto() {
-        let p = proto::ClammPosition {
+    fn clmm_position_from_proto() {
+        let p = proto::ClmmPosition {
             position_id: "pos-1".into(),
             address: "morpheum1abc".into(),
             pool_id: "0x1234".into(),
@@ -354,7 +354,7 @@ mod tests {
             deposit_time: Some(morpheum_proto::google::protobuf::Timestamp { seconds: 1_700_000_000, nanos: 0 }),
             ..Default::default()
         };
-        let pos: ClammPosition = p.into();
+        let pos: ClmmPosition = p.into();
         assert_eq!(pos.position_id, "pos-1");
         assert_eq!(pos.tick_lower, -1000);
         assert_eq!(pos.tick_upper, 1000);

@@ -1,4 +1,4 @@
-//! Fluent builders for the CLAMM Graduation module.
+//! Fluent builders for the CLMM Graduation module.
 
 use alloc::string::String;
 
@@ -10,7 +10,7 @@ use crate::requests::{
 
 // ====================== INITIATE GRADUATION ======================
 
-/// Fluent builder for initiating CLAMM graduation.
+/// Fluent builder for initiating CLMM graduation.
 #[derive(Default)]
 pub struct InitiateGraduationBuilder {
     token_index: Option<String>,

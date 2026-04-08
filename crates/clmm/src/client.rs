@@ -1,7 +1,7 @@
-//! ClammClient — main entry point for all CLAMM-related queries.
+//! ClmmClient — main entry point for all CLMM-related queries.
 //!
 //! Covers position lookup, swap simulation, AMM quoting, liquidity depth,
-//! pool risk, boosted buffer, and ReClamm glide simulation.
+//! pool risk, boosted buffer, and ReClmm glide simulation.
 
 use alloc::boxed::Box;
 use alloc::vec::Vec;
@@ -10,11 +10,11 @@ use async_trait::async_trait;
 use prost::Message as _;
 
 use morpheum_sdk_core::{MorpheumClient, SdkConfig, SdkError, Transport};
-use morpheum_proto::generated::clamm::v1 as proto;
+use morpheum_proto::generated::clmm::v1 as proto;
 
 use crate::requests;
 use crate::types::{
-    BoostedBuffer, ClammPosition, GlideSimulation, LiquidityDepthBand,
+    BoostedBuffer, ClmmPosition, GlideSimulation, LiquidityDepthBand,
     PoolFeeStats, PoolRiskSummary, QuoteResult, SwapSimulation,
 };
 
@@ -24,22 +24,22 @@ fn check_success(success: bool, err: &str) -> Result<(), SdkError> {
     }
 }
 
-/// Primary client for all CLAMM queries and simulations.
-pub struct ClammClient {
+/// Primary client for all CLMM queries and simulations.
+pub struct ClmmClient {
     config: SdkConfig,
     transport: Box<dyn Transport>,
 }
 
-impl ClammClient {
+impl ClmmClient {
     pub fn new(config: SdkConfig, transport: Box<dyn Transport>) -> Self {
         Self { config, transport }
     }
 
-    /// Fetches a CLAMM position by ID.
-    pub async fn get_position(&self, position_id: impl Into<alloc::string::String>) -> Result<ClammPosition, SdkError> {
+    /// Fetches a CLMM position by ID.
+    pub async fn get_position(&self, position_id: impl Into<alloc::string::String>) -> Result<ClmmPosition, SdkError> {
         let req = requests::GetPositionRequest::new(position_id);
         let proto_req: proto::GetPositionRequest = req.into();
-        let resp = self.query("/clamm.v1.Query/GetPosition", proto_req.encode_to_vec()).await?;
+        let resp = self.query("/clmm.v1.Query/GetPosition", proto_req.encode_to_vec()).await?;
         let p = proto::GetPositionResponse::decode(resp.as_slice()).map_err(SdkError::Decode)?;
         check_success(p.success, &p.error_message)?;
         p.position.map(Into::into).ok_or_else(|| SdkError::transport("position field missing"))
@@ -48,7 +48,7 @@ impl ClammClient {
     /// Simulates a swap and returns the expected outcome.
     pub async fn simulate_swap(&self, request: requests::SimulateSwapRequest) -> Result<SwapSimulation, SdkError> {
         let proto_req: proto::SimulateSwapRequest = request.into();
-        let resp = self.query("/clamm.v1.Query/SimulateSwap", proto_req.encode_to_vec()).await?;
+        let resp = self.query("/clmm.v1.Query/SimulateSwap", proto_req.encode_to_vec()).await?;
         let p = proto::SimulateSwapResponse::decode(resp.as_slice()).map_err(SdkError::Decode)?;
         check_success(p.success, &p.error_message)?;
         Ok(SwapSimulation {
@@ -60,7 +60,7 @@ impl ClammClient {
     /// Gets an AMM quote for a swap.
     pub async fn get_quote(&self, request: requests::GetQuoteRequest) -> Result<QuoteResult, SdkError> {
         let proto_req: proto::GetQuoteRequest = request.into();
-        let resp = self.query("/clamm.v1.Query/GetQuote", proto_req.encode_to_vec()).await?;
+        let resp = self.query("/clmm.v1.Query/GetQuote", proto_req.encode_to_vec()).await?;
         let p = proto::GetQuoteResponse::decode(resp.as_slice()).map_err(SdkError::Decode)?;
         check_success(p.success, &p.error_message)?;
         Ok(QuoteResult {
@@ -74,7 +74,7 @@ impl ClammClient {
         &self, request: requests::GetLiquidityDepthRequest,
     ) -> Result<Vec<LiquidityDepthBand>, SdkError> {
         let proto_req: proto::GetLiquidityDepthRequest = request.into();
-        let resp = self.query("/clamm.v1.Query/GetLiquidityDepth", proto_req.encode_to_vec()).await?;
+        let resp = self.query("/clmm.v1.Query/GetLiquidityDepth", proto_req.encode_to_vec()).await?;
         let p = proto::GetLiquidityDepthResponse::decode(resp.as_slice()).map_err(SdkError::Decode)?;
         check_success(p.success, &p.error_message)?;
         Ok(p.bands.into_iter().map(Into::into).collect())
@@ -86,7 +86,7 @@ impl ClammClient {
     ) -> Result<PoolRiskSummary, SdkError> {
         let req = requests::GetPoolRiskSummaryRequest::new(pool_id);
         let proto_req: proto::GetPoolRiskSummaryRequest = req.into();
-        let resp = self.query("/clamm.v1.Query/GetPoolRiskSummary", proto_req.encode_to_vec()).await?;
+        let resp = self.query("/clmm.v1.Query/GetPoolRiskSummary", proto_req.encode_to_vec()).await?;
         let p = proto::GetPoolRiskSummaryResponse::decode(resp.as_slice()).map_err(SdkError::Decode)?;
         check_success(p.success, &p.error_message)?;
         Ok(PoolRiskSummary {
@@ -101,7 +101,7 @@ impl ClammClient {
     ) -> Result<BoostedBuffer, SdkError> {
         let req = requests::GetBoostedBufferRequest::new(pool_id);
         let proto_req: proto::GetBoostedBufferRequest = req.into();
-        let resp = self.query("/clamm.v1.Query/GetBoostedBuffer", proto_req.encode_to_vec()).await?;
+        let resp = self.query("/clmm.v1.Query/GetBoostedBuffer", proto_req.encode_to_vec()).await?;
         let p = proto::GetBoostedBufferResponse::decode(resp.as_slice()).map_err(SdkError::Decode)?;
         check_success(p.success, &p.error_message)?;
         Ok(BoostedBuffer {
@@ -116,18 +116,18 @@ impl ClammClient {
     ) -> Result<PoolFeeStats, SdkError> {
         let req = requests::QueryPoolFeeStatsRequest::new(pool_id);
         let proto_req: proto::QueryPoolFeeStatsRequest = req.into();
-        let resp = self.query("/clamm.v1.Query/QueryPoolFeeStats", proto_req.encode_to_vec()).await?;
+        let resp = self.query("/clmm.v1.Query/QueryPoolFeeStats", proto_req.encode_to_vec()).await?;
         let p = proto::QueryPoolFeeStatsResponse::decode(resp.as_slice()).map_err(SdkError::Decode)?;
         Ok(PoolFeeStats::from(p))
     }
 
-    /// Simulates a ReClamm glide operation.
-    pub async fn simulate_reclamm_glide(
-        &self, request: requests::SimulateReClammGlideRequest,
+    /// Simulates a ReClmm glide operation.
+    pub async fn simulate_reclmm_glide(
+        &self, request: requests::SimulateReClmmGlideRequest,
     ) -> Result<GlideSimulation, SdkError> {
-        let proto_req: proto::SimulateReClammGlideRequest = request.into();
-        let resp = self.query("/clamm.v1.Query/SimulateReClammGlide", proto_req.encode_to_vec()).await?;
-        let p = proto::SimulateReClammGlideResponse::decode(resp.as_slice()).map_err(SdkError::Decode)?;
+        let proto_req: proto::SimulateReClmmGlideRequest = request.into();
+        let resp = self.query("/clmm.v1.Query/SimulateReClmmGlide", proto_req.encode_to_vec()).await?;
+        let p = proto::SimulateReClmmGlideResponse::decode(resp.as_slice()).map_err(SdkError::Decode)?;
         check_success(p.success, &p.error_message)?;
         Ok(GlideSimulation {
             current_virtual_price: p.current_virtual_price,
@@ -138,7 +138,7 @@ impl ClammClient {
 }
 
 #[async_trait(?Send)]
-impl MorpheumClient for ClammClient {
+impl MorpheumClient for ClmmClient {
     fn config(&self) -> &SdkConfig { &self.config }
     fn transport(&self) -> &dyn Transport { &*self.transport }
 }
@@ -159,10 +159,10 @@ mod tests {
         }
         async fn query(&self, path: &str, _: Vec<u8>) -> Result<Vec<u8>, SdkError> {
             match path {
-                "/clamm.v1.Query/GetPosition" => {
+                "/clmm.v1.Query/GetPosition" => {
                     Ok(prost::Message::encode_to_vec(&proto::GetPositionResponse {
                         success: true,
-                        position: Some(proto::ClammPosition {
+                        position: Some(proto::ClmmPosition {
                             position_id: "pos-1".into(),
                             pool_id: "0x1234".into(),
                             tick_lower: -100,
@@ -173,14 +173,14 @@ mod tests {
                         timestamp: None,
                     }))
                 }
-                "/clamm.v1.Query/SimulateSwap" => {
+                "/clmm.v1.Query/SimulateSwap" => {
                     Ok(prost::Message::encode_to_vec(&proto::SimulateSwapResponse {
                         success: true, amount_in: "1000".into(), amount_out: "990".into(),
                         fee_amount: "3".into(), price_impact: "0.1".into(),
                         error_message: String::new(), timestamp: None,
                     }))
                 }
-                "/clamm.v1.Query/GetPoolRiskSummary" => {
+                "/clmm.v1.Query/GetPoolRiskSummary" => {
                     Ok(prost::Message::encode_to_vec(&proto::GetPoolRiskSummaryResponse {
                         success: true, pool_id: "0x1234".into(),
                         health_score_bps: "9500".into(), utilization_rate: "0.45".into(),
@@ -192,8 +192,8 @@ mod tests {
         }
     }
 
-    fn make_client() -> ClammClient {
-        ClammClient::new(SdkConfig::new("https://sentry.morpheum.xyz", "morpheum-test-1"), Box::new(DummyTransport))
+    fn make_client() -> ClmmClient {
+        ClmmClient::new(SdkConfig::new("https://sentry.morpheum.xyz", "morpheum-test-1"), Box::new(DummyTransport))
     }
 
     #[tokio::test]

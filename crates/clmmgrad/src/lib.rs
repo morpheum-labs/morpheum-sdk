@@ -1,6 +1,6 @@
-//! CLAMM Graduation module for the Morpheum SDK.
+//! CLMM Graduation module for the Morpheum SDK.
 //!
-//! Provides support for the CLAMM-to-CLOB venue transition lifecycle:
+//! Provides support for the CLMM-to-CLOB venue transition lifecycle:
 //! initiating graduation, cancellation, querying graduation state, listing eligible tokens,
 //! and reading module parameters.
 
@@ -15,10 +15,10 @@ pub mod builder;
 
 // ==================== PUBLIC RE-EXPORTS ====================
 
-pub use client::{ClammGradClient, EligibleTokensPage};
+pub use client::{ClmmGradClient, EligibleTokensPage};
 
 pub use types::{
-    ClammGraduationParams,
+    ClmmGraduationParams,
     GraduationCheckpoint,
     GraduationComplete,
     GraduationFailed,
@@ -47,15 +47,15 @@ pub use builder::{
 
 pub use morpheum_sdk_core::{AccountId, ChainId, SdkError, SignedTx};
 
-/// Recommended prelude for the CLAMM Graduation module.
+/// Recommended prelude for the CLMM Graduation module.
 ///
 /// Most users should start with:
 /// ```rust
-/// use morpheum_sdk_clammgrad::prelude::*;
+/// use morpheum_sdk_clmmgrad::prelude::*;
 /// ```
 pub mod prelude {
     pub use super::{
-        ClammGradClient,
+        ClmmGradClient,
         GraduationState,
         GraduationStatus,
         InitiateGraduationBuilder,
@@ -67,7 +67,7 @@ pub mod prelude {
     };
 }
 
-/// Current version of the CLAMM Graduation module (synchronized with workspace version).
+/// Current version of the CLMM Graduation module (synchronized with workspace version).
 pub const VERSION: &str = env!("CARGO_PKG_VERSION");
 
 #[cfg(test)]

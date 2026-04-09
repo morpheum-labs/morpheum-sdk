@@ -15,8 +15,8 @@ use prost::Message as _;
 
 use morpheum_sdk_core::{MorpheumClient, SdkConfig, SdkError, Transport};
 
-use crate::requests::{QueryAssetsRequest, QueryBalanceRequest, QueryBalancesRequest};
-use crate::types::{Asset, AssetsResponse, Balance};
+use crate::requests::{QueryAssetsRequest, QueryBalanceRequest, QueryBalancesRequest, QueryBankFeeStatsRequest};
+use crate::types::{Asset, AssetsResponse, Balance, BankFeeStats};
 
 /// Primary client for all bank-related queries.
 ///
@@ -122,6 +122,22 @@ impl BankClient {
                 })
                 .collect(),
         })
+    }
+    /// Queries aggregated bank fee statistics.
+    pub async fn query_bank_fee_stats(&self) -> Result<BankFeeStats, SdkError> {
+        let req = QueryBankFeeStatsRequest;
+        let proto_req: morpheum_proto::bank::v1::QueryBankFeeStatsRequest = req.into();
+
+        let path = "/bank.v1.Query/QueryBankFeeStats";
+        let data = proto_req.encode_to_vec();
+        let response_bytes = self.query(path, data).await?;
+
+        let proto_res = morpheum_proto::bank::v1::QueryBankFeeStatsResponse::decode(
+            response_bytes.as_slice(),
+        )
+        .map_err(SdkError::Decode)?;
+
+        Ok(BankFeeStats::from(proto_res))
     }
 }
 

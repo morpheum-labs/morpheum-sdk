@@ -103,6 +103,43 @@ pub struct AssetsResponse {
     pub total_count: u64,
 }
 
+// ====================== FEE STATS ======================
+
+/// Aggregated bank fee statistics across all revenue-bearing operations.
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+pub struct BankFeeStats {
+    pub total_withdrawal_fees: u64,
+    pub total_bridge_fees: u64,
+    pub total_onboarding_fees: u64,
+    pub total_mint_fees: u64,
+    pub total_transfer_fees: u64,
+    pub total_treasury_swept: u64,
+    pub withdrawal_count: u64,
+    pub bridge_count: u64,
+    pub onboard_count: u64,
+    pub mint_count: u64,
+    pub transfer_count: u64,
+}
+
+impl From<morpheum_proto::bank::v1::QueryBankFeeStatsResponse> for BankFeeStats {
+    fn from(resp: morpheum_proto::bank::v1::QueryBankFeeStatsResponse) -> Self {
+        Self {
+            total_withdrawal_fees: resp.total_withdrawal_fees,
+            total_bridge_fees: resp.total_bridge_fees,
+            total_onboarding_fees: resp.total_onboarding_fees,
+            total_mint_fees: resp.total_mint_fees,
+            total_transfer_fees: resp.total_transfer_fees,
+            total_treasury_swept: resp.total_treasury_swept,
+            withdrawal_count: resp.withdrawal_count,
+            bridge_count: resp.bridge_count,
+            onboard_count: resp.onboard_count,
+            mint_count: resp.mint_count,
+            transfer_count: resp.transfer_count,
+        }
+    }
+}
+
 // ====================== ASSET INDEX RESOLUTION ======================
 
 /// Well-known asset name → registry index mapping.

@@ -567,6 +567,17 @@ impl From<QueryAssetsRequest> for proto::QueryAssetsRequest {
     }
 }
 
+/// Query aggregated bank fee statistics.
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+pub struct QueryBankFeeStatsRequest;
+
+impl From<QueryBankFeeStatsRequest> for proto::QueryBankFeeStatsRequest {
+    fn from(_req: QueryBankFeeStatsRequest) -> Self {
+        Self {}
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

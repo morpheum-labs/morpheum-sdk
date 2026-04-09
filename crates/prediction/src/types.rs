@@ -327,6 +327,33 @@ impl PredictionMarketEvent {
     }
 }
 
+/// Cumulative per-market fee statistics (revenue observability).
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+pub struct MarketFeeStats {
+    pub feed_id: String,
+    pub total_trade_fees: u64,
+    pub total_settlement_fees: u64,
+    pub total_creation_fees: u64,
+    pub total_treasury_swept: u64,
+    pub trade_count: u64,
+    pub settled: bool,
+}
+
+impl From<proto::QueryMarketFeeStatsResponse> for MarketFeeStats {
+    fn from(p: proto::QueryMarketFeeStatsResponse) -> Self {
+        Self {
+            feed_id: p.feed_id,
+            total_trade_fees: p.total_trade_fees,
+            total_settlement_fees: p.total_settlement_fees,
+            total_creation_fees: p.total_creation_fees,
+            total_treasury_swept: p.total_treasury_swept,
+            trade_count: p.trade_count,
+            settled: p.settled,
+        }
+    }
+}
+
 /// Implied probability update from CLOB trade.
 #[derive(Clone, Debug, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]

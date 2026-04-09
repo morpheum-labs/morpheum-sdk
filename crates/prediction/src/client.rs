@@ -49,6 +49,15 @@ impl PredictionClient {
         })
     }
 
+    /// Gets cumulative fee statistics for a prediction market.
+    pub async fn query_market_fee_stats(&self, feed_id: &str) -> Result<crate::types::MarketFeeStats, SdkError> {
+        let req = requests::QueryMarketFeeStatsRequest::new(feed_id);
+        let proto_req: proto::QueryMarketFeeStatsRequest = req.into();
+        let resp = self.query("/prediction.v1.Query/QueryMarketFeeStats", proto_req.encode_to_vec()).await?;
+        let p = proto::QueryMarketFeeStatsResponse::decode(resp.as_slice()).map_err(SdkError::Decode)?;
+        Ok(p.into())
+    }
+
     /// Gets the implied probability (1e9 scale) for a feed.
     pub async fn get_implied_probability(&self, feed_id: &str) -> Result<u32, SdkError> {
         let req = requests::QueryImpliedProbabilityRequest::new(feed_id);

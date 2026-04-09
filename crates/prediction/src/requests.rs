@@ -219,6 +219,21 @@ impl From<QueryImpliedProbabilityRequest> for proto::QueryPredictionImpliedProba
     fn from(r: QueryImpliedProbabilityRequest) -> Self { Self { feed_id: r.feed_id } }
 }
 
+/// Query cumulative fee statistics for a prediction market.
+#[derive(Clone, Debug, PartialEq, Eq)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+pub struct QueryMarketFeeStatsRequest {
+    pub feed_id: String,
+}
+
+impl QueryMarketFeeStatsRequest {
+    pub fn new(feed_id: impl Into<String>) -> Self { Self { feed_id: feed_id.into() } }
+}
+
+impl From<QueryMarketFeeStatsRequest> for proto::QueryMarketFeeStatsRequest {
+    fn from(r: QueryMarketFeeStatsRequest) -> Self { Self { feed_id: r.feed_id } }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

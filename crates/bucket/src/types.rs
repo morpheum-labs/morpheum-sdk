@@ -540,6 +540,33 @@ pub struct AllBucketsBalance {
     pub total_balance: String,
 }
 
+// ====================== BUCKET FEE STATS ======================
+
+/// Aggregate fee statistics for the bucket module.
+#[derive(Clone, Debug, PartialEq, Eq)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+pub struct BucketFeeStats {
+    pub total_deposit_fees: u64,
+    pub total_liquidation_penalties: u64,
+    pub total_treasury_swept: u64,
+    pub total_insurance_contributions: u64,
+    pub deposit_fee_count: u64,
+    pub liquidation_count: u64,
+}
+
+impl From<proto::QueryBucketFeeStatsResponse> for BucketFeeStats {
+    fn from(p: proto::QueryBucketFeeStatsResponse) -> Self {
+        Self {
+            total_deposit_fees: p.total_deposit_fees,
+            total_liquidation_penalties: p.total_liquidation_penalties,
+            total_treasury_swept: p.total_treasury_swept,
+            total_insurance_contributions: p.total_insurance_contributions,
+            deposit_fee_count: p.deposit_fee_count,
+            liquidation_count: p.liquidation_count,
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

@@ -214,6 +214,14 @@ impl BucketClient {
         })
     }
 
+    /// Gets aggregate fee statistics for the bucket module.
+    pub async fn query_bucket_fee_stats(&self) -> Result<crate::types::BucketFeeStats, SdkError> {
+        let proto_req = proto::QueryBucketFeeStatsRequest {};
+        let resp = self.query("/bucket.v1.Query/QueryBucketFeeStats", proto_req.encode_to_vec()).await?;
+        let proto_res = proto::QueryBucketFeeStatsResponse::decode(resp.as_slice()).map_err(SdkError::Decode)?;
+        Ok(proto_res.into())
+    }
+
     /// Gets ADL execution history.
     pub async fn get_adl_history(
         &self,
@@ -321,6 +329,10 @@ mod tests {
                         success: true,
                         ..Default::default()
                     };
+                    Ok(prost::Message::encode_to_vec(&r))
+                }
+                "/bucket.v1.Query/QueryBucketFeeStats" => {
+                    let r = proto::QueryBucketFeeStatsResponse::default();
                     Ok(prost::Message::encode_to_vec(&r))
                 }
                 _ => Err(SdkError::transport("unexpected query path in test")),

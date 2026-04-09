@@ -488,6 +488,17 @@ impl From<QueryAdlHistoryRequest> for proto::QueryAdlHistoryRequest {
     }
 }
 
+/// Query aggregate bucket fee statistics.
+#[derive(Clone, Debug, PartialEq, Eq)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+pub struct QueryBucketFeeStatsRequest;
+
+impl From<QueryBucketFeeStatsRequest> for proto::QueryBucketFeeStatsRequest {
+    fn from(_req: QueryBucketFeeStatsRequest) -> Self {
+        Self {}
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

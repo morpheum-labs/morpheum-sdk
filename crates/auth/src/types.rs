@@ -130,6 +130,8 @@ impl From<BaseAccount> for proto::BaseAccount {
             account_number: a.account_number,
             nonce_state: Some(a.nonce_state.into()),
             mana_score: a.mana_score,
+            storage_deposit: 0,
+            bytes_reserved: 0,
         }
     }
 }

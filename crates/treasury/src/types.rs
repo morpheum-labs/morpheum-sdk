@@ -51,23 +51,47 @@ impl From<ReserveCategory> for i32 {
 
 // ====================== DOMAIN TYPES ======================
 
+/// Per-asset balance entry within a category or global totals.
+#[derive(Clone, Debug, PartialEq, Eq)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+pub struct AssetBalance {
+    pub asset_index: u64,
+    pub amount: u64,
+}
+
+impl From<proto::AssetBalance> for AssetBalance {
+    fn from(p: proto::AssetBalance) -> Self {
+        Self { asset_index: p.asset_index, amount: p.amount }
+    }
+}
+
 /// Per-category state record.
 #[derive(Clone, Debug, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct CategoryReserve {
     pub category: ReserveCategory,
-    pub balance: u64,
     pub allocation_bps: u32,
     pub last_updated: u64,
     pub metadata: Vec<u8>,
+    pub asset_balances: Vec<AssetBalance>,
+}
+
+impl CategoryReserve {
+    /// Returns the native MORM balance (asset_index=0).
+    pub fn native_balance(&self) -> u64 {
+        self.asset_balances.iter()
+            .find(|a| a.asset_index == 0)
+            .map_or(0, |a| a.amount)
+    }
 }
 
 impl From<proto::CategoryReserve> for CategoryReserve {
     fn from(p: proto::CategoryReserve) -> Self {
         Self {
-            category: ReserveCategory::from(p.category), balance: p.balance,
+            category: ReserveCategory::from(p.category),
             allocation_bps: p.allocation_bps, last_updated: p.last_updated,
             metadata: p.metadata,
+            asset_balances: p.asset_balances.into_iter().map(Into::into).collect(),
         }
     }
 }
@@ -76,21 +100,30 @@ impl From<proto::CategoryReserve> for CategoryReserve {
 #[derive(Clone, Debug, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct ReservesState {
-    pub total_reserves: u64,
     pub categories: Vec<CategoryReserve>,
     pub merkle_root: Vec<u8>,
     pub last_sweep_timestamp: u64,
     pub last_rebalance_timestamp: u64,
+    pub total_asset_reserves: Vec<AssetBalance>,
+}
+
+impl ReservesState {
+    /// Returns the native MORM total (asset_index=0) across all categories.
+    pub fn native_total(&self) -> u64 {
+        self.total_asset_reserves.iter()
+            .find(|a| a.asset_index == 0)
+            .map_or(0, |a| a.amount)
+    }
 }
 
 impl From<proto::ReservesState> for ReservesState {
     fn from(p: proto::ReservesState) -> Self {
         Self {
-            total_reserves: p.total_reserves,
             categories: p.categories.into_iter().map(Into::into).collect(),
             merkle_root: p.merkle_root,
             last_sweep_timestamp: p.last_sweep_timestamp,
             last_rebalance_timestamp: p.last_rebalance_timestamp,
+            total_asset_reserves: p.total_asset_reserves.into_iter().map(Into::into).collect(),
         }
     }
 }
@@ -126,25 +159,34 @@ impl From<proto::AllocationRecord> for AllocationRecord {
 #[derive(Clone, Debug, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct TreasuryMetrics {
-    pub total_reserves: u64,
     pub insurance_protection_balance: u64,
     pub buyback_burn_balance: u64,
     pub reserve_to_oi_ratio_bps: u64,
     pub insurance_coverage_ratio_bps: u64,
     pub projected_runway_days: u64,
     pub last_updated: u64,
+    pub total_asset_reserves: Vec<AssetBalance>,
+}
+
+impl TreasuryMetrics {
+    /// Returns the native MORM total (asset_index=0).
+    pub fn native_total(&self) -> u64 {
+        self.total_asset_reserves.iter()
+            .find(|a| a.asset_index == 0)
+            .map_or(0, |a| a.amount)
+    }
 }
 
 impl From<proto::TreasuryMetrics> for TreasuryMetrics {
     fn from(p: proto::TreasuryMetrics) -> Self {
         Self {
-            total_reserves: p.total_reserves,
             insurance_protection_balance: p.insurance_protection_balance,
             buyback_burn_balance: p.buyback_burn_balance,
             reserve_to_oi_ratio_bps: p.reserve_to_oi_ratio_bps,
             insurance_coverage_ratio_bps: p.insurance_coverage_ratio_bps,
             projected_runway_days: p.projected_runway_days,
             last_updated: p.last_updated.as_ref().map_or(0, |t| t.seconds as u64),
+            total_asset_reserves: p.total_asset_reserves.into_iter().map(Into::into).collect(),
         }
     }
 }
@@ -236,30 +278,34 @@ mod tests {
     #[test]
     fn reserves_state_from_proto() {
         let p = proto::ReservesState {
-            total_reserves: 1_000_000,
             categories: vec![proto::CategoryReserve {
-                category: 1, balance: 400_000, allocation_bps: 4000,
+                category: 1, allocation_bps: 4000,
                 last_updated: 100, metadata: vec![],
+                asset_balances: vec![proto::AssetBalance { asset_index: 0, amount: 400_000 }],
             }],
             merkle_root: vec![0xAB], last_sweep_timestamp: 90,
             last_rebalance_timestamp: 80,
+            total_asset_reserves: vec![proto::AssetBalance { asset_index: 0, amount: 400_000 }],
         };
         let s: ReservesState = p.into();
-        assert_eq!(s.total_reserves, 1_000_000);
+        assert_eq!(s.native_total(), 400_000);
         assert_eq!(s.categories.len(), 1);
         assert_eq!(s.categories[0].category, ReserveCategory::InsuranceProtection);
+        assert_eq!(s.categories[0].native_balance(), 400_000);
     }
 
     #[test]
     fn treasury_metrics_from_proto() {
         let p = proto::TreasuryMetrics {
-            total_reserves: 1_000_000, insurance_protection_balance: 400_000,
+            insurance_protection_balance: 400_000,
             buyback_burn_balance: 200_000, reserve_to_oi_ratio_bps: 1500,
             insurance_coverage_ratio_bps: 2000, projected_runway_days: 365,
             last_updated: Some(morpheum_proto::google::protobuf::Timestamp { seconds: 1700000000, nanos: 0 }),
+            total_asset_reserves: vec![proto::AssetBalance { asset_index: 0, amount: 1_000_000 }],
         };
         let m: TreasuryMetrics = p.into();
         assert_eq!(m.projected_runway_days, 365);
         assert_eq!(m.last_updated, 1700000000);
+        assert_eq!(m.native_total(), 1_000_000);
     }
 }

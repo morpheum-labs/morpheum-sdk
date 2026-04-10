@@ -19,6 +19,7 @@ pub use client::{AllocationHistoryPage, CategoryReserveResult, TreasuryClient};
 
 pub use types::{
     AllocationRecord,
+    AssetBalance,
     CategoryReserve,
     ReserveCategory,
     ReservesState,

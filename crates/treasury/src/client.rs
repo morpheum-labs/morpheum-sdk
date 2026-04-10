@@ -14,10 +14,9 @@ use crate::types::{
     AllocationRecord, CategoryReserve, ReservesState, TreasuryMetrics, TreasuryParams,
 };
 
-/// Category reserve query result with total reserves context.
+/// Category reserve query result.
 pub struct CategoryReserveResult {
     pub category_reserve: CategoryReserve,
-    pub total_reserves: u64,
 }
 
 /// Paginated allocation history result.
@@ -61,7 +60,6 @@ impl TreasuryClient {
         Ok(CategoryReserveResult {
             category_reserve: p.category_reserve.map(Into::into)
                 .ok_or_else(|| SdkError::transport("category_reserve field missing"))?,
-            total_reserves: p.total_reserves,
         })
     }
 
@@ -108,9 +106,10 @@ mod tests {
                 "/treasury.v1.Query/QueryReservesState" => {
                     Ok(prost::Message::encode_to_vec(&proto::QueryReservesStateResponse {
                         state: Some(proto::ReservesState {
-                            total_reserves: 1_000_000, categories: vec![],
+                            categories: vec![],
                             merkle_root: vec![], last_sweep_timestamp: 100,
                             last_rebalance_timestamp: 90,
+                            total_asset_reserves: vec![proto::AssetBalance { asset_index: 0, amount: 1_000_000 }],
                         }),
                         block_height: 50, timestamp: 100,
                     }))
@@ -118,10 +117,11 @@ mod tests {
                 "/treasury.v1.Query/QueryTreasuryMetrics" => {
                     Ok(prost::Message::encode_to_vec(&proto::QueryTreasuryMetricsResponse {
                         metrics: Some(proto::TreasuryMetrics {
-                            total_reserves: 1_000_000, insurance_protection_balance: 400_000,
+                            insurance_protection_balance: 400_000,
                             buyback_burn_balance: 200_000, reserve_to_oi_ratio_bps: 1500,
                             insurance_coverage_ratio_bps: 2000, projected_runway_days: 365,
                             last_updated: None,
+                            total_asset_reserves: vec![proto::AssetBalance { asset_index: 0, amount: 1_000_000 }],
                         }),
                         block_height: 50,
                     }))
@@ -129,10 +129,10 @@ mod tests {
                 "/treasury.v1.Query/QueryCategoryReserve" => {
                     Ok(prost::Message::encode_to_vec(&proto::QueryCategoryReserveResponse {
                         category_reserve: Some(proto::CategoryReserve {
-                            category: 1, balance: 400_000, allocation_bps: 4000,
+                            category: 1, allocation_bps: 4000,
                             last_updated: 100, metadata: vec![],
+                            asset_balances: vec![proto::AssetBalance { asset_index: 0, amount: 400_000 }],
                         }),
-                        total_reserves: 1_000_000,
                     }))
                 }
                 "/treasury.v1.Query/QueryParams" => {
@@ -167,7 +167,7 @@ mod tests {
     #[tokio::test]
     async fn get_reserves_state_works() {
         let s = make_client().get_reserves_state().await.unwrap();
-        assert_eq!(s.total_reserves, 1_000_000);
+        assert_eq!(s.native_total(), 1_000_000);
     }
 
     #[tokio::test]
@@ -183,8 +183,7 @@ mod tests {
                 crate::types::ReserveCategory::InsuranceProtection,
             ))
             .await.unwrap();
-        assert_eq!(r.category_reserve.balance, 400_000);
-        assert_eq!(r.total_reserves, 1_000_000);
+        assert_eq!(r.category_reserve.native_balance(), 400_000);
     }
 
     #[tokio::test]

@@ -43,6 +43,7 @@ impl SweepRevenueRequest {
             source_module: self.source_module.clone(), target_category: i32::from(self.target_category),
             amount: self.amount, reason: self.reason.clone(),
             tx_hash: self.tx_hash.clone(), authority: self.authority.clone(),
+            asset_index: 0,
         };
         ProtoAny { type_url: "/treasury.v1.MsgSweepRevenue".into(), value: msg.encode_to_vec() }
     }
@@ -80,6 +81,7 @@ impl AllocateFundsRequest {
             target_module: self.target_module.clone(), target_category: i32::from(self.target_category),
             amount: self.amount, reason: self.reason.clone(),
             proposal_id: self.proposal_id, signature: self.signature.clone(),
+            asset_index: 0,
         };
         ProtoAny { type_url: "/treasury.v1.MsgAllocateFunds".into(), value: msg.encode_to_vec() }
     }
@@ -138,7 +140,7 @@ impl QueryCategoryReserveRequest {
 }
 
 impl From<QueryCategoryReserveRequest> for proto::QueryCategoryReserveRequest {
-    fn from(r: QueryCategoryReserveRequest) -> Self { Self { category: i32::from(r.category) } }
+    fn from(r: QueryCategoryReserveRequest) -> Self { Self { category: i32::from(r.category), asset_index: 0 } }
 }
 
 /// Query current governance parameters.

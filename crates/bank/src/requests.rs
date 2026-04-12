@@ -578,6 +578,69 @@ impl From<QueryBankFeeStatsRequest> for proto::QueryBankFeeStatsRequest {
     }
 }
 
+/// Request to set or update an agent's spending policy.
+#[derive(Clone, Debug, PartialEq, Eq)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+pub struct SetSpendingPolicyRequest {
+    pub owner_address: String,
+    pub policy: crate::types::SpendingPolicy,
+}
+
+impl SetSpendingPolicyRequest {
+    pub fn new(
+        owner_address: impl Into<String>,
+        policy: crate::types::SpendingPolicy,
+    ) -> Self {
+        Self {
+            owner_address: owner_address.into(),
+            policy,
+        }
+    }
+
+    pub fn to_any(&self) -> ProtoAny {
+        let msg: proto::MsgSetSpendingPolicy = self.clone().into();
+        ProtoAny {
+            type_url: "/bank.v1.MsgSetSpendingPolicy".into(),
+            value: msg.encode_to_vec(),
+        }
+    }
+}
+
+impl From<SetSpendingPolicyRequest> for proto::MsgSetSpendingPolicy {
+    fn from(req: SetSpendingPolicyRequest) -> Self {
+        Self {
+            owner_address: req.owner_address,
+            policy: Some(req.policy.into()),
+        }
+    }
+}
+
+/// Query an agent's spending policy and active windows.
+#[derive(Clone, Debug, PartialEq, Eq)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+pub struct QuerySpendingPolicyRequest {
+    pub agent_id: String,
+    pub asset_index: u64,
+}
+
+impl QuerySpendingPolicyRequest {
+    pub fn new(agent_id: impl Into<String>, asset_index: u64) -> Self {
+        Self {
+            agent_id: agent_id.into(),
+            asset_index,
+        }
+    }
+}
+
+impl From<QuerySpendingPolicyRequest> for proto::QuerySpendingPolicyRequest {
+    fn from(req: QuerySpendingPolicyRequest) -> Self {
+        Self {
+            agent_id: req.agent_id,
+            asset_index: req.asset_index,
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -658,5 +721,21 @@ mod tests {
         let req = TransferToBucketRequest::new("morm1abc", "bucket-1", 0, "1000");
         let any = req.to_any();
         assert_eq!(any.type_url, "/bank.v1.MsgTransferToBucketRequest");
+    }
+
+    #[test]
+    fn set_spending_policy_request_to_any() {
+        let policy = crate::types::SpendingPolicy {
+            agent_id: "agent-1".into(),
+            daily_cap: 100_000,
+            hourly_cap: 10_000,
+            per_tx_cap: 5_000,
+            asset_index: 1,
+            updated_at: 0,
+        };
+        let req = SetSpendingPolicyRequest::new("morm1owner", policy);
+        let any = req.to_any();
+        assert_eq!(any.type_url, "/bank.v1.MsgSetSpendingPolicy");
+        assert!(!any.value.is_empty());
     }
 }

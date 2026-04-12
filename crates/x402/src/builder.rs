@@ -10,6 +10,7 @@ use morpheum_sdk_core::{AccountId, SdkError};
 
 use crate::requests::{
     ApproveOutboundRequest,
+    FinalizeUptoRequest,
     RegisterPolicyRequest,
     RotateAddressRequest,
     SettleBridgePaymentRequest,
@@ -400,6 +401,54 @@ impl SettleBridgePaymentBuilder {
     }
 }
 
+/// Fluent builder for finalizing an Upto usage-based payment.
+///
+/// The seller specifies the actual consumed amount (which must be <=
+/// the pre-authorized maximum). The unused portion is atomically refunded.
+#[derive(Default)]
+pub struct FinalizeUptoBuilder {
+    seller_address: Option<String>,
+    pre_auth_id: Option<String>,
+    actual_amount: Option<u64>,
+}
+
+impl FinalizeUptoBuilder {
+    pub fn new() -> Self {
+        Self::default()
+    }
+
+    pub fn seller_address(mut self, addr: impl Into<String>) -> Self {
+        self.seller_address = Some(addr.into());
+        self
+    }
+
+    pub fn pre_auth_id(mut self, id: impl Into<String>) -> Self {
+        self.pre_auth_id = Some(id.into());
+        self
+    }
+
+    pub fn actual_amount(mut self, amount: u64) -> Self {
+        self.actual_amount = Some(amount);
+        self
+    }
+
+    pub fn build(self) -> Result<FinalizeUptoRequest, SdkError> {
+        let seller_address = self.seller_address.ok_or_else(|| {
+            SdkError::invalid_input("seller_address is required for Upto finalization")
+        })?;
+
+        let pre_auth_id = self.pre_auth_id.ok_or_else(|| {
+            SdkError::invalid_input("pre_auth_id is required")
+        })?;
+
+        let actual_amount = self.actual_amount.ok_or_else(|| {
+            SdkError::invalid_input("actual_amount is required")
+        })?;
+
+        Ok(FinalizeUptoRequest::new(seller_address, pre_auth_id, actual_amount))
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -410,11 +459,12 @@ mod tests {
         Policy {
             policy_id: String::new(),
             agent_id: "agent-1".into(),
-            max_per_service_usd: 100,
-            daily_cap_usd: 1000,
-            hourly_cap_usd: 200,
-            reputation_multiplier_bps: 10000,
+            max_amount_required: 1000,
+            supported_schemes: 3,
+            asset: "USDC".into(),
+            network: "eip155:8453".into(),
             last_updated: 0,
+            upto_details: None,
         }
     }
 
@@ -580,6 +630,34 @@ mod tests {
         assert!(SettleBridgePaymentBuilder::new().build().is_err());
         assert!(SettleBridgePaymentBuilder::new()
             .relayer_address("r")
+            .build()
+            .is_err());
+    }
+
+    #[test]
+    fn finalize_upto_builder_full_flow() {
+        let req = FinalizeUptoBuilder::new()
+            .seller_address("seller-1")
+            .pre_auth_id("preauth-001")
+            .actual_amount(750)
+            .build()
+            .unwrap();
+
+        assert_eq!(req.seller_address, "seller-1");
+        assert_eq!(req.pre_auth_id, "preauth-001");
+        assert_eq!(req.actual_amount, 750);
+    }
+
+    #[test]
+    fn finalize_upto_builder_missing_fields() {
+        assert!(FinalizeUptoBuilder::new().build().is_err());
+        assert!(FinalizeUptoBuilder::new()
+            .seller_address("s")
+            .build()
+            .is_err());
+        assert!(FinalizeUptoBuilder::new()
+            .seller_address("s")
+            .pre_auth_id("p")
             .build()
             .is_err());
     }

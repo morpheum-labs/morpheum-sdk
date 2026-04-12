@@ -22,7 +22,7 @@ pub mod builder;
 pub use client::{BankClient, BalanceResponse};
 
 /// Core domain types for bank operations.
-pub use types::{Asset, AssetIdentifier, AssetsResponse, Balance, ChainType};
+pub use types::{Asset, AssetIdentifier, AssetsResponse, Balance, ChainType, SpendingPolicy};
 
 /// Well-known asset name → registry index resolver.
 pub use types::resolve_asset_index;
@@ -40,6 +40,7 @@ pub use builder::{
     BridgeAssetBuilder,
     DepositBuilder,
     WithdrawBuilder,
+    SetSpendingPolicyBuilder,
 };
 
 // Re-export core SDK types commonly used with bank flows.
@@ -64,12 +65,14 @@ pub mod prelude {
         AssetsResponse,
         Balance,
         ChainType,
+        SpendingPolicy,
         resolve_asset_index,
         TransferBuilder,
         CrossChainTransferBuilder,
         MintBuilder,
         DepositBuilder,
         WithdrawBuilder,
+        SetSpendingPolicyBuilder,
         AccountId,
         ChainId,
         SdkError,

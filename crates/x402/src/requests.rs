@@ -347,27 +347,110 @@ impl From<QueryParamsRequest> for proto::QueryParamsRequest {
     }
 }
 
+/// Request to finalize an Upto usage-based payment.
+#[derive(Clone, Debug, PartialEq, Eq)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+pub struct FinalizeUptoRequest {
+    pub seller_address: String,
+    pub pre_auth_id: String,
+    pub actual_amount: u64,
+}
+
+impl FinalizeUptoRequest {
+    pub fn new(
+        seller_address: impl Into<String>,
+        pre_auth_id: impl Into<String>,
+        actual_amount: u64,
+    ) -> Self {
+        Self {
+            seller_address: seller_address.into(),
+            pre_auth_id: pre_auth_id.into(),
+            actual_amount,
+        }
+    }
+
+    pub fn to_any(&self) -> ProtoAny {
+        let msg: proto::MsgFinalizeUpto = self.clone().into();
+        ProtoAny {
+            type_url: "/x402.v1.MsgFinalizeUpto".into(),
+            value: msg.encode_to_vec(),
+        }
+    }
+}
+
+impl From<FinalizeUptoRequest> for proto::MsgFinalizeUpto {
+    fn from(req: FinalizeUptoRequest) -> Self {
+        Self {
+            seller_address: req.seller_address,
+            pre_auth_id: req.pre_auth_id,
+            actual_amount: req.actual_amount,
+        }
+    }
+}
+
+/// Query pending Upto pre-authorizations.
+#[derive(Clone, Debug, PartialEq, Eq)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+pub struct QueryPendingUptoRequest {
+    pub agent_id: String,
+    pub seller_address: Option<String>,
+    pub pre_auth_id: Option<String>,
+}
+
+impl QueryPendingUptoRequest {
+    pub fn new(agent_id: impl Into<String>) -> Self {
+        Self {
+            agent_id: agent_id.into(),
+            seller_address: None,
+            pre_auth_id: None,
+        }
+    }
+
+    pub fn seller_address(mut self, addr: impl Into<String>) -> Self {
+        self.seller_address = Some(addr.into());
+        self
+    }
+
+    pub fn pre_auth_id(mut self, id: impl Into<String>) -> Self {
+        self.pre_auth_id = Some(id.into());
+        self
+    }
+}
+
+impl From<QueryPendingUptoRequest> for proto::QueryPendingUptoRequest {
+    fn from(req: QueryPendingUptoRequest) -> Self {
+        Self {
+            agent_id: req.agent_id,
+            seller_address: req.seller_address.unwrap_or_default(),
+            pre_auth_id: req.pre_auth_id.unwrap_or_default(),
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
     use alloc::vec;
     use morpheum_sdk_core::AccountId;
 
-    #[test]
-    fn register_policy_to_any() {
-        let policy = Policy {
+    fn test_policy() -> Policy {
+        Policy {
             policy_id: String::new(),
             agent_id: "agent-1".into(),
-            max_per_service_usd: 100,
-            daily_cap_usd: 1000,
-            hourly_cap_usd: 200,
-            reputation_multiplier_bps: 10000,
+            max_amount_required: 1000,
+            supported_schemes: 3,
+            asset: "USDC".into(),
+            network: "eip155:8453".into(),
             last_updated: 0,
-        };
+            upto_details: None,
+        }
+    }
 
+    #[test]
+    fn register_policy_to_any() {
         let req = RegisterPolicyRequest::new(
             AccountId::new([1u8; 32]),
-            policy,
+            test_policy(),
             vec![0xAB, 0xCD],
         );
 
@@ -378,15 +461,8 @@ mod tests {
 
     #[test]
     fn update_policy_to_any() {
-        let policy = Policy {
-            policy_id: "pol-1".into(),
-            agent_id: "agent-1".into(),
-            max_per_service_usd: 200,
-            daily_cap_usd: 2000,
-            hourly_cap_usd: 400,
-            reputation_multiplier_bps: 15000,
-            last_updated: 0,
-        };
+        let mut policy = test_policy();
+        policy.policy_id = "pol-1".into();
 
         let req = UpdatePolicyRequest::new(
             AccountId::new([2u8; 32]),
@@ -472,5 +548,25 @@ mod tests {
         assert_eq!(r4.agent_id, "agent-1");
 
         let _r5: proto::QueryParamsRequest = QueryParamsRequest.into();
+    }
+
+    #[test]
+    fn finalize_upto_to_any() {
+        let req = FinalizeUptoRequest::new("seller-1", "preauth-001", 750);
+        let any = req.to_any();
+        assert_eq!(any.type_url, "/x402.v1.MsgFinalizeUpto");
+        assert!(!any.value.is_empty());
+    }
+
+    #[test]
+    fn query_pending_upto_conversion() {
+        let req = QueryPendingUptoRequest::new("agent-1")
+            .seller_address("seller-1")
+            .pre_auth_id("preauth-001");
+
+        let proto_req: proto::QueryPendingUptoRequest = req.into();
+        assert_eq!(proto_req.agent_id, "agent-1");
+        assert_eq!(proto_req.seller_address, "seller-1");
+        assert_eq!(proto_req.pre_auth_id, "preauth-001");
     }
 }

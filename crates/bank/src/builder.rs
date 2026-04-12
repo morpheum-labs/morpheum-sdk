@@ -11,9 +11,10 @@ use morpheum_sdk_core::SdkError;
 
 use crate::requests::{
     BridgeAssetRequest, CrossChainTransferRequest, DepositRequest, MintRequest,
-    OnboardAssetRequest, TransferRequest, TransferToBucketRequest, WithdrawRequest,
+    OnboardAssetRequest, SetSpendingPolicyRequest, TransferRequest, TransferToBucketRequest,
+    WithdrawRequest,
 };
-use crate::types::{AssetIdentifier, ChainType};
+use crate::types::{AssetIdentifier, ChainType, SpendingPolicy};
 
 // ============================================================================
 // TransferBuilder
@@ -626,6 +627,80 @@ impl WithdrawBuilder {
     }
 }
 
+// ============================================================================
+// SetSpendingPolicyBuilder
+// ============================================================================
+
+/// Fluent builder for setting per-agent spending caps.
+#[derive(Default)]
+pub struct SetSpendingPolicyBuilder {
+    owner_address: Option<String>,
+    agent_id: Option<String>,
+    asset_index: Option<u64>,
+    daily_cap: Option<u64>,
+    hourly_cap: Option<u64>,
+    per_tx_cap: Option<u64>,
+}
+
+impl SetSpendingPolicyBuilder {
+    pub fn new() -> Self {
+        Self::default()
+    }
+
+    pub fn owner_address(mut self, addr: impl Into<String>) -> Self {
+        self.owner_address = Some(addr.into());
+        self
+    }
+
+    pub fn agent_id(mut self, id: impl Into<String>) -> Self {
+        self.agent_id = Some(id.into());
+        self
+    }
+
+    pub fn asset_index(mut self, idx: u64) -> Self {
+        self.asset_index = Some(idx);
+        self
+    }
+
+    pub fn daily_cap(mut self, cap: u64) -> Self {
+        self.daily_cap = Some(cap);
+        self
+    }
+
+    pub fn hourly_cap(mut self, cap: u64) -> Self {
+        self.hourly_cap = Some(cap);
+        self
+    }
+
+    pub fn per_tx_cap(mut self, cap: u64) -> Self {
+        self.per_tx_cap = Some(cap);
+        self
+    }
+
+    pub fn build(self) -> Result<SetSpendingPolicyRequest, SdkError> {
+        let owner_address = self.owner_address.ok_or_else(|| {
+            SdkError::invalid_input("owner_address is required for spending policy")
+        })?;
+        let agent_id = self.agent_id.ok_or_else(|| {
+            SdkError::invalid_input("agent_id is required for spending policy")
+        })?;
+        let asset_index = self.asset_index.ok_or_else(|| {
+            SdkError::invalid_input("asset_index is required for spending policy")
+        })?;
+
+        let policy = SpendingPolicy {
+            agent_id,
+            daily_cap: self.daily_cap.unwrap_or(0),
+            hourly_cap: self.hourly_cap.unwrap_or(0),
+            per_tx_cap: self.per_tx_cap.unwrap_or(0),
+            asset_index,
+            updated_at: 0,
+        };
+
+        Ok(SetSpendingPolicyRequest::new(owner_address, policy))
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -757,5 +832,32 @@ mod tests {
             .unwrap();
 
         assert_eq!(req.bucket_id, "bucket-1");
+    }
+
+    #[test]
+    fn set_spending_policy_builder_works() {
+        let req = SetSpendingPolicyBuilder::new()
+            .owner_address("morm1owner")
+            .agent_id("agent-1")
+            .asset_index(1)
+            .daily_cap(100_000)
+            .hourly_cap(10_000)
+            .per_tx_cap(5_000)
+            .build()
+            .unwrap();
+
+        assert_eq!(req.policy.agent_id, "agent-1");
+        assert_eq!(req.policy.daily_cap, 100_000);
+        assert_eq!(req.policy.hourly_cap, 10_000);
+        assert_eq!(req.policy.per_tx_cap, 5_000);
+    }
+
+    #[test]
+    fn set_spending_policy_builder_missing_fields() {
+        assert!(SetSpendingPolicyBuilder::new().build().is_err());
+        assert!(SetSpendingPolicyBuilder::new()
+            .owner_address("o")
+            .build()
+            .is_err());
     }
 }

@@ -51,6 +51,7 @@ pub enum Scheme {
     Exact,
     ExactEvm,
     ExactSvm,
+    Upto,
 }
 
 impl From<i32> for Scheme {
@@ -60,6 +61,7 @@ impl From<i32> for Scheme {
             proto::X402Scheme::SchemeExact => Self::Exact,
             proto::X402Scheme::SchemeExactEvm => Self::ExactEvm,
             proto::X402Scheme::SchemeExactSvm => Self::ExactSvm,
+            proto::X402Scheme::SchemeUpto => Self::Upto,
         }
     }
 }
@@ -71,6 +73,7 @@ impl From<Scheme> for i32 {
             Scheme::Exact => proto::X402Scheme::SchemeExact as i32,
             Scheme::ExactEvm => proto::X402Scheme::SchemeExactEvm as i32,
             Scheme::ExactSvm => proto::X402Scheme::SchemeExactSvm as i32,
+            Scheme::Upto => proto::X402Scheme::SchemeUpto as i32,
         }
     }
 }
@@ -109,6 +112,38 @@ impl From<ReceiptStatus> for i32 {
 
 // ====================== STRUCTS ======================
 
+/// Usage-based pricing details for the Upto scheme.
+#[derive(Clone, Debug, PartialEq, Eq)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+pub struct UptoDetails {
+    pub max_amount: u64,
+    pub actual_amount: u64,
+    pub expires_at: u64,
+    pub pre_auth_id: String,
+}
+
+impl From<proto::UptoDetails> for UptoDetails {
+    fn from(d: proto::UptoDetails) -> Self {
+        Self {
+            max_amount: d.max_amount,
+            actual_amount: d.actual_amount,
+            expires_at: d.expires_at,
+            pre_auth_id: d.pre_auth_id,
+        }
+    }
+}
+
+impl From<UptoDetails> for proto::UptoDetails {
+    fn from(d: UptoDetails) -> Self {
+        Self {
+            max_amount: d.max_amount,
+            actual_amount: d.actual_amount,
+            expires_at: d.expires_at,
+            pre_auth_id: d.pre_auth_id,
+        }
+    }
+}
+
 /// A settled x402 payment receipt.
 #[derive(Clone, Debug, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
@@ -125,6 +160,7 @@ pub struct Receipt {
     pub merkle_root: String,
     pub validated_at: u64,
     pub attestation: Vec<u8>,
+    pub upto_details: Option<UptoDetails>,
 }
 
 impl From<proto::X402Receipt> for Receipt {
@@ -142,6 +178,7 @@ impl From<proto::X402Receipt> for Receipt {
             merkle_root: p.merkle_root,
             validated_at: p.validated_at,
             attestation: p.attestation,
+            upto_details: p.upto_details.map(Into::into),
         }
     }
 }
@@ -161,21 +198,26 @@ impl From<Receipt> for proto::X402Receipt {
             merkle_root: r.merkle_root,
             validated_at: r.validated_at,
             attestation: r.attestation,
+            upto_details: r.upto_details.map(Into::into),
         }
     }
 }
 
-/// Spending policy governing an agent's x402 payment capabilities.
+/// External service pricing policy for the HTTP 402 flow.
+///
+/// Defines what an external service charges for access. Spending caps
+/// and rate limiting are the bank module's responsibility.
 #[derive(Clone, Debug, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct Policy {
     pub policy_id: String,
     pub agent_id: String,
-    pub max_per_service_usd: u64,
-    pub daily_cap_usd: u64,
-    pub hourly_cap_usd: u64,
-    pub reputation_multiplier_bps: u32,
+    pub max_amount_required: u64,
+    pub supported_schemes: u64,
+    pub asset: String,
+    pub network: String,
     pub last_updated: u64,
+    pub upto_details: Option<UptoDetails>,
 }
 
 impl From<proto::X402Policy> for Policy {
@@ -183,11 +225,12 @@ impl From<proto::X402Policy> for Policy {
         Self {
             policy_id: p.policy_id,
             agent_id: p.agent_id,
-            max_per_service_usd: p.max_per_service_usd,
-            daily_cap_usd: p.daily_cap_usd,
-            hourly_cap_usd: p.hourly_cap_usd,
-            reputation_multiplier_bps: p.reputation_multiplier_bps,
+            max_amount_required: p.max_amount_required,
+            supported_schemes: p.supported_schemes,
+            asset: p.asset,
+            network: p.network,
             last_updated: p.last_updated,
+            upto_details: p.upto_details.map(Into::into),
         }
     }
 }
@@ -197,11 +240,12 @@ impl From<Policy> for proto::X402Policy {
         Self {
             policy_id: p.policy_id,
             agent_id: p.agent_id,
-            max_per_service_usd: p.max_per_service_usd,
-            daily_cap_usd: p.daily_cap_usd,
-            hourly_cap_usd: p.hourly_cap_usd,
-            reputation_multiplier_bps: p.reputation_multiplier_bps,
+            max_amount_required: p.max_amount_required,
+            supported_schemes: p.supported_schemes,
+            asset: p.asset,
+            network: p.network,
             last_updated: p.last_updated,
+            upto_details: p.upto_details.map(Into::into),
         }
     }
 }
@@ -213,15 +257,22 @@ pub struct Capabilities {
     pub agent_id: String,
     pub enabled: bool,
     pub preferred_schemes: u64,
-    pub min_amount_usd: u64,
+    pub max_amount_required: u64,
     pub endpoint: String,
     pub updated_at: u64,
+    pub upto_max_amount: u64,
+    pub upto_default_expiry: u64,
 }
 
 impl Capabilities {
     /// Whether the agent has x402 capabilities enabled.
     pub fn is_enabled(&self) -> bool {
         self.enabled
+    }
+
+    /// Whether the agent supports the Upto usage-based pricing scheme.
+    pub fn supports_upto(&self) -> bool {
+        self.preferred_schemes & (proto::X402Scheme::SchemeUpto as u64) != 0
     }
 }
 
@@ -231,9 +282,11 @@ impl From<proto::X402Capabilities> for Capabilities {
             agent_id: c.agent_id,
             enabled: c.enabled,
             preferred_schemes: c.preferred_schemes,
-            min_amount_usd: c.min_amount_usd,
+            max_amount_required: c.max_amount_required,
             endpoint: c.endpoint,
             updated_at: c.updated_at,
+            upto_max_amount: c.upto_max_amount,
+            upto_default_expiry: c.upto_default_expiry,
         }
     }
 }
@@ -244,44 +297,11 @@ impl From<Capabilities> for proto::X402Capabilities {
             agent_id: c.agent_id,
             enabled: c.enabled,
             preferred_schemes: c.preferred_schemes,
-            min_amount_usd: c.min_amount_usd,
+            max_amount_required: c.max_amount_required,
             endpoint: c.endpoint,
             updated_at: c.updated_at,
-        }
-    }
-}
-
-/// TEE-attested receipt with cryptographic proofs.
-#[derive(Clone, Debug, PartialEq, Eq)]
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-pub struct AttestedReceipt {
-    pub receipt_id: String,
-    pub receipt: Option<Receipt>,
-    pub tee_quote: Vec<u8>,
-    pub signature: Vec<u8>,
-    pub merkle_proof: Vec<u8>,
-}
-
-impl From<proto::AttestedReceipt> for AttestedReceipt {
-    fn from(a: proto::AttestedReceipt) -> Self {
-        Self {
-            receipt_id: a.receipt_id,
-            receipt: a.receipt.map(Into::into),
-            tee_quote: a.tee_quote,
-            signature: a.signature,
-            merkle_proof: a.merkle_proof,
-        }
-    }
-}
-
-impl From<AttestedReceipt> for proto::AttestedReceipt {
-    fn from(a: AttestedReceipt) -> Self {
-        Self {
-            receipt_id: a.receipt_id,
-            receipt: a.receipt.map(Into::into),
-            tee_quote: a.tee_quote,
-            signature: a.signature,
-            merkle_proof: a.merkle_proof,
+            upto_max_amount: c.upto_max_amount,
+            upto_default_expiry: c.upto_default_expiry,
         }
     }
 }
@@ -289,9 +309,6 @@ impl From<AttestedReceipt> for proto::AttestedReceipt {
 // ====================== BRIDGE / SETTLEMENT ======================
 
 /// A cross-chain payment packet delivered via GMP bridge.
-///
-/// Represents an x402 payment originating from an external EVM chain
-/// (Base, Ethereum, Arbitrum) destined for a Morpheum agent.
 #[derive(Clone, Debug, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct PaymentPacket {
@@ -359,14 +376,29 @@ impl From<proto::SettleBridgePaymentResponse> for BridgeSettlementResult {
     }
 }
 
+/// Result of finalizing an Upto usage-based payment.
+#[derive(Clone, Debug, PartialEq, Eq)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+pub struct FinalizeUptoResult {
+    pub success: bool,
+    pub receipt: Option<Receipt>,
+    pub refunded_amount: u64,
+}
+
+impl From<proto::FinalizeUptoResponse> for FinalizeUptoResult {
+    fn from(r: proto::FinalizeUptoResponse) -> Self {
+        Self {
+            success: r.success,
+            receipt: r.receipt.map(Into::into),
+            refunded_amount: r.refunded_amount,
+        }
+    }
+}
+
 /// Module-level parameters for the x402 module.
 #[derive(Clone, Debug, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct Params {
-    pub default_daily_cap_usd: u64,
-    pub platform_min_amount_usd: u64,
-    pub facilitator_timeout_seconds: u64,
-    pub enable_tee_facilitator: bool,
     pub authorized_relayers: Vec<String>,
     pub enable_signature_verification: bool,
 }
@@ -374,10 +406,6 @@ pub struct Params {
 impl Default for Params {
     fn default() -> Self {
         Self {
-            default_daily_cap_usd: 10_000,
-            platform_min_amount_usd: 1,
-            facilitator_timeout_seconds: 30,
-            enable_tee_facilitator: true,
             authorized_relayers: Vec::new(),
             enable_signature_verification: false,
         }
@@ -387,10 +415,6 @@ impl Default for Params {
 impl From<proto::Params> for Params {
     fn from(p: proto::Params) -> Self {
         Self {
-            default_daily_cap_usd: p.default_daily_cap_usd,
-            platform_min_amount_usd: p.platform_min_amount_usd,
-            facilitator_timeout_seconds: p.facilitator_timeout_seconds,
-            enable_tee_facilitator: p.enable_tee_facilitator,
             authorized_relayers: p.authorized_relayers,
             enable_signature_verification: p.enable_signature_verification,
         }
@@ -400,10 +424,6 @@ impl From<proto::Params> for Params {
 impl From<Params> for proto::Params {
     fn from(p: Params) -> Self {
         Self {
-            default_daily_cap_usd: p.default_daily_cap_usd,
-            platform_min_amount_usd: p.platform_min_amount_usd,
-            facilitator_timeout_seconds: p.facilitator_timeout_seconds,
-            enable_tee_facilitator: p.enable_tee_facilitator,
             authorized_relayers: p.authorized_relayers,
             enable_signature_verification: p.enable_signature_verification,
         }
@@ -430,6 +450,7 @@ mod tests {
             merkle_root: "0xdeadbeef".into(),
             validated_at: 1710000000,
             attestation: vec![1, 2, 3],
+            upto_details: None,
         };
 
         let proto: proto::X402Receipt = receipt.clone().into();
@@ -442,11 +463,12 @@ mod tests {
         let policy = Policy {
             policy_id: "pol-1".into(),
             agent_id: "agent-1".into(),
-            max_per_service_usd: 100,
-            daily_cap_usd: 1000,
-            hourly_cap_usd: 200,
-            reputation_multiplier_bps: 15000,
+            max_amount_required: 1000,
+            supported_schemes: 3,
+            asset: "USDC".into(),
+            network: "eip155:8453".into(),
             last_updated: 1710000000,
+            upto_details: None,
         };
 
         let proto: proto::X402Policy = policy.clone().into();
@@ -460,9 +482,11 @@ mod tests {
             agent_id: "agent-1".into(),
             enabled: true,
             preferred_schemes: 3,
-            min_amount_usd: 1,
+            max_amount_required: 1000,
             endpoint: "pay://agent-1".into(),
             updated_at: 1710000000,
+            upto_max_amount: 5000,
+            upto_default_expiry: 3600,
         };
 
         let proto: proto::X402Capabilities = caps.clone().into();
@@ -474,10 +498,6 @@ mod tests {
     #[test]
     fn params_roundtrip() {
         let params = Params {
-            default_daily_cap_usd: 50000,
-            platform_min_amount_usd: 5,
-            facilitator_timeout_seconds: 60,
-            enable_tee_facilitator: false,
             authorized_relayers: vec!["relayer-1".into()],
             enable_signature_verification: true,
         };
@@ -485,34 +505,6 @@ mod tests {
         let proto: proto::Params = params.clone().into();
         let back: Params = proto.into();
         assert_eq!(params, back);
-    }
-
-    #[test]
-    fn attested_receipt_roundtrip() {
-        let attested = AttestedReceipt {
-            receipt_id: "rcpt-001".into(),
-            receipt: Some(Receipt {
-                receipt_id: "rcpt-001".into(),
-                agent_id: "agent-1".into(),
-                direction: PaymentDirection::Inbound,
-                scheme: Scheme::Exact,
-                amount: 100,
-                asset: "USDC".into(),
-                counterparty: "peer".into(),
-                memo: String::new(),
-                status: ReceiptStatus::Completed,
-                merkle_root: String::new(),
-                validated_at: 0,
-                attestation: vec![],
-            }),
-            tee_quote: vec![0xDE, 0xAD],
-            signature: vec![0xBE, 0xEF],
-            merkle_proof: vec![0xCA, 0xFE],
-        };
-
-        let proto: proto::AttestedReceipt = attested.clone().into();
-        let back: AttestedReceipt = proto.into();
-        assert_eq!(attested, back);
     }
 
     #[test]
@@ -525,9 +517,8 @@ mod tests {
     #[test]
     fn params_default_is_sensible() {
         let p = Params::default();
-        assert!(p.default_daily_cap_usd > 0);
-        assert!(p.platform_min_amount_usd > 0);
-        assert!(p.enable_tee_facilitator);
+        assert!(p.authorized_relayers.is_empty());
+        assert!(!p.enable_signature_verification);
     }
 
     #[test]

@@ -17,14 +17,19 @@ use morpheum_sdk_core::{
 };
 
 use crate::requests::{
+    FinalizeUptoRequest,
     QueryCapabilitiesRequest,
     QueryParamsRequest,
+    QueryPendingUptoRequest,
     QueryPolicyRequest,
     QueryReceiptRequest,
     QueryReceiptsByAgentRequest,
     SettleBridgePaymentRequest,
 };
-use crate::types::{BridgeSettlementResult, Capabilities, Params, Policy, Receipt};
+use crate::types::{
+    BridgeSettlementResult, Capabilities, FinalizeUptoResult,
+    Params, Policy, Receipt,
+};
 
 /// Primary client for all x402 payment queries.
 ///
@@ -170,6 +175,46 @@ impl X402Client {
         Ok(proto_res.into())
     }
 
+    /// Finalizes an Upto usage-based payment, charging only the actual consumed amount.
+    pub async fn finalize_upto(
+        &self,
+        request: FinalizeUptoRequest,
+    ) -> Result<FinalizeUptoResult, SdkError> {
+        let proto_req: morpheum_proto::x402::v1::MsgFinalizeUpto = request.into();
+
+        let path = "/x402.v1.Msg/FinalizeUpto";
+        let data = proto_req.encode_to_vec();
+
+        let response_bytes = self.query(path, data).await?;
+
+        let proto_res = morpheum_proto::x402::v1::FinalizeUptoResponse::decode(
+            response_bytes.as_slice(),
+        )
+        .map_err(SdkError::Decode)?;
+
+        Ok(proto_res.into())
+    }
+
+    /// Queries pending Upto pre-authorizations for an agent.
+    pub async fn query_pending_upto(
+        &self,
+        request: QueryPendingUptoRequest,
+    ) -> Result<Vec<morpheum_proto::x402::v1::UptoPreAuth>, SdkError> {
+        let proto_req: morpheum_proto::x402::v1::QueryPendingUptoRequest = request.into();
+
+        let path = "/x402.v1.Query/QueryPendingUpto";
+        let data = proto_req.encode_to_vec();
+
+        let response_bytes = self.query(path, data).await?;
+
+        let proto_res = morpheum_proto::x402::v1::QueryPendingUptoResponse::decode(
+            response_bytes.as_slice(),
+        )
+        .map_err(SdkError::Decode)?;
+
+        Ok(proto_res.pending)
+    }
+
     /// Queries the x402 module parameters.
     pub async fn query_params(&self) -> Result<Params, SdkError> {
         let proto_req: morpheum_proto::x402::v1::QueryParamsRequest = QueryParamsRequest.into();
@@ -262,6 +307,20 @@ mod tests {
                     };
                     Ok(prost::Message::encode_to_vec(&dummy))
                 }
+                "/x402.v1.Msg/FinalizeUpto" => {
+                    let dummy = morpheum_proto::x402::v1::FinalizeUptoResponse {
+                        success: true,
+                        receipt: Some(Default::default()),
+                        refunded_amount: 250,
+                    };
+                    Ok(prost::Message::encode_to_vec(&dummy))
+                }
+                "/x402.v1.Query/QueryPendingUpto" => {
+                    let dummy = morpheum_proto::x402::v1::QueryPendingUptoResponse {
+                        pending: vec![],
+                    };
+                    Ok(prost::Message::encode_to_vec(&dummy))
+                }
                 _ => Err(SdkError::transport("unexpected query path in test")),
             }
         }
@@ -336,5 +395,26 @@ mod tests {
         assert!(settlement.success);
         assert!(settlement.receipt.is_some());
         assert_eq!(settlement.receipt_hash, "hash123");
+    }
+
+    #[tokio::test]
+    async fn finalize_upto_works() {
+        let client = test_client();
+        let req = FinalizeUptoRequest::new("seller-1", "preauth-001", 750);
+        let result = client.finalize_upto(req).await;
+        assert!(result.is_ok());
+
+        let finalization = result.unwrap();
+        assert!(finalization.success);
+        assert_eq!(finalization.refunded_amount, 250);
+    }
+
+    #[tokio::test]
+    async fn query_pending_upto_works() {
+        let client = test_client();
+        let req = QueryPendingUptoRequest::new("agent-1");
+        let result = client.query_pending_upto(req).await;
+        assert!(result.is_ok());
+        assert!(result.unwrap().is_empty());
     }
 }

@@ -140,6 +140,46 @@ impl From<morpheum_proto::bank::v1::QueryBankFeeStatsResponse> for BankFeeStats 
     }
 }
 
+// ====================== SPENDING POLICY ======================
+
+/// Per-agent spending caps enforced by the bank module.
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+pub struct SpendingPolicy {
+    pub agent_id: String,
+    pub daily_cap: u64,
+    pub hourly_cap: u64,
+    pub per_tx_cap: u64,
+    pub asset_index: u64,
+    pub updated_at: u64,
+}
+
+impl From<morpheum_proto::bank::v1::SpendingPolicy> for SpendingPolicy {
+    fn from(p: morpheum_proto::bank::v1::SpendingPolicy) -> Self {
+        Self {
+            agent_id: p.agent_id,
+            daily_cap: p.daily_cap,
+            hourly_cap: p.hourly_cap,
+            per_tx_cap: p.per_tx_cap,
+            asset_index: p.asset_index,
+            updated_at: p.updated_at,
+        }
+    }
+}
+
+impl From<SpendingPolicy> for morpheum_proto::bank::v1::SpendingPolicy {
+    fn from(p: SpendingPolicy) -> Self {
+        Self {
+            agent_id: p.agent_id,
+            daily_cap: p.daily_cap,
+            hourly_cap: p.hourly_cap,
+            per_tx_cap: p.per_tx_cap,
+            asset_index: p.asset_index,
+            updated_at: p.updated_at,
+        }
+    }
+}
+
 // ====================== ASSET INDEX RESOLUTION ======================
 
 /// Well-known asset name → registry index mapping.

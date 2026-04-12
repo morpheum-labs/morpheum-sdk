@@ -1,11 +1,12 @@
 //! x402 payment module for the Morpheum SDK.
 //!
-//! This module provides full support for managing x402 policy-gated payments
-//! on Morpheum, including policy registration and updates, payment address rotation,
-//! outbound payment approval, and querying receipts, capabilities, and module parameters.
+//! This module provides support for managing x402 external payments on Morpheum,
+//! including service pricing policy registration, payment address rotation,
+//! outbound payment approval, and cross-chain GMP bridge settlement.
 //!
-//! The x402 protocol enables autonomous AI agents to make and receive payments
-//! with VC-gated spending caps, TEE-attested settlement, and cross-chain GMP bridging.
+//! The x402 protocol is a lightweight HTTP 402 standard for external web-scale
+//! micropayments between AI agents and services. Internal on-chain payments
+//! use the native bank module instead.
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
@@ -21,6 +22,7 @@ pub mod types;
 
 pub use builder::{
     ApproveOutboundBuilder,
+    FinalizeUptoBuilder,
     RegisterPolicyBuilder,
     RotateAddressBuilder,
     SettleBridgePaymentBuilder,
@@ -39,9 +41,9 @@ pub use chains::{
 };
 
 pub use types::{
-    AttestedReceipt,
     BridgeSettlementResult,
     Capabilities,
+    FinalizeUptoResult,
     Params,
     PaymentDirection,
     PaymentPacket,
@@ -49,6 +51,7 @@ pub use types::{
     Receipt,
     ReceiptStatus,
     Scheme,
+    UptoDetails,
 };
 
 pub use requests::*;
@@ -68,10 +71,11 @@ pub use morpheum_sdk_core::{
 pub mod prelude {
     pub use super::{
         X402Client,
-        AttestedReceipt,
         BridgeSettlementResult,
         Capabilities,
         ChainMetadata,
+        FinalizeUptoBuilder,
+        FinalizeUptoResult,
         SignatureScheme,
         KNOWN_CHAINS,
         Params,
@@ -82,6 +86,7 @@ pub mod prelude {
         ReceiptStatus,
         Scheme,
         SettleBridgePaymentBuilder,
+        UptoDetails,
         AccountId,
         ChainId,
         SdkError,

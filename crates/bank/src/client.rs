@@ -15,8 +15,11 @@ use prost::Message as _;
 
 use morpheum_sdk_core::{MorpheumClient, SdkConfig, SdkError, Transport};
 
-use crate::requests::{QueryAssetsRequest, QueryBalanceRequest, QueryBalancesRequest, QueryBankFeeStatsRequest};
-use crate::types::{Asset, AssetsResponse, Balance, BankFeeStats};
+use crate::requests::{
+    QueryAssetsRequest, QueryBalanceRequest, QueryBalancesRequest,
+    QueryBankFeeStatsRequest, QuerySpendingPolicyRequest,
+};
+use crate::types::{Asset, AssetsResponse, Balance, BankFeeStats, SpendingPolicy};
 
 /// Primary client for all bank-related queries.
 ///
@@ -123,6 +126,27 @@ impl BankClient {
                 .collect(),
         })
     }
+    /// Queries an agent's spending policy and active windows.
+    pub async fn query_spending_policy(
+        &self,
+        agent_id: impl Into<String>,
+        asset_index: u64,
+    ) -> Result<Vec<SpendingPolicy>, SdkError> {
+        let req = QuerySpendingPolicyRequest::new(agent_id, asset_index);
+        let proto_req: morpheum_proto::bank::v1::QuerySpendingPolicyRequest = req.into();
+
+        let path = "/bank.v1.Query/QuerySpendingPolicy";
+        let data = proto_req.encode_to_vec();
+        let response_bytes = self.query(path, data).await?;
+
+        let proto_res = morpheum_proto::bank::v1::QuerySpendingPolicyResponse::decode(
+            response_bytes.as_slice(),
+        )
+        .map_err(SdkError::Decode)?;
+
+        Ok(proto_res.policies.into_iter().map(Into::into).collect())
+    }
+
     /// Queries aggregated bank fee statistics.
     pub async fn query_bank_fee_stats(&self) -> Result<BankFeeStats, SdkError> {
         let req = QueryBankFeeStatsRequest;

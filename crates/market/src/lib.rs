@@ -26,6 +26,7 @@ pub use client::MarketClient;
 /// Core domain types for markets.
 pub use types::{
     Market,
+    MarketFeeStats,
     MarketParams,
     MarketStats,
     MarketType,

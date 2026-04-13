@@ -23,8 +23,9 @@ use crate::{
         QueryMarketRequest,
         QueryMarketStatsRequest,
         QueryMarketsRequest,
+        QueryMarketFeeStatsRequest,
     },
-    types::{Market, MarketStats},
+    types::{Market, MarketFeeStats, MarketStats},
 };
 
 /// Primary client for all market-related queries.
@@ -142,6 +143,24 @@ impl MarketClient {
             .map(Into::into)
             .ok_or_else(|| SdkError::transport("stats field missing in response"))
     }
+
+    /// Queries aggregated fee statistics for the market module.
+    pub async fn query_market_fee_stats(&self) -> Result<MarketFeeStats, SdkError> {
+        let proto_req: morpheum_proto::market::v1::QueryMarketFeeStatsRequest =
+            QueryMarketFeeStatsRequest.into();
+
+        let path = "/market.v1.Query/QueryMarketFeeStats";
+        let data = proto_req.encode_to_vec();
+
+        let response_bytes = self.query(path, data).await?;
+
+        let proto_res = morpheum_proto::market::v1::QueryMarketFeeStatsResponse::decode(
+            response_bytes.as_slice(),
+        )
+        .map_err(SdkError::Decode)?;
+
+        Ok(proto_res.into())
+    }
 }
 
 #[async_trait(?Send)]
@@ -195,6 +214,10 @@ mod tests {
                         error_message: "".into(),
                         stats: Some(Default::default()),
                     };
+                    Ok(prost::Message::encode_to_vec(&dummy))
+                }
+                "/market.v1.Query/QueryMarketFeeStats" => {
+                    let dummy = morpheum_proto::market::v1::QueryMarketFeeStatsResponse::default();
                     Ok(prost::Message::encode_to_vec(&dummy))
                 }
                 _ => Err(SdkError::transport("unexpected query path in test")),

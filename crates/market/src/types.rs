@@ -633,6 +633,59 @@ impl From<proto::MarketUpdate> for MarketUpdate {
     }
 }
 
+// ====================== FEE STATS ======================
+
+/// Aggregated fee statistics for the market module.
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+pub struct MarketFeeStats {
+    pub total_creation_fees: u64,
+    pub total_treasury_swept: u64,
+    pub native_payment_count: u64,
+    pub x402_payment_count: u64,
+    pub total_markets_created: u64,
+}
+
+impl From<proto::QueryMarketFeeStatsResponse> for MarketFeeStats {
+    fn from(r: proto::QueryMarketFeeStatsResponse) -> Self {
+        Self {
+            total_creation_fees: r.total_creation_fees,
+            total_treasury_swept: r.total_treasury_swept,
+            native_payment_count: r.native_payment_count,
+            x402_payment_count: r.x402_payment_count,
+            total_markets_created: r.total_markets_created,
+        }
+    }
+}
+
+// ====================== MODULE PARAMS ======================
+
+/// Module-level governance parameters for the market module.
+#[derive(Clone, Debug, PartialEq, Eq)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+pub struct Params {
+    pub default_creation_fee_sat: u64,
+    pub x402_payment_enabled: bool,
+}
+
+impl Default for Params {
+    fn default() -> Self {
+        Self {
+            default_creation_fee_sat: 10_000_000_000,
+            x402_payment_enabled: true,
+        }
+    }
+}
+
+impl From<proto::Params> for Params {
+    fn from(p: proto::Params) -> Self {
+        Self {
+            default_creation_fee_sat: p.default_creation_fee_sat,
+            x402_payment_enabled: p.x402_payment_enabled,
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

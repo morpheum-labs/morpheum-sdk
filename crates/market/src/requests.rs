@@ -77,7 +77,8 @@ impl From<CreateMarketRequest> for proto::MsgCreateMarketRequest {
             orderbook_type: req.orderbook_type,
             params: Some(req.params.into()),
             governance_proposal_id: req.governance_proposal_id.unwrap_or_default(),
-            timestamp: None, // Set by signer layer if needed
+            timestamp: None,
+            x402_receipt_id: String::new(),
         }
     }
 }
@@ -394,6 +395,19 @@ impl From<QueryMarketStatsRequest> for proto::QueryMarketStatsRequest {
             market_index: req.market_index,
             time_range: req.time_range.unwrap_or_default(),
         }
+    }
+}
+
+// ====================== FEE STATS QUERY ======================
+
+/// Request to query aggregated market fee statistics.
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+pub struct QueryMarketFeeStatsRequest;
+
+impl From<QueryMarketFeeStatsRequest> for proto::QueryMarketFeeStatsRequest {
+    fn from(_: QueryMarketFeeStatsRequest) -> Self {
+        proto::QueryMarketFeeStatsRequest {}
     }
 }
 

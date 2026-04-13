@@ -24,6 +24,7 @@ use crate::requests::{
     QueryPolicyRequest,
     QueryReceiptRequest,
     QueryReceiptsByAgentRequest,
+    QueryX402FeeStatsRequest,
     SettleBridgePaymentRequest,
 };
 use crate::types::{
@@ -234,6 +235,24 @@ impl X402Client {
             .map(Into::into)
             .ok_or_else(|| SdkError::transport("params field missing in response"))
     }
+
+    /// Queries aggregated x402 fee statistics across all shards.
+    pub async fn query_x402_fee_stats(&self) -> Result<crate::types::X402FeeStats, SdkError> {
+        let proto_req: morpheum_proto::x402::v1::QueryX402FeeStatsRequest =
+            QueryX402FeeStatsRequest.into();
+
+        let path = "/x402.v1.Query/QueryX402FeeStats";
+        let data = proto_req.encode_to_vec();
+
+        let response_bytes = self.query(path, data).await?;
+
+        let proto_res = morpheum_proto::x402::v1::QueryX402FeeStatsResponse::decode(
+            response_bytes.as_slice(),
+        )
+        .map_err(SdkError::Decode)?;
+
+        Ok(proto_res.into())
+    }
 }
 
 #[async_trait(?Send)]
@@ -319,6 +338,10 @@ mod tests {
                     let dummy = morpheum_proto::x402::v1::QueryPendingUptoResponse {
                         pending: vec![],
                     };
+                    Ok(prost::Message::encode_to_vec(&dummy))
+                }
+                "/x402.v1.Query/QueryX402FeeStats" => {
+                    let dummy = morpheum_proto::x402::v1::QueryX402FeeStatsResponse::default();
                     Ok(prost::Message::encode_to_vec(&dummy))
                 }
                 _ => Err(SdkError::transport("unexpected query path in test")),

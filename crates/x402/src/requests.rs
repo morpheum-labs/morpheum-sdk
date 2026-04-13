@@ -427,6 +427,16 @@ impl From<QueryPendingUptoRequest> for proto::QueryPendingUptoRequest {
     }
 }
 
+/// Query aggregated x402 fee statistics.
+#[derive(Clone, Debug, Default)]
+pub struct QueryX402FeeStatsRequest;
+
+impl From<QueryX402FeeStatsRequest> for proto::QueryX402FeeStatsRequest {
+    fn from(_req: QueryX402FeeStatsRequest) -> Self {
+        Self {}
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

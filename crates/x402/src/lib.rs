@@ -52,6 +52,7 @@ pub use types::{
     ReceiptStatus,
     Scheme,
     UptoDetails,
+    X402FeeStats,
 };
 
 pub use requests::*;

@@ -401,6 +401,7 @@ impl From<proto::FinalizeUptoResponse> for FinalizeUptoResult {
 pub struct Params {
     pub authorized_relayers: Vec<String>,
     pub enable_signature_verification: bool,
+    pub default_protocol_cut_bps: u32,
 }
 
 impl Default for Params {
@@ -408,6 +409,7 @@ impl Default for Params {
         Self {
             authorized_relayers: Vec::new(),
             enable_signature_verification: false,
+            default_protocol_cut_bps: 50,
         }
     }
 }
@@ -417,6 +419,7 @@ impl From<proto::Params> for Params {
         Self {
             authorized_relayers: p.authorized_relayers,
             enable_signature_verification: p.enable_signature_verification,
+            default_protocol_cut_bps: p.default_protocol_cut_bps,
         }
     }
 }
@@ -426,6 +429,29 @@ impl From<Params> for proto::Params {
         Self {
             authorized_relayers: p.authorized_relayers,
             enable_signature_verification: p.enable_signature_verification,
+            default_protocol_cut_bps: p.default_protocol_cut_bps,
+        }
+    }
+}
+
+/// Aggregated fee statistics for the x402 module.
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
+pub struct X402FeeStats {
+    pub total_payment_cut_fees: u64,
+    pub total_treasury_swept: u64,
+    pub outbound_count: u64,
+    pub bridge_count: u64,
+    pub upto_count: u64,
+}
+
+impl From<proto::QueryX402FeeStatsResponse> for X402FeeStats {
+    fn from(r: proto::QueryX402FeeStatsResponse) -> Self {
+        Self {
+            total_payment_cut_fees: r.total_payment_cut_fees,
+            total_treasury_swept: r.total_treasury_swept,
+            outbound_count: r.outbound_count,
+            bridge_count: r.bridge_count,
+            upto_count: r.upto_count,
         }
     }
 }

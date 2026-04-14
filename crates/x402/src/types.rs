@@ -526,6 +526,7 @@ mod tests {
         let params = Params {
             authorized_relayers: vec!["relayer-1".into()],
             enable_signature_verification: true,
+            default_protocol_cut_bps: 50,
         };
 
         let proto: proto::Params = params.clone().into();

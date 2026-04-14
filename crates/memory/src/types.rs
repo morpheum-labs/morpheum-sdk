@@ -88,6 +88,8 @@ pub struct MemoryEntry {
     pub expires_at: u64,
     /// Application-defined version string.
     pub version: String,
+    /// Storage deposit currently held for this entry, in uMORM.
+    pub deposit_amount: u64,
 }
 
 impl MemoryEntry {
@@ -112,6 +114,7 @@ impl From<proto::MemoryEntry> for MemoryEntry {
             timestamp: p.timestamp,
             expires_at: p.expires_at,
             version: p.version,
+            deposit_amount: p.deposit_amount,
         }
     }
 }
@@ -126,6 +129,7 @@ impl From<MemoryEntry> for proto::MemoryEntry {
             timestamp: e.timestamp,
             expires_at: e.expires_at,
             version: e.version,
+            deposit_amount: e.deposit_amount,
         }
     }
 }
@@ -393,6 +397,7 @@ mod tests {
             timestamp: 1_700_000_000,
             expires_at: 1_700_003_600,
             version: "1.0".into(),
+            deposit_amount: 1_000,
         };
         let proto: proto::MemoryEntry = entry.clone().into();
         let back: MemoryEntry = proto.into();

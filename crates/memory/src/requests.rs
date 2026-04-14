@@ -492,6 +492,7 @@ mod tests {
                 timestamp: 1_700_000_000,
                 expires_at: 0,
                 version: "1.0".into(),
+                deposit_amount: 1_000,
             }),
             found: true,
         };
@@ -500,6 +501,7 @@ mod tests {
         let entry = res.entry.unwrap();
         assert_eq!(entry.agent_hash, "agent-abc");
         assert_eq!(entry.entry_type, MemoryEntryType::Semantic);
+        assert_eq!(entry.deposit_amount, 1_000);
     }
 
     #[test]

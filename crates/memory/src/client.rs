@@ -174,6 +174,7 @@ mod tests {
                             timestamp: 1_700_000_000,
                             expires_at: 0,
                             version: "1.0".into(),
+                            deposit_amount: 1_000,
                         }),
                         found: true,
                     };

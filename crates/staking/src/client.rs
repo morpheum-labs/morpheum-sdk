@@ -16,12 +16,13 @@ use prost::Message as _;
 use morpheum_sdk_core::{MorpheumClient, SdkConfig, SdkError, Transport};
 
 use crate::requests::{
-    QueryDelegationsRequest, QueryParamsRequest, QueryRewardsRequest,
-    QueryUserStakingRequest, QueryValidatorRequest, QueryValidatorsRequest,
+    QueryCommissionInfoRequest, QueryDelegationsRequest, QueryEpochRewardsRequest,
+    QueryParamsRequest, QueryRewardsRequest, QueryUserStakingRequest,
+    QueryValidatorRequest, QueryValidatorScoreRequest, QueryValidatorsRequest,
 };
 use crate::types::{
-    Delegation, Penalty, Reward, SlashingEvent, StakingParams,
-    UserStaking, Validator, ValidatorStake,
+    CommissionInfo, Delegation, EpochRewardSnapshot, Penalty, Reward, SlashingEvent,
+    StakingParams, UserStaking, Validator, ValidatorScore, ValidatorStake,
 };
 
 /// Primary client for all staking-related queries.
@@ -238,6 +239,78 @@ impl StakingClient {
         Ok(proto_res.events.into_iter().map(Into::into).collect())
     }
 
+    /// Queries the epoch reward distribution snapshot for a given epoch.
+    pub async fn query_epoch_rewards(
+        &self,
+        epoch: u64,
+    ) -> Result<Option<EpochRewardSnapshot>, SdkError> {
+        let req = QueryEpochRewardsRequest::new(epoch);
+        let proto_req: morpheum_proto::staking::v1::QueryEpochRewardsRequest = req.into();
+
+        let path = "/staking.v1.Query/QueryEpochRewards";
+        let data = proto_req.encode_to_vec();
+        let response_bytes = self.query(path, data).await?;
+
+        let proto_res = morpheum_proto::staking::v1::QueryEpochRewardsResponse::decode(
+            response_bytes.as_slice(),
+        )
+        .map_err(SdkError::Decode)?;
+
+        if proto_res.found {
+            Ok(proto_res.snapshot.map(Into::into))
+        } else {
+            Ok(None)
+        }
+    }
+
+    /// Queries a validator's computed ranking score.
+    pub async fn query_validator_score(
+        &self,
+        validator_id: impl Into<String>,
+    ) -> Result<Option<ValidatorScore>, SdkError> {
+        let req = QueryValidatorScoreRequest::new(validator_id);
+        let proto_req: morpheum_proto::staking::v1::QueryValidatorScoreRequest = req.into();
+
+        let path = "/staking.v1.Query/QueryValidatorScore";
+        let data = proto_req.encode_to_vec();
+        let response_bytes = self.query(path, data).await?;
+
+        let proto_res = morpheum_proto::staking::v1::QueryValidatorScoreResponse::decode(
+            response_bytes.as_slice(),
+        )
+        .map_err(SdkError::Decode)?;
+
+        if proto_res.found {
+            Ok(proto_res.score.map(Into::into))
+        } else {
+            Ok(None)
+        }
+    }
+
+    /// Queries a validator's commission info.
+    pub async fn query_commission_info(
+        &self,
+        validator_id: impl Into<String>,
+    ) -> Result<Option<CommissionInfo>, SdkError> {
+        let req = QueryCommissionInfoRequest::new(validator_id);
+        let proto_req: morpheum_proto::staking::v1::QueryCommissionInfoRequest = req.into();
+
+        let path = "/staking.v1.Query/QueryCommissionInfo";
+        let data = proto_req.encode_to_vec();
+        let response_bytes = self.query(path, data).await?;
+
+        let proto_res = morpheum_proto::staking::v1::QueryCommissionInfoResponse::decode(
+            response_bytes.as_slice(),
+        )
+        .map_err(SdkError::Decode)?;
+
+        if proto_res.found {
+            Ok(proto_res.commission.map(Into::into))
+        } else {
+            Ok(None)
+        }
+    }
+
     /// Queries module parameters.
     pub async fn query_params(&self) -> Result<StakingParams, SdkError> {
         let req = QueryParamsRequest;
@@ -361,6 +434,47 @@ mod tests {
                     };
                     Ok(prost::Message::encode_to_vec(&dummy))
                 }
+                "/staking.v1.Query/QueryEpochRewards" => {
+                    let dummy = morpheum_proto::staking::v1::QueryEpochRewardsResponse {
+                        snapshot: Some(morpheum_proto::staking::v1::EpochRewardSnapshot {
+                            epoch: 1,
+                            total_distributed: "1000000".into(),
+                            storage_fund_contribution: "600000".into(),
+                            inflation_contribution: "400000".into(),
+                            validators_rewarded: 5,
+                            delegators_rewarded: 20,
+                        }),
+                        found: true,
+                    };
+                    Ok(prost::Message::encode_to_vec(&dummy))
+                }
+                "/staking.v1.Query/QueryValidatorScore" => {
+                    let dummy = morpheum_proto::staking::v1::QueryValidatorScoreResponse {
+                        score: Some(morpheum_proto::staking::v1::ValidatorScore {
+                            validator_id: "val-1".into(),
+                            score: "9500".into(),
+                            stake_component: "8000".into(),
+                            mana_component: "1000".into(),
+                            reputation_component: "500".into(),
+                            epoch: 1,
+                        }),
+                        found: true,
+                    };
+                    Ok(prost::Message::encode_to_vec(&dummy))
+                }
+                "/staking.v1.Query/QueryCommissionInfo" => {
+                    let dummy = morpheum_proto::staking::v1::QueryCommissionInfoResponse {
+                        commission: Some(morpheum_proto::staking::v1::CommissionInfo {
+                            validator_id: "val-1".into(),
+                            commission_bps: 1000,
+                            total_commission_earned: "50000".into(),
+                            last_epoch_commission: "5000".into(),
+                            last_epoch: 1,
+                        }),
+                        found: true,
+                    };
+                    Ok(prost::Message::encode_to_vec(&dummy))
+                }
                 _ => Err(SdkError::transport("unexpected query path in test")),
             }
         }
@@ -435,5 +549,41 @@ mod tests {
         let client = make_client();
         let result = client.query_params().await;
         assert!(result.is_ok());
+    }
+
+    #[tokio::test]
+    async fn query_epoch_rewards_works() {
+        let client = make_client();
+        let result = client.query_epoch_rewards(1).await;
+        assert!(result.is_ok());
+        let snap = result.unwrap();
+        assert!(snap.is_some());
+        let snap = snap.unwrap();
+        assert_eq!(snap.epoch, 1);
+        assert_eq!(snap.total_distributed, "1000000");
+    }
+
+    #[tokio::test]
+    async fn query_validator_score_works() {
+        let client = make_client();
+        let result = client.query_validator_score("val-1").await;
+        assert!(result.is_ok());
+        let score = result.unwrap();
+        assert!(score.is_some());
+        let score = score.unwrap();
+        assert_eq!(score.validator_id, "val-1");
+        assert_eq!(score.score, "9500");
+    }
+
+    #[tokio::test]
+    async fn query_commission_info_works() {
+        let client = make_client();
+        let result = client.query_commission_info("val-1").await;
+        assert!(result.is_ok());
+        let ci = result.unwrap();
+        assert!(ci.is_some());
+        let ci = ci.unwrap();
+        assert_eq!(ci.validator_id, "val-1");
+        assert_eq!(ci.commission_bps, 1000);
     }
 }

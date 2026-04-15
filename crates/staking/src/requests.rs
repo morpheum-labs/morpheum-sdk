@@ -669,6 +669,69 @@ impl From<QueryParamsRequest> for proto::QueryParamsRequest {
     }
 }
 
+/// Query epoch reward distribution snapshot.
+#[derive(Clone, Debug, PartialEq, Eq)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+pub struct QueryEpochRewardsRequest {
+    pub epoch: u64,
+}
+
+impl QueryEpochRewardsRequest {
+    pub fn new(epoch: u64) -> Self {
+        Self { epoch }
+    }
+}
+
+impl From<QueryEpochRewardsRequest> for proto::QueryEpochRewardsRequest {
+    fn from(req: QueryEpochRewardsRequest) -> Self {
+        Self { epoch: req.epoch }
+    }
+}
+
+/// Query a validator's computed score.
+#[derive(Clone, Debug, PartialEq, Eq)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+pub struct QueryValidatorScoreRequest {
+    pub validator_id: String,
+    pub epoch: u64,
+}
+
+impl QueryValidatorScoreRequest {
+    pub fn new(validator_id: impl Into<String>) -> Self {
+        Self { validator_id: validator_id.into(), epoch: 0 }
+    }
+
+    pub fn with_epoch(mut self, epoch: u64) -> Self {
+        self.epoch = epoch;
+        self
+    }
+}
+
+impl From<QueryValidatorScoreRequest> for proto::QueryValidatorScoreRequest {
+    fn from(req: QueryValidatorScoreRequest) -> Self {
+        Self { validator_id: req.validator_id, epoch: req.epoch }
+    }
+}
+
+/// Query a validator's commission info.
+#[derive(Clone, Debug, PartialEq, Eq)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+pub struct QueryCommissionInfoRequest {
+    pub validator_id: String,
+}
+
+impl QueryCommissionInfoRequest {
+    pub fn new(validator_id: impl Into<String>) -> Self {
+        Self { validator_id: validator_id.into() }
+    }
+}
+
+impl From<QueryCommissionInfoRequest> for proto::QueryCommissionInfoRequest {
+    fn from(req: QueryCommissionInfoRequest) -> Self {
+        Self { validator_id: req.validator_id }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

@@ -312,6 +312,10 @@ pub struct StakingParams {
     pub slash_fraction_double_sign: String,
     pub jail_duration_seconds: i64,
     pub min_self_delegation: String,
+    pub scoring_params: Option<ScoringParams>,
+    pub liveness_params: Option<LivenessParams>,
+    pub inflation_rate_bps: String,
+    pub max_commission_bps: String,
 }
 
 impl Default for StakingParams {
@@ -325,6 +329,10 @@ impl Default for StakingParams {
             slash_fraction_double_sign: "0.05".into(),
             jail_duration_seconds: 600,
             min_self_delegation: "1000000".into(),
+            scoring_params: Some(ScoringParams::default()),
+            liveness_params: Some(LivenessParams::default()),
+            inflation_rate_bps: "0".into(),
+            max_commission_bps: "2000".into(),
         }
     }
 }
@@ -340,6 +348,10 @@ impl From<proto::Params> for StakingParams {
             slash_fraction_double_sign: p.slash_fraction_double_sign,
             jail_duration_seconds: p.jail_duration.map_or(0, |d| d.seconds),
             min_self_delegation: p.min_self_delegation,
+            scoring_params: p.scoring_params.map(Into::into),
+            liveness_params: p.liveness_params.map(Into::into),
+            inflation_rate_bps: p.inflation_rate_bps,
+            max_commission_bps: p.max_commission_bps,
         }
     }
 }
@@ -356,6 +368,181 @@ impl From<StakingParams> for proto::Params {
             slash_fraction_double_sign: p.slash_fraction_double_sign,
             jail_duration: Some(Duration { seconds: p.jail_duration_seconds, nanos: 0 }),
             min_self_delegation: p.min_self_delegation,
+            scoring_params: p.scoring_params.map(Into::into),
+            liveness_params: p.liveness_params.map(Into::into),
+            inflation_rate_bps: p.inflation_rate_bps,
+            max_commission_bps: p.max_commission_bps,
+        }
+    }
+}
+
+// ====================== VALIDATOR ECONOMICS TYPES ======================
+
+/// Scoring parameters for validator ranking.
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+pub struct ScoringParams {
+    pub stake_weight_bps: u32,
+    pub mana_weight_bps: u32,
+    pub reputation_weight_bps: u32,
+}
+
+impl From<proto::ScoringParams> for ScoringParams {
+    fn from(p: proto::ScoringParams) -> Self {
+        Self {
+            stake_weight_bps: p.stake_weight_bps,
+            mana_weight_bps: p.mana_weight_bps,
+            reputation_weight_bps: p.reputation_weight_bps,
+        }
+    }
+}
+
+impl From<ScoringParams> for proto::ScoringParams {
+    fn from(s: ScoringParams) -> Self {
+        Self {
+            stake_weight_bps: s.stake_weight_bps,
+            mana_weight_bps: s.mana_weight_bps,
+            reputation_weight_bps: s.reputation_weight_bps,
+        }
+    }
+}
+
+/// Liveness enforcement parameters.
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+pub struct LivenessParams {
+    pub max_missed_epochs: u64,
+    pub downtime_slash_bps: u32,
+    pub jail_after_misses: u64,
+}
+
+impl From<proto::LivenessParams> for LivenessParams {
+    fn from(p: proto::LivenessParams) -> Self {
+        Self {
+            max_missed_epochs: p.max_missed_epochs,
+            downtime_slash_bps: p.downtime_slash_bps,
+            jail_after_misses: p.jail_after_misses,
+        }
+    }
+}
+
+impl From<LivenessParams> for proto::LivenessParams {
+    fn from(l: LivenessParams) -> Self {
+        Self {
+            max_missed_epochs: l.max_missed_epochs,
+            downtime_slash_bps: l.downtime_slash_bps,
+            jail_after_misses: l.jail_after_misses,
+        }
+    }
+}
+
+/// Epoch reward distribution snapshot.
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+pub struct EpochRewardSnapshot {
+    pub epoch: u64,
+    pub total_distributed: String,
+    pub storage_fund_contribution: String,
+    pub inflation_contribution: String,
+    pub validators_rewarded: u32,
+    pub delegators_rewarded: u32,
+}
+
+impl From<proto::EpochRewardSnapshot> for EpochRewardSnapshot {
+    fn from(p: proto::EpochRewardSnapshot) -> Self {
+        Self {
+            epoch: p.epoch,
+            total_distributed: p.total_distributed,
+            storage_fund_contribution: p.storage_fund_contribution,
+            inflation_contribution: p.inflation_contribution,
+            validators_rewarded: p.validators_rewarded,
+            delegators_rewarded: p.delegators_rewarded,
+        }
+    }
+}
+
+impl From<EpochRewardSnapshot> for proto::EpochRewardSnapshot {
+    fn from(s: EpochRewardSnapshot) -> Self {
+        Self {
+            epoch: s.epoch,
+            total_distributed: s.total_distributed,
+            storage_fund_contribution: s.storage_fund_contribution,
+            inflation_contribution: s.inflation_contribution,
+            validators_rewarded: s.validators_rewarded,
+            delegators_rewarded: s.delegators_rewarded,
+        }
+    }
+}
+
+/// Computed validator score for ranking.
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+pub struct ValidatorScore {
+    pub validator_id: String,
+    pub score: String,
+    pub stake_component: String,
+    pub mana_component: String,
+    pub reputation_component: String,
+    pub epoch: u64,
+}
+
+impl From<proto::ValidatorScore> for ValidatorScore {
+    fn from(p: proto::ValidatorScore) -> Self {
+        Self {
+            validator_id: p.validator_id,
+            score: p.score,
+            stake_component: p.stake_component,
+            mana_component: p.mana_component,
+            reputation_component: p.reputation_component,
+            epoch: p.epoch,
+        }
+    }
+}
+
+impl From<ValidatorScore> for proto::ValidatorScore {
+    fn from(s: ValidatorScore) -> Self {
+        Self {
+            validator_id: s.validator_id,
+            score: s.score,
+            stake_component: s.stake_component,
+            mana_component: s.mana_component,
+            reputation_component: s.reputation_component,
+            epoch: s.epoch,
+        }
+    }
+}
+
+/// Commission tracking for a validator.
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+pub struct CommissionInfo {
+    pub validator_id: String,
+    pub commission_bps: u32,
+    pub total_commission_earned: String,
+    pub last_epoch_commission: String,
+    pub last_epoch: u64,
+}
+
+impl From<proto::CommissionInfo> for CommissionInfo {
+    fn from(p: proto::CommissionInfo) -> Self {
+        Self {
+            validator_id: p.validator_id,
+            commission_bps: p.commission_bps,
+            total_commission_earned: p.total_commission_earned,
+            last_epoch_commission: p.last_epoch_commission,
+            last_epoch: p.last_epoch,
+        }
+    }
+}
+
+impl From<CommissionInfo> for proto::CommissionInfo {
+    fn from(c: CommissionInfo) -> Self {
+        Self {
+            validator_id: c.validator_id,
+            commission_bps: c.commission_bps,
+            total_commission_earned: c.total_commission_earned,
+            last_epoch_commission: c.last_epoch_commission,
+            last_epoch: c.last_epoch,
         }
     }
 }
@@ -424,5 +611,65 @@ mod tests {
         let proto_params: proto::Params = params.clone().into();
         let back = StakingParams::from(proto_params);
         assert_eq!(params, back);
+    }
+
+    #[test]
+    fn scoring_params_roundtrip() {
+        let sp = ScoringParams { stake_weight_bps: 8000, mana_weight_bps: 1500, reputation_weight_bps: 500 };
+        let proto_sp: proto::ScoringParams = sp.clone().into();
+        let back = ScoringParams::from(proto_sp);
+        assert_eq!(sp, back);
+    }
+
+    #[test]
+    fn liveness_params_roundtrip() {
+        let lp = LivenessParams { max_missed_epochs: 5, downtime_slash_bps: 500, jail_after_misses: 10 };
+        let proto_lp: proto::LivenessParams = lp.clone().into();
+        let back = LivenessParams::from(proto_lp);
+        assert_eq!(lp, back);
+    }
+
+    #[test]
+    fn epoch_reward_snapshot_roundtrip() {
+        let snap = EpochRewardSnapshot {
+            epoch: 42,
+            total_distributed: "1000000".into(),
+            storage_fund_contribution: "600000".into(),
+            inflation_contribution: "400000".into(),
+            validators_rewarded: 10,
+            delegators_rewarded: 50,
+        };
+        let proto_snap: proto::EpochRewardSnapshot = snap.clone().into();
+        let back = EpochRewardSnapshot::from(proto_snap);
+        assert_eq!(snap, back);
+    }
+
+    #[test]
+    fn validator_score_roundtrip() {
+        let vs = ValidatorScore {
+            validator_id: "val-1".into(),
+            score: "9500".into(),
+            stake_component: "8000".into(),
+            mana_component: "1000".into(),
+            reputation_component: "500".into(),
+            epoch: 42,
+        };
+        let proto_vs: proto::ValidatorScore = vs.clone().into();
+        let back = ValidatorScore::from(proto_vs);
+        assert_eq!(vs, back);
+    }
+
+    #[test]
+    fn commission_info_roundtrip() {
+        let ci = CommissionInfo {
+            validator_id: "val-1".into(),
+            commission_bps: 1000,
+            total_commission_earned: "50000".into(),
+            last_epoch_commission: "5000".into(),
+            last_epoch: 41,
+        };
+        let proto_ci: proto::CommissionInfo = ci.clone().into();
+        let back = CommissionInfo::from(proto_ci);
+        assert_eq!(ci, back);
     }
 }

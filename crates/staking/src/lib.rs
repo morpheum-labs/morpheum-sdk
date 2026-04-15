@@ -19,9 +19,10 @@ pub mod builder;
 pub use client::StakingClient;
 
 pub use types::{
-    Delegation, MisbehaviorType, Penalty, Reward, SlashingEvent,
+    CommissionInfo, Delegation, EpochRewardSnapshot, LivenessParams,
+    MisbehaviorType, Penalty, Reward, ScoringParams, SlashingEvent,
     StakingParams, UnbondingDelegation, UserStaking, Validator,
-    ValidatorStake, ValidatorStatus,
+    ValidatorScore, ValidatorStake, ValidatorStatus,
 };
 
 pub use requests::*;
@@ -42,10 +43,11 @@ pub use morpheum_sdk_core::{
 pub mod prelude {
     pub use super::{
         StakingClient,
-        Validator, ValidatorStatus, ValidatorStake,
+        Validator, ValidatorStatus, ValidatorStake, ValidatorScore,
         Delegation, UnbondingDelegation, Reward, UserStaking,
         MisbehaviorType, Penalty, SlashingEvent,
-        StakingParams,
+        StakingParams, ScoringParams, LivenessParams,
+        EpochRewardSnapshot, CommissionInfo,
         StakeBuilder, UnstakeBuilder,
         DelegateBuilder, UndelegateBuilder, RedelegateBuilder,
         ClaimRewardsBuilder,

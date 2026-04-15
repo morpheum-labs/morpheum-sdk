@@ -88,7 +88,7 @@ pub struct MemoryEntry {
     pub expires_at: u64,
     /// Application-defined version string.
     pub version: String,
-    /// Storage deposit currently held for this entry, in uMORM.
+    /// Storage deposit currently held for this entry, in oneirs.
     pub deposit_amount: u64,
 }
 

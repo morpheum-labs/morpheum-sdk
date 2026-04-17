@@ -223,14 +223,26 @@ pub struct Params {
     pub max_memo_characters: u64,
     pub tx_sig_limit: u64,
     pub mana_threshold: u64,
+    pub congestion_threshold_pct: u32,
+    pub sponsored_threshold_pct: u32,
+    pub max_mana_multiplier_bps: u32,
+    pub max_reputation_multiplier_bps: u32,
 }
 
 impl Default for Params {
     fn default() -> Self {
+        use morpheum_primitives::priority_fee::{
+            DEFAULT_CONGESTION_THRESHOLD_PCT, DEFAULT_MAX_MANA_MULTIPLIER_BPS,
+            DEFAULT_MAX_REPUTATION_MULTIPLIER_BPS, DEFAULT_SPONSORED_THRESHOLD_PCT,
+        };
         Self {
             max_memo_characters: 256,
             tx_sig_limit: 7,
             mana_threshold: 0,
+            congestion_threshold_pct: DEFAULT_CONGESTION_THRESHOLD_PCT,
+            sponsored_threshold_pct: DEFAULT_SPONSORED_THRESHOLD_PCT,
+            max_mana_multiplier_bps: DEFAULT_MAX_MANA_MULTIPLIER_BPS,
+            max_reputation_multiplier_bps: DEFAULT_MAX_REPUTATION_MULTIPLIER_BPS,
         }
     }
 }
@@ -241,6 +253,10 @@ impl From<proto::Params> for Params {
             max_memo_characters: p.max_memo_characters,
             tx_sig_limit: p.tx_sig_limit,
             mana_threshold: p.mana_threshold,
+            congestion_threshold_pct: p.congestion_threshold_pct,
+            sponsored_threshold_pct: p.sponsored_threshold_pct,
+            max_mana_multiplier_bps: p.max_mana_multiplier_bps,
+            max_reputation_multiplier_bps: p.max_reputation_multiplier_bps,
         }
     }
 }
@@ -251,6 +267,10 @@ impl From<Params> for proto::Params {
             max_memo_characters: p.max_memo_characters,
             tx_sig_limit: p.tx_sig_limit,
             mana_threshold: p.mana_threshold,
+            congestion_threshold_pct: p.congestion_threshold_pct,
+            sponsored_threshold_pct: p.sponsored_threshold_pct,
+            max_mana_multiplier_bps: p.max_mana_multiplier_bps,
+            max_reputation_multiplier_bps: p.max_reputation_multiplier_bps,
         }
     }
 }

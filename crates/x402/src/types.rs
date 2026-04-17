@@ -4,7 +4,7 @@
 //! Each type provides full round-trip conversion to/from protobuf via `From`
 //! impls and remains strictly `no_std` compatible.
 
-use alloc::string::String;
+use alloc::string::{String, ToString};
 use alloc::vec::Vec;
 
 #[cfg(feature = "serde")]
@@ -125,8 +125,8 @@ pub struct UptoDetails {
 impl From<proto::UptoDetails> for UptoDetails {
     fn from(d: proto::UptoDetails) -> Self {
         Self {
-            max_amount: d.max_amount,
-            actual_amount: d.actual_amount,
+            max_amount: d.max_amount.parse().unwrap_or(0),
+            actual_amount: d.actual_amount.parse().unwrap_or(0),
             expires_at: d.expires_at,
             pre_auth_id: d.pre_auth_id,
         }
@@ -136,8 +136,8 @@ impl From<proto::UptoDetails> for UptoDetails {
 impl From<UptoDetails> for proto::UptoDetails {
     fn from(d: UptoDetails) -> Self {
         Self {
-            max_amount: d.max_amount,
-            actual_amount: d.actual_amount,
+            max_amount: d.max_amount.to_string(),
+            actual_amount: d.actual_amount.to_string(),
             expires_at: d.expires_at,
             pre_auth_id: d.pre_auth_id,
         }
@@ -170,7 +170,7 @@ impl From<proto::X402Receipt> for Receipt {
             agent_id: p.agent_id,
             direction: PaymentDirection::from(p.direction),
             scheme: Scheme::from(p.scheme),
-            amount: p.amount,
+            amount: p.amount.parse().unwrap_or(0),
             asset: p.asset,
             counterparty: p.counterparty,
             memo: p.memo,
@@ -190,7 +190,7 @@ impl From<Receipt> for proto::X402Receipt {
             agent_id: r.agent_id,
             direction: i32::from(r.direction),
             scheme: i32::from(r.scheme),
-            amount: r.amount,
+            amount: r.amount.to_string(),
             asset: r.asset,
             counterparty: r.counterparty,
             memo: r.memo,
@@ -225,7 +225,7 @@ impl From<proto::X402Policy> for Policy {
         Self {
             policy_id: p.policy_id,
             agent_id: p.agent_id,
-            max_amount_required: p.max_amount_required,
+            max_amount_required: p.max_amount_required.parse().unwrap_or(0),
             supported_schemes: p.supported_schemes,
             asset: p.asset,
             network: p.network,
@@ -240,7 +240,7 @@ impl From<Policy> for proto::X402Policy {
         Self {
             policy_id: p.policy_id,
             agent_id: p.agent_id,
-            max_amount_required: p.max_amount_required,
+            max_amount_required: p.max_amount_required.to_string(),
             supported_schemes: p.supported_schemes,
             asset: p.asset,
             network: p.network,
@@ -282,10 +282,10 @@ impl From<proto::X402Capabilities> for Capabilities {
             agent_id: c.agent_id,
             enabled: c.enabled,
             preferred_schemes: c.preferred_schemes,
-            max_amount_required: c.max_amount_required,
+            max_amount_required: c.max_amount_required.parse().unwrap_or(0),
             endpoint: c.endpoint,
             updated_at: c.updated_at,
-            upto_max_amount: c.upto_max_amount,
+            upto_max_amount: c.upto_max_amount.parse().unwrap_or(0),
             upto_default_expiry: c.upto_default_expiry,
         }
     }
@@ -297,10 +297,10 @@ impl From<Capabilities> for proto::X402Capabilities {
             agent_id: c.agent_id,
             enabled: c.enabled,
             preferred_schemes: c.preferred_schemes,
-            max_amount_required: c.max_amount_required,
+            max_amount_required: c.max_amount_required.to_string(),
             endpoint: c.endpoint,
             updated_at: c.updated_at,
-            upto_max_amount: c.upto_max_amount,
+            upto_max_amount: c.upto_max_amount.to_string(),
             upto_default_expiry: c.upto_default_expiry,
         }
     }
@@ -329,7 +329,7 @@ impl From<proto::X402PaymentPacket> for PaymentPacket {
             payment_id: p.payment_id,
             source_chain: p.source_chain,
             target_agent_id: p.target_agent_id,
-            amount: p.amount,
+            amount: p.amount.parse().unwrap_or(0),
             asset: p.asset,
             memo: p.memo,
             signature_payload: p.signature_payload,
@@ -345,7 +345,7 @@ impl From<PaymentPacket> for proto::X402PaymentPacket {
             payment_id: p.payment_id,
             source_chain: p.source_chain,
             target_agent_id: p.target_agent_id,
-            amount: p.amount,
+            amount: p.amount.to_string(),
             asset: p.asset,
             memo: p.memo,
             signature_payload: p.signature_payload,
@@ -390,7 +390,7 @@ impl From<proto::FinalizeUptoResponse> for FinalizeUptoResult {
         Self {
             success: r.success,
             receipt: r.receipt.map(Into::into),
-            refunded_amount: r.refunded_amount,
+            refunded_amount: r.refunded_amount.parse().unwrap_or(0),
         }
     }
 }

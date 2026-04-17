@@ -190,7 +190,7 @@ impl From<ApproveOutboundRequest> for proto::MsgApproveOutbound {
         Self {
             agent_id: req.agent_id,
             destination: req.destination,
-            amount: req.amount,
+            amount: req.amount.to_string(),
             asset: req.asset,
             memo: req.memo,
             scheme: i32::from(req.scheme),
@@ -383,7 +383,7 @@ impl From<FinalizeUptoRequest> for proto::MsgFinalizeUpto {
         Self {
             seller_address: req.seller_address,
             pre_auth_id: req.pre_auth_id,
-            actual_amount: req.actual_amount,
+            actual_amount: req.actual_amount.to_string(),
         }
     }
 }

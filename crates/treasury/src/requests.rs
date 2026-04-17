@@ -1,6 +1,6 @@
 //! Request wrappers for the treasury module.
 
-use alloc::string::String;
+use alloc::string::{String, ToString};
 use alloc::vec::Vec;
 
 use prost::Message as _;
@@ -41,7 +41,7 @@ impl SweepRevenueRequest {
     pub fn to_any(&self) -> ProtoAny {
         let msg = proto::MsgSweepRevenue {
             source_module: self.source_module.clone(), target_category: i32::from(self.target_category),
-            amount: self.amount, reason: self.reason.clone(),
+            amount: self.amount.to_string(), reason: self.reason.clone(),
             tx_hash: self.tx_hash.clone(), authority: self.authority.clone(),
             asset_index: 0,
         };
@@ -79,7 +79,7 @@ impl AllocateFundsRequest {
         let msg = proto::MsgAllocateFunds {
             authority: self.authority.clone(), source_category: i32::from(self.source_category),
             target_module: self.target_module.clone(), target_category: i32::from(self.target_category),
-            amount: self.amount, reason: self.reason.clone(),
+            amount: self.amount.to_string(), reason: self.reason.clone(),
             proposal_id: self.proposal_id, signature: self.signature.clone(),
             asset_index: 0,
         };

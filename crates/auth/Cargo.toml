@@ -34,6 +34,9 @@ morpheum-sdk-core = { path = "../core", default-features = false }
 # Canonical protobuf definitions
 morpheum-proto = { workspace = true }
 
+# Shared primitives (priority-fee default constants)
+morpheum-primitives = { workspace = true }
+
 # Protobuf runtime (for Message::decode / encode_to_vec)
 prost = { version = "0.14", default-features = false }
 

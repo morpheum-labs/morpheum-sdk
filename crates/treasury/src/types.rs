@@ -3,7 +3,7 @@
 //! Covers reserve categories, per-category state, aggregate reserves,
 //! allocation history, treasury metrics, and governance parameters.
 
-use alloc::string::String;
+use alloc::string::{String, ToString};
 use alloc::vec::Vec;
 
 #[cfg(feature = "serde")]
@@ -61,7 +61,13 @@ pub struct AssetBalance {
 
 impl From<proto::AssetBalance> for AssetBalance {
     fn from(p: proto::AssetBalance) -> Self {
-        Self { asset_index: p.asset_index, amount: p.amount }
+        Self { asset_index: p.asset_index, amount: p.amount.parse().unwrap_or(0) }
+    }
+}
+
+impl From<AssetBalance> for proto::AssetBalance {
+    fn from(a: AssetBalance) -> Self {
+        Self { asset_index: a.asset_index, amount: a.amount.to_string() }
     }
 }
 
@@ -149,7 +155,7 @@ impl From<proto::AllocationRecord> for AllocationRecord {
             allocation_id: p.allocation_id,
             source_category: ReserveCategory::from(p.source_category),
             target_category: ReserveCategory::from(p.target_category),
-            amount: p.amount, reason: p.reason, timestamp: p.timestamp,
+            amount: p.amount.parse().unwrap_or(0), reason: p.reason, timestamp: p.timestamp,
             tx_hash: p.tx_hash, authority: p.authority, signature: p.signature,
         }
     }
@@ -180,8 +186,8 @@ impl TreasuryMetrics {
 impl From<proto::TreasuryMetrics> for TreasuryMetrics {
     fn from(p: proto::TreasuryMetrics) -> Self {
         Self {
-            insurance_protection_balance: p.insurance_protection_balance,
-            buyback_burn_balance: p.buyback_burn_balance,
+            insurance_protection_balance: p.insurance_protection_balance.parse().unwrap_or(0),
+            buyback_burn_balance: p.buyback_burn_balance.parse().unwrap_or(0),
             reserve_to_oi_ratio_bps: p.reserve_to_oi_ratio_bps,
             insurance_coverage_ratio_bps: p.insurance_coverage_ratio_bps,
             projected_runway_days: p.projected_runway_days,
@@ -221,7 +227,7 @@ impl From<proto::Params> for TreasuryParams {
             auto_rebalance_threshold_bps: p.auto_rebalance_threshold_bps,
             max_single_allocation_bps: p.max_single_allocation_bps,
             buyback_frequency_blocks: p.buyback_frequency_blocks,
-            min_buyback_amount: p.min_buyback_amount,
+            min_buyback_amount: p.min_buyback_amount.parse().unwrap_or(0),
         }
     }
 }
@@ -239,7 +245,7 @@ impl From<TreasuryParams> for proto::Params {
             auto_rebalance_threshold_bps: p.auto_rebalance_threshold_bps,
             max_single_allocation_bps: p.max_single_allocation_bps,
             buyback_frequency_blocks: p.buyback_frequency_blocks,
-            min_buyback_amount: p.min_buyback_amount,
+            min_buyback_amount: p.min_buyback_amount.to_string(),
         }
     }
 }
@@ -281,11 +287,11 @@ mod tests {
             categories: vec![proto::CategoryReserve {
                 category: 1, allocation_bps: 4000,
                 last_updated: 100, metadata: vec![],
-                asset_balances: vec![proto::AssetBalance { asset_index: 0, amount: 400_000 }],
+                asset_balances: vec![proto::AssetBalance { asset_index: 0, amount: "400000".into() }],
             }],
             merkle_root: vec![0xAB], last_sweep_timestamp: 90,
             last_rebalance_timestamp: 80,
-            total_asset_reserves: vec![proto::AssetBalance { asset_index: 0, amount: 400_000 }],
+            total_asset_reserves: vec![proto::AssetBalance { asset_index: 0, amount: "400000".into() }],
         };
         let s: ReservesState = p.into();
         assert_eq!(s.native_total(), 400_000);
@@ -297,11 +303,11 @@ mod tests {
     #[test]
     fn treasury_metrics_from_proto() {
         let p = proto::TreasuryMetrics {
-            insurance_protection_balance: 400_000,
-            buyback_burn_balance: 200_000, reserve_to_oi_ratio_bps: 1500,
+            insurance_protection_balance: "400000".into(),
+            buyback_burn_balance: "200000".into(), reserve_to_oi_ratio_bps: 1500,
             insurance_coverage_ratio_bps: 2000, projected_runway_days: 365,
             last_updated: Some(morpheum_proto::google::protobuf::Timestamp { seconds: 1700000000, nanos: 0 }),
-            total_asset_reserves: vec![proto::AssetBalance { asset_index: 0, amount: 1_000_000 }],
+            total_asset_reserves: vec![proto::AssetBalance { asset_index: 0, amount: "1000000".into() }],
         };
         let m: TreasuryMetrics = p.into();
         assert_eq!(m.projected_runway_days, 365);

@@ -186,6 +186,7 @@ impl MorpheumSdkWasm {
             messages: vec![msg_any],
             memo: String::new(),
             timeout_timestamp: None,
+            priority_tip: String::new(),
         };
 
         let signer_info = SignerInfo {

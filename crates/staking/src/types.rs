@@ -106,6 +106,10 @@ pub struct Validator {
     pub status: ValidatorStatus,
     pub operator_address: String,
     pub consensus_pubkey: Vec<u8>,
+    /// 32-byte ECVRF (Ristretto255) public key. Mandatory per active
+    /// validator; the leader-proof verifier rejects proposals from a
+    /// validator whose `vrf_pubkey` is missing or malformed.
+    pub vrf_pubkey: Vec<u8>,
     pub dvt_cluster_id: Option<String>,
     pub dvt_threshold_t: Option<u32>,
     pub dvt_threshold_n: Option<u32>,
@@ -132,6 +136,7 @@ impl From<proto::Validator> for Validator {
             status: ValidatorStatus::from(p.status),
             operator_address: p.operator_address,
             consensus_pubkey: p.consensus_pubkey,
+            vrf_pubkey: p.vrf_pubkey,
             dvt_cluster_id: p.dvt_cluster_id,
             dvt_threshold_t: p.dvt_threshold_t,
             dvt_threshold_n: p.dvt_threshold_n,
@@ -156,6 +161,7 @@ impl From<Validator> for proto::Validator {
             operator_external_address: None,
             operator_chain_type: None,
             consensus_pubkey: v.consensus_pubkey,
+            vrf_pubkey: v.vrf_pubkey,
             dvt_cluster_id: v.dvt_cluster_id,
             dvt_threshold_t: v.dvt_threshold_t,
             dvt_threshold_n: v.dvt_threshold_n,

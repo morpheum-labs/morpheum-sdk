@@ -202,6 +202,7 @@ impl MorpheumSdkWasm {
 
         let auth_info = AuthInfo {
             signer_infos: vec![signer_info],
+            gas_limit: 0,
         };
 
         let body_bytes = body.encode_to_vec();
@@ -212,6 +213,7 @@ impl MorpheumSdkWasm {
             auth_info_bytes: auth_info_bytes.clone(),
             chain_id,
             account_number: 0,
+            genesis_hash: Vec::new(),
         };
 
         let signature = self.signer.sign(&sign_doc)

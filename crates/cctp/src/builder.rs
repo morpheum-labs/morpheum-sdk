@@ -55,11 +55,7 @@ impl FulfillCctpBuilder {
                     .ok_or_else(|| CctpError::Builder("attestation is required".into()))?,
             ),
         };
-        build_request(
-            self.sender,
-            self.contract,
-            &exec_msg,
-        )
+        build_request(self.sender, self.contract, &exec_msg)
     }
 }
 
@@ -195,9 +191,9 @@ impl SetPostMintHookBuilder {
 
     pub fn build(self) -> Result<ExecuteContractRequest, CctpError> {
         let exec_msg = ExecuteMsg::SetPostMintHook {
-            hook: self
-                .hook
-                .ok_or_else(|| CctpError::Builder("hook must be explicitly set (Some or None)".into()))?,
+            hook: self.hook.ok_or_else(|| {
+                CctpError::Builder("hook must be explicitly set (Some or None)".into())
+            })?,
         };
         build_request(self.sender, self.contract, &exec_msg)
     }
@@ -208,12 +204,9 @@ fn build_request(
     contract: Option<String>,
     msg: &ExecuteMsg,
 ) -> Result<ExecuteContractRequest, CctpError> {
-    let sender =
-        sender.ok_or_else(|| CctpError::Builder("sender is required".into()))?;
-    let contract =
-        contract.ok_or_else(|| CctpError::Builder("contract is required".into()))?;
-    let msg_bytes = serde_json::to_vec(msg)
-        .map_err(|e| CctpError::Serialization(e.to_string()))?;
+    let sender = sender.ok_or_else(|| CctpError::Builder("sender is required".into()))?;
+    let contract = contract.ok_or_else(|| CctpError::Builder("contract is required".into()))?;
+    let msg_bytes = serde_json::to_vec(msg).map_err(|e| CctpError::Serialization(e.to_string()))?;
 
     Ok(ExecuteContractRequest {
         sender,

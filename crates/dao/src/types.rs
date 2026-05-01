@@ -94,7 +94,8 @@ pub enum DaoProposalStatus {
 
 impl From<i32> for DaoProposalStatus {
     fn from(v: i32) -> Self {
-        match proto::DaoProposalStatus::try_from(v).unwrap_or(proto::DaoProposalStatus::Unspecified) {
+        match proto::DaoProposalStatus::try_from(v).unwrap_or(proto::DaoProposalStatus::Unspecified)
+        {
             proto::DaoProposalStatus::Unspecified => Self::Unspecified,
             proto::DaoProposalStatus::Draft => Self::Draft,
             proto::DaoProposalStatus::Signing => Self::Signing,
@@ -168,7 +169,10 @@ pub struct WeightedDaoVoteOption {
 
 impl WeightedDaoVoteOption {
     pub fn new(option: DaoVoteOption, weight: impl Into<String>) -> Self {
-        Self { option, weight: weight.into() }
+        Self {
+            option,
+            weight: weight.into(),
+        }
     }
 }
 

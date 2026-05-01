@@ -30,9 +30,12 @@ pub enum ReserveCategory {
 impl From<i32> for ReserveCategory {
     fn from(v: i32) -> Self {
         match v {
-            1 => Self::InsuranceProtection,   2 => Self::LiquidityIncentives,
-            3 => Self::BuybackBurn,           4 => Self::OperationsEcosystem,
-            5 => Self::StrategicInitiatives,  6 => Self::EmergencyStabilization,
+            1 => Self::InsuranceProtection,
+            2 => Self::LiquidityIncentives,
+            3 => Self::BuybackBurn,
+            4 => Self::OperationsEcosystem,
+            5 => Self::StrategicInitiatives,
+            6 => Self::EmergencyStabilization,
             _ => Self::Unspecified,
         }
     }
@@ -41,9 +44,12 @@ impl From<i32> for ReserveCategory {
 impl From<ReserveCategory> for i32 {
     fn from(c: ReserveCategory) -> Self {
         match c {
-            ReserveCategory::Unspecified => 0,           ReserveCategory::InsuranceProtection => 1,
-            ReserveCategory::LiquidityIncentives => 2,   ReserveCategory::BuybackBurn => 3,
-            ReserveCategory::OperationsEcosystem => 4,   ReserveCategory::StrategicInitiatives => 5,
+            ReserveCategory::Unspecified => 0,
+            ReserveCategory::InsuranceProtection => 1,
+            ReserveCategory::LiquidityIncentives => 2,
+            ReserveCategory::BuybackBurn => 3,
+            ReserveCategory::OperationsEcosystem => 4,
+            ReserveCategory::StrategicInitiatives => 5,
             ReserveCategory::EmergencyStabilization => 6,
         }
     }
@@ -61,13 +67,19 @@ pub struct AssetBalance {
 
 impl From<proto::AssetBalance> for AssetBalance {
     fn from(p: proto::AssetBalance) -> Self {
-        Self { asset_index: p.asset_index, amount: p.amount.parse().unwrap_or(0) }
+        Self {
+            asset_index: p.asset_index,
+            amount: p.amount.parse().unwrap_or(0),
+        }
     }
 }
 
 impl From<AssetBalance> for proto::AssetBalance {
     fn from(a: AssetBalance) -> Self {
-        Self { asset_index: a.asset_index, amount: a.amount.to_string() }
+        Self {
+            asset_index: a.asset_index,
+            amount: a.amount.to_string(),
+        }
     }
 }
 
@@ -85,7 +97,8 @@ pub struct CategoryReserve {
 impl CategoryReserve {
     /// Returns the native MORM balance (asset_index=0).
     pub fn native_balance(&self) -> u64 {
-        self.asset_balances.iter()
+        self.asset_balances
+            .iter()
             .find(|a| a.asset_index == 0)
             .map_or(0, |a| a.amount)
     }
@@ -95,7 +108,8 @@ impl From<proto::CategoryReserve> for CategoryReserve {
     fn from(p: proto::CategoryReserve) -> Self {
         Self {
             category: ReserveCategory::from(p.category),
-            allocation_bps: p.allocation_bps, last_updated: p.last_updated,
+            allocation_bps: p.allocation_bps,
+            last_updated: p.last_updated,
             metadata: p.metadata,
             asset_balances: p.asset_balances.into_iter().map(Into::into).collect(),
         }
@@ -116,7 +130,8 @@ pub struct ReservesState {
 impl ReservesState {
     /// Returns the native MORM total (asset_index=0) across all categories.
     pub fn native_total(&self) -> u64 {
-        self.total_asset_reserves.iter()
+        self.total_asset_reserves
+            .iter()
             .find(|a| a.asset_index == 0)
             .map_or(0, |a| a.amount)
     }
@@ -155,8 +170,12 @@ impl From<proto::AllocationRecord> for AllocationRecord {
             allocation_id: p.allocation_id,
             source_category: ReserveCategory::from(p.source_category),
             target_category: ReserveCategory::from(p.target_category),
-            amount: p.amount.parse().unwrap_or(0), reason: p.reason, timestamp: p.timestamp,
-            tx_hash: p.tx_hash, authority: p.authority, signature: p.signature,
+            amount: p.amount.parse().unwrap_or(0),
+            reason: p.reason,
+            timestamp: p.timestamp,
+            tx_hash: p.tx_hash,
+            authority: p.authority,
+            signature: p.signature,
         }
     }
 }
@@ -177,7 +196,8 @@ pub struct TreasuryMetrics {
 impl TreasuryMetrics {
     /// Returns the native MORM total (asset_index=0).
     pub fn native_total(&self) -> u64 {
-        self.total_asset_reserves.iter()
+        self.total_asset_reserves
+            .iter()
             .find(|a| a.asset_index == 0)
             .map_or(0, |a| a.amount)
     }
@@ -257,9 +277,14 @@ mod tests {
 
     #[test]
     fn reserve_category_roundtrip() {
-        for c in [ReserveCategory::InsuranceProtection, ReserveCategory::LiquidityIncentives,
-                  ReserveCategory::BuybackBurn, ReserveCategory::OperationsEcosystem,
-                  ReserveCategory::StrategicInitiatives, ReserveCategory::EmergencyStabilization] {
+        for c in [
+            ReserveCategory::InsuranceProtection,
+            ReserveCategory::LiquidityIncentives,
+            ReserveCategory::BuybackBurn,
+            ReserveCategory::OperationsEcosystem,
+            ReserveCategory::StrategicInitiatives,
+            ReserveCategory::EmergencyStabilization,
+        ] {
             let v: i32 = c.into();
             assert_eq!(c, ReserveCategory::from(v));
         }
@@ -269,11 +294,16 @@ mod tests {
     #[test]
     fn params_roundtrip() {
         let p = TreasuryParams {
-            insurance_protection_bps: 4000, liquidity_incentives_bps: 2500,
-            buyback_burn_bps: 2000, operations_ecosystem_bps: 1000,
-            strategic_initiatives_bps: 300, emergency_stabilization_bps: 200,
-            min_insurance_coverage_bps: 1500, auto_rebalance_threshold_bps: 500,
-            max_single_allocation_bps: 2000, buyback_frequency_blocks: 100,
+            insurance_protection_bps: 4000,
+            liquidity_incentives_bps: 2500,
+            buyback_burn_bps: 2000,
+            operations_ecosystem_bps: 1000,
+            strategic_initiatives_bps: 300,
+            emergency_stabilization_bps: 200,
+            min_insurance_coverage_bps: 1500,
+            auto_rebalance_threshold_bps: 500,
+            max_single_allocation_bps: 2000,
+            buyback_frequency_blocks: 100,
             min_buyback_amount: 1_000_000,
         };
         let proto_p: proto::Params = p.clone().into();
@@ -285,18 +315,30 @@ mod tests {
     fn reserves_state_from_proto() {
         let p = proto::ReservesState {
             categories: vec![proto::CategoryReserve {
-                category: 1, allocation_bps: 4000,
-                last_updated: 100, metadata: vec![],
-                asset_balances: vec![proto::AssetBalance { asset_index: 0, amount: "400000".into() }],
+                category: 1,
+                allocation_bps: 4000,
+                last_updated: 100,
+                metadata: vec![],
+                asset_balances: vec![proto::AssetBalance {
+                    asset_index: 0,
+                    amount: "400000".into(),
+                }],
             }],
-            merkle_root: vec![0xAB], last_sweep_timestamp: 90,
+            merkle_root: vec![0xAB],
+            last_sweep_timestamp: 90,
             last_rebalance_timestamp: 80,
-            total_asset_reserves: vec![proto::AssetBalance { asset_index: 0, amount: "400000".into() }],
+            total_asset_reserves: vec![proto::AssetBalance {
+                asset_index: 0,
+                amount: "400000".into(),
+            }],
         };
         let s: ReservesState = p.into();
         assert_eq!(s.native_total(), 400_000);
         assert_eq!(s.categories.len(), 1);
-        assert_eq!(s.categories[0].category, ReserveCategory::InsuranceProtection);
+        assert_eq!(
+            s.categories[0].category,
+            ReserveCategory::InsuranceProtection
+        );
         assert_eq!(s.categories[0].native_balance(), 400_000);
     }
 
@@ -304,10 +346,18 @@ mod tests {
     fn treasury_metrics_from_proto() {
         let p = proto::TreasuryMetrics {
             insurance_protection_balance: "400000".into(),
-            buyback_burn_balance: "200000".into(), reserve_to_oi_ratio_bps: 1500,
-            insurance_coverage_ratio_bps: 2000, projected_runway_days: 365,
-            last_updated: Some(morpheum_proto::google::protobuf::Timestamp { seconds: 1700000000, nanos: 0 }),
-            total_asset_reserves: vec![proto::AssetBalance { asset_index: 0, amount: "1000000".into() }],
+            buyback_burn_balance: "200000".into(),
+            reserve_to_oi_ratio_bps: 1500,
+            insurance_coverage_ratio_bps: 2000,
+            projected_runway_days: 365,
+            last_updated: Some(morpheum_proto::google::protobuf::Timestamp {
+                seconds: 1700000000,
+                nanos: 0,
+            }),
+            total_asset_reserves: vec![proto::AssetBalance {
+                asset_index: 0,
+                amount: "1000000".into(),
+            }],
         };
         let m: TreasuryMetrics = p.into();
         assert_eq!(m.projected_runway_days, 365);

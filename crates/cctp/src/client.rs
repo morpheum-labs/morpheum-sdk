@@ -16,12 +16,8 @@ pub async fn query_pending_transfers(
     client: &CosmWasmClient,
     handler: &str,
 ) -> Result<Vec<PendingTransfer>, CctpError> {
-    let resp: PendingTransfersResponse = smart_query(
-        client,
-        handler,
-        &QueryMsg::PendingTransfers {},
-    )
-    .await?;
+    let resp: PendingTransfersResponse =
+        smart_query(client, handler, &QueryMsg::PendingTransfers {}).await?;
     Ok(resp.transfers)
 }
 
@@ -59,8 +55,7 @@ pub async fn query_routes(
     client: &CosmWasmClient,
     handler: &str,
 ) -> Result<Vec<RouteResponse>, CctpError> {
-    let resp: RoutesResponse =
-        smart_query(client, handler, &QueryMsg::Routes {}).await?;
+    let resp: RoutesResponse = smart_query(client, handler, &QueryMsg::Routes {}).await?;
     Ok(resp.routes)
 }
 
@@ -70,8 +65,8 @@ async fn smart_query<R: serde::de::DeserializeOwned>(
     handler: &str,
     msg: &QueryMsg,
 ) -> Result<R, CctpError> {
-    let query_data = serde_json::to_vec(msg)
-        .map_err(|e| CctpError::Serialization(e.to_string()))?;
+    let query_data =
+        serde_json::to_vec(msg).map_err(|e| CctpError::Serialization(e.to_string()))?;
 
     let req = QuerySmartRequest {
         contract: handler.to_string(),
@@ -83,6 +78,5 @@ async fn smart_query<R: serde::de::DeserializeOwned>(
         .await
         .map_err(|e| CctpError::Query(e.to_string()))?;
 
-    serde_json::from_slice(&resp_bytes)
-        .map_err(|e| CctpError::Deserialization(e.to_string()))
+    serde_json::from_slice(&resp_bytes).map_err(|e| CctpError::Deserialization(e.to_string()))
 }

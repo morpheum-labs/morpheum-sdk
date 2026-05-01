@@ -24,13 +24,21 @@ pub enum PoolType {
 
 impl From<i32> for PoolType {
     fn from(v: i32) -> Self {
-        match v { 1 => Self::ProtocolOwned, 2 => Self::Community, _ => Self::Unspecified }
+        match v {
+            1 => Self::ProtocolOwned,
+            2 => Self::Community,
+            _ => Self::Unspecified,
+        }
     }
 }
 
 impl From<PoolType> for i32 {
     fn from(t: PoolType) -> Self {
-        match t { PoolType::Unspecified => 0, PoolType::ProtocolOwned => 1, PoolType::Community => 2 }
+        match t {
+            PoolType::Unspecified => 0,
+            PoolType::ProtocolOwned => 1,
+            PoolType::Community => 2,
+        }
     }
 }
 
@@ -48,8 +56,10 @@ pub enum PoolStatus {
 impl From<i32> for PoolStatus {
     fn from(v: i32) -> Self {
         match v {
-            1 => Self::Active, 2 => Self::Paused,
-            3 => Self::Rebalancing, 4 => Self::LowDepth,
+            1 => Self::Active,
+            2 => Self::Paused,
+            3 => Self::Rebalancing,
+            4 => Self::LowDepth,
             _ => Self::Unspecified,
         }
     }
@@ -58,8 +68,11 @@ impl From<i32> for PoolStatus {
 impl From<PoolStatus> for i32 {
     fn from(s: PoolStatus) -> Self {
         match s {
-            PoolStatus::Unspecified => 0, PoolStatus::Active => 1, PoolStatus::Paused => 2,
-            PoolStatus::Rebalancing => 3, PoolStatus::LowDepth => 4,
+            PoolStatus::Unspecified => 0,
+            PoolStatus::Active => 1,
+            PoolStatus::Paused => 2,
+            PoolStatus::Rebalancing => 3,
+            PoolStatus::LowDepth => 4,
         }
     }
 }
@@ -78,8 +91,10 @@ pub enum LiquidityProviderType {
 impl From<u32> for LiquidityProviderType {
     fn from(v: u32) -> Self {
         match v {
-            1 => Self::Concentrated, 2 => Self::StableSwap,
-            3 => Self::ConstantProduct, 4 => Self::ProtocolVault,
+            1 => Self::Concentrated,
+            2 => Self::StableSwap,
+            3 => Self::ConstantProduct,
+            4 => Self::ProtocolVault,
             _ => Self::Unspecified,
         }
     }
@@ -88,8 +103,10 @@ impl From<u32> for LiquidityProviderType {
 impl From<LiquidityProviderType> for u32 {
     fn from(t: LiquidityProviderType) -> Self {
         match t {
-            LiquidityProviderType::Unspecified => 0, LiquidityProviderType::Concentrated => 1,
-            LiquidityProviderType::StableSwap => 2, LiquidityProviderType::ConstantProduct => 3,
+            LiquidityProviderType::Unspecified => 0,
+            LiquidityProviderType::Concentrated => 1,
+            LiquidityProviderType::StableSwap => 2,
+            LiquidityProviderType::ConstantProduct => 3,
             LiquidityProviderType::ProtocolVault => 4,
         }
     }
@@ -126,7 +143,9 @@ pub struct Pool {
 
 impl From<proto::Pool> for Pool {
     fn from(p: proto::Pool) -> Self {
-        let (asset_index, asset_symbol) = p.asset.map_or((0, String::new()), |a| (a.asset_index, a.symbol));
+        let (asset_index, asset_symbol) = p
+            .asset
+            .map_or((0, String::new()), |a| (a.asset_index, a.symbol));
         Self {
             pool_id: p.pool_id,
             market_index: p.market_index,
@@ -221,7 +240,12 @@ mod tests {
 
     #[test]
     fn pool_status_roundtrip() {
-        for s in [PoolStatus::Active, PoolStatus::Paused, PoolStatus::Rebalancing, PoolStatus::LowDepth] {
+        for s in [
+            PoolStatus::Active,
+            PoolStatus::Paused,
+            PoolStatus::Rebalancing,
+            PoolStatus::LowDepth,
+        ] {
             let v: i32 = s.into();
             assert_eq!(s, PoolStatus::from(v));
         }
@@ -229,8 +253,12 @@ mod tests {
 
     #[test]
     fn provider_type_roundtrip() {
-        for t in [LiquidityProviderType::Concentrated, LiquidityProviderType::StableSwap,
-                  LiquidityProviderType::ConstantProduct, LiquidityProviderType::ProtocolVault] {
+        for t in [
+            LiquidityProviderType::Concentrated,
+            LiquidityProviderType::StableSwap,
+            LiquidityProviderType::ConstantProduct,
+            LiquidityProviderType::ProtocolVault,
+        ] {
             let v: u32 = t.into();
             assert_eq!(t, LiquidityProviderType::from(v));
         }
@@ -239,19 +267,30 @@ mod tests {
     #[test]
     fn pool_from_proto() {
         let p = proto::Pool {
-            pool_id: "abc".into(), market_index: 1,
+            pool_id: "abc".into(),
+            market_index: 1,
             asset: Some(morpheum_proto::primitives::v1::Asset {
-                asset_index: 2, symbol: "USDC".into(), ..Default::default()
+                asset_index: 2,
+                symbol: "USDC".into(),
+                ..Default::default()
             }),
-            total_liquidity: "1000".into(), available_liquidity: "800".into(),
-            reserved_liquidity: "200".into(), target_liquidity: "1200".into(),
-            r#type: 1, status: 1,
-            created_at: None, updated_at: None,
-            provider_type: 1, provider_config: Vec::new(),
-            depth_2pct_bid: "500".into(), depth_2pct_ask: "500".into(),
+            total_liquidity: "1000".into(),
+            available_liquidity: "800".into(),
+            reserved_liquidity: "200".into(),
+            target_liquidity: "1200".into(),
+            r#type: 1,
+            status: 1,
+            created_at: None,
+            updated_at: None,
+            provider_type: 1,
+            provider_config: Vec::new(),
+            depth_2pct_bid: "500".into(),
+            depth_2pct_ask: "500".into(),
             health_score_bps: 9500,
-            display_name: "Main Pool".into(), description: String::new(),
-            tags: Vec::new(), logo_uri: String::new(),
+            display_name: "Main Pool".into(),
+            description: String::new(),
+            tags: Vec::new(),
+            logo_uri: String::new(),
         };
         let pool: Pool = p.into();
         assert_eq!(pool.pool_id, "abc");
@@ -263,8 +302,11 @@ mod tests {
     #[test]
     fn depth_metrics_from_proto() {
         let p = proto::DepthMetrics {
-            market_index: 42, bid_depth: "5000".into(), ask_depth: "4500".into(),
-            spread: "100".into(), timestamp: None,
+            market_index: 42,
+            bid_depth: "5000".into(),
+            ask_depth: "4500".into(),
+            spread: "100".into(),
+            timestamp: None,
         };
         let d: DepthMetrics = p.into();
         assert_eq!(d.market_index, 42);

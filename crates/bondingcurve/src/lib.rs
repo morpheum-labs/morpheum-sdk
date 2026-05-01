@@ -9,49 +9,28 @@
 
 extern crate alloc;
 
-pub mod client;
-pub mod types;
-pub mod requests;
 pub mod builder;
+pub mod client;
+pub mod requests;
+pub mod types;
 
 // ==================== PUBLIC RE-EXPORTS ====================
 
 pub use client::{BondingCurveClient, PriceSnapshot};
 
 pub use types::{
-    BondingCurveParams,
-    BondingCurveState,
-    BuyExecuted,
-    CurveStatus,
-    CurveType,
-    GraduationComplete,
-    GraduationThresholdReached,
-    LpAntiRugStrategy,
-    PredictionEnhancement,
-    PredictionEnhancementActivated,
-    PredictionFeed,
-    PredictionMetadata,
-    PredictionMode,
-    ReputationBondTier,
-    SellExecuted,
+    BondingCurveParams, BondingCurveState, BuyExecuted, CurveStatus, CurveType, GraduationComplete,
+    GraduationThresholdReached, LpAntiRugStrategy, PredictionEnhancement,
+    PredictionEnhancementActivated, PredictionFeed, PredictionMetadata, PredictionMode,
+    ReputationBondTier, SellExecuted,
 };
 
 pub use requests::{
-    BuyRequest,
-    CreateAgentTokenRequest,
-    ExecuteGraduationRequest,
-    GetCurveStateRequest,
-    GetPriceRequest,
-    QueryParamsRequest,
-    SellRequest,
+    BuyRequest, CreateAgentTokenRequest, ExecuteGraduationRequest, GetCurveStateRequest,
+    GetPriceRequest, QueryParamsRequest, SellRequest,
 };
 
-pub use builder::{
-    BuyBuilder,
-    CreateAgentTokenBuilder,
-    ExecuteGraduationBuilder,
-    SellBuilder,
-};
+pub use builder::{BuyBuilder, CreateAgentTokenBuilder, ExecuteGraduationBuilder, SellBuilder};
 
 pub use morpheum_sdk_core::{AccountId, ChainId, SdkError, SignedTx};
 
@@ -63,17 +42,8 @@ pub use morpheum_sdk_core::{AccountId, ChainId, SdkError, SignedTx};
 /// ```
 pub mod prelude {
     pub use super::{
-        BondingCurveClient,
-        BondingCurveState,
-        CurveStatus,
-        CurveType,
-        PriceSnapshot,
-        CreateAgentTokenBuilder,
-        BuyBuilder,
-        SellBuilder,
-        AccountId,
-        ChainId,
-        SdkError,
+        AccountId, BondingCurveClient, BondingCurveState, BuyBuilder, ChainId,
+        CreateAgentTokenBuilder, CurveStatus, CurveType, PriceSnapshot, SdkError, SellBuilder,
         SignedTx,
     };
 }

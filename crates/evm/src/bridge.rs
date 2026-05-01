@@ -7,7 +7,7 @@ use alloy::providers::WalletProvider;
 use alloy::rpc::types::TransactionReceipt;
 use alloy::sol_types::SolEvent;
 
-use crate::contracts::{IERC20, IHypERC20Collateral, IMailbox, IWarpFee};
+use crate::contracts::{IHypERC20Collateral, IMailbox, IWarpFee, IERC20};
 use crate::provider::EvmProvider;
 use crate::types::{DispatchResult, EvmError};
 
@@ -135,10 +135,9 @@ pub async fn transfer_remote_native(
         .await
         .map_err(|e| EvmError::ContractCall(format!("transferRemote (native) send: {e}")))?;
 
-    let receipt = pending
-        .get_receipt()
-        .await
-        .map_err(|e| EvmError::TransactionFailed(format!("transferRemote (native) receipt: {e}")))?;
+    let receipt = pending.get_receipt().await.map_err(|e| {
+        EvmError::TransactionFailed(format!("transferRemote (native) receipt: {e}"))
+    })?;
 
     let tx_hash = receipt.transaction_hash;
     let message_id = parse_dispatch_id(&receipt).unwrap_or(FixedBytes::from(tx_hash));

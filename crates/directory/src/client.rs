@@ -13,15 +13,10 @@ use alloc::vec::Vec;
 use async_trait::async_trait;
 use prost::Message as _;
 
-use morpheum_sdk_core::{
-    MorpheumClient, SdkConfig, SdkError, Transport,
-};
+use morpheum_sdk_core::{MorpheumClient, SdkConfig, SdkError, Transport};
 
 use crate::{
-    requests::{
-        QueryDirectoryProfileRequest,
-        QueryDirectoryProfilesRequest,
-    },
+    requests::{QueryDirectoryProfileRequest, QueryDirectoryProfilesRequest},
     types::{AgentDirectoryProfile, DirectoryFilter, Params},
 };
 
@@ -104,10 +99,9 @@ impl DirectoryClient {
 
         let response_bytes = self.query(path, data).await?;
 
-        let proto_res = morpheum_proto::directory::v1::QueryParamsResponse::decode(
-            response_bytes.as_slice(),
-        )
-        .map_err(SdkError::Decode)?;
+        let proto_res =
+            morpheum_proto::directory::v1::QueryParamsResponse::decode(response_bytes.as_slice())
+                .map_err(SdkError::Decode)?;
 
         let response: crate::requests::QueryParamsResponse = proto_res.into();
         Ok(response.params)
@@ -212,10 +206,7 @@ mod tests {
         let config = SdkConfig::new("https://sentry.morpheum.xyz", "morpheum-test-1");
         let client = DirectoryClient::new(config, Box::new(DummyTransport));
 
-        let (profiles, total) = client
-            .query_profiles(20, 0, None)
-            .await
-            .unwrap();
+        let (profiles, total) = client.query_profiles(20, 0, None).await.unwrap();
         assert_eq!(total, 2);
         assert_eq!(profiles.len(), 2);
     }
@@ -231,10 +222,7 @@ mod tests {
             ..Default::default()
         };
 
-        let (profiles, total) = client
-            .query_profiles(10, 0, Some(filter))
-            .await
-            .unwrap();
+        let (profiles, total) = client.query_profiles(10, 0, Some(filter)).await.unwrap();
         assert_eq!(total, 2);
         assert_eq!(profiles.len(), 2);
     }
@@ -244,7 +232,11 @@ mod tests {
         let config = SdkConfig::new("https://sentry.morpheum.xyz", "morpheum-test-1");
         let client = DirectoryClient::new(config, Box::new(DummyTransport));
 
-        let params = client.query_params().await.unwrap().expect("params should be present");
+        let params = client
+            .query_params()
+            .await
+            .unwrap()
+            .expect("params should be present");
         assert_eq!(params.default_query_limit, 50);
         assert_eq!(params.profile_cache_ttl_seconds, 300);
         assert!(params.enable_semantic_search);

@@ -33,11 +33,7 @@ pub struct ClosePositionRequest {
 }
 
 impl ClosePositionRequest {
-    pub fn new(
-        address: impl Into<String>,
-        market_index: u64,
-        exit_price: u64,
-    ) -> Self {
+    pub fn new(address: impl Into<String>, market_index: u64, exit_price: u64) -> Self {
         Self {
             address: address.into(),
             market_index,
@@ -211,7 +207,10 @@ pub struct QueryPositionsByAddressRequest {
 
 impl QueryPositionsByAddressRequest {
     pub fn new(address: impl Into<String>) -> Self {
-        Self { address: address.into(), active_only: false }
+        Self {
+            address: address.into(),
+            active_only: false,
+        }
     }
 
     pub fn active_only(mut self, active: bool) -> Self {
@@ -222,7 +221,10 @@ impl QueryPositionsByAddressRequest {
 
 impl From<QueryPositionsByAddressRequest> for proto::QueryPositionsByAddressRequest {
     fn from(req: QueryPositionsByAddressRequest) -> Self {
-        Self { address: req.address, active_only: req.active_only }
+        Self {
+            address: req.address,
+            active_only: req.active_only,
+        }
     }
 }
 
@@ -295,13 +297,19 @@ pub struct QueryPositionPnLRequest {
 
 impl QueryPositionPnLRequest {
     pub fn new(address: impl Into<String>, market_index: u64) -> Self {
-        Self { address: address.into(), market_index }
+        Self {
+            address: address.into(),
+            market_index,
+        }
     }
 }
 
 impl From<QueryPositionPnLRequest> for proto::QueryPositionPnLRequest {
     fn from(req: QueryPositionPnLRequest) -> Self {
-        Self { address: req.address, market_index: req.market_index }
+        Self {
+            address: req.address,
+            market_index: req.market_index,
+        }
     }
 }
 
@@ -319,8 +327,7 @@ mod tests {
 
     #[test]
     fn close_position_with_bucket_id() {
-        let req = ClosePositionRequest::new("morpheum1abc", 42, 52000)
-            .with_bucket_id(123);
+        let req = ClosePositionRequest::new("morpheum1abc", 42, 52000).with_bucket_id(123);
         assert_eq!(req.bucket_id, Some(123));
         let any = req.to_any();
         assert!(!any.value.is_empty());
@@ -328,8 +335,8 @@ mod tests {
 
     #[test]
     fn update_leverage_request_to_any() {
-        let req = UpdatePositionLeverageRequest::new("morpheum1abc", 42, "20")
-            .with_bucket_id("bucket-1");
+        let req =
+            UpdatePositionLeverageRequest::new("morpheum1abc", 42, "20").with_bucket_id("bucket-1");
         let any = req.to_any();
         assert_eq!(any.type_url, "/position.v1.Msg/UpdatePositionLeverage");
         assert!(!any.value.is_empty());

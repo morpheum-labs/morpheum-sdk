@@ -131,16 +131,15 @@ impl ConnectionActor {
         // On reconnect: re-authenticate and re-subscribe with fresh snapshot state.
         if let Some(ref creds) = self.cached_auth.clone() {
             self.send_auth_to_ws(&mut ws_sink, creds.clone()).await?;
-            if let Some(msg) = tokio::time::timeout(
-                Duration::from_secs(10),
-                ws_source.next(),
-            )
-            .await
-            .ok()
-            .flatten()
+            if let Some(msg) = tokio::time::timeout(Duration::from_secs(10), ws_source.next())
+                .await
+                .ok()
+                .flatten()
             {
                 if let WsMessage::Text(text) = msg? {
-                    if let Ok(ServerMessage::Auth(auth)) = serde_json::from_str::<ServerMessage>(&text) {
+                    if let Ok(ServerMessage::Auth(auth)) =
+                        serde_json::from_str::<ServerMessage>(&text)
+                    {
                         if auth.status != "ok" {
                             let msg = auth.message.unwrap_or(auth.status);
                             return Err(WsError::Auth(msg));
@@ -152,7 +151,8 @@ impl ConnectionActor {
         }
 
         let mut pending_auth: Option<oneshot::Sender<Result<AuthResponse, WsError>>> = None;
-        let mut pending_subs: HashMap<String, oneshot::Sender<Result<(), WsError>>> = HashMap::new();
+        let mut pending_subs: HashMap<String, oneshot::Sender<Result<(), WsError>>> =
+            HashMap::new();
 
         loop {
             tokio::select! {
@@ -320,8 +320,7 @@ impl ConnectionActor {
 
     async fn send_json<S>(&self, sink: &mut S, msg: &ClientMessage) -> Result<(), WsError>
     where
-        S: futures_util::Sink<WsMessage, Error = tokio_tungstenite::tungstenite::Error>
-            + Unpin,
+        S: futures_util::Sink<WsMessage, Error = tokio_tungstenite::tungstenite::Error> + Unpin,
     {
         let text = serde_json::to_string(msg)?;
         sink.send(WsMessage::Text(text.into()))
@@ -335,8 +334,7 @@ impl ConnectionActor {
         credentials: AuthCredentials,
     ) -> Result<(), WsError>
     where
-        S: futures_util::Sink<WsMessage, Error = tokio_tungstenite::tungstenite::Error>
-            + Unpin,
+        S: futures_util::Sink<WsMessage, Error = tokio_tungstenite::tungstenite::Error> + Unpin,
     {
         let msg = ClientMessage::auth(credentials);
         self.send_json(sink, &msg).await
@@ -344,8 +342,7 @@ impl ConnectionActor {
 
     async fn resubscribe_all<S>(&mut self, sink: &mut S) -> Result<(), WsError>
     where
-        S: futures_util::Sink<WsMessage, Error = tokio_tungstenite::tungstenite::Error>
-            + Unpin,
+        S: futures_util::Sink<WsMessage, Error = tokio_tungstenite::tungstenite::Error> + Unpin,
     {
         let specs: Vec<ChannelSpec> = self
             .subscriptions

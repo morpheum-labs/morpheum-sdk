@@ -8,27 +8,21 @@
 
 extern crate alloc;
 
-pub mod client;
-pub mod types;
-pub mod requests;
 pub mod builder;
+pub mod client;
+pub mod requests;
+pub mod types;
 
 // ==================== PUBLIC RE-EXPORTS ====================
 
 pub use client::{OutcomeFeedClient, PredictionFeedsPage};
 
 pub use types::{
-    FeedStatus,
-    MarketResolutionCriteria,
-    PredictionMarketFeed,
-    ResolutionParadigm,
-    ResolvedOutcome,
+    FeedStatus, MarketResolutionCriteria, PredictionMarketFeed, ResolutionParadigm, ResolvedOutcome,
 };
 
 pub use requests::{
-    QueryPredictionFeedRequest,
-    QueryPredictionFeedsRequest,
-    QueryResolvedOutcomeRequest,
+    QueryPredictionFeedRequest, QueryPredictionFeedsRequest, QueryResolvedOutcomeRequest,
     RegisterPredictionFeedRequest,
 };
 
@@ -44,15 +38,8 @@ pub use morpheum_sdk_core::{AccountId, ChainId, SdkError, SignedTx};
 /// ```
 pub mod prelude {
     pub use super::{
-        OutcomeFeedClient,
-        PredictionMarketFeed,
-        ResolvedOutcome,
-        ResolutionParadigm,
-        FeedStatus,
-        AccountId,
-        ChainId,
-        SdkError,
-        SignedTx,
+        AccountId, ChainId, FeedStatus, OutcomeFeedClient, PredictionMarketFeed,
+        ResolutionParadigm, ResolvedOutcome, SdkError, SignedTx,
     };
 }
 

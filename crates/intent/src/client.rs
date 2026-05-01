@@ -12,16 +12,10 @@ use alloc::vec::Vec;
 use async_trait::async_trait;
 use prost::Message as _;
 
-use morpheum_sdk_core::{
-    MorpheumClient, SdkConfig, SdkError, Transport,
-};
+use morpheum_sdk_core::{MorpheumClient, SdkConfig, SdkError, Transport};
 
 use crate::{
-    requests::{
-        QueryActiveIntentsRequest,
-        QueryIntentRequest,
-        QueryIntentsByAgentRequest,
-    },
+    requests::{QueryActiveIntentsRequest, QueryIntentRequest, QueryIntentsByAgentRequest},
     types::{AgentIntent, Params},
 };
 
@@ -55,10 +49,9 @@ impl IntentClient {
 
         let response_bytes = self.query(path, data).await?;
 
-        let proto_res = morpheum_proto::intent::v1::QueryIntentResponse::decode(
-            response_bytes.as_slice(),
-        )
-        .map_err(SdkError::Decode)?;
+        let proto_res =
+            morpheum_proto::intent::v1::QueryIntentResponse::decode(response_bytes.as_slice())
+                .map_err(SdkError::Decode)?;
 
         let response: crate::requests::QueryIntentResponse = proto_res.into();
         Ok(response.intent)
@@ -121,10 +114,9 @@ impl IntentClient {
 
         let response_bytes = self.query(path, data).await?;
 
-        let proto_res = morpheum_proto::intent::v1::QueryParamsResponse::decode(
-            response_bytes.as_slice(),
-        )
-        .map_err(SdkError::Decode)?;
+        let proto_res =
+            morpheum_proto::intent::v1::QueryParamsResponse::decode(response_bytes.as_slice())
+                .map_err(SdkError::Decode)?;
 
         let response: crate::requests::QueryParamsResponse = proto_res.into();
         Ok(response.params)
@@ -253,10 +245,7 @@ mod tests {
         let config = SdkConfig::new("https://sentry.morpheum.xyz", "morpheum-test-1");
         let client = IntentClient::new(config, Box::new(DummyTransport));
 
-        let (intents, total) = client
-            .query_active_intents("agent-abc", 10)
-            .await
-            .unwrap();
+        let (intents, total) = client.query_active_intents("agent-abc", 10).await.unwrap();
         assert_eq!(total, 0);
         assert!(intents.is_empty());
     }
@@ -266,7 +255,11 @@ mod tests {
         let config = SdkConfig::new("https://sentry.morpheum.xyz", "morpheum-test-1");
         let client = IntentClient::new(config, Box::new(DummyTransport));
 
-        let params = client.query_params().await.unwrap().expect("params should be present");
+        let params = client
+            .query_params()
+            .await
+            .unwrap()
+            .expect("params should be present");
         assert_eq!(params.default_expiry_seconds, 3600);
         assert_eq!(params.max_concurrent_intents_per_agent, 10);
         assert!(params.enable_declarative_decomposition);

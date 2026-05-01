@@ -8,34 +8,24 @@
 
 extern crate alloc;
 
-pub mod client;
-pub mod types;
-pub mod requests;
 pub mod builder;
+pub mod client;
+pub mod requests;
+pub mod types;
 
 // ==================== PUBLIC RE-EXPORTS ====================
 
 pub use client::{AllocationHistoryPage, CategoryReserveResult, TreasuryClient};
 
 pub use types::{
-    AllocationRecord,
-    AssetBalance,
-    CategoryReserve,
-    ReserveCategory,
-    ReservesState,
-    TreasuryMetrics,
-    TreasuryParams,
+    AllocationRecord, AssetBalance, CategoryReserve, ReserveCategory, ReservesState,
+    TreasuryMetrics, TreasuryParams,
 };
 
 pub use requests::{
-    AllocateFundsRequest,
-    QueryAllocationHistoryRequest,
-    QueryCategoryReserveRequest,
-    QueryParamsRequest,
-    QueryReservesStateRequest,
-    QueryTreasuryMetricsRequest,
-    SweepRevenueRequest,
-    UpdateParamsRequest,
+    AllocateFundsRequest, QueryAllocationHistoryRequest, QueryCategoryReserveRequest,
+    QueryParamsRequest, QueryReservesStateRequest, QueryTreasuryMetricsRequest,
+    SweepRevenueRequest, UpdateParamsRequest,
 };
 
 pub use builder::{AllocateFundsBuilder, SweepRevenueBuilder, UpdateParamsBuilder};
@@ -50,15 +40,8 @@ pub use morpheum_sdk_core::{AccountId, ChainId, SdkError, SignedTx};
 /// ```
 pub mod prelude {
     pub use super::{
-        TreasuryClient,
-        ReserveCategory,
-        ReservesState,
-        TreasuryMetrics,
-        TreasuryParams,
-        AccountId,
-        ChainId,
-        SdkError,
-        SignedTx,
+        AccountId, ChainId, ReserveCategory, ReservesState, SdkError, SignedTx, TreasuryClient,
+        TreasuryMetrics, TreasuryParams,
     };
 }
 

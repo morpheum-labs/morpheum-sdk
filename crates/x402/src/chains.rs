@@ -200,7 +200,9 @@ pub fn resolve_chain_name(name: &str) -> Option<&'static ChainMetadata> {
         "polygon-amoy" | "polygon_amoy" | "amoy" => find_by_caip2("eip155", "80002"),
         "arbitrum-sepolia" | "arb-sepolia" | "arb_sepolia" => find_by_caip2("eip155", "421614"),
         // Non-EVM testnets
-        "solana-devnet" | "sol-devnet" => find_by_caip2("solana", "EtWTRABZaYq6iMfeYKouRu166VU2xqa1"),
+        "solana-devnet" | "sol-devnet" => {
+            find_by_caip2("solana", "EtWTRABZaYq6iMfeYKouRu166VU2xqa1")
+        }
         "tron-nile" | "nile" => find_by_caip2("tron", "0xcd8690dc"),
         "stellar-testnet" => find_by_caip2("stellar", "testnet"),
         // Local
@@ -229,13 +231,22 @@ mod tests {
     #[test]
     fn resolve_known_names() {
         assert_eq!(resolve_chain_name("base").unwrap().display_name, "Base");
-        assert_eq!(resolve_chain_name("Ethereum").unwrap().display_name, "Ethereum");
+        assert_eq!(
+            resolve_chain_name("Ethereum").unwrap().display_name,
+            "Ethereum"
+        );
         assert_eq!(resolve_chain_name("ETH").unwrap().display_name, "Ethereum");
         assert_eq!(resolve_chain_name("sol").unwrap().display_name, "Solana");
         assert_eq!(resolve_chain_name("BSC").unwrap().display_name, "BSC");
         assert_eq!(resolve_chain_name("tron").unwrap().display_name, "Tron");
-        assert_eq!(resolve_chain_name("stellar").unwrap().display_name, "Stellar");
-        assert_eq!(resolve_chain_name("anvil").unwrap().display_name, "Anvil (local)");
+        assert_eq!(
+            resolve_chain_name("stellar").unwrap().display_name,
+            "Stellar"
+        );
+        assert_eq!(
+            resolve_chain_name("anvil").unwrap().display_name,
+            "Anvil (local)"
+        );
     }
 
     #[test]

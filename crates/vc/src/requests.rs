@@ -14,8 +14,8 @@ use serde::{Deserialize, Serialize};
 
 use morpheum_proto::google::protobuf::Any as ProtoAny;
 
-use morpheum_sdk_core::AccountId;
 use morpheum_proto::vc::v1 as proto;
+use morpheum_sdk_core::AccountId;
 
 use crate::types::VcClaims;
 
@@ -28,7 +28,7 @@ pub struct IssueVcRequest {
     pub issuer: AccountId,
     pub subject: AccountId,
     pub claims: VcClaims,
-    pub expiry_timestamp: u64,        // 0 = use module default
+    pub expiry_timestamp: u64, // 0 = use module default
     pub issuer_signature: Vec<u8>,
 }
 
@@ -88,7 +88,11 @@ pub struct RevokeVcRequest {
 }
 
 impl RevokeVcRequest {
-    pub fn new(vc_id: impl Into<String>, issuer: impl Into<AccountId>, issuer_signature: Vec<u8>) -> Self {
+    pub fn new(
+        vc_id: impl Into<String>,
+        issuer: impl Into<AccountId>,
+        issuer_signature: Vec<u8>,
+    ) -> Self {
         Self {
             vc_id: vc_id.into(),
             issuer: issuer.into(),
@@ -336,7 +340,11 @@ pub struct QueryVcsByIssuerRequest {
 
 impl QueryVcsByIssuerRequest {
     pub fn new(issuer: impl Into<String>, limit: u32, offset: u32) -> Self {
-        Self { issuer: issuer.into(), limit, offset }
+        Self {
+            issuer: issuer.into(),
+            limit,
+            offset,
+        }
     }
 }
 
@@ -361,7 +369,11 @@ pub struct QueryVcsBySubjectRequest {
 
 impl QueryVcsBySubjectRequest {
     pub fn new(subject: impl Into<String>, limit: u32, offset: u32) -> Self {
-        Self { subject: subject.into(), limit, offset }
+        Self {
+            subject: subject.into(),
+            limit,
+            offset,
+        }
     }
 }
 
@@ -384,7 +396,9 @@ pub struct QueryRevocationBitmapRequest {
 
 impl QueryRevocationBitmapRequest {
     pub fn new(issuer: impl Into<String>) -> Self {
-        Self { issuer: issuer.into() }
+        Self {
+            issuer: issuer.into(),
+        }
     }
 }
 
@@ -425,8 +439,8 @@ mod tests {
             custom_constraints: None,
         };
 
-        let req = IssueVcRequest::new(issuer, subject, claims, vec![0u8; 64])
-            .with_expiry(1_800_000_000);
+        let req =
+            IssueVcRequest::new(issuer, subject, claims, vec![0u8; 64]).with_expiry(1_800_000_000);
 
         let any = req.to_any();
         assert_eq!(any.type_url, "/vc.v1.MsgIssue");
@@ -435,11 +449,7 @@ mod tests {
 
     #[test]
     fn conversions_work() {
-        let req = RevokeVcRequest::new(
-            "vc_123",
-            AccountId::new([1u8; 32]),
-            vec![0u8; 64],
-        )
+        let req = RevokeVcRequest::new("vc_123", AccountId::new([1u8; 32]), vec![0u8; 64])
             .with_reason("Test revocation");
 
         let proto: proto::MsgRevoke = req.into();

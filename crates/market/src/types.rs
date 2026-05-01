@@ -359,21 +359,28 @@ impl From<MarketParams> for proto::MarketParams {
         });
 
         // Populate deprecated fields from ClobMarketConfig for wire compat.
-        let (tick_size, lot_size, max_leverage, initial_margin_ratio, maintenance_margin_ratio,
-            allow_market_orders, allow_stop_orders, perp_config) =
-            match &p.type_config {
-                Some(MarketTypeConfig::Clob(c)) => (
-                    c.tick_size.clone(),
-                    c.lot_size.clone(),
-                    c.max_leverage.clone(),
-                    c.initial_margin_ratio.clone(),
-                    c.maintenance_margin_ratio.clone(),
-                    c.allow_market_orders,
-                    c.allow_stop_orders,
-                    c.perp_config.clone().map(Into::into),
-                ),
-                _ => Default::default(),
-            };
+        let (
+            tick_size,
+            lot_size,
+            max_leverage,
+            initial_margin_ratio,
+            maintenance_margin_ratio,
+            allow_market_orders,
+            allow_stop_orders,
+            perp_config,
+        ) = match &p.type_config {
+            Some(MarketTypeConfig::Clob(c)) => (
+                c.tick_size.clone(),
+                c.lot_size.clone(),
+                c.max_leverage.clone(),
+                c.initial_margin_ratio.clone(),
+                c.maintenance_margin_ratio.clone(),
+                c.allow_market_orders,
+                c.allow_stop_orders,
+                c.perp_config.clone().map(Into::into),
+            ),
+            _ => Default::default(),
+        };
 
         Self {
             min_order_size: p.min_order_size,
@@ -576,14 +583,12 @@ impl From<proto::MarketStats> for MarketStats {
             Some(proto::market_stats::TypeStats::PredictionStats(s)) => {
                 Some(MarketTypeStats::Prediction(s.into()))
             }
-            None if !p.open_interest.is_empty() => {
-                Some(MarketTypeStats::Clob(ClobStats {
-                    open_interest: p.open_interest,
-                    best_bid: String::new(),
-                    best_ask: String::new(),
-                    spread: String::new(),
-                }))
-            }
+            None if !p.open_interest.is_empty() => Some(MarketTypeStats::Clob(ClobStats {
+                open_interest: p.open_interest,
+                best_bid: String::new(),
+                best_ask: String::new(),
+                spread: String::new(),
+            })),
             None => None,
         };
 
@@ -772,7 +777,10 @@ mod tests {
     #[test]
     fn clob_default_params() {
         let params = MarketParams::clob_default();
-        assert!(matches!(params.type_config, Some(MarketTypeConfig::Clob(_))));
+        assert!(matches!(
+            params.type_config,
+            Some(MarketTypeConfig::Clob(_))
+        ));
     }
 
     #[test]

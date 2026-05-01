@@ -10,9 +10,7 @@ use alloc::vec::Vec;
 
 use morpheum_sdk_core::SdkError;
 
-use crate::requests::{
-    DeleteEntryRequest, StoreEntryRequest, UpdateEntryRequest,
-};
+use crate::requests::{DeleteEntryRequest, StoreEntryRequest, UpdateEntryRequest};
 use crate::types::MemoryEntryType;
 
 /// Fluent builder for storing a new memory entry.
@@ -84,25 +82,25 @@ impl StoreEntryBuilder {
 
     /// Builds the store request, performing validation.
     pub fn build(self) -> Result<StoreEntryRequest, SdkError> {
-        let agent_hash = self.agent_hash.ok_or_else(|| {
-            SdkError::invalid_input("agent_hash is required for StoreEntry")
-        })?;
+        let agent_hash = self
+            .agent_hash
+            .ok_or_else(|| SdkError::invalid_input("agent_hash is required for StoreEntry"))?;
 
-        let key = self.key.ok_or_else(|| {
-            SdkError::invalid_input("key is required for StoreEntry")
-        })?;
+        let key = self
+            .key
+            .ok_or_else(|| SdkError::invalid_input("key is required for StoreEntry"))?;
 
-        let value = self.value.ok_or_else(|| {
-            SdkError::invalid_input("value is required for StoreEntry")
-        })?;
+        let value = self
+            .value
+            .ok_or_else(|| SdkError::invalid_input("value is required for StoreEntry"))?;
 
-        let entry_type = self.entry_type.ok_or_else(|| {
-            SdkError::invalid_input("entry_type is required for StoreEntry")
-        })?;
+        let entry_type = self
+            .entry_type
+            .ok_or_else(|| SdkError::invalid_input("entry_type is required for StoreEntry"))?;
 
-        let owner_signature = self.owner_signature.ok_or_else(|| {
-            SdkError::invalid_input("owner_signature is required for StoreEntry")
-        })?;
+        let owner_signature = self
+            .owner_signature
+            .ok_or_else(|| SdkError::invalid_input("owner_signature is required for StoreEntry"))?;
 
         let mut req = StoreEntryRequest::new(agent_hash, key, value, entry_type, owner_signature);
 
@@ -173,17 +171,17 @@ impl UpdateEntryBuilder {
 
     /// Builds the update request, performing validation.
     pub fn build(self) -> Result<UpdateEntryRequest, SdkError> {
-        let agent_hash = self.agent_hash.ok_or_else(|| {
-            SdkError::invalid_input("agent_hash is required for UpdateEntry")
-        })?;
+        let agent_hash = self
+            .agent_hash
+            .ok_or_else(|| SdkError::invalid_input("agent_hash is required for UpdateEntry"))?;
 
-        let key = self.key.ok_or_else(|| {
-            SdkError::invalid_input("key is required for UpdateEntry")
-        })?;
+        let key = self
+            .key
+            .ok_or_else(|| SdkError::invalid_input("key is required for UpdateEntry"))?;
 
-        let new_value = self.new_value.ok_or_else(|| {
-            SdkError::invalid_input("new_value is required for UpdateEntry")
-        })?;
+        let new_value = self
+            .new_value
+            .ok_or_else(|| SdkError::invalid_input("new_value is required for UpdateEntry"))?;
 
         let owner_signature = self.owner_signature.ok_or_else(|| {
             SdkError::invalid_input("owner_signature is required for UpdateEntry")
@@ -242,13 +240,13 @@ impl DeleteEntryBuilder {
 
     /// Builds the delete request, performing validation.
     pub fn build(self) -> Result<DeleteEntryRequest, SdkError> {
-        let agent_hash = self.agent_hash.ok_or_else(|| {
-            SdkError::invalid_input("agent_hash is required for DeleteEntry")
-        })?;
+        let agent_hash = self
+            .agent_hash
+            .ok_or_else(|| SdkError::invalid_input("agent_hash is required for DeleteEntry"))?;
 
-        let key = self.key.ok_or_else(|| {
-            SdkError::invalid_input("key is required for DeleteEntry")
-        })?;
+        let key = self
+            .key
+            .ok_or_else(|| SdkError::invalid_input("key is required for DeleteEntry"))?;
 
         let owner_signature = self.owner_signature.ok_or_else(|| {
             SdkError::invalid_input("owner_signature is required for DeleteEntry")
@@ -381,9 +379,7 @@ mod tests {
         let result = DeleteEntryBuilder::new().build();
         assert!(result.is_err());
 
-        let result = DeleteEntryBuilder::new()
-            .agent_hash("agent-abc")
-            .build();
+        let result = DeleteEntryBuilder::new().agent_hash("agent-abc").build();
         assert!(result.is_err());
 
         let result = DeleteEntryBuilder::new()
@@ -392,5 +388,4 @@ mod tests {
             .build();
         assert!(result.is_err());
     }
-
 }

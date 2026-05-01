@@ -161,19 +161,10 @@ pub use morpheum_sdk_position as position;
 pub use morpheum_sdk_ws as ws;
 
 // Re-export commonly used core types
-pub use core::{
-    AccountId,
-    ChainId,
-    SdkConfig,
-    SdkError,
-    SignedTx,
-};
+pub use core::{AccountId, ChainId, SdkConfig, SdkError, SignedTx};
 
 // Re-export commonly used signing types
-pub use signing::{
-    AgentSigner,
-    NativeSigner,
-};
+pub use signing::{AgentSigner, NativeSigner};
 
 // Claim types are in signing-core, re-exported through native
 pub use signing::claim::{TradingKeyClaim, VcClaimBuilder};
@@ -231,10 +222,7 @@ impl MorpheumSdk {
     }
 
     /// Creates a new SDK with a custom transport and configuration.
-    pub fn with_transport(
-        config: SdkConfig,
-        transport: Box<dyn core::Transport>,
-    ) -> Self {
+    pub fn with_transport(config: SdkConfig, transport: Box<dyn core::Transport>) -> Self {
         Self { config, transport }
     }
 
@@ -276,18 +264,8 @@ pub fn agent(signer: AgentSigner) -> MorpheumSdk {
 /// ```
 pub mod prelude {
     pub use super::{
-        MorpheumSdk,
-        native,
-        agent,
-        AccountId,
-        ChainId,
-        SdkConfig,
-        SdkError,
-        SignedTx,
-        NativeSigner,
-        AgentSigner,
-        TradingKeyClaim,
-        VcClaimBuilder,
+        agent, native, AccountId, AgentSigner, ChainId, MorpheumSdk, NativeSigner, SdkConfig,
+        SdkError, SignedTx, TradingKeyClaim, VcClaimBuilder,
     };
 
     // Transaction builder and the canonical `Any` type for constructing messages.
@@ -409,7 +387,11 @@ mod tests {
     #[test]
     fn convenience_functions_work() {
         let _sdk = native(NativeSigner::from_seed(&[0u8; 32]));
-        let _sdk2 = agent(AgentSigner::new(&[0u8; 32], signing::types::AccountId([0u8; 32]), None));
+        let _sdk2 = agent(AgentSigner::new(
+            &[0u8; 32],
+            signing::types::AccountId([0u8; 32]),
+            None,
+        ));
     }
 
     #[test]

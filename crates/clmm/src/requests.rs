@@ -32,35 +32,49 @@ pub struct AddLiquidityRequest {
 
 impl AddLiquidityRequest {
     pub fn new(
-        pool_id: impl Into<String>, owner: impl Into<String>,
-        tick_lower: i32, tick_upper: i32,
-        amount_a: impl Into<String>, amount_b: impl Into<String>,
+        pool_id: impl Into<String>,
+        owner: impl Into<String>,
+        tick_lower: i32,
+        tick_upper: i32,
+        amount_a: impl Into<String>,
+        amount_b: impl Into<String>,
     ) -> Self {
         Self {
-            pool_id: pool_id.into(), owner: owner.into(),
-            tick_lower, tick_upper,
-            amount_desired_a: amount_a.into(), amount_desired_b: amount_b.into(),
+            pool_id: pool_id.into(),
+            owner: owner.into(),
+            tick_lower,
+            tick_upper,
+            amount_desired_a: amount_a.into(),
+            amount_desired_b: amount_b.into(),
             external_address: None,
         }
     }
 
     pub fn external_address(mut self, addr: impl Into<String>) -> Self {
-        self.external_address = Some(addr.into()); self
+        self.external_address = Some(addr.into());
+        self
     }
 
     pub fn to_any(&self) -> ProtoAny {
         let msg: proto::AddLiquidityRequest = self.clone().into();
-        ProtoAny { type_url: "/clmm.v1.AddLiquidityRequest".into(), value: msg.encode_to_vec() }
+        ProtoAny {
+            type_url: "/clmm.v1.AddLiquidityRequest".into(),
+            value: msg.encode_to_vec(),
+        }
     }
 }
 
 impl From<AddLiquidityRequest> for proto::AddLiquidityRequest {
     fn from(r: AddLiquidityRequest) -> Self {
         Self {
-            pool_id: r.pool_id, owner: r.owner,
-            tick_lower: r.tick_lower, tick_upper: r.tick_upper,
-            amount_desired_a: r.amount_desired_a, amount_desired_b: r.amount_desired_b,
-            timestamp: None, external_address: r.external_address,
+            pool_id: r.pool_id,
+            owner: r.owner,
+            tick_lower: r.tick_lower,
+            tick_upper: r.tick_upper,
+            amount_desired_a: r.amount_desired_a,
+            amount_desired_b: r.amount_desired_b,
+            timestamp: None,
+            external_address: r.external_address,
         }
     }
 }
@@ -78,25 +92,33 @@ pub struct RemoveLiquidityRequest {
 impl RemoveLiquidityRequest {
     pub fn new(position_id: impl Into<String>, liquidity_amount: impl Into<String>) -> Self {
         Self {
-            position_id: position_id.into(), liquidity_amount: liquidity_amount.into(),
-            min_amount_a: None, min_amount_b: None,
+            position_id: position_id.into(),
+            liquidity_amount: liquidity_amount.into(),
+            min_amount_a: None,
+            min_amount_b: None,
         }
     }
 
     pub fn min_amounts(mut self, a: impl Into<String>, b: impl Into<String>) -> Self {
-        self.min_amount_a = Some(a.into()); self.min_amount_b = Some(b.into()); self
+        self.min_amount_a = Some(a.into());
+        self.min_amount_b = Some(b.into());
+        self
     }
 
     pub fn to_any(&self) -> ProtoAny {
         let msg: proto::RemoveLiquidityRequest = self.clone().into();
-        ProtoAny { type_url: "/clmm.v1.RemoveLiquidityRequest".into(), value: msg.encode_to_vec() }
+        ProtoAny {
+            type_url: "/clmm.v1.RemoveLiquidityRequest".into(),
+            value: msg.encode_to_vec(),
+        }
     }
 }
 
 impl From<RemoveLiquidityRequest> for proto::RemoveLiquidityRequest {
     fn from(r: RemoveLiquidityRequest) -> Self {
         Self {
-            position_id: r.position_id, liquidity_amount: r.liquidity_amount,
+            position_id: r.position_id,
+            liquidity_amount: r.liquidity_amount,
             min_amount_a: r.min_amount_a.unwrap_or_default(),
             min_amount_b: r.min_amount_b.unwrap_or_default(),
             timestamp: None,
@@ -112,11 +134,21 @@ pub struct CollectFeesRequest {
 }
 
 impl CollectFeesRequest {
-    pub fn new(position_id: impl Into<String>) -> Self { Self { position_id: position_id.into() } }
+    pub fn new(position_id: impl Into<String>) -> Self {
+        Self {
+            position_id: position_id.into(),
+        }
+    }
 
     pub fn to_any(&self) -> ProtoAny {
-        let msg = proto::CollectFeesRequest { position_id: self.position_id.clone(), timestamp: None };
-        ProtoAny { type_url: "/clmm.v1.CollectFeesRequest".into(), value: msg.encode_to_vec() }
+        let msg = proto::CollectFeesRequest {
+            position_id: self.position_id.clone(),
+            timestamp: None,
+        };
+        ProtoAny {
+            type_url: "/clmm.v1.CollectFeesRequest".into(),
+            value: msg.encode_to_vec(),
+        }
     }
 }
 
@@ -131,22 +163,35 @@ pub struct ClaimYieldRequest {
 
 impl ClaimYieldRequest {
     pub fn new(address: impl Into<String>, pool_id: impl Into<String>) -> Self {
-        Self { address: address.into(), pool_id: pool_id.into(), external_address: None }
+        Self {
+            address: address.into(),
+            pool_id: pool_id.into(),
+            external_address: None,
+        }
     }
 
     pub fn external_address(mut self, addr: impl Into<String>) -> Self {
-        self.external_address = Some(addr.into()); self
+        self.external_address = Some(addr.into());
+        self
     }
 
     pub fn to_any(&self) -> ProtoAny {
         let msg: proto::ClaimYieldRequest = self.clone().into();
-        ProtoAny { type_url: "/clmm.v1.ClaimYieldRequest".into(), value: msg.encode_to_vec() }
+        ProtoAny {
+            type_url: "/clmm.v1.ClaimYieldRequest".into(),
+            value: msg.encode_to_vec(),
+        }
     }
 }
 
 impl From<ClaimYieldRequest> for proto::ClaimYieldRequest {
     fn from(r: ClaimYieldRequest) -> Self {
-        Self { address: r.address, pool_id: r.pool_id, timestamp: None, external_address: r.external_address }
+        Self {
+            address: r.address,
+            pool_id: r.pool_id,
+            timestamp: None,
+            external_address: r.external_address,
+        }
     }
 }
 
@@ -161,22 +206,35 @@ pub struct ClaimBoostedYieldRequest {
 
 impl ClaimBoostedYieldRequest {
     pub fn new(address: impl Into<String>, pool_id: impl Into<String>) -> Self {
-        Self { address: address.into(), pool_id: pool_id.into(), external_address: None }
+        Self {
+            address: address.into(),
+            pool_id: pool_id.into(),
+            external_address: None,
+        }
     }
 
     pub fn external_address(mut self, addr: impl Into<String>) -> Self {
-        self.external_address = Some(addr.into()); self
+        self.external_address = Some(addr.into());
+        self
     }
 
     pub fn to_any(&self) -> ProtoAny {
         let msg: proto::ClaimBoostedYieldRequest = self.clone().into();
-        ProtoAny { type_url: "/clmm.v1.ClaimBoostedYieldRequest".into(), value: msg.encode_to_vec() }
+        ProtoAny {
+            type_url: "/clmm.v1.ClaimBoostedYieldRequest".into(),
+            value: msg.encode_to_vec(),
+        }
     }
 }
 
 impl From<ClaimBoostedYieldRequest> for proto::ClaimBoostedYieldRequest {
     fn from(r: ClaimBoostedYieldRequest) -> Self {
-        Self { address: r.address, pool_id: r.pool_id, timestamp: None, external_address: r.external_address }
+        Self {
+            address: r.address,
+            pool_id: r.pool_id,
+            timestamp: None,
+            external_address: r.external_address,
+        }
     }
 }
 
@@ -191,20 +249,35 @@ pub struct ForceGlideRequest {
 
 impl ForceGlideRequest {
     pub fn new(pool_id: impl Into<String>, target_price: impl Into<String>) -> Self {
-        Self { pool_id: pool_id.into(), target_price: target_price.into(), authority: None }
+        Self {
+            pool_id: pool_id.into(),
+            target_price: target_price.into(),
+            authority: None,
+        }
     }
 
-    pub fn authority(mut self, a: impl Into<String>) -> Self { self.authority = Some(a.into()); self }
+    pub fn authority(mut self, a: impl Into<String>) -> Self {
+        self.authority = Some(a.into());
+        self
+    }
 
     pub fn to_any(&self) -> ProtoAny {
         let msg: proto::ForceGlideRequest = self.clone().into();
-        ProtoAny { type_url: "/clmm.v1.ForceGlideRequest".into(), value: msg.encode_to_vec() }
+        ProtoAny {
+            type_url: "/clmm.v1.ForceGlideRequest".into(),
+            value: msg.encode_to_vec(),
+        }
     }
 }
 
 impl From<ForceGlideRequest> for proto::ForceGlideRequest {
     fn from(r: ForceGlideRequest) -> Self {
-        Self { pool_id: r.pool_id, target_price: r.target_price, timestamp: None, authority: r.authority }
+        Self {
+            pool_id: r.pool_id,
+            target_price: r.target_price,
+            timestamp: None,
+            authority: r.authority,
+        }
     }
 }
 
@@ -218,11 +291,19 @@ pub struct GetPositionRequest {
 }
 
 impl GetPositionRequest {
-    pub fn new(position_id: impl Into<String>) -> Self { Self { position_id: position_id.into() } }
+    pub fn new(position_id: impl Into<String>) -> Self {
+        Self {
+            position_id: position_id.into(),
+        }
+    }
 }
 
 impl From<GetPositionRequest> for proto::GetPositionRequest {
-    fn from(r: GetPositionRequest) -> Self { Self { position_id: r.position_id } }
+    fn from(r: GetPositionRequest) -> Self {
+        Self {
+            position_id: r.position_id,
+        }
+    }
 }
 
 /// Simulate a swap on the CLMM.
@@ -237,18 +318,36 @@ pub struct SimulateSwapRequest {
 }
 
 impl SimulateSwapRequest {
-    pub fn new(pool_id: impl Into<String>, market_index: u64, side: Side, amount_in: impl Into<String>) -> Self {
-        Self { pool_id: pool_id.into(), market_index, side, amount_in: amount_in.into(), amount_out_min: None }
+    pub fn new(
+        pool_id: impl Into<String>,
+        market_index: u64,
+        side: Side,
+        amount_in: impl Into<String>,
+    ) -> Self {
+        Self {
+            pool_id: pool_id.into(),
+            market_index,
+            side,
+            amount_in: amount_in.into(),
+            amount_out_min: None,
+        }
     }
 
-    pub fn amount_out_min(mut self, min: impl Into<String>) -> Self { self.amount_out_min = Some(min.into()); self }
+    pub fn amount_out_min(mut self, min: impl Into<String>) -> Self {
+        self.amount_out_min = Some(min.into());
+        self
+    }
 }
 
 impl From<SimulateSwapRequest> for proto::SimulateSwapRequest {
     fn from(r: SimulateSwapRequest) -> Self {
         Self {
-            pool_id: r.pool_id, market_index: r.market_index, side: i32::from(r.side),
-            amount_in: r.amount_in, amount_out_min: r.amount_out_min, timestamp: None,
+            pool_id: r.pool_id,
+            market_index: r.market_index,
+            side: i32::from(r.side),
+            amount_in: r.amount_in,
+            amount_out_min: r.amount_out_min,
+            timestamp: None,
         }
     }
 }
@@ -265,18 +364,36 @@ pub struct GetQuoteRequest {
 }
 
 impl GetQuoteRequest {
-    pub fn new(pool_id: impl Into<String>, market_index: u64, side: Side, amount: impl Into<String>) -> Self {
-        Self { pool_id: pool_id.into(), market_index, side, amount: amount.into(), exact_out: false }
+    pub fn new(
+        pool_id: impl Into<String>,
+        market_index: u64,
+        side: Side,
+        amount: impl Into<String>,
+    ) -> Self {
+        Self {
+            pool_id: pool_id.into(),
+            market_index,
+            side,
+            amount: amount.into(),
+            exact_out: false,
+        }
     }
 
-    pub fn exact_out(mut self, v: bool) -> Self { self.exact_out = v; self }
+    pub fn exact_out(mut self, v: bool) -> Self {
+        self.exact_out = v;
+        self
+    }
 }
 
 impl From<GetQuoteRequest> for proto::GetQuoteRequest {
     fn from(r: GetQuoteRequest) -> Self {
         Self {
-            pool_id: r.pool_id, market_index: r.market_index, side: i32::from(r.side),
-            amount: r.amount, exact_out: r.exact_out, timestamp: None,
+            pool_id: r.pool_id,
+            market_index: r.market_index,
+            side: i32::from(r.side),
+            amount: r.amount,
+            exact_out: r.exact_out,
+            timestamp: None,
         }
     }
 }
@@ -290,13 +407,26 @@ pub struct GetLiquidityDepthRequest {
 }
 
 impl GetLiquidityDepthRequest {
-    pub fn new(pool_id: impl Into<String>) -> Self { Self { pool_id: pool_id.into(), price_center: None } }
+    pub fn new(pool_id: impl Into<String>) -> Self {
+        Self {
+            pool_id: pool_id.into(),
+            price_center: None,
+        }
+    }
 
-    pub fn price_center(mut self, p: impl Into<String>) -> Self { self.price_center = Some(p.into()); self }
+    pub fn price_center(mut self, p: impl Into<String>) -> Self {
+        self.price_center = Some(p.into());
+        self
+    }
 }
 
 impl From<GetLiquidityDepthRequest> for proto::GetLiquidityDepthRequest {
-    fn from(r: GetLiquidityDepthRequest) -> Self { Self { pool_id: r.pool_id, price_center: r.price_center } }
+    fn from(r: GetLiquidityDepthRequest) -> Self {
+        Self {
+            pool_id: r.pool_id,
+            price_center: r.price_center,
+        }
+    }
 }
 
 /// Query pool risk summary.
@@ -307,11 +437,17 @@ pub struct GetPoolRiskSummaryRequest {
 }
 
 impl GetPoolRiskSummaryRequest {
-    pub fn new(pool_id: impl Into<String>) -> Self { Self { pool_id: pool_id.into() } }
+    pub fn new(pool_id: impl Into<String>) -> Self {
+        Self {
+            pool_id: pool_id.into(),
+        }
+    }
 }
 
 impl From<GetPoolRiskSummaryRequest> for proto::GetPoolRiskSummaryRequest {
-    fn from(r: GetPoolRiskSummaryRequest) -> Self { Self { pool_id: r.pool_id } }
+    fn from(r: GetPoolRiskSummaryRequest) -> Self {
+        Self { pool_id: r.pool_id }
+    }
 }
 
 /// Query boosted pool buffer state.
@@ -322,11 +458,17 @@ pub struct GetBoostedBufferRequest {
 }
 
 impl GetBoostedBufferRequest {
-    pub fn new(pool_id: impl Into<String>) -> Self { Self { pool_id: pool_id.into() } }
+    pub fn new(pool_id: impl Into<String>) -> Self {
+        Self {
+            pool_id: pool_id.into(),
+        }
+    }
 }
 
 impl From<GetBoostedBufferRequest> for proto::GetBoostedBufferRequest {
-    fn from(r: GetBoostedBufferRequest) -> Self { Self { pool_id: r.pool_id } }
+    fn from(r: GetBoostedBufferRequest) -> Self {
+        Self { pool_id: r.pool_id }
+    }
 }
 
 /// Simulate a ReClmm glide operation.
@@ -340,15 +482,27 @@ pub struct SimulateReClmmGlideRequest {
 
 impl SimulateReClmmGlideRequest {
     pub fn new(pool_id: impl Into<String>, target_price: impl Into<String>) -> Self {
-        Self { pool_id: pool_id.into(), target_price: target_price.into(), max_slippage_bps: None }
+        Self {
+            pool_id: pool_id.into(),
+            target_price: target_price.into(),
+            max_slippage_bps: None,
+        }
     }
 
-    pub fn max_slippage_bps(mut self, bps: impl Into<String>) -> Self { self.max_slippage_bps = Some(bps.into()); self }
+    pub fn max_slippage_bps(mut self, bps: impl Into<String>) -> Self {
+        self.max_slippage_bps = Some(bps.into());
+        self
+    }
 }
 
 impl From<SimulateReClmmGlideRequest> for proto::SimulateReClmmGlideRequest {
     fn from(r: SimulateReClmmGlideRequest) -> Self {
-        Self { pool_id: r.pool_id, target_price: r.target_price, max_slippage_bps: r.max_slippage_bps, timestamp: None }
+        Self {
+            pool_id: r.pool_id,
+            target_price: r.target_price,
+            max_slippage_bps: r.max_slippage_bps,
+            timestamp: None,
+        }
     }
 }
 
@@ -362,11 +516,17 @@ pub struct QueryPoolFeeStatsRequest {
 }
 
 impl QueryPoolFeeStatsRequest {
-    pub fn new(pool_id: impl Into<String>) -> Self { Self { pool_id: pool_id.into() } }
+    pub fn new(pool_id: impl Into<String>) -> Self {
+        Self {
+            pool_id: pool_id.into(),
+        }
+    }
 }
 
 impl From<QueryPoolFeeStatsRequest> for proto::QueryPoolFeeStatsRequest {
-    fn from(r: QueryPoolFeeStatsRequest) -> Self { Self { pool_id: r.pool_id } }
+    fn from(r: QueryPoolFeeStatsRequest) -> Self {
+        Self { pool_id: r.pool_id }
+    }
 }
 
 // ====================== SWAP EXACT IN TX ======================
@@ -384,27 +544,39 @@ pub struct SwapExactInRequest {
 
 impl SwapExactInRequest {
     pub fn new(
-        pool_id: impl Into<String>, sender: impl Into<String>,
-        token_in: u64, amount_in: impl Into<String>, min_amount_out: impl Into<String>,
+        pool_id: impl Into<String>,
+        sender: impl Into<String>,
+        token_in: u64,
+        amount_in: impl Into<String>,
+        min_amount_out: impl Into<String>,
     ) -> Self {
         Self {
-            pool_id: pool_id.into(), sender: sender.into(),
-            token_in, amount_in: amount_in.into(), min_amount_out: min_amount_out.into(),
+            pool_id: pool_id.into(),
+            sender: sender.into(),
+            token_in,
+            amount_in: amount_in.into(),
+            min_amount_out: min_amount_out.into(),
         }
     }
 
     pub fn to_any(&self) -> ProtoAny {
         let msg: proto::SwapExactInRequest = self.clone().into();
-        ProtoAny { type_url: "/clmm.v1.SwapExactInRequest".into(), value: msg.encode_to_vec() }
+        ProtoAny {
+            type_url: "/clmm.v1.SwapExactInRequest".into(),
+            value: msg.encode_to_vec(),
+        }
     }
 }
 
 impl From<SwapExactInRequest> for proto::SwapExactInRequest {
     fn from(r: SwapExactInRequest) -> Self {
         Self {
-            pool_id: r.pool_id, sender: r.sender,
-            token_in: r.token_in, amount_in: r.amount_in,
-            min_amount_out: r.min_amount_out, timestamp: None,
+            pool_id: r.pool_id,
+            sender: r.sender,
+            token_in: r.token_in,
+            amount_in: r.amount_in,
+            min_amount_out: r.min_amount_out,
+            timestamp: None,
         }
     }
 }
@@ -442,7 +614,9 @@ mod tests {
 
     #[test]
     fn force_glide_to_any() {
-        let any = ForceGlideRequest::new("0x1234", "50000").authority("governance").to_any();
+        let any = ForceGlideRequest::new("0x1234", "50000")
+            .authority("governance")
+            .to_any();
         assert_eq!(any.type_url, "/clmm.v1.ForceGlideRequest");
     }
 

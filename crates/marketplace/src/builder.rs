@@ -112,24 +112,26 @@ impl ListAgentBuilder {
     /// Returns [`SdkError`] if any required field is missing, the price is zero,
     /// the revenue share config is invalid, or a rental listing has zero duration.
     pub fn build(self) -> Result<ListAgentRequest, SdkError> {
-        let agent_hash = self.agent_hash.ok_or_else(|| {
-            SdkError::invalid_input("agent_hash is required for ListAgent")
-        })?;
+        let agent_hash = self
+            .agent_hash
+            .ok_or_else(|| SdkError::invalid_input("agent_hash is required for ListAgent"))?;
 
         let seller_agent_hash = self.seller_agent_hash.ok_or_else(|| {
             SdkError::invalid_input("seller_agent_hash is required for ListAgent")
         })?;
 
-        let listing_type = self.listing_type.ok_or_else(|| {
-            SdkError::invalid_input("listing_type is required for ListAgent")
-        })?;
+        let listing_type = self
+            .listing_type
+            .ok_or_else(|| SdkError::invalid_input("listing_type is required for ListAgent"))?;
 
-        let price_usd = self.price_usd.ok_or_else(|| {
-            SdkError::invalid_input("price_usd is required for ListAgent")
-        })?;
+        let price_usd = self
+            .price_usd
+            .ok_or_else(|| SdkError::invalid_input("price_usd is required for ListAgent"))?;
 
         if price_usd == 0 {
-            return Err(SdkError::invalid_input("price_usd must be greater than zero"));
+            return Err(SdkError::invalid_input(
+                "price_usd must be greater than zero",
+            ));
         }
 
         // Validate revenue share config if provided
@@ -149,13 +151,13 @@ impl ListAgentBuilder {
             ));
         }
 
-        let metadata_hash = self.metadata_hash.ok_or_else(|| {
-            SdkError::invalid_input("metadata_hash is required for ListAgent")
-        })?;
+        let metadata_hash = self
+            .metadata_hash
+            .ok_or_else(|| SdkError::invalid_input("metadata_hash is required for ListAgent"))?;
 
-        let seller_signature = self.seller_signature.ok_or_else(|| {
-            SdkError::invalid_input("seller_signature is required for ListAgent")
-        })?;
+        let seller_signature = self
+            .seller_signature
+            .ok_or_else(|| SdkError::invalid_input("seller_signature is required for ListAgent"))?;
 
         let listing = AgentListing {
             listing_id: String::new(), // server-assigned
@@ -222,23 +224,29 @@ impl PlaceBidBuilder {
     ///
     /// Returns [`SdkError`] if any required field is missing or the amount is zero.
     pub fn build(self) -> Result<PlaceBidRequest, SdkError> {
-        let listing_id = self.listing_id.ok_or_else(|| {
-            SdkError::invalid_input("listing_id is required for PlaceBid")
-        })?;
+        let listing_id = self
+            .listing_id
+            .ok_or_else(|| SdkError::invalid_input("listing_id is required for PlaceBid"))?;
 
-        let amount_usd = self.amount_usd.ok_or_else(|| {
-            SdkError::invalid_input("amount_usd is required for PlaceBid")
-        })?;
+        let amount_usd = self
+            .amount_usd
+            .ok_or_else(|| SdkError::invalid_input("amount_usd is required for PlaceBid"))?;
 
         if amount_usd == 0 {
-            return Err(SdkError::invalid_input("amount_usd must be greater than zero"));
+            return Err(SdkError::invalid_input(
+                "amount_usd must be greater than zero",
+            ));
         }
 
-        let bidder_signature = self.bidder_signature.ok_or_else(|| {
-            SdkError::invalid_input("bidder_signature is required for PlaceBid")
-        })?;
+        let bidder_signature = self
+            .bidder_signature
+            .ok_or_else(|| SdkError::invalid_input("bidder_signature is required for PlaceBid"))?;
 
-        Ok(PlaceBidRequest::new(listing_id, amount_usd, bidder_signature))
+        Ok(PlaceBidRequest::new(
+            listing_id,
+            amount_usd,
+            bidder_signature,
+        ))
     }
 }
 
@@ -289,17 +297,17 @@ impl AcceptBidBuilder {
     ///
     /// Returns [`SdkError`] if any required field is missing.
     pub fn build(self) -> Result<AcceptBidRequest, SdkError> {
-        let listing_id = self.listing_id.ok_or_else(|| {
-            SdkError::invalid_input("listing_id is required for AcceptBid")
-        })?;
+        let listing_id = self
+            .listing_id
+            .ok_or_else(|| SdkError::invalid_input("listing_id is required for AcceptBid"))?;
 
-        let bid_id = self.bid_id.ok_or_else(|| {
-            SdkError::invalid_input("bid_id is required for AcceptBid")
-        })?;
+        let bid_id = self
+            .bid_id
+            .ok_or_else(|| SdkError::invalid_input("bid_id is required for AcceptBid"))?;
 
-        let seller_signature = self.seller_signature.ok_or_else(|| {
-            SdkError::invalid_input("seller_signature is required for AcceptBid")
-        })?;
+        let seller_signature = self
+            .seller_signature
+            .ok_or_else(|| SdkError::invalid_input("seller_signature is required for AcceptBid"))?;
 
         Ok(AcceptBidRequest::new(listing_id, bid_id, seller_signature))
     }
@@ -368,9 +376,9 @@ impl RequestEvaluationBuilder {
             SdkError::invalid_input("evaluator_agent_hash is required for RequestEvaluation")
         })?;
 
-        let fee_usd = self.fee_usd.ok_or_else(|| {
-            SdkError::invalid_input("fee_usd is required for RequestEvaluation")
-        })?;
+        let fee_usd = self
+            .fee_usd
+            .ok_or_else(|| SdkError::invalid_input("fee_usd is required for RequestEvaluation"))?;
 
         let requester_signature = self.requester_signature.ok_or_else(|| {
             SdkError::invalid_input("requester_signature is required for RequestEvaluation")
@@ -582,5 +590,4 @@ mod tests {
             .build()
             .is_err()); // missing signature
     }
-
 }

@@ -28,7 +28,9 @@ pub enum MarkSource {
 impl From<i32> for MarkSource {
     fn from(v: i32) -> Self {
         match v {
-            1 => Self::Twap, 2 => Self::Kline, 3 => Self::OracleIndex,
+            1 => Self::Twap,
+            2 => Self::Kline,
+            3 => Self::OracleIndex,
             _ => Self::Unspecified,
         }
     }
@@ -37,8 +39,10 @@ impl From<i32> for MarkSource {
 impl From<MarkSource> for i32 {
     fn from(s: MarkSource) -> Self {
         match s {
-            MarkSource::Unspecified => 0, MarkSource::Twap => 1,
-            MarkSource::Kline => 2, MarkSource::OracleIndex => 3,
+            MarkSource::Unspecified => 0,
+            MarkSource::Twap => 1,
+            MarkSource::Kline => 2,
+            MarkSource::OracleIndex => 3,
         }
     }
 }
@@ -154,7 +158,11 @@ pub struct PriceMoveAlert {
 
 impl From<proto::PriceMoveAlert> for PriceMoveAlert {
     fn from(p: proto::PriceMoveAlert) -> Self {
-        Self { market_index: p.market_index, mark_price: p.mark_price, delta_bps: p.delta_bps }
+        Self {
+            market_index: p.market_index,
+            mark_price: p.mark_price,
+            delta_bps: p.delta_bps,
+        }
     }
 }
 
@@ -182,7 +190,10 @@ mod tests {
     #[test]
     fn mark_price_data_from_proto() {
         let p = proto::MarkPriceData {
-            market_index: 1, mark_price: 50_000_000_000, source: 1, delta_bps: -25,
+            market_index: 1,
+            mark_price: 50_000_000_000,
+            source: 1,
+            delta_bps: -25,
         };
         let d: MarkPriceData = p.into();
         assert_eq!(d.source, MarkSource::Twap);
@@ -192,8 +203,10 @@ mod tests {
     #[test]
     fn mark_config_bidirectional() {
         let cfg = MarkConfig {
-            weight_twap_bps: 8000, weight_oracle_index_bps: 1500,
-            weight_kline_bps: 500, staleness_blocks: 10,
+            weight_twap_bps: 8000,
+            weight_oracle_index_bps: 1500,
+            weight_kline_bps: 500,
+            staleness_blocks: 10,
             strategy: "linear_perp".into(),
         };
         let proto_cfg: proto::MarkConfig = cfg.clone().into();
@@ -204,7 +217,10 @@ mod tests {
     #[test]
     fn mark_price_updated_from_proto() {
         let p = proto::MarkPriceUpdated {
-            market_index: 42, mark_price: 50_000, source: 3, delta_bps: 100,
+            market_index: 42,
+            mark_price: 50_000,
+            source: 3,
+            delta_bps: 100,
         };
         let u: MarkPriceUpdated = p.into();
         assert_eq!(u.source, MarkSource::OracleIndex);

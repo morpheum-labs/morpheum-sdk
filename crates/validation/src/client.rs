@@ -12,16 +12,10 @@ use alloc::vec::Vec;
 use async_trait::async_trait;
 use prost::Message as _;
 
-use morpheum_sdk_core::{
-    MorpheumClient, SdkConfig, SdkError, Transport,
-};
+use morpheum_sdk_core::{MorpheumClient, SdkConfig, SdkError, Transport};
 
 use crate::{
-    requests::{
-        QueryProofRequest,
-        QueryProofsByAgentRequest,
-        QueryProofsByTypeRequest,
-    },
+    requests::{QueryProofRequest, QueryProofsByAgentRequest, QueryProofsByTypeRequest},
     types::{Params, ProofType, ValidationProof},
 };
 
@@ -55,10 +49,9 @@ impl ValidationClient {
 
         let response_bytes = self.query(path, data).await?;
 
-        let proto_res = morpheum_proto::validation::v1::QueryProofResponse::decode(
-            response_bytes.as_slice(),
-        )
-        .map_err(SdkError::Decode)?;
+        let proto_res =
+            morpheum_proto::validation::v1::QueryProofResponse::decode(response_bytes.as_slice())
+                .map_err(SdkError::Decode)?;
 
         let response: crate::requests::QueryProofResponse = proto_res.into();
         Ok(response.proof)
@@ -122,10 +115,9 @@ impl ValidationClient {
 
         let response_bytes = self.query(path, data).await?;
 
-        let proto_res = morpheum_proto::validation::v1::QueryParamsResponse::decode(
-            response_bytes.as_slice(),
-        )
-        .map_err(SdkError::Decode)?;
+        let proto_res =
+            morpheum_proto::validation::v1::QueryParamsResponse::decode(response_bytes.as_slice())
+                .map_err(SdkError::Decode)?;
 
         let response: crate::requests::QueryParamsResponse = proto_res.into();
         Ok(response.params)
@@ -257,7 +249,11 @@ mod tests {
         let config = SdkConfig::new("https://sentry.morpheum.xyz", "morpheum-test-1");
         let client = ValidationClient::new(config, Box::new(DummyTransport));
 
-        let params = client.query_params().await.unwrap().expect("params should be present");
+        let params = client
+            .query_params()
+            .await
+            .unwrap()
+            .expect("params should be present");
         assert_eq!(params.min_score_contribution, 100);
         assert_eq!(params.max_proofs_per_agent, 50);
         assert!(params.require_verifier_signature);

@@ -16,8 +16,8 @@ extern crate alloc;
 // Public API modules — each has a single, clear responsibility
 pub mod builder;
 pub mod client;
-pub mod types;
 pub mod requests;
+pub mod types;
 
 // ==================== PUBLIC RE-EXPORTS ====================
 
@@ -25,30 +25,19 @@ pub mod requests;
 pub use client::ReputationClient;
 
 /// Fluent builders for reputation transaction construction.
-pub use builder::{
-    ForceMilestoneBuilder,
-    UpdateParamsBuilder,
-};
+pub use builder::{ForceMilestoneBuilder, UpdateParamsBuilder};
 
 /// Core domain types for the reputation module.
 pub use types::{
-    MilestoneStatus,
-    Params,
-    RecoveryActionType,
-    ReputationEvent,
-    ReputationEventType,
-    ReputationScore,
-    MAX_SCORE,
+    MilestoneStatus, Params, RecoveryActionType, ReputationEvent, ReputationEventType,
+    ReputationScore, MAX_SCORE,
 };
 
 /// Re-export all request and response types for clean message construction.
 pub use requests::*;
 
 /// Re-export core SDK types commonly used with reputation flows.
-pub use morpheum_sdk_core::{
-    SdkError,
-    SdkConfig,
-};
+pub use morpheum_sdk_core::{SdkConfig, SdkError};
 
 /// Recommended prelude for the reputation module.
 ///
@@ -58,18 +47,9 @@ pub use morpheum_sdk_core::{
 /// ```
 pub mod prelude {
     pub use super::{
-        ReputationClient,
-        ForceMilestoneBuilder,
-        UpdateParamsBuilder,
-        MilestoneStatus,
-        Params,
-        RecoveryActionType,
-        ReputationEvent,
-        ReputationEventType,
-        ReputationScore,
-        SdkError,
-        SdkConfig,
-        MAX_SCORE,
+        ForceMilestoneBuilder, MilestoneStatus, Params, RecoveryActionType, ReputationClient,
+        ReputationEvent, ReputationEventType, ReputationScore, SdkConfig, SdkError,
+        UpdateParamsBuilder, MAX_SCORE,
     };
 }
 

@@ -147,24 +147,27 @@ impl ChainRegistry {
     /// testnet names (e.g. `base_sepolia` resolves to `base-sepolia`).
     pub fn get_chain(&self, name: &str) -> Option<&ChainConfig> {
         let lower = name.to_ascii_lowercase();
-        self.chains.get(&lower).or_else(|| {
-            let normalized = lower.replace('_', "-");
-            self.chains.get(&normalized)
-        }).or_else(|| {
-            let alias = match lower.as_str() {
-                "eth" => "ethereum",
-                "arb" => "arbitrum",
-                "arb-sepolia" | "arb_sepolia" => "arbitrum-sepolia",
-                "op" => "optimism",
-                "avax" => "avalanche",
-                "matic" => "polygon",
-                "amoy" | "polygon_amoy" => "polygon-amoy",
-                "bsc" | "binance" => "bsc",
-                "local" => "anvil",
-                _ => return None,
-            };
-            self.chains.get(alias)
-        })
+        self.chains
+            .get(&lower)
+            .or_else(|| {
+                let normalized = lower.replace('_', "-");
+                self.chains.get(&normalized)
+            })
+            .or_else(|| {
+                let alias = match lower.as_str() {
+                    "eth" => "ethereum",
+                    "arb" => "arbitrum",
+                    "arb-sepolia" | "arb_sepolia" => "arbitrum-sepolia",
+                    "op" => "optimism",
+                    "avax" => "avalanche",
+                    "matic" => "polygon",
+                    "amoy" | "polygon_amoy" => "polygon-amoy",
+                    "bsc" | "binance" => "bsc",
+                    "local" => "anvil",
+                    _ => return None,
+                };
+                self.chains.get(alias)
+            })
     }
 
     /// Resolves a chain + token pair into parsed addresses.
@@ -173,9 +176,9 @@ impl ChainRegistry {
         chain_name: &str,
         token_symbol: &str,
     ) -> Result<(ResolvedChain, ResolvedToken), EvmError> {
-        let chain = self.get_chain(chain_name).ok_or_else(|| {
-            EvmError::Config(format!("unknown chain: '{chain_name}'"))
-        })?;
+        let chain = self
+            .get_chain(chain_name)
+            .ok_or_else(|| EvmError::Config(format!("unknown chain: '{chain_name}'")))?;
 
         let upper = token_symbol.to_ascii_uppercase();
         let token = chain.tokens.get(&upper).ok_or_else(|| {

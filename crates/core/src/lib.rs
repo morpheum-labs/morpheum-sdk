@@ -18,23 +18,23 @@ pub use morpheum_signing_core as signing;
 pub use morpheum_proto as proto;
 
 // Public modules — each has a single, clear responsibility (SOLID)
-pub mod error;
-pub mod types;
-pub mod config;
-pub mod transport;
-pub mod client;
 pub mod builder;
+pub mod client;
+pub mod config;
+pub mod error;
+pub mod transport;
+pub mod types;
 
 #[cfg(feature = "chain-registry")]
 pub mod chain_registry;
 
 // ── Root-level re-exports for ergonomic `crate::SdkError` style access ──
 
-pub use error::SdkError;
-pub use types::{AccountId, ChainId, SignedTx};
-pub use config::SdkConfig;
-pub use transport::{Transport, BroadcastResult};
 pub use client::MorpheumClient;
+pub use config::SdkConfig;
+pub use error::SdkError;
+pub use transport::{BroadcastResult, Transport};
+pub use types::{AccountId, ChainId, SignedTx};
 
 #[cfg(feature = "chain-registry")]
 pub use chain_registry::ChainRegistryOps;
@@ -51,12 +51,14 @@ pub const VERSION: &str = env!("CARGO_PKG_VERSION");
 pub mod prelude {
     // Core SDK types
     pub use crate::client::MorpheumClient;
-    pub use crate::{AccountId, BroadcastResult, ChainId, SdkConfig, SdkError, SignedTx, Transport, VERSION};
+    pub use crate::{
+        AccountId, BroadcastResult, ChainId, SdkConfig, SdkError, SignedTx, Transport, VERSION,
+    };
 
     // Signing library domain types (via submodule paths)
-    pub use crate::signing::types::{PublicKey, Signature, WalletType};
     pub use crate::signing::claim::{TradingKeyClaim, VcClaimBuilder};
     pub use crate::signing::signer::Signer;
+    pub use crate::signing::types::{PublicKey, Signature, WalletType};
 
     // The prost_types::Any re-exported from the signing library.
     // This is the canonical `Any` type used in TxBuilder.add_message().
@@ -66,14 +68,7 @@ pub mod prelude {
     pub use crate::builder::TxBuilder;
 
     // Frequently used protobuf types when constructing transactions
-    pub use crate::proto::tx::v1::{
-        AuthInfo,
-        SignDoc,
-        SignerInfo,
-        Tx,
-        TxBody,
-        TxRaw,
-    };
+    pub use crate::proto::tx::v1::{AuthInfo, SignDoc, SignerInfo, Tx, TxBody, TxRaw};
 }
 
 #[cfg(test)]

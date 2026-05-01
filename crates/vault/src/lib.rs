@@ -8,61 +8,31 @@
 
 extern crate alloc;
 
-pub mod client;
-pub mod types;
-pub mod requests;
 pub mod builder;
+pub mod client;
+pub mod requests;
+pub mod types;
 
 // ==================== PUBLIC RE-EXPORTS ====================
 
 pub use client::{StakeListPage, StrategyHistoryPage, VaultClient, VaultListPage};
 
 pub use types::{
-    IlMetrics,
-    RevenueShareConfig,
-    Stake,
-    StrategyExecution,
-    Vault,
-    VaultHealth,
-    VaultParams,
-    VaultRecord,
-    VaultStatus,
-    VaultStreamEvent,
-    VaultType,
-    VaultUpdateEvent,
+    IlMetrics, RevenueShareConfig, Stake, StrategyExecution, Vault, VaultHealth, VaultParams,
+    VaultRecord, VaultStatus, VaultStreamEvent, VaultType, VaultUpdateEvent,
 };
 
 pub use requests::{
-    ClaimYieldRequest,
-    CreateVaultRequest,
-    DepositToVaultRequest,
-    ExecuteStrategyRequest,
-    GetIlMetricsRequest,
-    GetStrategyHistoryRequest,
-    GetTopVaultsRequest,
-    GetUserStakeRequest,
-    GetVaultHealthRequest,
-    GetVaultRequest,
-    GetVaultsByAgentRequest,
-    GetVaultsByTypeRequest,
-    ListUserStakesRequest,
-    ListVaultsRequest,
-    PauseVaultRequest,
-    ResumeVaultRequest,
-    UpdateParamsRequest,
-    UpdateVaultParamsRequest,
-    WithdrawFromVaultRequest,
+    ClaimYieldRequest, CreateVaultRequest, DepositToVaultRequest, ExecuteStrategyRequest,
+    GetIlMetricsRequest, GetStrategyHistoryRequest, GetTopVaultsRequest, GetUserStakeRequest,
+    GetVaultHealthRequest, GetVaultRequest, GetVaultsByAgentRequest, GetVaultsByTypeRequest,
+    ListUserStakesRequest, ListVaultsRequest, PauseVaultRequest, ResumeVaultRequest,
+    UpdateParamsRequest, UpdateVaultParamsRequest, WithdrawFromVaultRequest,
 };
 
 pub use builder::{
-    ClaimYieldBuilder,
-    CreateVaultBuilder,
-    DepositToVaultBuilder,
-    ExecuteStrategyBuilder,
-    PauseVaultBuilder,
-    ResumeVaultBuilder,
-    UpdateModuleParamsBuilder,
-    UpdateVaultParamsBuilder,
+    ClaimYieldBuilder, CreateVaultBuilder, DepositToVaultBuilder, ExecuteStrategyBuilder,
+    PauseVaultBuilder, ResumeVaultBuilder, UpdateModuleParamsBuilder, UpdateVaultParamsBuilder,
     WithdrawFromVaultBuilder,
 };
 
@@ -76,16 +46,8 @@ pub use morpheum_sdk_core::{AccountId, ChainId, SdkError, SignedTx};
 /// ```
 pub mod prelude {
     pub use super::{
-        VaultClient,
-        Vault,
-        VaultType,
-        VaultStatus,
-        VaultHealth,
-        Stake,
-        AccountId,
-        ChainId,
-        SdkError,
-        SignedTx,
+        AccountId, ChainId, SdkError, SignedTx, Stake, Vault, VaultClient, VaultHealth,
+        VaultStatus, VaultType,
     };
 }
 

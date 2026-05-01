@@ -8,8 +8,8 @@ use prost::Message as _;
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
-use morpheum_proto::vesting::v1 as proto;
 use morpheum_proto::google::protobuf::Any as ProtoAny;
+use morpheum_proto::vesting::v1 as proto;
 
 use crate::types::{ScheduleType, VestingCategory, VestingParams};
 
@@ -34,30 +34,45 @@ pub struct CreateVestingRequest {
 
 impl CreateVestingRequest {
     pub fn new(
-        authority: impl Into<String>, beneficiary: impl Into<String>,
-        total_amount: impl Into<String>, vesting_duration: u64,
+        authority: impl Into<String>,
+        beneficiary: impl Into<String>,
+        total_amount: impl Into<String>,
+        vesting_duration: u64,
         schedule_type: ScheduleType,
     ) -> Self {
         Self {
-            authority: authority.into(), beneficiary: beneficiary.into(),
-            total_amount: total_amount.into(), start_timestamp: 0,
-            cliff_duration: 0, vesting_duration, schedule_type,
-            category: VestingCategory::Unspecified, revocable: false,
-            step_timestamps: Vec::new(), step_amounts: Vec::new(),
+            authority: authority.into(),
+            beneficiary: beneficiary.into(),
+            total_amount: total_amount.into(),
+            start_timestamp: 0,
+            cliff_duration: 0,
+            vesting_duration,
+            schedule_type,
+            category: VestingCategory::Unspecified,
+            revocable: false,
+            step_timestamps: Vec::new(),
+            step_amounts: Vec::new(),
         }
     }
 
     pub fn to_any(&self) -> ProtoAny {
         let msg = proto::MsgCreateVesting {
-            authority: self.authority.clone(), beneficiary: self.beneficiary.clone(),
-            total_amount: self.total_amount.clone(), start_timestamp: self.start_timestamp,
-            cliff_duration: self.cliff_duration, vesting_duration: self.vesting_duration,
+            authority: self.authority.clone(),
+            beneficiary: self.beneficiary.clone(),
+            total_amount: self.total_amount.clone(),
+            start_timestamp: self.start_timestamp,
+            cliff_duration: self.cliff_duration,
+            vesting_duration: self.vesting_duration,
             schedule_type: i32::from(self.schedule_type),
-            category: i32::from(self.category), revocable: self.revocable,
+            category: i32::from(self.category),
+            revocable: self.revocable,
             step_timestamps: self.step_timestamps.clone(),
             step_amounts: self.step_amounts.clone(),
         };
-        ProtoAny { type_url: "/vesting.v1.MsgCreateVesting".into(), value: msg.encode_to_vec() }
+        ProtoAny {
+            type_url: "/vesting.v1.MsgCreateVesting".into(),
+            value: msg.encode_to_vec(),
+        }
     }
 }
 
@@ -72,19 +87,29 @@ pub struct ClaimRequest {
 impl ClaimRequest {
     /// Claim max releasable tokens.
     pub fn max(beneficiary: impl Into<String>) -> Self {
-        Self { beneficiary: beneficiary.into(), amount: String::new() }
+        Self {
+            beneficiary: beneficiary.into(),
+            amount: String::new(),
+        }
     }
 
     /// Claim a specific amount.
     pub fn amount(beneficiary: impl Into<String>, amount: impl Into<String>) -> Self {
-        Self { beneficiary: beneficiary.into(), amount: amount.into() }
+        Self {
+            beneficiary: beneficiary.into(),
+            amount: amount.into(),
+        }
     }
 
     pub fn to_any(&self) -> ProtoAny {
         let msg = proto::MsgClaim {
-            beneficiary: self.beneficiary.clone(), amount: self.amount.clone(),
+            beneficiary: self.beneficiary.clone(),
+            amount: self.amount.clone(),
         };
-        ProtoAny { type_url: "/vesting.v1.MsgClaim".into(), value: msg.encode_to_vec() }
+        ProtoAny {
+            type_url: "/vesting.v1.MsgClaim".into(),
+            value: msg.encode_to_vec(),
+        }
     }
 }
 
@@ -100,21 +125,30 @@ pub struct RevokeVestingRequest {
 
 impl RevokeVestingRequest {
     pub fn new(
-        authority: impl Into<String>, beneficiary: impl Into<String>,
-        vesting_id: u64, reason: impl Into<String>,
+        authority: impl Into<String>,
+        beneficiary: impl Into<String>,
+        vesting_id: u64,
+        reason: impl Into<String>,
     ) -> Self {
         Self {
-            authority: authority.into(), beneficiary: beneficiary.into(),
-            vesting_id, reason: reason.into(),
+            authority: authority.into(),
+            beneficiary: beneficiary.into(),
+            vesting_id,
+            reason: reason.into(),
         }
     }
 
     pub fn to_any(&self) -> ProtoAny {
         let msg = proto::MsgRevokeVesting {
-            authority: self.authority.clone(), beneficiary: self.beneficiary.clone(),
-            vesting_id: self.vesting_id, reason: self.reason.clone(),
+            authority: self.authority.clone(),
+            beneficiary: self.beneficiary.clone(),
+            vesting_id: self.vesting_id,
+            reason: self.reason.clone(),
         };
-        ProtoAny { type_url: "/vesting.v1.MsgRevokeVesting".into(), value: msg.encode_to_vec() }
+        ProtoAny {
+            type_url: "/vesting.v1.MsgRevokeVesting".into(),
+            value: msg.encode_to_vec(),
+        }
     }
 }
 
@@ -128,14 +162,21 @@ pub struct UpdateParamsRequest {
 
 impl UpdateParamsRequest {
     pub fn new(authority: impl Into<String>, params: VestingParams) -> Self {
-        Self { authority: authority.into(), params }
+        Self {
+            authority: authority.into(),
+            params,
+        }
     }
 
     pub fn to_any(&self) -> ProtoAny {
         let msg = proto::MsgUpdateParams {
-            authority: self.authority.clone(), params: Some(self.params.clone().into()),
+            authority: self.authority.clone(),
+            params: Some(self.params.clone().into()),
         };
-        ProtoAny { type_url: "/vesting.v1.MsgUpdateParams".into(), value: msg.encode_to_vec() }
+        ProtoAny {
+            type_url: "/vesting.v1.MsgUpdateParams".into(),
+            value: msg.encode_to_vec(),
+        }
     }
 }
 
@@ -149,11 +190,19 @@ pub struct QueryVestingSummaryRequest {
 }
 
 impl QueryVestingSummaryRequest {
-    pub fn new(beneficiary: impl Into<String>) -> Self { Self { beneficiary: beneficiary.into() } }
+    pub fn new(beneficiary: impl Into<String>) -> Self {
+        Self {
+            beneficiary: beneficiary.into(),
+        }
+    }
 }
 
 impl From<QueryVestingSummaryRequest> for proto::QueryVestingSummaryRequest {
-    fn from(r: QueryVestingSummaryRequest) -> Self { Self { beneficiary: r.beneficiary } }
+    fn from(r: QueryVestingSummaryRequest) -> Self {
+        Self {
+            beneficiary: r.beneficiary,
+        }
+    }
 }
 
 /// Query a specific vesting entry.
@@ -166,13 +215,19 @@ pub struct QueryVestingEntryRequest {
 
 impl QueryVestingEntryRequest {
     pub fn new(beneficiary: impl Into<String>, vesting_id: u64) -> Self {
-        Self { beneficiary: beneficiary.into(), vesting_id }
+        Self {
+            beneficiary: beneficiary.into(),
+            vesting_id,
+        }
     }
 }
 
 impl From<QueryVestingEntryRequest> for proto::QueryVestingEntryRequest {
     fn from(r: QueryVestingEntryRequest) -> Self {
-        Self { beneficiary: r.beneficiary, vesting_id: r.vesting_id }
+        Self {
+            beneficiary: r.beneficiary,
+            vesting_id: r.vesting_id,
+        }
     }
 }
 
@@ -187,16 +242,30 @@ pub struct QueryVestingEntriesRequest {
 
 impl QueryVestingEntriesRequest {
     pub fn new(beneficiary: impl Into<String>) -> Self {
-        Self { beneficiary: beneficiary.into(), limit: 0, offset: 0 }
+        Self {
+            beneficiary: beneficiary.into(),
+            limit: 0,
+            offset: 0,
+        }
     }
 
-    pub fn limit(mut self, v: u32) -> Self { self.limit = v; self }
-    pub fn offset(mut self, v: u32) -> Self { self.offset = v; self }
+    pub fn limit(mut self, v: u32) -> Self {
+        self.limit = v;
+        self
+    }
+    pub fn offset(mut self, v: u32) -> Self {
+        self.offset = v;
+        self
+    }
 }
 
 impl From<QueryVestingEntriesRequest> for proto::QueryVestingEntriesRequest {
     fn from(r: QueryVestingEntriesRequest) -> Self {
-        Self { beneficiary: r.beneficiary, limit: r.limit, offset: r.offset }
+        Self {
+            beneficiary: r.beneficiary,
+            limit: r.limit,
+            offset: r.offset,
+        }
     }
 }
 
@@ -206,7 +275,9 @@ impl From<QueryVestingEntriesRequest> for proto::QueryVestingEntriesRequest {
 pub struct QueryParamsRequest;
 
 impl From<QueryParamsRequest> for proto::QueryParamsRequest {
-    fn from(_: QueryParamsRequest) -> Self { Self {} }
+    fn from(_: QueryParamsRequest) -> Self {
+        Self {}
+    }
 }
 
 #[cfg(test)]
@@ -216,8 +287,13 @@ mod tests {
     #[test]
     fn create_vesting_to_any() {
         let any = CreateVestingRequest::new(
-            "morph1gov", "morph1user", "1000000", 63072000, ScheduleType::CliffLinear,
-        ).to_any();
+            "morph1gov",
+            "morph1user",
+            "1000000",
+            63072000,
+            ScheduleType::CliffLinear,
+        )
+        .to_any();
         assert_eq!(any.type_url, "/vesting.v1.MsgCreateVesting");
         assert!(!any.value.is_empty());
     }
@@ -236,14 +312,17 @@ mod tests {
 
     #[test]
     fn revoke_to_any() {
-        let any = RevokeVestingRequest::new("morph1gov", "morph1user", 1, "policy violation").to_any();
+        let any =
+            RevokeVestingRequest::new("morph1gov", "morph1user", 1, "policy violation").to_any();
         assert_eq!(any.type_url, "/vesting.v1.MsgRevokeVesting");
     }
 
     #[test]
     fn query_entries_with_pagination() {
         let p: proto::QueryVestingEntriesRequest = QueryVestingEntriesRequest::new("morph1user")
-            .limit(10).offset(5).into();
+            .limit(10)
+            .offset(5)
+            .into();
         assert_eq!(p.limit, 10);
         assert_eq!(p.offset, 5);
     }

@@ -245,8 +245,8 @@ impl From<proto::QueryParamsResponse> for QueryParamsResponse {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use alloc::vec;
     use crate::types::ops;
+    use alloc::vec;
 
     #[test]
     fn register_model_to_any() {

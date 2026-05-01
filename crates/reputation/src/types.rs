@@ -319,7 +319,9 @@ impl Default for Params {
             milestone_thresholds: alloc::vec![
                 10_000, 50_000, 100_000, 250_000, 500_000, 750_000, 900_000, 1_000_000,
             ],
-            milestone_rewards: alloc::vec![500, 1_000, 2_000, 5_000, 10_000, 20_000, 50_000, 100_000],
+            milestone_rewards: alloc::vec![
+                500, 1_000, 2_000, 5_000, 10_000, 20_000, 50_000, 100_000
+            ],
             perk_multiplier_bps: 1500,
         }
     }

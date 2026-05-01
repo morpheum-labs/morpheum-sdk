@@ -8,49 +8,29 @@
 
 extern crate alloc;
 
-pub mod client;
-pub mod types;
-pub mod requests;
 pub mod builder;
+pub mod client;
+pub mod requests;
+pub mod types;
 
 // ==================== PUBLIC RE-EXPORTS ====================
 
 pub use client::InsuranceClient;
 
 pub use types::{
-    BadDebtRecord,
-    ChainType,
-    IlMetrics,
-    LpStake,
-    PageInfo,
-    ThresholdStatus,
-    VaultBalance,
+    BadDebtRecord, ChainType, IlMetrics, LpStake, PageInfo, ThresholdStatus, VaultBalance,
 };
 
 pub use requests::{
-    AbsorbDeficitRequest,
-    ClaimBountyRequest,
-    ClaimYieldRequest,
-    GetBadDebtHistoryRequest,
-    GetIlMetricsRequest,
-    GetLpStakeRequest,
-    GetThresholdStatusRequest,
-    GetVaultBalanceRequest,
-    HedgeIlRequest,
-    ListLpStakesRequest,
-    ReplenishVaultRequest,
-    StakeToVaultRequest,
+    AbsorbDeficitRequest, ClaimBountyRequest, ClaimYieldRequest, GetBadDebtHistoryRequest,
+    GetIlMetricsRequest, GetLpStakeRequest, GetThresholdStatusRequest, GetVaultBalanceRequest,
+    HedgeIlRequest, ListLpStakesRequest, ReplenishVaultRequest, StakeToVaultRequest,
     WithdrawStakeRequest,
 };
 
 pub use builder::{
-    AbsorbDeficitBuilder,
-    ClaimBountyBuilder,
-    ClaimYieldBuilder,
-    HedgeIlBuilder,
-    ReplenishVaultBuilder,
-    StakeToVaultBuilder,
-    WithdrawStakeBuilder,
+    AbsorbDeficitBuilder, ClaimBountyBuilder, ClaimYieldBuilder, HedgeIlBuilder,
+    ReplenishVaultBuilder, StakeToVaultBuilder, WithdrawStakeBuilder,
 };
 
 pub use morpheum_sdk_core::{AccountId, ChainId, SdkError, SignedTx};
@@ -63,18 +43,8 @@ pub use morpheum_sdk_core::{AccountId, ChainId, SdkError, SignedTx};
 /// ```
 pub mod prelude {
     pub use super::{
-        InsuranceClient,
-        VaultBalance,
-        LpStake,
-        BadDebtRecord,
-        IlMetrics,
-        ThresholdStatus,
-        ChainType,
-        PageInfo,
-        AccountId,
-        ChainId,
-        SdkError,
-        SignedTx,
+        AccountId, BadDebtRecord, ChainId, ChainType, IlMetrics, InsuranceClient, LpStake,
+        PageInfo, SdkError, SignedTx, ThresholdStatus, VaultBalance,
     };
 }
 

@@ -11,13 +11,8 @@ use alloc::vec::Vec;
 
 use morpheum_sdk_core::SdkError;
 
-use crate::requests::{
-    ExportIntentRequest, ExportProofRequest, SubmitBridgeRequest,
-};
-use crate::types::{
-    BridgePayload, BridgeRequestData, CrossChainProofPacket,
-    IntentExportPacket,
-};
+use crate::requests::{ExportIntentRequest, ExportProofRequest, SubmitBridgeRequest};
+use crate::types::{BridgePayload, BridgeRequestData, CrossChainProofPacket, IntentExportPacket};
 
 /// Fluent builder for submitting a general bridge request.
 ///
@@ -78,21 +73,21 @@ impl BridgeRequestBuilder {
 
     /// Builds the bridge request, performing validation.
     pub fn build(self) -> Result<SubmitBridgeRequest, SdkError> {
-        let source_chain = self.source_chain.ok_or_else(|| {
-            SdkError::invalid_input("source_chain is required for BridgeRequest")
-        })?;
+        let source_chain = self
+            .source_chain
+            .ok_or_else(|| SdkError::invalid_input("source_chain is required for BridgeRequest"))?;
 
-        let target_chain = self.target_chain.ok_or_else(|| {
-            SdkError::invalid_input("target_chain is required for BridgeRequest")
-        })?;
+        let target_chain = self
+            .target_chain
+            .ok_or_else(|| SdkError::invalid_input("target_chain is required for BridgeRequest"))?;
 
         let payload = self.payload.ok_or_else(|| {
             SdkError::invalid_input("payload (proof or intent) is required for BridgeRequest")
         })?;
 
-        let signer = self.signer.ok_or_else(|| {
-            SdkError::invalid_input("signer is required for BridgeRequest")
-        })?;
+        let signer = self
+            .signer
+            .ok_or_else(|| SdkError::invalid_input("signer is required for BridgeRequest"))?;
 
         Ok(SubmitBridgeRequest::new(
             BridgeRequestData {
@@ -179,29 +174,29 @@ impl ExportIntentBuilder {
 
     /// Builds the export-intent request, performing validation.
     pub fn build(self) -> Result<ExportIntentRequest, SdkError> {
-        let intent_id = self.intent_id.ok_or_else(|| {
-            SdkError::invalid_input("intent_id is required for ExportIntent")
-        })?;
+        let intent_id = self
+            .intent_id
+            .ok_or_else(|| SdkError::invalid_input("intent_id is required for ExportIntent"))?;
 
         let source_agent_hash = self.source_agent_hash.ok_or_else(|| {
             SdkError::invalid_input("source_agent_hash is required for ExportIntent")
         })?;
 
-        let target_chain = self.target_chain.ok_or_else(|| {
-            SdkError::invalid_input("target_chain is required for ExportIntent")
-        })?;
+        let target_chain = self
+            .target_chain
+            .ok_or_else(|| SdkError::invalid_input("target_chain is required for ExportIntent"))?;
 
-        let intent_data = self.intent_data.ok_or_else(|| {
-            SdkError::invalid_input("intent_data is required for ExportIntent")
-        })?;
+        let intent_data = self
+            .intent_data
+            .ok_or_else(|| SdkError::invalid_input("intent_data is required for ExportIntent"))?;
 
-        let signature = self.signature.ok_or_else(|| {
-            SdkError::invalid_input("signature is required for ExportIntent")
-        })?;
+        let signature = self
+            .signature
+            .ok_or_else(|| SdkError::invalid_input("signature is required for ExportIntent"))?;
 
-        let signer = self.signer.ok_or_else(|| {
-            SdkError::invalid_input("signer is required for ExportIntent")
-        })?;
+        let signer = self
+            .signer
+            .ok_or_else(|| SdkError::invalid_input("signer is required for ExportIntent"))?;
 
         Ok(ExportIntentRequest::new(
             IntentExportPacket {
@@ -252,13 +247,13 @@ impl ExportProofBuilder {
 
     /// Builds the export-proof request, performing validation.
     pub fn build(self) -> Result<ExportProofRequest, SdkError> {
-        let proof_packet = self.proof_packet.ok_or_else(|| {
-            SdkError::invalid_input("proof_packet is required for ExportProof")
-        })?;
+        let proof_packet = self
+            .proof_packet
+            .ok_or_else(|| SdkError::invalid_input("proof_packet is required for ExportProof"))?;
 
-        let signer = self.signer.ok_or_else(|| {
-            SdkError::invalid_input("signer is required for ExportProof")
-        })?;
+        let signer = self
+            .signer
+            .ok_or_else(|| SdkError::invalid_input("signer is required for ExportProof"))?;
 
         Ok(ExportProofRequest::new(proof_packet, signer))
     }
@@ -439,5 +434,4 @@ mod tests {
             .build();
         assert!(result.is_err());
     }
-
 }

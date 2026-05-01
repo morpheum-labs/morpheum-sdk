@@ -3,22 +3,14 @@
 #[cfg(not(feature = "std"))]
 extern crate alloc;
 #[cfg(not(feature = "std"))]
-use alloc::{
-    collections::BTreeMap,
-    format,
-    string::String,
-    vec::Vec,
-};
+use alloc::{collections::BTreeMap, format, string::String, vec::Vec};
 #[cfg(feature = "std")]
 use std::collections::BTreeMap;
 
 use morpheum_primitives::address::GOVERNANCE_ADDRESS;
 use morpheum_sdk_core::SdkError;
 
-use crate::requests::{
-    SettleGmpPaymentRequest, UpdateGmpParamsRequest,
-    WarpRouteTransferRequest,
-};
+use crate::requests::{SettleGmpPaymentRequest, UpdateGmpParamsRequest, WarpRouteTransferRequest};
 use crate::types;
 
 /// Builder for `MsgWarpRouteTransfer`.
@@ -244,12 +236,7 @@ impl WarpRouteConfigBuilder {
         self
     }
 
-    pub fn add_route(
-        mut self,
-        domain: u32,
-        collateral_address: Vec<u8>,
-        asset_index: u64,
-    ) -> Self {
+    pub fn add_route(mut self, domain: u32, collateral_address: Vec<u8>, asset_index: u64) -> Self {
         self.routes.insert(
             domain,
             types::WarpRouteToken {
@@ -323,9 +310,7 @@ impl UpdateGmpParamsBuilder {
             ));
         }
 
-        let authority = self
-            .authority
-            .unwrap_or_else(|| GOVERNANCE_ADDRESS.into());
+        let authority = self.authority.unwrap_or_else(|| GOVERNANCE_ADDRESS.into());
 
         Ok(UpdateGmpParamsRequest {
             authority,

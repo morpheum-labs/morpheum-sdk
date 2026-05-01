@@ -19,8 +19,8 @@ extern crate alloc;
 // Public API modules — each has a single, clear responsibility
 pub mod builder;
 pub mod client;
-pub mod types;
 pub mod requests;
+pub mod types;
 
 // ==================== PUBLIC RE-EXPORTS ====================
 
@@ -28,34 +28,19 @@ pub mod requests;
 pub use client::InteropClient;
 
 /// Fluent builders for interop transaction construction.
-pub use builder::{
-    BridgeRequestBuilder,
-    ExportIntentBuilder,
-    ExportProofBuilder,
-};
+pub use builder::{BridgeRequestBuilder, ExportIntentBuilder, ExportProofBuilder};
 
 /// Core domain types for the interop module.
 pub use types::{
-    BridgePayload,
-    BridgeRequestData,
-    BridgeResponse,
-    CrossChainProof,
-    CrossChainProofPacket,
-    IdentityProofPacket,
-    IntentExportPacket,
-    Params,
-    ReputationProofPacket,
-    ValidationProofPacket,
+    BridgePayload, BridgeRequestData, BridgeResponse, CrossChainProof, CrossChainProofPacket,
+    IdentityProofPacket, IntentExportPacket, Params, ReputationProofPacket, ValidationProofPacket,
 };
 
 /// Re-export all request and response types for clean message construction.
 pub use requests::*;
 
 /// Re-export core SDK types commonly used with interop flows.
-pub use morpheum_sdk_core::{
-    SdkError,
-    SdkConfig,
-};
+pub use morpheum_sdk_core::{SdkConfig, SdkError};
 
 /// Recommended prelude for the interop module.
 ///
@@ -65,22 +50,10 @@ pub use morpheum_sdk_core::{
 /// ```
 pub mod prelude {
     pub use super::{
-        InteropClient,
-        BridgeRequestBuilder,
-        ExportIntentBuilder,
-        ExportProofBuilder,
-        BridgePayload,
-        BridgeRequestData,
-        BridgeResponse,
-        CrossChainProof,
-        CrossChainProofPacket,
-        IdentityProofPacket,
-        IntentExportPacket,
-        Params,
-        ReputationProofPacket,
+        BridgePayload, BridgeRequestBuilder, BridgeRequestData, BridgeResponse, CrossChainProof,
+        CrossChainProofPacket, ExportIntentBuilder, ExportProofBuilder, IdentityProofPacket,
+        IntentExportPacket, InteropClient, Params, ReputationProofPacket, SdkConfig, SdkError,
         ValidationProofPacket,
-        SdkError,
-        SdkConfig,
     };
 }
 

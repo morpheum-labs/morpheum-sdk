@@ -20,8 +20,8 @@ extern crate alloc;
 // Public API modules — each has a single, clear responsibility
 pub mod builder;
 pub mod client;
-pub mod types;
 pub mod requests;
+pub mod types;
 
 // ==================== PUBLIC RE-EXPORTS ====================
 
@@ -30,33 +30,18 @@ pub use client::VcClient;
 
 /// Fluent builders for VC issuance, revocation, self-revocation, and claims updates.
 pub use builder::{
-    VcIssueBuilder,
-    VcRevokeBuilder,
+    UpdateClaimsBuilder, UpdateModuleParamsBuilder, VcIssueBuilder, VcRevokeBuilder,
     VcSelfRevokeBuilder,
-    UpdateClaimsBuilder,
-    UpdateModuleParamsBuilder,
 };
 
 /// Core domain types for Verifiable Credentials.
-pub use types::{
-    Vc,
-    VcClaims,
-    Vp,
-    VcStatus,
-    Params,
-    ActiveVc,
-};
+pub use types::{ActiveVc, Params, Vc, VcClaims, VcStatus, Vp};
 
 /// Request and response wrappers for transaction construction and queries.
 pub use requests::*;
 
 // Re-export core SDK types commonly used with VC flows.
-pub use morpheum_sdk_core::{
-    AccountId,
-    ChainId,
-    SdkError,
-    SignedTx,
-};
+pub use morpheum_sdk_core::{AccountId, ChainId, SdkError, SignedTx};
 
 // Re-export key signing types needed for VC issuance and agent delegation.
 // Note: AgentSigner/NativeSigner are in morpheum-signing-native (not core).
@@ -71,25 +56,9 @@ pub use morpheum_sdk_core::signing::signer::Signer;
 /// ```
 pub mod prelude {
     pub use super::{
-        VcClient,
-        VcIssueBuilder,
-        VcRevokeBuilder,
-        VcSelfRevokeBuilder,
-        UpdateClaimsBuilder,
-        UpdateModuleParamsBuilder,
-        Vc,
-        VcClaims,
-        Vp,
-        VcStatus,
-        ActiveVc,
-        Params,
-        AccountId,
-        ChainId,
-        SdkError,
-        SignedTx,
-        Signer,
-        TradingKeyClaim,
-        VcClaimBuilder,
+        AccountId, ActiveVc, ChainId, Params, SdkError, SignedTx, Signer, TradingKeyClaim,
+        UpdateClaimsBuilder, UpdateModuleParamsBuilder, Vc, VcClaimBuilder, VcClaims, VcClient,
+        VcIssueBuilder, VcRevokeBuilder, VcSelfRevokeBuilder, VcStatus, Vp,
     };
 }
 

@@ -9,8 +9,7 @@ use alloc::string::String;
 use morpheum_sdk_core::SdkError;
 
 use crate::requests::{
-    CloseBucketRequest, CreateBucketRequest,
-    TransferBetweenBucketsRequest, TransferToBankRequest,
+    CloseBucketRequest, CreateBucketRequest, TransferBetweenBucketsRequest, TransferToBankRequest,
 };
 use crate::types::BucketType;
 
@@ -57,19 +56,28 @@ impl CreateBucketBuilder {
     }
 
     pub fn build(self) -> Result<CreateBucketRequest, SdkError> {
-        let address = self.address
+        let address = self
+            .address
             .ok_or_else(|| SdkError::invalid_input("address is required to create a bucket"))?;
-        let bucket_id = self.bucket_id
+        let bucket_id = self
+            .bucket_id
             .ok_or_else(|| SdkError::invalid_input("bucket_id is required"))?;
-        let bucket_type = self.bucket_type
+        let bucket_type = self
+            .bucket_type
             .ok_or_else(|| SdkError::invalid_input("bucket_type is required"))?;
-        let collateral_asset_index = self.collateral_asset_index
+        let collateral_asset_index = self
+            .collateral_asset_index
             .ok_or_else(|| SdkError::invalid_input("collateral_asset_index is required"))?;
-        let initial_margin = self.initial_margin
+        let initial_margin = self
+            .initial_margin
             .ok_or_else(|| SdkError::invalid_input("initial_margin is required"))?;
 
         Ok(CreateBucketRequest::new(
-            address, bucket_id, bucket_type, collateral_asset_index, initial_margin,
+            address,
+            bucket_id,
+            bucket_type,
+            collateral_asset_index,
+            initial_margin,
         ))
     }
 }
@@ -117,17 +125,23 @@ impl TransferBetweenBucketsBuilder {
     }
 
     pub fn build(self) -> Result<TransferBetweenBucketsRequest, SdkError> {
-        let address = self.address
+        let address = self
+            .address
             .ok_or_else(|| SdkError::invalid_input("address is required"))?;
-        let source = self.source_bucket_id
+        let source = self
+            .source_bucket_id
             .ok_or_else(|| SdkError::invalid_input("source_bucket_id is required"))?;
-        let target = self.target_bucket_id
+        let target = self
+            .target_bucket_id
             .ok_or_else(|| SdkError::invalid_input("target_bucket_id is required"))?;
-        let amount = self.amount
+        let amount = self
+            .amount
             .ok_or_else(|| SdkError::invalid_input("amount is required"))?;
 
         let mut req = TransferBetweenBucketsRequest::new(address, source, target, amount);
-        if let Some(r) = self.reason { req = req.reason(r); }
+        if let Some(r) = self.reason {
+            req = req.reason(r);
+        }
         Ok(req)
     }
 }
@@ -175,18 +189,29 @@ impl TransferToBankBuilder {
     }
 
     pub fn build(self) -> Result<TransferToBankRequest, SdkError> {
-        let address = self.address
+        let address = self
+            .address
             .ok_or_else(|| SdkError::invalid_input("address is required"))?;
-        let from_address = self.from_address
+        let from_address = self
+            .from_address
             .ok_or_else(|| SdkError::invalid_input("from_address is required"))?;
-        let bucket_id = self.bucket_id
+        let bucket_id = self
+            .bucket_id
             .ok_or_else(|| SdkError::invalid_input("bucket_id is required"))?;
-        let asset_index = self.asset_index
+        let asset_index = self
+            .asset_index
             .ok_or_else(|| SdkError::invalid_input("asset_index is required"))?;
-        let amount = self.amount
+        let amount = self
+            .amount
             .ok_or_else(|| SdkError::invalid_input("amount is required"))?;
 
-        Ok(TransferToBankRequest::new(address, from_address, bucket_id, asset_index, amount))
+        Ok(TransferToBankRequest::new(
+            address,
+            from_address,
+            bucket_id,
+            asset_index,
+            amount,
+        ))
     }
 }
 
@@ -215,9 +240,11 @@ impl CloseBucketBuilder {
     }
 
     pub fn build(self) -> Result<CloseBucketRequest, SdkError> {
-        let address = self.address
+        let address = self
+            .address
             .ok_or_else(|| SdkError::invalid_input("address is required to close a bucket"))?;
-        let bucket_id = self.bucket_id
+        let bucket_id = self
+            .bucket_id
             .ok_or_else(|| SdkError::invalid_input("bucket_id is required"))?;
 
         Ok(CloseBucketRequest::new(address, bucket_id))
@@ -291,5 +318,4 @@ mod tests {
 
         assert_eq!(req.bucket_id, "bucket-1");
     }
-
 }

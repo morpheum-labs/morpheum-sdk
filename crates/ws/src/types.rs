@@ -698,8 +698,14 @@ mod tests {
 
     #[test]
     fn stream_tier_serializes_lowercase() {
-        assert_eq!(serde_json::to_string(&StreamTier::Free).unwrap(), "\"free\"");
-        assert_eq!(serde_json::to_string(&StreamTier::RawCore).unwrap(), "\"rawcore\"");
+        assert_eq!(
+            serde_json::to_string(&StreamTier::Free).unwrap(),
+            "\"free\""
+        );
+        assert_eq!(
+            serde_json::to_string(&StreamTier::RawCore).unwrap(),
+            "\"rawcore\""
+        );
     }
 
     #[test]

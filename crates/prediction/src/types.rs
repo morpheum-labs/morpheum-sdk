@@ -29,8 +29,12 @@ pub enum PredictionPhase {
 impl From<i32> for PredictionPhase {
     fn from(v: i32) -> Self {
         match v {
-            1 => Self::Active,   2 => Self::Resolved,  3 => Self::Disputed,
-            4 => Self::Settled,  5 => Self::Voided,    6 => Self::Cancelled,
+            1 => Self::Active,
+            2 => Self::Resolved,
+            3 => Self::Disputed,
+            4 => Self::Settled,
+            5 => Self::Voided,
+            6 => Self::Cancelled,
             _ => Self::Unspecified,
         }
     }
@@ -39,9 +43,12 @@ impl From<i32> for PredictionPhase {
 impl From<PredictionPhase> for i32 {
     fn from(p: PredictionPhase) -> Self {
         match p {
-            PredictionPhase::Unspecified => 0, PredictionPhase::Active => 1,
-            PredictionPhase::Resolved => 2,   PredictionPhase::Disputed => 3,
-            PredictionPhase::Settled => 4,    PredictionPhase::Voided => 5,
+            PredictionPhase::Unspecified => 0,
+            PredictionPhase::Active => 1,
+            PredictionPhase::Resolved => 2,
+            PredictionPhase::Disputed => 3,
+            PredictionPhase::Settled => 4,
+            PredictionPhase::Voided => 5,
             PredictionPhase::Cancelled => 6,
         }
     }
@@ -90,13 +97,21 @@ pub struct ResolvedOutcome {
 
 impl From<proto::ResolvedOutcome> for ResolvedOutcome {
     fn from(p: proto::ResolvedOutcome) -> Self {
-        Self { feed_id: p.feed_id, winning_outcome_id: p.winning_outcome_id, confidence: p.confidence }
+        Self {
+            feed_id: p.feed_id,
+            winning_outcome_id: p.winning_outcome_id,
+            confidence: p.confidence,
+        }
     }
 }
 
 impl From<ResolvedOutcome> for proto::ResolvedOutcome {
     fn from(r: ResolvedOutcome) -> Self {
-        Self { feed_id: r.feed_id, winning_outcome_id: r.winning_outcome_id, confidence: r.confidence }
+        Self {
+            feed_id: r.feed_id,
+            winning_outcome_id: r.winning_outcome_id,
+            confidence: r.confidence,
+        }
     }
 }
 
@@ -158,7 +173,11 @@ pub struct MarketCreatedEvent {
 
 impl From<proto::MarketCreatedEvent> for MarketCreatedEvent {
     fn from(p: proto::MarketCreatedEvent) -> Self {
-        Self { feed_id: p.feed_id, creator: p.creator, outcomes: p.outcomes }
+        Self {
+            feed_id: p.feed_id,
+            creator: p.creator,
+            outcomes: p.outcomes,
+        }
     }
 }
 
@@ -174,7 +193,11 @@ pub struct MarketDisputedEvent {
 
 impl From<proto::MarketDisputedEvent> for MarketDisputedEvent {
     fn from(p: proto::MarketDisputedEvent) -> Self {
-        Self { feed_id: p.feed_id, challenger: p.challenger, bond: p.bond }
+        Self {
+            feed_id: p.feed_id,
+            challenger: p.challenger,
+            bond: p.bond,
+        }
     }
 }
 
@@ -188,7 +211,10 @@ pub struct DisputeAcceptedEvent {
 
 impl From<proto::DisputeAcceptedEvent> for DisputeAcceptedEvent {
     fn from(p: proto::DisputeAcceptedEvent) -> Self {
-        Self { feed_id: p.feed_id, new_outcome: p.new_outcome.map(Into::into) }
+        Self {
+            feed_id: p.feed_id,
+            new_outcome: p.new_outcome.map(Into::into),
+        }
     }
 }
 
@@ -200,7 +226,9 @@ pub struct DisputeRejectedEvent {
 }
 
 impl From<proto::DisputeRejectedEvent> for DisputeRejectedEvent {
-    fn from(p: proto::DisputeRejectedEvent) -> Self { Self { feed_id: p.feed_id } }
+    fn from(p: proto::DisputeRejectedEvent) -> Self {
+        Self { feed_id: p.feed_id }
+    }
 }
 
 /// Market voided due to dispute.
@@ -211,7 +239,9 @@ pub struct DisputeVoidedEvent {
 }
 
 impl From<proto::DisputeVoidedEvent> for DisputeVoidedEvent {
-    fn from(p: proto::DisputeVoidedEvent) -> Self { Self { feed_id: p.feed_id } }
+    fn from(p: proto::DisputeVoidedEvent) -> Self {
+        Self { feed_id: p.feed_id }
+    }
 }
 
 /// Light challenge opened (no bond, reputation-gated).
@@ -225,7 +255,11 @@ pub struct LightChallengeOpenedEvent {
 
 impl From<proto::LightChallengeOpenedEvent> for LightChallengeOpenedEvent {
     fn from(p: proto::LightChallengeOpenedEvent) -> Self {
-        Self { feed_id: p.feed_id, challenger: p.challenger, proposed_outcome: p.proposed_outcome.map(Into::into) }
+        Self {
+            feed_id: p.feed_id,
+            challenger: p.challenger,
+            proposed_outcome: p.proposed_outcome.map(Into::into),
+        }
     }
 }
 
@@ -240,7 +274,11 @@ pub struct LightChallengeVoteEvent {
 
 impl From<proto::LightChallengeVoteEvent> for LightChallengeVoteEvent {
     fn from(p: proto::LightChallengeVoteEvent) -> Self {
-        Self { feed_id: p.feed_id, voter: p.voter, agree: p.agree }
+        Self {
+            feed_id: p.feed_id,
+            voter: p.voter,
+            agree: p.agree,
+        }
     }
 }
 
@@ -255,7 +293,11 @@ pub struct LightChallengeResolvedEvent {
 
 impl From<proto::LightChallengeResolvedEvent> for LightChallengeResolvedEvent {
     fn from(p: proto::LightChallengeResolvedEvent) -> Self {
-        Self { feed_id: p.feed_id, outcome: p.outcome.map(Into::into), rep_delta: p.rep_delta }
+        Self {
+            feed_id: p.feed_id,
+            outcome: p.outcome.map(Into::into),
+            rep_delta: p.rep_delta,
+        }
     }
 }
 
@@ -271,7 +313,11 @@ pub struct LightChallengeEscalatedEvent {
 
 impl From<proto::LightChallengeEscalatedEvent> for LightChallengeEscalatedEvent {
     fn from(p: proto::LightChallengeEscalatedEvent) -> Self {
-        Self { feed_id: p.feed_id, challenger: p.challenger, bond: p.bond }
+        Self {
+            feed_id: p.feed_id,
+            challenger: p.challenger,
+            bond: p.bond,
+        }
     }
 }
 
@@ -288,7 +334,13 @@ pub struct FeeAppliedEvent {
 
 impl From<proto::FeeAppliedEvent> for FeeAppliedEvent {
     fn from(p: proto::FeeAppliedEvent) -> Self {
-        Self { feed_id: p.feed_id, amount: p.amount, reason: p.reason, paradigm: p.paradigm, dry_run: p.dry_run }
+        Self {
+            feed_id: p.feed_id,
+            amount: p.amount,
+            reason: p.reason,
+            paradigm: p.paradigm,
+            dry_run: p.dry_run,
+        }
     }
 }
 
@@ -369,8 +421,10 @@ pub struct PredictionPriceUpdate {
 impl From<proto::PredictionPriceUpdate> for PredictionPriceUpdate {
     fn from(p: proto::PredictionPriceUpdate) -> Self {
         Self {
-            feed_id: p.feed_id, implied_prob: p.implied_prob,
-            raw_price: p.raw_price, last_update_id: p.last_update_id,
+            feed_id: p.feed_id,
+            implied_prob: p.implied_prob,
+            raw_price: p.raw_price,
+            last_update_id: p.last_update_id,
         }
     }
 }
@@ -393,9 +447,14 @@ pub struct PredictionKlineUpdate {
 impl From<proto::PredictionKlineUpdate> for PredictionKlineUpdate {
     fn from(p: proto::PredictionKlineUpdate) -> Self {
         Self {
-            feed_id: p.feed_id, period: p.period, open_at_logical: p.open_at_logical,
-            open_prob: p.open_prob, high_prob: p.high_prob, low_prob: p.low_prob,
-            close_prob: p.close_prob, volume_base: p.volume_base,
+            feed_id: p.feed_id,
+            period: p.period,
+            open_at_logical: p.open_at_logical,
+            open_prob: p.open_prob,
+            high_prob: p.high_prob,
+            low_prob: p.low_prob,
+            close_prob: p.close_prob,
+            volume_base: p.volume_base,
         }
     }
 }
@@ -407,8 +466,14 @@ mod tests {
 
     #[test]
     fn prediction_phase_roundtrip() {
-        for p in [PredictionPhase::Active, PredictionPhase::Resolved, PredictionPhase::Disputed,
-                  PredictionPhase::Settled, PredictionPhase::Voided, PredictionPhase::Cancelled] {
+        for p in [
+            PredictionPhase::Active,
+            PredictionPhase::Resolved,
+            PredictionPhase::Disputed,
+            PredictionPhase::Settled,
+            PredictionPhase::Voided,
+            PredictionPhase::Cancelled,
+        ] {
             let v: i32 = p.into();
             assert_eq!(p, PredictionPhase::from(v));
         }
@@ -417,7 +482,11 @@ mod tests {
 
     #[test]
     fn dispute_config_roundtrip() {
-        let d = DisputeConfig { dispute_window_blocks: 100, dispute_bond_pct: 10, challenger_bonus_pct: 5 };
+        let d = DisputeConfig {
+            dispute_window_blocks: 100,
+            dispute_bond_pct: 10,
+            challenger_bonus_pct: 5,
+        };
         let p: proto::DisputeConfig = d.clone().into();
         let d2: DisputeConfig = p.into();
         assert_eq!(d, d2);
@@ -425,7 +494,11 @@ mod tests {
 
     #[test]
     fn resolved_outcome_roundtrip() {
-        let r = ResolvedOutcome { feed_id: "f1".into(), winning_outcome_id: 0, confidence: 1_000_000_000 };
+        let r = ResolvedOutcome {
+            feed_id: "f1".into(),
+            winning_outcome_id: 0,
+            confidence: 1_000_000_000,
+        };
         let p: proto::ResolvedOutcome = r.clone().into();
         let r2: ResolvedOutcome = p.into();
         assert_eq!(r, r2);
@@ -434,13 +507,25 @@ mod tests {
     #[test]
     fn prediction_market_from_proto() {
         let p = proto::PredictionMarket {
-            feed_id: "btc-50k".into(), outcomes: vec!["yes".into(), "no".into()],
-            creator: "morph1xyz".into(), phase: 1,
-            locked_stake: "100000".into(), pot: "500000".into(),
-            dispute_deadline: 1000, resolved_outcome: None,
-            dispute_config: Some(proto::DisputeConfig { dispute_window_blocks: 50, dispute_bond_pct: 10, challenger_bonus_pct: 5 }),
-            accumulated_fees: 100, current_confidence: Some(750_000_000),
-            spread_bps: 50, depth: 10000, daily_volume: 5000, quote_asset_index: 1,
+            feed_id: "btc-50k".into(),
+            outcomes: vec!["yes".into(), "no".into()],
+            creator: "morph1xyz".into(),
+            phase: 1,
+            locked_stake: "100000".into(),
+            pot: "500000".into(),
+            dispute_deadline: 1000,
+            resolved_outcome: None,
+            dispute_config: Some(proto::DisputeConfig {
+                dispute_window_blocks: 50,
+                dispute_bond_pct: 10,
+                challenger_bonus_pct: 5,
+            }),
+            accumulated_fees: 100,
+            current_confidence: Some(750_000_000),
+            spread_bps: 50,
+            depth: 10000,
+            daily_volume: 5000,
+            quote_asset_index: 1,
         };
         let m: PredictionMarket = p.into();
         assert_eq!(m.feed_id, "btc-50k");
@@ -455,20 +540,26 @@ mod tests {
         let proto_event = proto::PredictionMarketEvent {
             event: Some(proto::prediction_market_event::Event::MarketCreated(
                 proto::MarketCreatedEvent {
-                    feed_id: "f1".into(), creator: "morph1".into(),
+                    feed_id: "f1".into(),
+                    creator: "morph1".into(),
                     outcomes: vec!["yes".into(), "no".into()],
                 },
             )),
         };
         let event = PredictionMarketEvent::from_proto(proto_event);
-        assert!(matches!(event, Some(PredictionMarketEvent::MarketCreated(_))));
+        assert!(matches!(
+            event,
+            Some(PredictionMarketEvent::MarketCreated(_))
+        ));
     }
 
     #[test]
     fn price_update_from_proto() {
         let p = proto::PredictionPriceUpdate {
-            feed_id: "f1".into(), implied_prob: 500_000_000,
-            raw_price: "50000".into(), last_update_id: 42,
+            feed_id: "f1".into(),
+            implied_prob: 500_000_000,
+            raw_price: "50000".into(),
+            last_update_id: 42,
         };
         let u: PredictionPriceUpdate = p.into();
         assert_eq!(u.implied_prob, 500_000_000);

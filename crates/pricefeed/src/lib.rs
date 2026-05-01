@@ -8,32 +8,22 @@
 
 extern crate alloc;
 
-pub mod client;
-pub mod types;
-pub mod requests;
 pub mod builder;
+pub mod client;
+pub mod requests;
+pub mod types;
 
 // ==================== PUBLIC RE-EXPORTS ====================
 
 pub use client::{FeedsPage, PriceFeedClient};
 
 pub use types::{
-    AggregationMethod,
-    FeedKind,
-    PriceEntry,
-    PriceFeed,
-    PriceFeedConfig,
-    PriceSource,
-    SourceConfig,
+    AggregationMethod, FeedKind, PriceEntry, PriceFeed, PriceFeedConfig, PriceSource, SourceConfig,
 };
 
 pub use requests::{
-    DeregisterFeedRequest,
-    QueryFeedBySymbolRequest,
-    QueryFeedRequest,
-    QueryFeedsRequest,
-    QueryPriceRequest,
-    RegisterFeedRequest,
+    DeregisterFeedRequest, QueryFeedBySymbolRequest, QueryFeedRequest, QueryFeedsRequest,
+    QueryPriceRequest, RegisterFeedRequest,
 };
 
 pub use builder::{DeregisterFeedBuilder, RegisterFeedBuilder};
@@ -48,15 +38,8 @@ pub use morpheum_sdk_core::{AccountId, ChainId, SdkError, SignedTx};
 /// ```
 pub mod prelude {
     pub use super::{
-        PriceFeedClient,
-        PriceFeed,
-        PriceEntry,
-        AggregationMethod,
-        FeedKind,
-        AccountId,
-        ChainId,
-        SdkError,
-        SignedTx,
+        AccountId, AggregationMethod, ChainId, FeedKind, PriceEntry, PriceFeed, PriceFeedClient,
+        SdkError, SignedTx,
     };
 }
 

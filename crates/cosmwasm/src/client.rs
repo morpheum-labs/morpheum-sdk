@@ -32,10 +32,7 @@ impl CosmWasmClient {
         prost::encoding::bytes::encode(2, &req.query_data, &mut query_data);
 
         let resp_bytes = self
-            .query(
-                "/cosmwasm.wasm.v1.Query/SmartContractState",
-                query_data,
-            )
+            .query("/cosmwasm.wasm.v1.Query/SmartContractState", query_data)
             .await?;
 
         decode_smart_response(&resp_bytes)
@@ -48,10 +45,7 @@ impl CosmWasmClient {
         prost::encoding::bytes::encode(2, &req.key, &mut query_data);
 
         let resp_bytes = self
-            .query(
-                "/cosmwasm.wasm.v1.Query/RawContractState",
-                query_data,
-            )
+            .query("/cosmwasm.wasm.v1.Query/RawContractState", query_data)
             .await?;
 
         decode_raw_response(&resp_bytes)
@@ -69,8 +63,8 @@ impl CosmWasmClient {
         contract: &str,
         query: &impl serde::Serialize,
     ) -> Result<T, SdkError> {
-        let query_data = serde_json::to_vec(query)
-            .map_err(|e| CosmWasmError::Serialization(e.to_string()))?;
+        let query_data =
+            serde_json::to_vec(query).map_err(|e| CosmWasmError::Serialization(e.to_string()))?;
 
         let req = QuerySmartRequest {
             contract: contract.to_string(),
@@ -82,18 +76,12 @@ impl CosmWasmClient {
     }
 
     /// Queries contract metadata (code_id, admin, label).
-    pub async fn query_contract_info(
-        &self,
-        contract: &str,
-    ) -> Result<ContractInfo, SdkError> {
+    pub async fn query_contract_info(&self, contract: &str) -> Result<ContractInfo, SdkError> {
         let mut query_data = Vec::new();
         prost::encoding::string::encode(1, &contract.to_string(), &mut query_data);
 
         let resp_bytes = self
-            .query(
-                "/cosmwasm.wasm.v1.Query/ContractInfo",
-                query_data,
-            )
+            .query("/cosmwasm.wasm.v1.Query/ContractInfo", query_data)
             .await?;
 
         decode_contract_info(&resp_bytes, contract)
@@ -117,7 +105,12 @@ fn decode_smart_response(data: &[u8]) -> Result<Vec<u8>, SdkError> {
     while !buf.is_empty() {
         let (tag, wire_type) = prost::encoding::decode_key(&mut buf)?;
         if tag == 1 {
-            prost::encoding::bytes::merge(wire_type, &mut result_data, &mut buf, Default::default())?;
+            prost::encoding::bytes::merge(
+                wire_type,
+                &mut result_data,
+                &mut buf,
+                Default::default(),
+            )?;
         } else {
             prost::encoding::skip_field(wire_type, tag, &mut buf, Default::default())?;
         }
@@ -140,15 +133,40 @@ fn decode_contract_info(data: &[u8], address: &str) -> Result<ContractInfo, SdkE
         match tag {
             3 => {
                 let mut inner_buf_data = Vec::new();
-                prost::encoding::bytes::merge(wire_type, &mut inner_buf_data, &mut buf, Default::default())?;
+                prost::encoding::bytes::merge(
+                    wire_type,
+                    &mut inner_buf_data,
+                    &mut buf,
+                    Default::default(),
+                )?;
                 let mut inner = inner_buf_data.as_slice();
                 while !inner.is_empty() {
                     let (inner_tag, inner_wt) = prost::encoding::decode_key(&mut inner)?;
                     match inner_tag {
-                        1 => prost::encoding::uint64::merge(inner_wt, &mut code_id, &mut inner, Default::default())?,
-                        3 => prost::encoding::string::merge(inner_wt, &mut admin, &mut inner, Default::default())?,
-                        4 => prost::encoding::string::merge(inner_wt, &mut label, &mut inner, Default::default())?,
-                        _ => prost::encoding::skip_field(inner_wt, inner_tag, &mut inner, Default::default())?,
+                        1 => prost::encoding::uint64::merge(
+                            inner_wt,
+                            &mut code_id,
+                            &mut inner,
+                            Default::default(),
+                        )?,
+                        3 => prost::encoding::string::merge(
+                            inner_wt,
+                            &mut admin,
+                            &mut inner,
+                            Default::default(),
+                        )?,
+                        4 => prost::encoding::string::merge(
+                            inner_wt,
+                            &mut label,
+                            &mut inner,
+                            Default::default(),
+                        )?,
+                        _ => prost::encoding::skip_field(
+                            inner_wt,
+                            inner_tag,
+                            &mut inner,
+                            Default::default(),
+                        )?,
                     }
                 }
             }

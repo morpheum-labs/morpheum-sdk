@@ -13,8 +13,8 @@ use prost::Message as _;
 use serde::{Deserialize, Serialize};
 
 use crate::types::Params;
-use morpheum_proto::google::protobuf::Any as ProtoAny;
 use morpheum_proto::directory::v1 as proto;
+use morpheum_proto::google::protobuf::Any as ProtoAny;
 
 use crate::types::{AgentDirectoryProfile, DirectoryFilter, VisibilityLevel};
 
@@ -182,13 +182,17 @@ pub struct QueryDirectoryProfileRequest {
 
 impl QueryDirectoryProfileRequest {
     pub fn new(agent_hash: impl Into<String>) -> Self {
-        Self { agent_hash: agent_hash.into() }
+        Self {
+            agent_hash: agent_hash.into(),
+        }
     }
 }
 
 impl From<QueryDirectoryProfileRequest> for proto::QueryDirectoryProfileRequest {
     fn from(req: QueryDirectoryProfileRequest) -> Self {
-        Self { agent_hash: req.agent_hash }
+        Self {
+            agent_hash: req.agent_hash,
+        }
     }
 }
 
@@ -309,11 +313,8 @@ mod tests {
 
     #[test]
     fn update_visibility_request_to_any() {
-        let req = UpdateVisibilityRequest::new(
-            "agent-abc",
-            VisibilityLevel::OwnerOnly,
-            vec![0u8; 64],
-        );
+        let req =
+            UpdateVisibilityRequest::new("agent-abc", VisibilityLevel::OwnerOnly, vec![0u8; 64]);
 
         let any = req.to_any();
         assert_eq!(any.type_url, "/directory.v1.MsgUpdateVisibility");

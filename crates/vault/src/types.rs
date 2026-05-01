@@ -60,8 +60,10 @@ pub enum VaultStatus {
 impl From<i32> for VaultStatus {
     fn from(v: i32) -> Self {
         match v {
-            1 => Self::Active,     2 => Self::Paused,
-            3 => Self::Executing,  4 => Self::Cooldown,
+            1 => Self::Active,
+            2 => Self::Paused,
+            3 => Self::Executing,
+            4 => Self::Cooldown,
             5 => Self::Liquidating,
             _ => Self::Unspecified,
         }
@@ -71,9 +73,12 @@ impl From<i32> for VaultStatus {
 impl From<VaultStatus> for i32 {
     fn from(s: VaultStatus) -> Self {
         match s {
-            VaultStatus::Unspecified => 0,  VaultStatus::Active => 1,
-            VaultStatus::Paused => 2,       VaultStatus::Executing => 3,
-            VaultStatus::Cooldown => 4,     VaultStatus::Liquidating => 5,
+            VaultStatus::Unspecified => 0,
+            VaultStatus::Active => 1,
+            VaultStatus::Paused => 2,
+            VaultStatus::Executing => 3,
+            VaultStatus::Cooldown => 4,
+            VaultStatus::Liquidating => 5,
         }
     }
 }
@@ -85,7 +90,8 @@ fn ts_to_u64(ts: &Option<morpheum_proto::google::protobuf::Timestamp>) -> u64 {
 }
 
 fn extract_asset(a: &Option<morpheum_proto::primitives::v1::Asset>) -> (u64, String) {
-    a.as_ref().map_or((0, String::new()), |a| (a.asset_index, a.symbol.clone()))
+    a.as_ref()
+        .map_or((0, String::new()), |a| (a.asset_index, a.symbol.clone()))
 }
 
 // ====================== DOMAIN TYPES ======================
@@ -119,15 +125,25 @@ impl From<proto::Vault> for Vault {
     fn from(p: proto::Vault) -> Self {
         let (asset_index, asset_symbol) = extract_asset(&p.asset);
         Self {
-            vault_id: p.vault_id, agent_id: p.agent_id,
-            vault_type: VaultType::from(p.r#type), name: p.name,
-            description: p.description, asset_index, asset_symbol,
-            total_assets: p.total_assets, available_assets: p.available_assets,
-            reserved_assets: p.reserved_assets, status: VaultStatus::from(p.status),
-            created_at: ts_to_u64(&p.created_at), updated_at: ts_to_u64(&p.updated_at),
-            strategy_hash: p.strategy_hash, health_score: p.health_score,
-            pnl_30d_usd: p.pnl_30d_usd, apy_bps: p.apy_bps,
-            vc_claim_hash: p.vc_claim_hash, copy_count: p.copy_count,
+            vault_id: p.vault_id,
+            agent_id: p.agent_id,
+            vault_type: VaultType::from(p.r#type),
+            name: p.name,
+            description: p.description,
+            asset_index,
+            asset_symbol,
+            total_assets: p.total_assets,
+            available_assets: p.available_assets,
+            reserved_assets: p.reserved_assets,
+            status: VaultStatus::from(p.status),
+            created_at: ts_to_u64(&p.created_at),
+            updated_at: ts_to_u64(&p.updated_at),
+            strategy_hash: p.strategy_hash,
+            health_score: p.health_score,
+            pnl_30d_usd: p.pnl_30d_usd,
+            apy_bps: p.apy_bps,
+            vc_claim_hash: p.vc_claim_hash,
+            copy_count: p.copy_count,
         }
     }
 }
@@ -151,11 +167,16 @@ pub struct VaultRecord {
 impl From<proto::VaultRecord> for VaultRecord {
     fn from(p: proto::VaultRecord) -> Self {
         Self {
-            vault_id: p.vault_id, agent_id: p.agent_id,
-            vault_type: VaultType::from(p.r#type), status: VaultStatus::from(p.status),
-            total_assets: p.total_assets, available_assets: p.available_assets,
-            health_score: p.health_score, pnl_30d_usd: p.pnl_30d_usd,
-            strategy_hash: p.strategy_hash, last_executed: p.last_executed,
+            vault_id: p.vault_id,
+            agent_id: p.agent_id,
+            vault_type: VaultType::from(p.r#type),
+            status: VaultStatus::from(p.status),
+            total_assets: p.total_assets,
+            available_assets: p.available_assets,
+            health_score: p.health_score,
+            pnl_30d_usd: p.pnl_30d_usd,
+            strategy_hash: p.strategy_hash,
+            last_executed: p.last_executed,
         }
     }
 }
@@ -180,8 +201,13 @@ impl From<proto::Stake> for Stake {
     fn from(p: proto::Stake) -> Self {
         let (asset_index, asset_symbol) = extract_asset(&p.asset);
         Self {
-            stake_id: p.stake_id, address: p.address, vault_id: p.vault_id,
-            asset_index, asset_symbol, amount: p.amount, shares: p.shares,
+            stake_id: p.stake_id,
+            address: p.address,
+            vault_id: p.vault_id,
+            asset_index,
+            asset_symbol,
+            amount: p.amount,
+            shares: p.shares,
             pending_yield: p.pending_yield,
             stake_time: ts_to_u64(&p.stake_time),
             last_claim_time: ts_to_u64(&p.last_claim_time),
@@ -205,8 +231,11 @@ pub struct StrategyExecution {
 impl From<proto::StrategyExecution> for StrategyExecution {
     fn from(p: proto::StrategyExecution) -> Self {
         Self {
-            execution_id: p.execution_id, vault_id: p.vault_id,
-            pnl: p.pnl, success: p.success, error_message: p.error_message,
+            execution_id: p.execution_id,
+            vault_id: p.vault_id,
+            pnl: p.pnl,
+            success: p.success,
+            error_message: p.error_message,
             timestamp: ts_to_u64(&p.timestamp),
             memory_snapshot_hash: p.memory_snapshot_hash,
         }
@@ -226,8 +255,10 @@ pub struct IlMetrics {
 impl From<proto::IlMetrics> for IlMetrics {
     fn from(p: proto::IlMetrics) -> Self {
         Self {
-            vault_id: p.vault_id, current_il: p.current_il,
-            avg_il_24h: p.avg_il_24h, timestamp: ts_to_u64(&p.timestamp),
+            vault_id: p.vault_id,
+            current_il: p.current_il,
+            avg_il_24h: p.avg_il_24h,
+            timestamp: ts_to_u64(&p.timestamp),
         }
     }
 }
@@ -247,9 +278,12 @@ pub struct VaultHealth {
 impl From<proto::VaultHealth> for VaultHealth {
     fn from(p: proto::VaultHealth) -> Self {
         Self {
-            vault_id: p.vault_id, health_score: p.health_score,
-            apy_bps: p.apy_bps, pnl_24h: p.pnl_24h,
-            risk_score: p.risk_score, timestamp: ts_to_u64(&p.timestamp),
+            vault_id: p.vault_id,
+            health_score: p.health_score,
+            apy_bps: p.apy_bps,
+            pnl_24h: p.pnl_24h,
+            risk_score: p.risk_score,
+            timestamp: ts_to_u64(&p.timestamp),
         }
     }
 }
@@ -333,13 +367,19 @@ impl VaultStreamEvent {
     /// Converts from the proto `VaultUpdate` wrapper.
     pub fn from_proto(p: proto::VaultUpdate) -> Self {
         let event = p.event.map(|e| match e {
-            proto::vault_update::Event::VaultUpdate(v) => VaultUpdateEvent::VaultUpdate(alloc::boxed::Box::new(v.into())),
-            proto::vault_update::Event::ExecutionUpdate(e) => VaultUpdateEvent::ExecutionUpdate(e.into()),
+            proto::vault_update::Event::VaultUpdate(v) => {
+                VaultUpdateEvent::VaultUpdate(alloc::boxed::Box::new(v.into()))
+            }
+            proto::vault_update::Event::ExecutionUpdate(e) => {
+                VaultUpdateEvent::ExecutionUpdate(e.into())
+            }
             proto::vault_update::Event::IlUpdate(il) => VaultUpdateEvent::IlUpdate(il.into()),
             proto::vault_update::Event::HealthUpdate(h) => VaultUpdateEvent::HealthUpdate(h.into()),
         });
         Self {
-            event_type: p.event_type, event, timestamp: ts_to_u64(&p.timestamp),
+            event_type: p.event_type,
+            event,
+            timestamp: ts_to_u64(&p.timestamp),
         }
     }
 }
@@ -359,8 +399,13 @@ mod tests {
 
     #[test]
     fn vault_status_roundtrip() {
-        for s in [VaultStatus::Active, VaultStatus::Paused, VaultStatus::Executing,
-                  VaultStatus::Cooldown, VaultStatus::Liquidating] {
+        for s in [
+            VaultStatus::Active,
+            VaultStatus::Paused,
+            VaultStatus::Executing,
+            VaultStatus::Cooldown,
+            VaultStatus::Liquidating,
+        ] {
             assert_eq!(s, VaultStatus::from(i32::from(s)));
         }
     }
@@ -368,16 +413,28 @@ mod tests {
     #[test]
     fn vault_from_proto() {
         let p = proto::Vault {
-            vault_id: "v1".into(), agent_id: "a1".into(), r#type: 1,
-            name: "Test".into(), description: "Desc".into(),
+            vault_id: "v1".into(),
+            agent_id: "a1".into(),
+            r#type: 1,
+            name: "Test".into(),
+            description: "Desc".into(),
             asset: Some(morpheum_proto::primitives::v1::Asset {
-                asset_index: 1, symbol: "MORM".into(), ..Default::default()
+                asset_index: 1,
+                symbol: "MORM".into(),
+                ..Default::default()
             }),
-            total_assets: "1000".into(), available_assets: "800".into(),
-            reserved_assets: "200".into(), status: 1,
-            created_at: None, updated_at: None, strategy_hash: "abc".into(),
-            health_score: "9500".into(), pnl_30d_usd: "100".into(),
-            apy_bps: "1200".into(), vc_claim_hash: vec![], copy_count: "5".into(),
+            total_assets: "1000".into(),
+            available_assets: "800".into(),
+            reserved_assets: "200".into(),
+            status: 1,
+            created_at: None,
+            updated_at: None,
+            strategy_hash: "abc".into(),
+            health_score: "9500".into(),
+            pnl_30d_usd: "100".into(),
+            apy_bps: "1200".into(),
+            vc_claim_hash: vec![],
+            copy_count: "5".into(),
         };
         let v: Vault = p.into();
         assert_eq!(v.vault_type, VaultType::Custom);
@@ -389,11 +446,16 @@ mod tests {
     fn vault_stream_event_from_proto() {
         let p = proto::VaultUpdate {
             event_type: "health_updated".into(),
-            event: Some(proto::vault_update::Event::HealthUpdate(proto::VaultHealth {
-                vault_id: "v1".into(), health_score: "9500".into(),
-                apy_bps: "1200".into(), pnl_24h: "50".into(),
-                risk_score: "300".into(), timestamp: None,
-            })),
+            event: Some(proto::vault_update::Event::HealthUpdate(
+                proto::VaultHealth {
+                    vault_id: "v1".into(),
+                    health_score: "9500".into(),
+                    apy_bps: "1200".into(),
+                    pnl_24h: "50".into(),
+                    risk_score: "300".into(),
+                    timestamp: None,
+                },
+            )),
             timestamp: None,
         };
         let e = VaultStreamEvent::from_proto(p);
@@ -404,8 +466,11 @@ mod tests {
     #[test]
     fn params_roundtrip() {
         let p = VaultParams {
-            max_vaults_per_agent: 100, min_initial_stake_usd: 100,
-            max_strategy_complexity: 50, treasury_cut_bps: 500, last_updated: 0,
+            max_vaults_per_agent: 100,
+            min_initial_stake_usd: 100,
+            max_strategy_complexity: 50,
+            treasury_cut_bps: 500,
+            last_updated: 0,
         };
         let proto_p: proto::Params = p.clone().into();
         let p2: VaultParams = proto_p.into();

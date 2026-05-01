@@ -11,11 +11,8 @@ use alloc::vec::Vec;
 use morpheum_sdk_core::SdkError;
 
 use crate::requests::{
-    RegisterAgentRequest,
-    TransferOwnershipRequest,
-    UpdateMetadataRequest,
+    BurnAgentRequest, RegisterAgentRequest, TransferOwnershipRequest, UpdateMetadataRequest,
     UpdateStatusRequest,
-    BurnAgentRequest,
 };
 use crate::types::{AgentMetadataCardInput, AgentStatus};
 
@@ -100,9 +97,9 @@ impl RegisterAgentBuilder {
             SdkError::invalid_input("owner_agent_hash is required for registration")
         })?;
 
-        let metadata = self.metadata.ok_or_else(|| {
-            SdkError::invalid_input("metadata is required for registration")
-        })?;
+        let metadata = self
+            .metadata
+            .ok_or_else(|| SdkError::invalid_input("metadata is required for registration"))?;
 
         let owner_signature = self.owner_signature.ok_or_else(|| {
             SdkError::invalid_input("owner_signature is required for registration")
@@ -200,9 +197,9 @@ impl UpdateMetadataBuilder {
     }
 
     pub fn build(self) -> Result<UpdateMetadataRequest, SdkError> {
-        let agent_hash = self.agent_hash.ok_or_else(|| {
-            SdkError::invalid_input("agent_hash is required for metadata update")
-        })?;
+        let agent_hash = self
+            .agent_hash
+            .ok_or_else(|| SdkError::invalid_input("agent_hash is required for metadata update"))?;
 
         let new_metadata = self.new_metadata.ok_or_else(|| {
             SdkError::invalid_input("new_metadata is required for metadata update")
@@ -212,7 +209,11 @@ impl UpdateMetadataBuilder {
             SdkError::invalid_input("owner_signature is required for metadata update")
         })?;
 
-        Ok(UpdateMetadataRequest::new(agent_hash, new_metadata, owner_signature))
+        Ok(UpdateMetadataRequest::new(
+            agent_hash,
+            new_metadata,
+            owner_signature,
+        ))
     }
 }
 
@@ -253,17 +254,17 @@ impl UpdateStatusBuilder {
     }
 
     pub fn build(self) -> Result<UpdateStatusRequest, SdkError> {
-        let agent_hash = self.agent_hash.ok_or_else(|| {
-            SdkError::invalid_input("agent_hash is required for status update")
-        })?;
+        let agent_hash = self
+            .agent_hash
+            .ok_or_else(|| SdkError::invalid_input("agent_hash is required for status update"))?;
 
-        let new_status = self.new_status.ok_or_else(|| {
-            SdkError::invalid_input("new_status is required for status update")
-        })?;
+        let new_status = self
+            .new_status
+            .ok_or_else(|| SdkError::invalid_input("new_status is required for status update"))?;
 
-        let signature = self.signature.ok_or_else(|| {
-            SdkError::invalid_input("signature is required for status update")
-        })?;
+        let signature = self
+            .signature
+            .ok_or_else(|| SdkError::invalid_input("signature is required for status update"))?;
 
         let mut req = UpdateStatusRequest::new(agent_hash, new_status, signature);
         req.reason = self.reason;
@@ -302,13 +303,13 @@ impl BurnAgentBuilder {
     }
 
     pub fn build(self) -> Result<BurnAgentRequest, SdkError> {
-        let agent_hash = self.agent_hash.ok_or_else(|| {
-            SdkError::invalid_input("agent_hash is required for burn")
-        })?;
+        let agent_hash = self
+            .agent_hash
+            .ok_or_else(|| SdkError::invalid_input("agent_hash is required for burn"))?;
 
-        let gov_signature = self.gov_signature.ok_or_else(|| {
-            SdkError::invalid_input("gov_signature is required for burn")
-        })?;
+        let gov_signature = self
+            .gov_signature
+            .ok_or_else(|| SdkError::invalid_input("gov_signature is required for burn"))?;
 
         let mut req = BurnAgentRequest::new(agent_hash, gov_signature);
         req.reason = self.reason;

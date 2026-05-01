@@ -102,8 +102,7 @@ impl WsClient {
     /// The first event on the stream is a full snapshot (`is_snapshot == true`);
     /// subsequent events are deltas.
     pub async fn subscribe(&self, spec: ChannelSpec) -> Result<Subscription, WsError> {
-        let (event_tx, event_rx) =
-            mpsc::channel(self.inner.config.buffer_capacity);
+        let (event_tx, event_rx) = mpsc::channel(self.inner.config.buffer_capacity);
         let (reply_tx, reply_rx) = oneshot::channel();
 
         self.send_command(Command::Subscribe {

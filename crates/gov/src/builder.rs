@@ -12,8 +12,8 @@ use morpheum_proto::google::protobuf::Any as ProtoAny;
 use morpheum_sdk_core::{AccountId, SdkError};
 
 use crate::requests::{
-    CancelProposalRequest, ProposalDepositRequest, ProposalVoteRequest,
-    ScheduleUpgradeRequest, SubmitProposalRequest,
+    CancelProposalRequest, ProposalDepositRequest, ProposalVoteRequest, ScheduleUpgradeRequest,
+    SubmitProposalRequest,
 };
 use crate::types::{ProposalClass, UpgradePlan, WeightedVoteOption};
 
@@ -85,18 +85,18 @@ impl SubmitProposalBuilder {
         let from_address = self.from_address.ok_or_else(|| {
             SdkError::invalid_input("from_address is required for proposal submission")
         })?;
-        let proposal_class = self.proposal_class.ok_or_else(|| {
-            SdkError::invalid_input("proposal_class is required")
-        })?;
-        let title = self.title.ok_or_else(|| {
-            SdkError::invalid_input("title is required")
-        })?;
-        let description = self.description.ok_or_else(|| {
-            SdkError::invalid_input("description is required")
-        })?;
-        let initial_deposit = self.initial_deposit.ok_or_else(|| {
-            SdkError::invalid_input("initial_deposit is required")
-        })?;
+        let proposal_class = self
+            .proposal_class
+            .ok_or_else(|| SdkError::invalid_input("proposal_class is required"))?;
+        let title = self
+            .title
+            .ok_or_else(|| SdkError::invalid_input("title is required"))?;
+        let description = self
+            .description
+            .ok_or_else(|| SdkError::invalid_input("description is required"))?;
+        let initial_deposit = self
+            .initial_deposit
+            .ok_or_else(|| SdkError::invalid_input("initial_deposit is required"))?;
 
         Ok(SubmitProposalRequest {
             from_address,
@@ -177,18 +177,18 @@ impl ScheduleUpgradeBuilder {
         let proposal_class = self.proposal_class.ok_or_else(|| {
             SdkError::invalid_input("proposal_class is required (ROOT or EMERGENCY)")
         })?;
-        let upgrade_plan = self.upgrade_plan.ok_or_else(|| {
-            SdkError::invalid_input("upgrade_plan is required")
-        })?;
-        let title = self.title.ok_or_else(|| {
-            SdkError::invalid_input("title is required")
-        })?;
-        let description = self.description.ok_or_else(|| {
-            SdkError::invalid_input("description is required")
-        })?;
-        let initial_deposit = self.initial_deposit.ok_or_else(|| {
-            SdkError::invalid_input("initial_deposit is required")
-        })?;
+        let upgrade_plan = self
+            .upgrade_plan
+            .ok_or_else(|| SdkError::invalid_input("upgrade_plan is required"))?;
+        let title = self
+            .title
+            .ok_or_else(|| SdkError::invalid_input("title is required"))?;
+        let description = self
+            .description
+            .ok_or_else(|| SdkError::invalid_input("description is required"))?;
+        let initial_deposit = self
+            .initial_deposit
+            .ok_or_else(|| SdkError::invalid_input("initial_deposit is required"))?;
 
         Ok(ScheduleUpgradeRequest {
             from_address,
@@ -233,17 +233,21 @@ impl ProposalDepositBuilder {
     }
 
     pub fn build(self) -> Result<ProposalDepositRequest, SdkError> {
-        let from_address = self.from_address.ok_or_else(|| {
-            SdkError::invalid_input("from_address is required for deposit")
-        })?;
-        let proposal_id = self.proposal_id.ok_or_else(|| {
-            SdkError::invalid_input("proposal_id is required")
-        })?;
-        let amount = self.amount.ok_or_else(|| {
-            SdkError::invalid_input("amount is required")
-        })?;
+        let from_address = self
+            .from_address
+            .ok_or_else(|| SdkError::invalid_input("from_address is required for deposit"))?;
+        let proposal_id = self
+            .proposal_id
+            .ok_or_else(|| SdkError::invalid_input("proposal_id is required"))?;
+        let amount = self
+            .amount
+            .ok_or_else(|| SdkError::invalid_input("amount is required"))?;
 
-        Ok(ProposalDepositRequest::new(from_address, proposal_id, amount))
+        Ok(ProposalDepositRequest::new(
+            from_address,
+            proposal_id,
+            amount,
+        ))
     }
 }
 
@@ -288,14 +292,16 @@ impl ProposalVoteBuilder {
     }
 
     pub fn build(self) -> Result<ProposalVoteRequest, SdkError> {
-        let from_address = self.from_address.ok_or_else(|| {
-            SdkError::invalid_input("from_address is required for voting")
-        })?;
-        let proposal_id = self.proposal_id.ok_or_else(|| {
-            SdkError::invalid_input("proposal_id is required")
-        })?;
+        let from_address = self
+            .from_address
+            .ok_or_else(|| SdkError::invalid_input("from_address is required for voting"))?;
+        let proposal_id = self
+            .proposal_id
+            .ok_or_else(|| SdkError::invalid_input("proposal_id is required"))?;
         if self.options.is_empty() {
-            return Err(SdkError::invalid_input("at least one vote option is required"));
+            return Err(SdkError::invalid_input(
+                "at least one vote option is required",
+            ));
         }
 
         Ok(ProposalVoteRequest {
@@ -337,12 +343,12 @@ impl CancelProposalBuilder {
     }
 
     pub fn build(self) -> Result<CancelProposalRequest, SdkError> {
-        let from_address = self.from_address.ok_or_else(|| {
-            SdkError::invalid_input("from_address is required for cancellation")
-        })?;
-        let proposal_id = self.proposal_id.ok_or_else(|| {
-            SdkError::invalid_input("proposal_id is required")
-        })?;
+        let from_address = self
+            .from_address
+            .ok_or_else(|| SdkError::invalid_input("from_address is required for cancellation"))?;
+        let proposal_id = self
+            .proposal_id
+            .ok_or_else(|| SdkError::invalid_input("proposal_id is required"))?;
 
         Ok(CancelProposalRequest::new(
             from_address,
@@ -377,7 +383,10 @@ mod tests {
         assert_eq!(request.from_address, from);
         assert_eq!(request.proposal_class, ProposalClass::Standard);
         assert_eq!(request.title, "Upgrade market params");
-        assert_eq!(request.additional_metadata.get("affected_market").unwrap(), "BTC-USDC");
+        assert_eq!(
+            request.additional_metadata.get("affected_market").unwrap(),
+            "BTC-USDC"
+        );
     }
 
     #[test]
@@ -453,5 +462,4 @@ mod tests {
         assert_eq!(request.proposal_class, ProposalClass::Root);
         assert_eq!(request.upgrade_plan.name, "v2.1.0-morpheum");
     }
-
 }

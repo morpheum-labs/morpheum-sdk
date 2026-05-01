@@ -48,10 +48,11 @@ pub struct TwapParams {
 impl From<proto::Params> for TwapParams {
     fn from(p: proto::Params) -> Self {
         Self {
-            module_config: p
-                .module_config
-                .map(TwapModuleConfig::from)
-                .unwrap_or(TwapModuleConfig { default_staleness_blocks: 0 }),
+            module_config: p.module_config.map(TwapModuleConfig::from).unwrap_or(
+                TwapModuleConfig {
+                    default_staleness_blocks: 0,
+                },
+            ),
         }
     }
 }
@@ -73,13 +74,17 @@ pub struct TwapModuleConfig {
 
 impl From<proto::TwapModuleConfig> for TwapModuleConfig {
     fn from(p: proto::TwapModuleConfig) -> Self {
-        Self { default_staleness_blocks: p.default_staleness_blocks }
+        Self {
+            default_staleness_blocks: p.default_staleness_blocks,
+        }
     }
 }
 
 impl From<TwapModuleConfig> for proto::TwapModuleConfig {
     fn from(c: TwapModuleConfig) -> Self {
-        Self { default_staleness_blocks: c.default_staleness_blocks }
+        Self {
+            default_staleness_blocks: c.default_staleness_blocks,
+        }
     }
 }
 
@@ -93,13 +98,19 @@ pub struct MarketTwapConfig {
 
 impl From<proto::MarketTwapConfig> for MarketTwapConfig {
     fn from(p: proto::MarketTwapConfig) -> Self {
-        Self { windows: p.windows, staleness_blocks: p.staleness_blocks }
+        Self {
+            windows: p.windows,
+            staleness_blocks: p.staleness_blocks,
+        }
     }
 }
 
 impl From<MarketTwapConfig> for proto::MarketTwapConfig {
     fn from(c: MarketTwapConfig) -> Self {
-        Self { windows: c.windows, staleness_blocks: c.staleness_blocks }
+        Self {
+            windows: c.windows,
+            staleness_blocks: c.staleness_blocks,
+        }
     }
 }
 
@@ -113,7 +124,10 @@ pub struct WindowEntry {
 
 impl From<proto::WindowEntry> for WindowEntry {
     fn from(p: proto::WindowEntry) -> Self {
-        Self { block: p.block, price: p.price }
+        Self {
+            block: p.block,
+            price: p.price,
+        }
     }
 }
 
@@ -195,8 +209,12 @@ mod tests {
     #[test]
     fn twap_data_from_proto() {
         let p = proto::TwapData {
-            market_index: 1, window_blocks: 300, value: 50_000_000_000,
-            sequence_id: 42, timestamp: 1700000000, last_update_block: 9999,
+            market_index: 1,
+            window_blocks: 300,
+            value: 50_000_000_000,
+            sequence_id: 42,
+            timestamp: 1700000000,
+            last_update_block: 9999,
         };
         let d: TwapData = p.into();
         assert_eq!(d.market_index, 1);
@@ -206,7 +224,10 @@ mod tests {
 
     #[test]
     fn market_twap_config_roundtrip() {
-        let c = MarketTwapConfig { windows: vec![60, 300, 900], staleness_blocks: 10 };
+        let c = MarketTwapConfig {
+            windows: vec![60, 300, 900],
+            staleness_blocks: 10,
+        };
         let proto_c: proto::MarketTwapConfig = c.clone().into();
         let c2: MarketTwapConfig = proto_c.into();
         assert_eq!(c, c2);
@@ -215,10 +236,17 @@ mod tests {
     #[test]
     fn window_snapshot_from_proto() {
         let p = proto::WindowSnapshot {
-            market_index: 1, window_blocks: 60,
-            entries: vec![proto::WindowEntry { block: 100, price: 5000 }],
-            sum: "500000".into(), capacity: 60,
-            last_block: 100, last_price: 5000, last_update_block: 100,
+            market_index: 1,
+            window_blocks: 60,
+            entries: vec![proto::WindowEntry {
+                block: 100,
+                price: 5000,
+            }],
+            sum: "500000".into(),
+            capacity: 60,
+            last_block: 100,
+            last_price: 5000,
+            last_update_block: 100,
         };
         let s: WindowSnapshot = p.into();
         assert_eq!(s.entries.len(), 1);
@@ -229,8 +257,11 @@ mod tests {
     fn twap_event_from_proto() {
         let e = proto::TwapEvent {
             event: Some(proto::twap_event::Event::TwapUpdated(proto::TwapUpdated {
-                market_index: 1, window_blocks: 300, value: 42000,
-                sequence_id: 1, timestamp: 1700000000,
+                market_index: 1,
+                window_blocks: 300,
+                value: 42000,
+                sequence_id: 1,
+                timestamp: 1700000000,
             })),
         };
         let parsed = TwapEvent::from_proto(e).unwrap();

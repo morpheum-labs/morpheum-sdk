@@ -10,11 +10,8 @@ use alloc::string::String;
 use morpheum_sdk_core::{AccountId, SdkError};
 
 use crate::requests::{
-    ActivateMarketRequest,
-    ChangeMarketMarginRatioRequest,
-    CreateMarketRequest,
-    SuspendMarketRequest,
-    UpdateMarketRequest,
+    ActivateMarketRequest, ChangeMarketMarginRatioRequest, CreateMarketRequest,
+    SuspendMarketRequest, UpdateMarketRequest,
 };
 use crate::types::{MarketParams, MarketType};
 
@@ -90,25 +87,25 @@ impl MarketCreateBuilder {
             SdkError::invalid_input("from_address is required for market creation")
         })?;
 
-        let base_asset_index = self.base_asset_index.ok_or_else(|| {
-            SdkError::invalid_input("base_asset_index is required")
-        })?;
+        let base_asset_index = self
+            .base_asset_index
+            .ok_or_else(|| SdkError::invalid_input("base_asset_index is required"))?;
 
-        let quote_asset_index = self.quote_asset_index.ok_or_else(|| {
-            SdkError::invalid_input("quote_asset_index is required")
-        })?;
+        let quote_asset_index = self
+            .quote_asset_index
+            .ok_or_else(|| SdkError::invalid_input("quote_asset_index is required"))?;
 
-        let market_type = self.market_type.ok_or_else(|| {
-            SdkError::invalid_input("market_type is required")
-        })?;
+        let market_type = self
+            .market_type
+            .ok_or_else(|| SdkError::invalid_input("market_type is required"))?;
 
-        let orderbook_type = self.orderbook_type.ok_or_else(|| {
-            SdkError::invalid_input("orderbook_type is required")
-        })?;
+        let orderbook_type = self
+            .orderbook_type
+            .ok_or_else(|| SdkError::invalid_input("orderbook_type is required"))?;
 
-        let params = self.params.ok_or_else(|| {
-            SdkError::invalid_input("params are required for market creation")
-        })?;
+        let params = self
+            .params
+            .ok_or_else(|| SdkError::invalid_input("params are required for market creation"))?;
 
         Ok(CreateMarketRequest {
             from_address,
@@ -148,13 +145,13 @@ impl ActivateMarketBuilder {
     }
 
     pub fn build(self) -> Result<ActivateMarketRequest, SdkError> {
-        let market_index = self.market_index.ok_or_else(|| {
-            SdkError::invalid_input("market_index is required for activation")
-        })?;
+        let market_index = self
+            .market_index
+            .ok_or_else(|| SdkError::invalid_input("market_index is required for activation"))?;
 
-        let activator = self.activator.ok_or_else(|| {
-            SdkError::invalid_input("activator is required")
-        })?;
+        let activator = self
+            .activator
+            .ok_or_else(|| SdkError::invalid_input("activator is required"))?;
 
         Ok(ActivateMarketRequest::new(market_index, activator))
     }
@@ -192,13 +189,13 @@ impl SuspendMarketBuilder {
     }
 
     pub fn build(self) -> Result<SuspendMarketRequest, SdkError> {
-        let market_index = self.market_index.ok_or_else(|| {
-            SdkError::invalid_input("market_index is required for suspension")
-        })?;
+        let market_index = self
+            .market_index
+            .ok_or_else(|| SdkError::invalid_input("market_index is required for suspension"))?;
 
-        let suspender = self.suspender.ok_or_else(|| {
-            SdkError::invalid_input("suspender is required")
-        })?;
+        let suspender = self
+            .suspender
+            .ok_or_else(|| SdkError::invalid_input("suspender is required"))?;
 
         Ok(SuspendMarketRequest::new(
             market_index,
@@ -243,17 +240,17 @@ impl UpdateMarketBuilder {
     }
 
     pub fn build(self) -> Result<UpdateMarketRequest, SdkError> {
-        let market_index = self.market_index.ok_or_else(|| {
-            SdkError::invalid_input("market_index is required for update")
-        })?;
+        let market_index = self
+            .market_index
+            .ok_or_else(|| SdkError::invalid_input("market_index is required for update"))?;
 
-        let params = self.params.ok_or_else(|| {
-            SdkError::invalid_input("params are required for market update")
-        })?;
+        let params = self
+            .params
+            .ok_or_else(|| SdkError::invalid_input("params are required for market update"))?;
 
-        let from_address = self.from_address.ok_or_else(|| {
-            SdkError::invalid_input("from_address is required")
-        })?;
+        let from_address = self
+            .from_address
+            .ok_or_else(|| SdkError::invalid_input("from_address is required"))?;
 
         Ok(UpdateMarketRequest::new(market_index, params, from_address)
             .with_governance_proposal_id_opt(self.governance_proposal_id))
@@ -309,18 +306,20 @@ impl ChangeMarketMarginRatioBuilder {
     }
 
     pub fn build(self) -> Result<ChangeMarketMarginRatioRequest, SdkError> {
-        let from_address = self.from_address.ok_or_else(|| {
-            SdkError::invalid_input("from_address is required")
-        })?;
+        let from_address = self
+            .from_address
+            .ok_or_else(|| SdkError::invalid_input("from_address is required"))?;
 
-        let market_index = self.market_index.ok_or_else(|| {
-            SdkError::invalid_input("market_index is required")
-        })?;
+        let market_index = self
+            .market_index
+            .ok_or_else(|| SdkError::invalid_input("market_index is required"))?;
 
-        Ok(ChangeMarketMarginRatioRequest::new(from_address, market_index)
-            .new_initial_margin_ratio_opt(self.new_initial_margin_ratio)
-            .new_maintenance_margin_ratio_opt(self.new_maintenance_margin_ratio)
-            .reason_opt(self.reason))
+        Ok(
+            ChangeMarketMarginRatioRequest::new(from_address, market_index)
+                .new_initial_margin_ratio_opt(self.new_initial_margin_ratio)
+                .new_maintenance_margin_ratio_opt(self.new_maintenance_margin_ratio)
+                .reason_opt(self.reason),
+        )
     }
 }
 

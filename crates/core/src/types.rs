@@ -10,9 +10,7 @@ use core::fmt;
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
-use crate::signing::types::{
-    AccountId as SigningAccountId, SignedTx as SigningSignedTx,
-};
+use crate::signing::types::{AccountId as SigningAccountId, SignedTx as SigningSignedTx};
 use crate::SdkError;
 
 /// SDK-level `AccountId` — thin newtype over the signing library's `AccountId`.
@@ -30,7 +28,7 @@ impl AccountId {
 
     /// Returns the underlying 32-byte array.
     pub fn as_bytes(&self) -> &[u8; 32] {
-        &self.0.0
+        &self.0 .0
     }
 }
 
@@ -210,8 +208,8 @@ impl From<SigningSignedTx> for SignedTx {
 
 // Re-exports of the most commonly used types from the signing library.
 // This keeps the SDK API clean and DRY — users can do `use morpheum_sdk_core::types::*;`
-pub use crate::signing::types::{PublicKey, Signature, WalletType};
 pub use crate::signing::claim::{TradingKeyClaim, VcClaimBuilder};
+pub use crate::signing::types::{PublicKey, Signature, WalletType};
 
 #[cfg(test)]
 mod tests {

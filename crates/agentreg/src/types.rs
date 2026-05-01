@@ -64,7 +64,12 @@ pub struct CaipAgentId {
 
 impl CaipAgentId {
     pub fn to_caip_string(&self) -> String {
-        alloc::format!("{}:{}:{}", self.namespace, self.chain_id, self.actor_reference)
+        alloc::format!(
+            "{}:{}:{}",
+            self.namespace,
+            self.chain_id,
+            self.actor_reference
+        )
     }
 }
 

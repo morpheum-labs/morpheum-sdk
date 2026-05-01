@@ -58,9 +58,11 @@ impl InstantiateContractRequest {
     /// Mormcore's CosmWasm actor deserialises message bytes with
     /// `serde_json::from_slice`, so we must produce JSON — not protobuf.
     pub fn to_any(&self) -> morpheum_proto::google::protobuf::Any {
-        let funds: Vec<serde_json::Value> = self.funds.iter().map(|c| {
-            serde_json::json!({ "denom": c.denom, "amount": c.amount })
-        }).collect();
+        let funds: Vec<serde_json::Value> = self
+            .funds
+            .iter()
+            .map(|c| serde_json::json!({ "denom": c.denom, "amount": c.amount }))
+            .collect();
 
         let value = serde_json::json!({
             "sender": self.sender,
@@ -93,9 +95,11 @@ impl ExecuteContractRequest {
     /// Mormcore's CosmWasm actor deserialises message bytes with
     /// `serde_json::from_slice`, so we must produce JSON — not protobuf.
     pub fn to_any(&self) -> morpheum_proto::google::protobuf::Any {
-        let funds: Vec<serde_json::Value> = self.funds.iter().map(|c| {
-            serde_json::json!({ "denom": c.denom, "amount": c.amount })
-        }).collect();
+        let funds: Vec<serde_json::Value> = self
+            .funds
+            .iter()
+            .map(|c| serde_json::json!({ "denom": c.denom, "amount": c.amount }))
+            .collect();
 
         let value = serde_json::json!({
             "sender": self.sender,
@@ -124,4 +128,3 @@ pub struct QueryRawRequest {
     pub contract: String,
     pub key: Vec<u8>,
 }
-

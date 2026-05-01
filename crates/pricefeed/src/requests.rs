@@ -7,8 +7,8 @@ use prost::Message as _;
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
-use morpheum_proto::pricefeed::v1 as proto;
 use morpheum_proto::google::protobuf::Any as ProtoAny;
+use morpheum_proto::pricefeed::v1 as proto;
 
 use crate::types::{FeedKind, PriceFeedConfig};
 
@@ -30,37 +30,60 @@ pub struct RegisterFeedRequest {
 
 impl RegisterFeedRequest {
     pub fn new(
-        from_address: impl Into<String>, symbol: impl Into<String>,
-        config: PriceFeedConfig, base_asset_index: u64, quote_asset_index: u64,
+        from_address: impl Into<String>,
+        symbol: impl Into<String>,
+        config: PriceFeedConfig,
+        base_asset_index: u64,
+        quote_asset_index: u64,
     ) -> Self {
         Self {
-            from_address: from_address.into(), symbol: symbol.into(),
-            config, base_asset_index, quote_asset_index,
-            feed_kind: FeedKind::Direct, base_feed_index: 0, quote_feed_index: 0,
+            from_address: from_address.into(),
+            symbol: symbol.into(),
+            config,
+            base_asset_index,
+            quote_asset_index,
+            feed_kind: FeedKind::Direct,
+            base_feed_index: 0,
+            quote_feed_index: 0,
         }
     }
 
     pub fn derived(
-        from_address: impl Into<String>, symbol: impl Into<String>,
-        config: PriceFeedConfig, base_asset_index: u64, quote_asset_index: u64,
-        base_feed_index: u64, quote_feed_index: u64,
+        from_address: impl Into<String>,
+        symbol: impl Into<String>,
+        config: PriceFeedConfig,
+        base_asset_index: u64,
+        quote_asset_index: u64,
+        base_feed_index: u64,
+        quote_feed_index: u64,
     ) -> Self {
         Self {
-            from_address: from_address.into(), symbol: symbol.into(),
-            config, base_asset_index, quote_asset_index,
-            feed_kind: FeedKind::Derived, base_feed_index, quote_feed_index,
+            from_address: from_address.into(),
+            symbol: symbol.into(),
+            config,
+            base_asset_index,
+            quote_asset_index,
+            feed_kind: FeedKind::Derived,
+            base_feed_index,
+            quote_feed_index,
         }
     }
 
     pub fn to_any(&self) -> ProtoAny {
         let msg = proto::MsgRegisterFeedRequest {
-            from_address: self.from_address.clone(), symbol: self.symbol.clone(),
+            from_address: self.from_address.clone(),
+            symbol: self.symbol.clone(),
             config: Some(self.config.clone().into()),
-            base_asset_index: self.base_asset_index, quote_asset_index: self.quote_asset_index,
+            base_asset_index: self.base_asset_index,
+            quote_asset_index: self.quote_asset_index,
             feed_kind: i32::from(self.feed_kind),
-            base_feed_index: self.base_feed_index, quote_feed_index: self.quote_feed_index,
+            base_feed_index: self.base_feed_index,
+            quote_feed_index: self.quote_feed_index,
         };
-        ProtoAny { type_url: "/pricefeed.v1.MsgRegisterFeedRequest".into(), value: msg.encode_to_vec() }
+        ProtoAny {
+            type_url: "/pricefeed.v1.MsgRegisterFeedRequest".into(),
+            value: msg.encode_to_vec(),
+        }
     }
 }
 
@@ -74,14 +97,21 @@ pub struct DeregisterFeedRequest {
 
 impl DeregisterFeedRequest {
     pub fn new(from_address: impl Into<String>, feed_index: u64) -> Self {
-        Self { from_address: from_address.into(), feed_index }
+        Self {
+            from_address: from_address.into(),
+            feed_index,
+        }
     }
 
     pub fn to_any(&self) -> ProtoAny {
         let msg = proto::MsgDeregisterFeedRequest {
-            from_address: self.from_address.clone(), feed_index: self.feed_index,
+            from_address: self.from_address.clone(),
+            feed_index: self.feed_index,
         };
-        ProtoAny { type_url: "/pricefeed.v1.MsgDeregisterFeedRequest".into(), value: msg.encode_to_vec() }
+        ProtoAny {
+            type_url: "/pricefeed.v1.MsgDeregisterFeedRequest".into(),
+            value: msg.encode_to_vec(),
+        }
     }
 }
 
@@ -95,11 +125,17 @@ pub struct QueryFeedRequest {
 }
 
 impl QueryFeedRequest {
-    pub fn new(feed_index: u64) -> Self { Self { feed_index } }
+    pub fn new(feed_index: u64) -> Self {
+        Self { feed_index }
+    }
 }
 
 impl From<QueryFeedRequest> for proto::QueryFeedRequest {
-    fn from(r: QueryFeedRequest) -> Self { Self { feed_index: r.feed_index } }
+    fn from(r: QueryFeedRequest) -> Self {
+        Self {
+            feed_index: r.feed_index,
+        }
+    }
 }
 
 /// Query a single feed by symbol.
@@ -110,11 +146,17 @@ pub struct QueryFeedBySymbolRequest {
 }
 
 impl QueryFeedBySymbolRequest {
-    pub fn new(symbol: impl Into<String>) -> Self { Self { symbol: symbol.into() } }
+    pub fn new(symbol: impl Into<String>) -> Self {
+        Self {
+            symbol: symbol.into(),
+        }
+    }
 }
 
 impl From<QueryFeedBySymbolRequest> for proto::QueryFeedBySymbolRequest {
-    fn from(r: QueryFeedBySymbolRequest) -> Self { Self { symbol: r.symbol } }
+    fn from(r: QueryFeedBySymbolRequest) -> Self {
+        Self { symbol: r.symbol }
+    }
 }
 
 /// List feeds with pagination and optional active-only filter.
@@ -127,12 +169,27 @@ pub struct QueryFeedsRequest {
 }
 
 impl QueryFeedsRequest {
-    pub fn new(limit: i32, offset: i32) -> Self { Self { limit, offset, active_only: false } }
-    pub fn active_only(mut self, v: bool) -> Self { self.active_only = v; self }
+    pub fn new(limit: i32, offset: i32) -> Self {
+        Self {
+            limit,
+            offset,
+            active_only: false,
+        }
+    }
+    pub fn active_only(mut self, v: bool) -> Self {
+        self.active_only = v;
+        self
+    }
 }
 
 impl From<QueryFeedsRequest> for proto::QueryFeedsRequest {
-    fn from(r: QueryFeedsRequest) -> Self { Self { limit: r.limit, offset: r.offset, active_only: r.active_only } }
+    fn from(r: QueryFeedsRequest) -> Self {
+        Self {
+            limit: r.limit,
+            offset: r.offset,
+            active_only: r.active_only,
+        }
+    }
 }
 
 /// Query the latest price for a feed.
@@ -143,24 +200,35 @@ pub struct QueryPriceRequest {
 }
 
 impl QueryPriceRequest {
-    pub fn new(feed_index: u64) -> Self { Self { feed_index } }
+    pub fn new(feed_index: u64) -> Self {
+        Self { feed_index }
+    }
 }
 
 impl From<QueryPriceRequest> for proto::QueryPriceRequest {
-    fn from(r: QueryPriceRequest) -> Self { Self { feed_index: r.feed_index } }
+    fn from(r: QueryPriceRequest) -> Self {
+        Self {
+            feed_index: r.feed_index,
+        }
+    }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use alloc::vec::Vec;
     use crate::types::AggregationMethod;
+    use alloc::vec::Vec;
 
     fn test_config() -> PriceFeedConfig {
         PriceFeedConfig {
-            sources: Vec::new(), agg_method: AggregationMethod::Median, decimals: 8,
-            threshold_pct: 5, heartbeat_sec: 60, staleness_sec: 300,
-            min_answer: "0".into(), max_answer: "100000000000000".into(),
+            sources: Vec::new(),
+            agg_method: AggregationMethod::Median,
+            decimals: 8,
+            threshold_pct: 5,
+            heartbeat_sec: 60,
+            staleness_sec: 300,
+            min_answer: "0".into(),
+            max_answer: "100000000000000".into(),
         }
     }
 
@@ -173,7 +241,8 @@ mod tests {
 
     #[test]
     fn register_derived_feed_to_any() {
-        let any = RegisterFeedRequest::derived("morph1xyz", "BTC/USDC", test_config(), 0, 2, 1, 3).to_any();
+        let any = RegisterFeedRequest::derived("morph1xyz", "BTC/USDC", test_config(), 0, 2, 1, 3)
+            .to_any();
         assert_eq!(any.type_url, "/pricefeed.v1.MsgRegisterFeedRequest");
     }
 

@@ -7,8 +7,8 @@
 //! crate clean, DRY, and truly `no_std` compatible.
 
 use crate::{
-    signing::{signer::Signer, claim::TradingKeyClaim, builder::TxBuilder as SigningTxBuilder},
-    ChainId, SignedTx, SdkError,
+    signing::{builder::TxBuilder as SigningTxBuilder, claim::TradingKeyClaim, signer::Signer},
+    ChainId, SdkError, SignedTx,
 };
 
 // Re-use the same `Any` type the signing library uses (prost_types::Any),
@@ -77,7 +77,10 @@ impl<S: Signer> TxBuilder<S> {
     ///
     /// Without a provider, the signing library falls back to a zero nonce
     /// (`ts_ms=0`), which will be rejected by the chain's time-window check.
-    pub fn with_nonce_provider(mut self, provider: impl crate::signing::nonce::NonceProvider + 'static) -> Self {
+    pub fn with_nonce_provider(
+        mut self,
+        provider: impl crate::signing::nonce::NonceProvider + 'static,
+    ) -> Self {
         self.inner = self.inner.with_nonce_provider(provider);
         self
     }

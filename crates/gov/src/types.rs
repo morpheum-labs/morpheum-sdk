@@ -8,8 +8,8 @@ use alloc::{collections::BTreeMap, string::String, vec::Vec};
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
-use morpheum_proto::gov::v1 as proto;
 use morpheum_proto::google::protobuf::Any as ProtoAny;
+use morpheum_proto::gov::v1 as proto;
 
 // ====================== ENUMS ======================
 
@@ -179,7 +179,10 @@ pub struct WeightedVoteOption {
 
 impl WeightedVoteOption {
     pub fn new(option: VoteOption, weight: impl Into<String>) -> Self {
-        Self { option, weight: weight.into() }
+        Self {
+            option,
+            weight: weight.into(),
+        }
     }
 }
 
@@ -323,7 +326,11 @@ impl From<proto::GovParams> for GovParams {
             burn_vote_quorum: p.burn_vote_quorum,
             burn_proposal_deposit_prevote: p.burn_proposal_deposit_prevote,
             burn_vote_veto: p.burn_vote_veto,
-            class_params: p.class_params.into_iter().map(|(k, v)| (k, v.into())).collect(),
+            class_params: p
+                .class_params
+                .into_iter()
+                .map(|(k, v)| (k, v.into()))
+                .collect(),
             constitution: p.constitution,
             max_proposals_per_block: p.max_proposals_per_block,
             min_enactment_delay: p.min_enactment_delay,
@@ -352,7 +359,11 @@ impl From<GovParams> for proto::GovParams {
             burn_vote_quorum: p.burn_vote_quorum,
             burn_proposal_deposit_prevote: p.burn_proposal_deposit_prevote,
             burn_vote_veto: p.burn_vote_veto,
-            class_params: p.class_params.into_iter().map(|(k, v)| (k, v.into())).collect(),
+            class_params: p
+                .class_params
+                .into_iter()
+                .map(|(k, v)| (k, v.into()))
+                .collect(),
             constitution: p.constitution,
             max_proposals_per_block: p.max_proposals_per_block,
             min_enactment_delay: p.min_enactment_delay,

@@ -7,37 +7,23 @@
 
 extern crate alloc;
 
-pub mod client;
-pub mod types;
-pub mod requests;
 pub mod builder;
+pub mod client;
+pub mod requests;
+pub mod types;
 
 // ==================== PUBLIC RE-EXPORTS ====================
 
 pub use client::KlineClient;
 
 pub use types::{
-    KlineData,
-    KlineEpochBoundary,
-    KlineModuleConfig,
-    KlinePruned,
-    KlineSentimentUpdated,
-    KlineUpdated,
-    LastKline,
-    LongShortRatio,
-    MarkPriceWithSpread,
-    Period,
-    PositionSnapshot,
-    SentimentData,
-    TradeData,
-    Vwap,
+    KlineData, KlineEpochBoundary, KlineModuleConfig, KlinePruned, KlineSentimentUpdated,
+    KlineUpdated, LastKline, LongShortRatio, MarkPriceWithSpread, Period, PositionSnapshot,
+    SentimentData, TradeData, Vwap,
 };
 
 pub use requests::{
-    GetLastKlineRequest,
-    GetLongShortRatioRequest,
-    GetMarkPriceWithSpreadRequest,
-    GetVwapRequest,
+    GetLastKlineRequest, GetLongShortRatioRequest, GetMarkPriceWithSpreadRequest, GetVwapRequest,
     QueryKlinesSnapshotRequest,
 };
 
@@ -51,17 +37,8 @@ pub use morpheum_sdk_core::{AccountId, ChainId, SdkError, SignedTx};
 /// ```
 pub mod prelude {
     pub use super::{
-        KlineClient,
-        KlineData,
-        LastKline,
-        LongShortRatio,
-        MarkPriceWithSpread,
-        Period,
-        Vwap,
-        AccountId,
-        ChainId,
-        SdkError,
-        SignedTx,
+        AccountId, ChainId, KlineClient, KlineData, LastKline, LongShortRatio, MarkPriceWithSpread,
+        Period, SdkError, SignedTx, Vwap,
     };
 }
 

@@ -49,10 +49,8 @@ impl InferenceRegistryClient {
         let response_bytes = self.query(path, data).await?;
 
         let proto_res =
-            morpheum_proto::inferreg::v1::QueryModelResponse::decode(
-                response_bytes.as_slice(),
-            )
-            .map_err(SdkError::Decode)?;
+            morpheum_proto::inferreg::v1::QueryModelResponse::decode(response_bytes.as_slice())
+                .map_err(SdkError::Decode)?;
 
         let response: crate::requests::QueryModelResponse = proto_res.into();
         Ok(response.model)
@@ -64,18 +62,16 @@ impl InferenceRegistryClient {
         quant_format: QuantFormat,
     ) -> Result<Vec<ModelCommitment>, SdkError> {
         let req = QueryModelsByQuantRequest::new(quant_format);
-        let proto_req: morpheum_proto::inferreg::v1::QueryModelsByQuantRequest =
-            req.into();
+        let proto_req: morpheum_proto::inferreg::v1::QueryModelsByQuantRequest = req.into();
 
         let path = "/inferreg.v1.Query/QueryModelsByQuant";
         let data = proto_req.encode_to_vec();
         let response_bytes = self.query(path, data).await?;
 
-        let proto_res =
-            morpheum_proto::inferreg::v1::QueryModelsByQuantResponse::decode(
-                response_bytes.as_slice(),
-            )
-            .map_err(SdkError::Decode)?;
+        let proto_res = morpheum_proto::inferreg::v1::QueryModelsByQuantResponse::decode(
+            response_bytes.as_slice(),
+        )
+        .map_err(SdkError::Decode)?;
 
         let response: crate::requests::QueryModelsByQuantResponse = proto_res.into();
         Ok(response.models)
@@ -84,18 +80,16 @@ impl InferenceRegistryClient {
     /// Queries all currently active models.
     pub async fn query_active_models(&self) -> Result<Vec<ModelCommitment>, SdkError> {
         let req = crate::requests::QueryActiveModelsRequest;
-        let proto_req: morpheum_proto::inferreg::v1::QueryActiveModelsRequest =
-            req.into();
+        let proto_req: morpheum_proto::inferreg::v1::QueryActiveModelsRequest = req.into();
 
         let path = "/inferreg.v1.Query/QueryActiveModels";
         let data = proto_req.encode_to_vec();
         let response_bytes = self.query(path, data).await?;
 
-        let proto_res =
-            morpheum_proto::inferreg::v1::QueryActiveModelsResponse::decode(
-                response_bytes.as_slice(),
-            )
-            .map_err(SdkError::Decode)?;
+        let proto_res = morpheum_proto::inferreg::v1::QueryActiveModelsResponse::decode(
+            response_bytes.as_slice(),
+        )
+        .map_err(SdkError::Decode)?;
 
         let response: crate::requests::QueryActiveModelsResponse = proto_res.into();
         Ok(response.models)
@@ -111,10 +105,8 @@ impl InferenceRegistryClient {
         let response_bytes = self.query(path, data).await?;
 
         let proto_res =
-            morpheum_proto::inferreg::v1::QueryParamsResponse::decode(
-                response_bytes.as_slice(),
-            )
-            .map_err(SdkError::Decode)?;
+            morpheum_proto::inferreg::v1::QueryParamsResponse::decode(response_bytes.as_slice())
+                .map_err(SdkError::Decode)?;
 
         let response: crate::requests::QueryParamsResponse = proto_res.into();
         Ok(response.params)
@@ -165,17 +157,15 @@ mod tests {
                     Ok(prost::Message::encode_to_vec(&dummy))
                 }
                 "/inferreg.v1.Query/QueryModelsByQuant" => {
-                    let dummy =
-                        morpheum_proto::inferreg::v1::QueryModelsByQuantResponse {
-                            models: vec![Default::default()],
-                        };
+                    let dummy = morpheum_proto::inferreg::v1::QueryModelsByQuantResponse {
+                        models: vec![Default::default()],
+                    };
                     Ok(prost::Message::encode_to_vec(&dummy))
                 }
                 "/inferreg.v1.Query/QueryActiveModels" => {
-                    let dummy =
-                        morpheum_proto::inferreg::v1::QueryActiveModelsResponse {
-                            models: vec![Default::default(), Default::default()],
-                        };
+                    let dummy = morpheum_proto::inferreg::v1::QueryActiveModelsResponse {
+                        models: vec![Default::default(), Default::default()],
+                    };
                     Ok(prost::Message::encode_to_vec(&dummy))
                 }
                 "/inferreg.v1.Query/QueryParams" => {

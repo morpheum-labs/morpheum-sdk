@@ -28,7 +28,9 @@ pub enum AggregationMethod {
 impl From<i32> for AggregationMethod {
     fn from(v: i32) -> Self {
         match v {
-            1 => Self::Median, 2 => Self::Twap, 3 => Self::WeightedMedian,
+            1 => Self::Median,
+            2 => Self::Twap,
+            3 => Self::WeightedMedian,
             _ => Self::Unspecified,
         }
     }
@@ -37,8 +39,10 @@ impl From<i32> for AggregationMethod {
 impl From<AggregationMethod> for i32 {
     fn from(a: AggregationMethod) -> Self {
         match a {
-            AggregationMethod::Unspecified => 0, AggregationMethod::Median => 1,
-            AggregationMethod::Twap => 2, AggregationMethod::WeightedMedian => 3,
+            AggregationMethod::Unspecified => 0,
+            AggregationMethod::Median => 1,
+            AggregationMethod::Twap => 2,
+            AggregationMethod::WeightedMedian => 3,
         }
     }
 }
@@ -64,7 +68,8 @@ impl From<i32> for FeedKind {
 impl From<FeedKind> for i32 {
     fn from(k: FeedKind) -> Self {
         match k {
-            FeedKind::Direct => 0, FeedKind::Derived => 1,
+            FeedKind::Direct => 0,
+            FeedKind::Derived => 1,
         }
     }
 }
@@ -81,13 +86,19 @@ pub struct SourceConfig {
 
 impl From<proto::SourceConfig> for SourceConfig {
     fn from(p: proto::SourceConfig) -> Self {
-        Self { source_type: p.source_type, params: p.params.into_iter().collect() }
+        Self {
+            source_type: p.source_type,
+            params: p.params.into_iter().collect(),
+        }
     }
 }
 
 impl From<SourceConfig> for proto::SourceConfig {
     fn from(s: SourceConfig) -> Self {
-        Self { source_type: s.source_type, params: s.params.into_iter().collect() }
+        Self {
+            source_type: s.source_type,
+            params: s.params.into_iter().collect(),
+        }
     }
 }
 
@@ -110,9 +121,12 @@ impl From<proto::PriceFeedConfig> for PriceFeedConfig {
         Self {
             sources: p.sources.into_iter().map(Into::into).collect(),
             agg_method: AggregationMethod::from(p.agg_method),
-            decimals: p.decimals, threshold_pct: p.threshold_pct,
-            heartbeat_sec: p.heartbeat_sec, staleness_sec: p.staleness_sec,
-            min_answer: p.min_answer, max_answer: p.max_answer,
+            decimals: p.decimals,
+            threshold_pct: p.threshold_pct,
+            heartbeat_sec: p.heartbeat_sec,
+            staleness_sec: p.staleness_sec,
+            min_answer: p.min_answer,
+            max_answer: p.max_answer,
         }
     }
 }
@@ -122,9 +136,12 @@ impl From<PriceFeedConfig> for proto::PriceFeedConfig {
         Self {
             sources: c.sources.into_iter().map(Into::into).collect(),
             agg_method: i32::from(c.agg_method),
-            decimals: c.decimals, threshold_pct: c.threshold_pct,
-            heartbeat_sec: c.heartbeat_sec, staleness_sec: c.staleness_sec,
-            min_answer: c.min_answer, max_answer: c.max_answer,
+            decimals: c.decimals,
+            threshold_pct: c.threshold_pct,
+            heartbeat_sec: c.heartbeat_sec,
+            staleness_sec: c.staleness_sec,
+            min_answer: c.min_answer,
+            max_answer: c.max_answer,
         }
     }
 }
@@ -150,13 +167,18 @@ pub struct PriceFeed {
 impl From<proto::PriceFeed> for PriceFeed {
     fn from(p: proto::PriceFeed) -> Self {
         Self {
-            feed_index: p.feed_index, symbol: p.symbol, active: p.active,
-            config: p.config.map(Into::into), shard_id: p.shard_id,
+            feed_index: p.feed_index,
+            symbol: p.symbol,
+            active: p.active,
+            config: p.config.map(Into::into),
+            shard_id: p.shard_id,
             created_at: p.created_at.as_ref().map_or(0, |t| t.seconds as u64),
             updated_at: p.updated_at.as_ref().map_or(0, |t| t.seconds as u64),
-            base_asset_index: p.base_asset_index, quote_asset_index: p.quote_asset_index,
+            base_asset_index: p.base_asset_index,
+            quote_asset_index: p.quote_asset_index,
             feed_kind: FeedKind::from(p.feed_kind),
-            base_feed_index: p.base_feed_index, quote_feed_index: p.quote_feed_index,
+            base_feed_index: p.base_feed_index,
+            quote_feed_index: p.quote_feed_index,
         }
     }
 }
@@ -173,7 +195,12 @@ pub struct PriceEntry {
 
 impl From<proto::PriceEntry> for PriceEntry {
     fn from(p: proto::PriceEntry) -> Self {
-        Self { value: p.value, timestamp: p.timestamp, source_count: p.source_count, confidence: p.confidence }
+        Self {
+            value: p.value,
+            timestamp: p.timestamp,
+            source_count: p.source_count,
+            confidence: p.confidence,
+        }
     }
 }
 
@@ -191,7 +218,9 @@ pub struct PriceSource {
 impl From<proto::PriceSource> for PriceSource {
     fn from(p: proto::PriceSource) -> Self {
         Self {
-            exchange: p.exchange, price: p.price, weight: p.weight,
+            exchange: p.exchange,
+            price: p.price,
+            weight: p.weight,
             is_active: p.is_active,
             last_update: p.last_update.as_ref().map_or(0, |t| t.seconds as u64),
         }
@@ -205,7 +234,11 @@ mod tests {
 
     #[test]
     fn aggregation_method_roundtrip() {
-        for a in [AggregationMethod::Median, AggregationMethod::Twap, AggregationMethod::WeightedMedian] {
+        for a in [
+            AggregationMethod::Median,
+            AggregationMethod::Twap,
+            AggregationMethod::WeightedMedian,
+        ] {
             let v: i32 = a.into();
             assert_eq!(a, AggregationMethod::from(v));
         }
@@ -224,7 +257,10 @@ mod tests {
     fn source_config_roundtrip() {
         let mut params = BTreeMap::new();
         params.insert("pair".into(), "BTC/USD".into());
-        let s = SourceConfig { source_type: "chainlink".into(), params };
+        let s = SourceConfig {
+            source_type: "chainlink".into(),
+            params,
+        };
         let p: proto::SourceConfig = s.clone().into();
         let s2: SourceConfig = p.into();
         assert_eq!(s, s2);
@@ -233,12 +269,21 @@ mod tests {
     #[test]
     fn price_feed_from_proto() {
         let p = proto::PriceFeed {
-            feed_index: 1, symbol: "BTC/USD".into(), active: true,
-            config: None, shard_id: "shard-0".into(),
-            created_at: Some(morpheum_proto::google::protobuf::Timestamp { seconds: 1000, nanos: 0 }),
+            feed_index: 1,
+            symbol: "BTC/USD".into(),
+            active: true,
+            config: None,
+            shard_id: "shard-0".into(),
+            created_at: Some(morpheum_proto::google::protobuf::Timestamp {
+                seconds: 1000,
+                nanos: 0,
+            }),
             updated_at: None,
-            base_asset_index: 0, quote_asset_index: 1,
-            feed_kind: 0, base_feed_index: 0, quote_feed_index: 0,
+            base_asset_index: 0,
+            quote_asset_index: 1,
+            feed_kind: 0,
+            base_feed_index: 0,
+            quote_feed_index: 0,
         };
         let f: PriceFeed = p.into();
         assert_eq!(f.feed_index, 1);
@@ -251,7 +296,12 @@ mod tests {
 
     #[test]
     fn price_entry_from_proto() {
-        let p = proto::PriceEntry { value: 5_000_000_000_000, timestamp: 1700000000, source_count: 5, confidence: 95 };
+        let p = proto::PriceEntry {
+            value: 5_000_000_000_000,
+            timestamp: 1700000000,
+            source_count: 5,
+            confidence: 95,
+        };
         let e: PriceEntry = p.into();
         assert_eq!(e.value, 5_000_000_000_000);
         assert_eq!(e.source_count, 5);
@@ -260,10 +310,17 @@ mod tests {
     #[test]
     fn price_feed_config_roundtrip() {
         let c = PriceFeedConfig {
-            sources: vec![SourceConfig { source_type: "pyth".into(), params: BTreeMap::new() }],
-            agg_method: AggregationMethod::Median, decimals: 8,
-            threshold_pct: 5, heartbeat_sec: 60, staleness_sec: 300,
-            min_answer: "0".into(), max_answer: "100000000000000".into(),
+            sources: vec![SourceConfig {
+                source_type: "pyth".into(),
+                params: BTreeMap::new(),
+            }],
+            agg_method: AggregationMethod::Median,
+            decimals: 8,
+            threshold_pct: 5,
+            heartbeat_sec: 60,
+            staleness_sec: 300,
+            min_answer: "0".into(),
+            max_answer: "100000000000000".into(),
         };
         let p: proto::PriceFeedConfig = c.clone().into();
         let c2: PriceFeedConfig = p.into();

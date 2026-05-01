@@ -13,17 +13,12 @@ use alloc::vec::Vec;
 use async_trait::async_trait;
 use prost::Message as _;
 
-use morpheum_sdk_core::{
-    MorpheumClient, SdkConfig, SdkError, Transport,
-};
+use morpheum_sdk_core::{MorpheumClient, SdkConfig, SdkError, Transport};
 
 use crate::{
     requests::{
-        QueryActiveMarketsRequest,
-        QueryMarketRequest,
-        QueryMarketStatsRequest,
-        QueryMarketsRequest,
-        QueryMarketFeeStatsRequest,
+        QueryActiveMarketsRequest, QueryMarketFeeStatsRequest, QueryMarketRequest,
+        QueryMarketStatsRequest, QueryMarketsRequest,
     },
     types::{Market, MarketFeeStats, MarketStats},
 };
@@ -45,10 +40,7 @@ impl MarketClient {
     }
 
     /// Queries a single market by its index.
-    pub async fn query_market(
-        &self,
-        market_index: u64,
-    ) -> Result<Market, SdkError> {
+    pub async fn query_market(&self, market_index: u64) -> Result<Market, SdkError> {
         let req = QueryMarketRequest::new(market_index);
         let proto_req: morpheum_proto::market::v1::QueryMarketRequest = req.into();
 
@@ -57,10 +49,9 @@ impl MarketClient {
 
         let response_bytes = self.query(path, data).await?;
 
-        let proto_res = morpheum_proto::market::v1::QueryMarketResponse::decode(
-            response_bytes.as_slice(),
-        )
-        .map_err(SdkError::Decode)?;
+        let proto_res =
+            morpheum_proto::market::v1::QueryMarketResponse::decode(response_bytes.as_slice())
+                .map_err(SdkError::Decode)?;
 
         proto_res
             .market
@@ -87,10 +78,9 @@ impl MarketClient {
 
         let response_bytes = self.query(path, data).await?;
 
-        let proto_res = morpheum_proto::market::v1::QueryMarketsResponse::decode(
-            response_bytes.as_slice(),
-        )
-        .map_err(SdkError::Decode)?;
+        let proto_res =
+            morpheum_proto::market::v1::QueryMarketsResponse::decode(response_bytes.as_slice())
+                .map_err(SdkError::Decode)?;
 
         Ok(proto_res.markets.into_iter().map(Into::into).collect())
     }
@@ -123,8 +113,7 @@ impl MarketClient {
         market_index: u64,
         time_range: Option<String>,
     ) -> Result<MarketStats, SdkError> {
-        let req = QueryMarketStatsRequest::new(market_index)
-            .time_range_opt(time_range);
+        let req = QueryMarketStatsRequest::new(market_index).time_range_opt(time_range);
 
         let proto_req: morpheum_proto::market::v1::QueryMarketStatsRequest = req.into();
 
@@ -133,10 +122,9 @@ impl MarketClient {
 
         let response_bytes = self.query(path, data).await?;
 
-        let proto_res = morpheum_proto::market::v1::QueryMarketStatsResponse::decode(
-            response_bytes.as_slice(),
-        )
-        .map_err(SdkError::Decode)?;
+        let proto_res =
+            morpheum_proto::market::v1::QueryMarketStatsResponse::decode(response_bytes.as_slice())
+                .map_err(SdkError::Decode)?;
 
         proto_res
             .stats
@@ -185,14 +173,17 @@ mod tests {
 
     #[async_trait(?Send)]
     impl Transport for DummyTransport {
-        async fn broadcast_tx(&self, _tx_bytes: Vec<u8>) -> Result<morpheum_sdk_core::BroadcastResult, SdkError> {
+        async fn broadcast_tx(
+            &self,
+            _tx_bytes: Vec<u8>,
+        ) -> Result<morpheum_sdk_core::BroadcastResult, SdkError> {
             unimplemented!("not needed for market query tests")
         }
 
         async fn query(&self, path: &str, _data: Vec<u8>) -> Result<Vec<u8>, SdkError> {
             match path {
                 "/market.v1.Query/QueryMarket" => {
-                        let dummy = morpheum_proto::market::v1::QueryMarketResponse {
+                    let dummy = morpheum_proto::market::v1::QueryMarketResponse {
                         success: true,
                         error_message: "".into(),
                         market: Some(Default::default()),

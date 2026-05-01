@@ -17,9 +17,7 @@ use morpheum_proto::google::protobuf::Any as ProtoAny;
 use morpheum_proto::gov::v1 as proto;
 use morpheum_sdk_core::AccountId;
 
-use crate::types::{
-    ProposalClass, ProposalStatus, UpgradePlan, WeightedVoteOption,
-};
+use crate::types::{ProposalClass, ProposalStatus, UpgradePlan, WeightedVoteOption};
 
 // ====================== TRANSACTION REQUESTS ======================
 
@@ -177,11 +175,7 @@ pub struct ProposalDepositRequest {
 }
 
 impl ProposalDepositRequest {
-    pub fn new(
-        from_address: AccountId,
-        proposal_id: u64,
-        amount: impl Into<String>,
-    ) -> Self {
+    pub fn new(from_address: AccountId, proposal_id: u64, amount: impl Into<String>) -> Self {
         Self {
             from_address,
             proposal_id,
@@ -269,11 +263,7 @@ pub struct CancelProposalRequest {
 }
 
 impl CancelProposalRequest {
-    pub fn new(
-        from_address: AccountId,
-        proposal_id: u64,
-        reason: impl Into<String>,
-    ) -> Self {
+    pub fn new(from_address: AccountId, proposal_id: u64, reason: impl Into<String>) -> Self {
         Self {
             from_address,
             proposal_id,
@@ -329,7 +319,9 @@ impl QueryProposalRequest {
 
 impl From<QueryProposalRequest> for proto::QueryProposalRequest {
     fn from(req: QueryProposalRequest) -> Self {
-        Self { proposal_id: req.proposal_id }
+        Self {
+            proposal_id: req.proposal_id,
+        }
     }
 }
 
@@ -393,7 +385,10 @@ pub struct QueryProposalVoteRequest {
 
 impl QueryProposalVoteRequest {
     pub fn new(proposal_id: u64, voter: impl Into<String>) -> Self {
-        Self { proposal_id, voter: voter.into() }
+        Self {
+            proposal_id,
+            voter: voter.into(),
+        }
     }
 }
 
@@ -417,7 +412,11 @@ pub struct QueryProposalVotesRequest {
 
 impl QueryProposalVotesRequest {
     pub fn new(proposal_id: u64, limit: i32, offset: i32) -> Self {
-        Self { proposal_id, limit, offset }
+        Self {
+            proposal_id,
+            limit,
+            offset,
+        }
     }
 }
 
@@ -441,7 +440,10 @@ pub struct QueryProposalDepositRequest {
 
 impl QueryProposalDepositRequest {
     pub fn new(proposal_id: u64, depositor: impl Into<String>) -> Self {
-        Self { proposal_id, depositor: depositor.into() }
+        Self {
+            proposal_id,
+            depositor: depositor.into(),
+        }
     }
 }
 
@@ -465,7 +467,11 @@ pub struct QueryProposalDepositsRequest {
 
 impl QueryProposalDepositsRequest {
     pub fn new(proposal_id: u64, limit: i32, offset: i32) -> Self {
-        Self { proposal_id, limit, offset }
+        Self {
+            proposal_id,
+            limit,
+            offset,
+        }
     }
 }
 
@@ -494,7 +500,9 @@ impl QueryTallyResultRequest {
 
 impl From<QueryTallyResultRequest> for proto::QueryTallyResultRequest {
     fn from(req: QueryTallyResultRequest) -> Self {
-        Self { proposal_id: req.proposal_id }
+        Self {
+            proposal_id: req.proposal_id,
+        }
     }
 }
 
@@ -538,8 +546,7 @@ mod tests {
             WeightedVoteOption::new(VoteOption::Abstain, "0.3"),
         ];
 
-        let req = ProposalVoteRequest::new(from, 1, options)
-            .with_conviction(3);
+        let req = ProposalVoteRequest::new(from, 1, options).with_conviction(3);
 
         let any = req.to_any();
         assert_eq!(any.type_url, "/gov.v1.MsgVoteRequest");
@@ -557,7 +564,10 @@ mod tests {
         let proto_req: proto::QueryProposalsRequest = req.into();
         assert_eq!(proto_req.limit, 20);
         assert_eq!(proto_req.offset, 0);
-        assert_eq!(proto_req.status_filter, i32::from(ProposalStatus::VotingPeriod));
+        assert_eq!(
+            proto_req.status_filter,
+            i32::from(ProposalStatus::VotingPeriod)
+        );
         assert_eq!(proto_req.class_filter, i32::from(ProposalClass::Market));
         assert_eq!(proto_req.proposer_filter, "morpheum1abc");
     }

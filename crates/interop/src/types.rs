@@ -157,9 +157,7 @@ impl From<proto::cross_chain_proof_packet::Proof> for CrossChainProof {
             proto::cross_chain_proof_packet::Proof::ValidationProof(v) => {
                 Self::Validation(v.into())
             }
-            proto::cross_chain_proof_packet::Proof::IdentityProof(i) => {
-                Self::Identity(i.into())
-            }
+            proto::cross_chain_proof_packet::Proof::IdentityProof(i) => Self::Identity(i.into()),
         }
     }
 }
@@ -617,13 +615,25 @@ mod tests {
 
     #[test]
     fn bridge_response_is_ok() {
-        let ok = BridgeResponse { success: true, error: String::new(), ..Default::default() };
+        let ok = BridgeResponse {
+            success: true,
+            error: String::new(),
+            ..Default::default()
+        };
         assert!(ok.is_ok());
 
-        let fail = BridgeResponse { success: false, error: "timeout".into(), ..Default::default() };
+        let fail = BridgeResponse {
+            success: false,
+            error: "timeout".into(),
+            ..Default::default()
+        };
         assert!(!fail.is_ok());
 
-        let partial = BridgeResponse { success: true, error: "warning".into(), ..Default::default() };
+        let partial = BridgeResponse {
+            success: true,
+            error: "warning".into(),
+            ..Default::default()
+        };
         assert!(!partial.is_ok());
     }
 

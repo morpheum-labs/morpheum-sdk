@@ -38,10 +38,7 @@ impl SvmProvider {
 /// Uses `confirmed` commitment for balance queries and `finalized` for
 /// transaction confirmation (configurable via the returned `RpcClient`).
 pub fn build_provider(rpc_url: &str, keypair: Keypair) -> Result<SvmProvider, SvmError> {
-    let client = RpcClient::new_with_commitment(
-        rpc_url.to_string(),
-        CommitmentConfig::confirmed(),
-    );
+    let client = RpcClient::new_with_commitment(rpc_url.to_string(), CommitmentConfig::confirmed());
 
     Ok(SvmProvider { client, keypair })
 }

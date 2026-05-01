@@ -58,7 +58,13 @@ pub fn associated_token_address(wallet: &Pubkey, mint: &Pubkey) -> Pubkey {
 /// (from `hyperlane_token_pda_seeds!()` in hyperlane-sealevel-token-lib).
 pub fn hyperlane_token_pda(program_id: &Pubkey) -> (Pubkey, u8) {
     Pubkey::find_program_address(
-        &[b"hyperlane_message_recipient", b"-", b"handle", b"-", b"account_metas"],
+        &[
+            b"hyperlane_message_recipient",
+            b"-",
+            b"handle",
+            b"-",
+            b"account_metas",
+        ],
         program_id,
     )
 }
@@ -155,13 +161,7 @@ pub fn mailbox_processed_message_pda(
     message_id: &[u8; 32],
 ) -> (Pubkey, u8) {
     Pubkey::find_program_address(
-        &[
-            b"hyperlane",
-            b"-",
-            b"processed_message",
-            b"-",
-            message_id,
-        ],
+        &[b"hyperlane", b"-", b"processed_message", b"-", message_id],
         mailbox_program,
     )
 }

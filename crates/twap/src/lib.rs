@@ -8,23 +8,17 @@
 
 extern crate alloc;
 
-pub mod client;
-pub mod types;
-pub mod requests;
 pub mod builder;
+pub mod client;
+pub mod requests;
+pub mod types;
 
 // ==================== PUBLIC RE-EXPORTS ====================
 
 pub use client::{TwapClient, TwapResult};
 
 pub use types::{
-    MarketTwapConfig,
-    TwapData,
-    TwapEvent,
-    TwapModuleConfig,
-    TwapParams,
-    TwapUpdated,
-    WindowEntry,
+    MarketTwapConfig, TwapData, TwapEvent, TwapModuleConfig, TwapParams, TwapUpdated, WindowEntry,
     WindowSnapshot,
 };
 
@@ -42,13 +36,7 @@ pub use morpheum_sdk_core::{AccountId, ChainId, SdkError, SignedTx};
 /// ```
 pub mod prelude {
     pub use super::{
-        TwapClient,
-        TwapData,
-        MarketTwapConfig,
-        AccountId,
-        ChainId,
-        SdkError,
-        SignedTx,
+        AccountId, ChainId, MarketTwapConfig, SdkError, SignedTx, TwapClient, TwapData,
     };
 }
 

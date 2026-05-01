@@ -27,19 +27,20 @@ impl GmpClient {
     /// Query GMP module parameters.
     pub async fn query_params(&self) -> Result<GmpParams, SdkError> {
         let req = pb::QueryParamsRequest {};
-        let data = self.query("/gmp.v1.QueryParamsRequest", req.encode_to_vec()).await?;
+        let data = self
+            .query("/gmp.v1.QueryParamsRequest", req.encode_to_vec())
+            .await?;
         let resp = pb::QueryParamsResponse::decode(data.as_slice())?;
-        let params = resp
-            .params
-            .map(GmpParams::from)
-            .unwrap_or_default();
+        let params = resp.params.map(GmpParams::from).unwrap_or_default();
         Ok(params)
     }
 
     /// Query registered GMP protocols.
     pub async fn query_protocols(&self) -> Result<Vec<ProtocolInfo>, SdkError> {
         let req = pb::QueryProtocolsRequest {};
-        let data = self.query("/gmp.v1.QueryProtocolsRequest", req.encode_to_vec()).await?;
+        let data = self
+            .query("/gmp.v1.QueryProtocolsRequest", req.encode_to_vec())
+            .await?;
         let resp = pb::QueryProtocolsResponse::decode(data.as_slice())?;
         Ok(resp.protocols.into_iter().map(ProtocolInfo::from).collect())
     }

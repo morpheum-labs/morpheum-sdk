@@ -28,8 +28,12 @@ pub enum GraduationStatus {
 impl From<i32> for GraduationStatus {
     fn from(v: i32) -> Self {
         match v {
-            1 => Self::Pending, 2 => Self::Draining, 3 => Self::MarketsCreated,
-            4 => Self::Completed, 5 => Self::Failed, _ => Self::Unspecified,
+            1 => Self::Pending,
+            2 => Self::Draining,
+            3 => Self::MarketsCreated,
+            4 => Self::Completed,
+            5 => Self::Failed,
+            _ => Self::Unspecified,
         }
     }
 }
@@ -37,9 +41,12 @@ impl From<i32> for GraduationStatus {
 impl From<GraduationStatus> for i32 {
     fn from(s: GraduationStatus) -> Self {
         match s {
-            GraduationStatus::Unspecified => 0, GraduationStatus::Pending => 1,
-            GraduationStatus::Draining => 2, GraduationStatus::MarketsCreated => 3,
-            GraduationStatus::Completed => 4, GraduationStatus::Failed => 5,
+            GraduationStatus::Unspecified => 0,
+            GraduationStatus::Pending => 1,
+            GraduationStatus::Draining => 2,
+            GraduationStatus::MarketsCreated => 3,
+            GraduationStatus::Completed => 4,
+            GraduationStatus::Failed => 5,
         }
     }
 }
@@ -63,7 +70,11 @@ pub struct GraduationCheckpoint {
 
 impl From<proto::GraduationCheckpoint> for GraduationCheckpoint {
     fn from(p: proto::GraduationCheckpoint) -> Self {
-        Self { step: p.step, description: p.description, at: ts_secs(p.at) }
+        Self {
+            step: p.step,
+            description: p.description,
+            at: ts_secs(p.at),
+        }
     }
 }
 
@@ -122,10 +133,14 @@ pub struct ClmmGraduationParams {
 impl From<proto::Params> for ClmmGraduationParams {
     fn from(p: proto::Params) -> Self {
         Self {
-            min_mcap_sat: p.min_mcap_sat, min_tvl_sat: p.min_tvl_sat,
-            min_volume_30d_sat: p.min_volume_30d_sat, min_age_blocks: p.min_age_blocks,
-            incentives_bps: p.incentives_bps, cooldown_blocks: p.cooldown_blocks,
-            authority: p.authority, protocol_fee_bps: p.protocol_fee_bps,
+            min_mcap_sat: p.min_mcap_sat,
+            min_tvl_sat: p.min_tvl_sat,
+            min_volume_30d_sat: p.min_volume_30d_sat,
+            min_age_blocks: p.min_age_blocks,
+            incentives_bps: p.incentives_bps,
+            cooldown_blocks: p.cooldown_blocks,
+            authority: p.authority,
+            protocol_fee_bps: p.protocol_fee_bps,
             graduation_timeout_blocks: p.graduation_timeout_blocks,
         }
     }
@@ -144,7 +159,11 @@ pub struct GraduationInitiated {
 
 impl From<proto::GraduationInitiated> for GraduationInitiated {
     fn from(p: proto::GraduationInitiated) -> Self {
-        Self { token_index: p.token_index, mcap_at_trigger: p.mcap_at_trigger, timestamp: ts_secs(p.timestamp) }
+        Self {
+            token_index: p.token_index,
+            mcap_at_trigger: p.mcap_at_trigger,
+            timestamp: ts_secs(p.timestamp),
+        }
     }
 }
 
@@ -166,10 +185,14 @@ pub struct LiquidityDrained {
 impl From<proto::LiquidityDrained> for LiquidityDrained {
     fn from(p: proto::LiquidityDrained) -> Self {
         Self {
-            token_index: p.token_index, pool_id: p.pool_id,
-            drained_amount_base: p.drained_amount_base, drained_amount_quote: p.drained_amount_quote,
-            returned_to_lps_base: p.returned_to_lps_base, returned_to_lps_quote: p.returned_to_lps_quote,
-            protocol_fee_base: p.protocol_fee_base, protocol_fee_quote: p.protocol_fee_quote,
+            token_index: p.token_index,
+            pool_id: p.pool_id,
+            drained_amount_base: p.drained_amount_base,
+            drained_amount_quote: p.drained_amount_quote,
+            returned_to_lps_base: p.returned_to_lps_base,
+            returned_to_lps_quote: p.returned_to_lps_quote,
+            protocol_fee_base: p.protocol_fee_base,
+            protocol_fee_quote: p.protocol_fee_quote,
             timestamp: ts_secs(p.timestamp),
         }
     }
@@ -186,7 +209,11 @@ pub struct SpotMarketCreated {
 
 impl From<proto::SpotMarketCreated> for SpotMarketCreated {
     fn from(p: proto::SpotMarketCreated) -> Self {
-        Self { token_index: p.token_index, market_index: p.market_index, timestamp: ts_secs(p.timestamp) }
+        Self {
+            token_index: p.token_index,
+            market_index: p.market_index,
+            timestamp: ts_secs(p.timestamp),
+        }
     }
 }
 
@@ -201,7 +228,11 @@ pub struct PerpMarketCreated {
 
 impl From<proto::PerpMarketCreated> for PerpMarketCreated {
     fn from(p: proto::PerpMarketCreated) -> Self {
-        Self { token_index: p.token_index, market_index: p.market_index, timestamp: ts_secs(p.timestamp) }
+        Self {
+            token_index: p.token_index,
+            market_index: p.market_index,
+            timestamp: ts_secs(p.timestamp),
+        }
     }
 }
 
@@ -218,8 +249,10 @@ pub struct GraduationComplete {
 impl From<proto::GraduationComplete> for GraduationComplete {
     fn from(p: proto::GraduationComplete) -> Self {
         Self {
-            token_index: p.token_index, spot_market_index: p.spot_market_index,
-            perp_market_index: p.perp_market_index, timestamp: ts_secs(p.timestamp),
+            token_index: p.token_index,
+            spot_market_index: p.spot_market_index,
+            perp_market_index: p.perp_market_index,
+            timestamp: ts_secs(p.timestamp),
         }
     }
 }
@@ -235,7 +268,11 @@ pub struct GraduationFailed {
 
 impl From<proto::GraduationFailed> for GraduationFailed {
     fn from(p: proto::GraduationFailed) -> Self {
-        Self { token_index: p.token_index, reason: p.reason, timestamp: ts_secs(p.timestamp) }
+        Self {
+            token_index: p.token_index,
+            reason: p.reason,
+            timestamp: ts_secs(p.timestamp),
+        }
     }
 }
 
@@ -252,8 +289,10 @@ pub struct GraduationRollbackAttempted {
 impl From<proto::GraduationRollbackAttempted> for GraduationRollbackAttempted {
     fn from(p: proto::GraduationRollbackAttempted) -> Self {
         Self {
-            token_index: p.token_index, failed_step: p.failed_step,
-            reason: p.reason, timestamp: ts_secs(p.timestamp),
+            token_index: p.token_index,
+            failed_step: p.failed_step,
+            reason: p.reason,
+            timestamp: ts_secs(p.timestamp),
         }
     }
 }
@@ -265,9 +304,13 @@ mod tests {
 
     #[test]
     fn graduation_status_roundtrip() {
-        for s in [GraduationStatus::Pending, GraduationStatus::Draining,
-                   GraduationStatus::MarketsCreated, GraduationStatus::Completed,
-                   GraduationStatus::Failed] {
+        for s in [
+            GraduationStatus::Pending,
+            GraduationStatus::Draining,
+            GraduationStatus::MarketsCreated,
+            GraduationStatus::Completed,
+            GraduationStatus::Failed,
+        ] {
             let v: i32 = s.into();
             assert_eq!(s, GraduationStatus::from(v));
         }
@@ -276,15 +319,26 @@ mod tests {
     #[test]
     fn graduation_state_from_proto() {
         let p = proto::GraduationState {
-            token_index: "42".into(), status: 1,
-            spot_market_index: "100".into(), perp_market_index: "101".into(),
-            clmm_pool_id: "0x1234".into(), initiated_at: 1000, completed_at: 0,
+            token_index: "42".into(),
+            status: 1,
+            spot_market_index: "100".into(),
+            perp_market_index: "101".into(),
+            clmm_pool_id: "0x1234".into(),
+            initiated_at: 1000,
+            completed_at: 0,
             failure_reason: String::new(),
             checkpoints: vec![proto::GraduationCheckpoint {
-                step: 1, description: "draining".into(),
-                at: Some(morpheum_proto::google::protobuf::Timestamp { seconds: 1000, nanos: 0 }),
+                step: 1,
+                description: "draining".into(),
+                at: Some(morpheum_proto::google::protobuf::Timestamp {
+                    seconds: 1000,
+                    nanos: 0,
+                }),
             }],
-            last_activity: Some(morpheum_proto::google::protobuf::Timestamp { seconds: 1000, nanos: 0 }),
+            last_activity: Some(morpheum_proto::google::protobuf::Timestamp {
+                seconds: 1000,
+                nanos: 0,
+            }),
             failed_step: 0,
         };
         let state: GraduationState = p.into();

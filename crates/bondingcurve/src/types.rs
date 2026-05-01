@@ -24,13 +24,21 @@ pub enum CurveType {
 
 impl From<i32> for CurveType {
     fn from(v: i32) -> Self {
-        match v { 1 => Self::ConstantProduct, 2 => Self::Linear, _ => Self::Unspecified }
+        match v {
+            1 => Self::ConstantProduct,
+            2 => Self::Linear,
+            _ => Self::Unspecified,
+        }
     }
 }
 
 impl From<CurveType> for i32 {
     fn from(t: CurveType) -> Self {
-        match t { CurveType::Unspecified => 0, CurveType::ConstantProduct => 1, CurveType::Linear => 2 }
+        match t {
+            CurveType::Unspecified => 0,
+            CurveType::ConstantProduct => 1,
+            CurveType::Linear => 2,
+        }
     }
 }
 
@@ -46,15 +54,22 @@ pub enum CurveStatus {
 
 impl From<i32> for CurveStatus {
     fn from(v: i32) -> Self {
-        match v { 1 => Self::Active, 2 => Self::Graduating, 3 => Self::Completed, _ => Self::Unspecified }
+        match v {
+            1 => Self::Active,
+            2 => Self::Graduating,
+            3 => Self::Completed,
+            _ => Self::Unspecified,
+        }
     }
 }
 
 impl From<CurveStatus> for i32 {
     fn from(s: CurveStatus) -> Self {
         match s {
-            CurveStatus::Unspecified => 0, CurveStatus::Active => 1,
-            CurveStatus::Graduating => 2, CurveStatus::Completed => 3,
+            CurveStatus::Unspecified => 0,
+            CurveStatus::Active => 1,
+            CurveStatus::Graduating => 2,
+            CurveStatus::Completed => 3,
         }
     }
 }
@@ -73,8 +88,10 @@ pub enum LpAntiRugStrategy {
 impl From<i32> for LpAntiRugStrategy {
     fn from(v: i32) -> Self {
         match v {
-            1 => Self::Immediate, 2 => Self::Timelock,
-            3 => Self::AfterClobMigration, 4 => Self::Fractional,
+            1 => Self::Immediate,
+            2 => Self::Timelock,
+            3 => Self::AfterClobMigration,
+            4 => Self::Fractional,
             _ => Self::Unspecified,
         }
     }
@@ -83,8 +100,10 @@ impl From<i32> for LpAntiRugStrategy {
 impl From<LpAntiRugStrategy> for i32 {
     fn from(s: LpAntiRugStrategy) -> Self {
         match s {
-            LpAntiRugStrategy::Unspecified => 0, LpAntiRugStrategy::Immediate => 1,
-            LpAntiRugStrategy::Timelock => 2, LpAntiRugStrategy::AfterClobMigration => 3,
+            LpAntiRugStrategy::Unspecified => 0,
+            LpAntiRugStrategy::Immediate => 1,
+            LpAntiRugStrategy::Timelock => 2,
+            LpAntiRugStrategy::AfterClobMigration => 3,
             LpAntiRugStrategy::Fractional => 4,
         }
     }
@@ -140,7 +159,11 @@ pub struct PredictionMetadata {
 
 impl From<proto::PredictionMetadata> for PredictionMetadata {
     fn from(p: proto::PredictionMetadata) -> Self {
-        Self { title: p.title, description: p.description, external_view_url: p.external_view_url }
+        Self {
+            title: p.title,
+            description: p.description,
+            external_view_url: p.external_view_url,
+        }
     }
 }
 
@@ -160,7 +183,10 @@ impl From<proto::PredictionEnhancement> for PredictionEnhancement {
             Some(Variant::Gated(f)) => PredictionMode::Gated(f.into()),
             _ => PredictionMode::None,
         };
-        Self { mode, metadata: p.metadata.map(Into::into) }
+        Self {
+            mode,
+            metadata: p.metadata.map(Into::into),
+        }
     }
 }
 
@@ -207,7 +233,11 @@ impl From<proto::Params> for BondingCurveParams {
     fn from(p: proto::Params) -> Self {
         Self {
             min_reputation_for_launch: p.min_reputation_for_launch,
-            reputation_bond_tiers: p.reputation_bond_tiers.into_iter().map(Into::into).collect(),
+            reputation_bond_tiers: p
+                .reputation_bond_tiers
+                .into_iter()
+                .map(Into::into)
+                .collect(),
             graduation_burn_bps: p.graduation_burn_bps,
             lp_anti_rug_strategy: LpAntiRugStrategy::from(p.lp_anti_rug_strategy),
             lp_timelock_blocks: p.lp_timelock_blocks,
@@ -291,9 +321,12 @@ pub struct BuyExecuted {
 impl From<proto::BuyExecuted> for BuyExecuted {
     fn from(p: proto::BuyExecuted) -> Self {
         Self {
-            token_index: p.token_index, buyer: p.buyer,
-            token_amount: p.token_amount, morm_amount: p.morm_amount,
-            price: p.price, escrow_delta: p.escrow_delta,
+            token_index: p.token_index,
+            buyer: p.buyer,
+            token_amount: p.token_amount,
+            morm_amount: p.morm_amount,
+            price: p.price,
+            escrow_delta: p.escrow_delta,
             timestamp: ts_secs(p.timestamp),
         }
     }
@@ -315,9 +348,12 @@ pub struct SellExecuted {
 impl From<proto::SellExecuted> for SellExecuted {
     fn from(p: proto::SellExecuted) -> Self {
         Self {
-            token_index: p.token_index, seller: p.seller,
-            token_amount: p.token_amount, morm_amount: p.morm_amount,
-            price: p.price, escrow_delta: p.escrow_delta,
+            token_index: p.token_index,
+            seller: p.seller,
+            token_amount: p.token_amount,
+            morm_amount: p.morm_amount,
+            price: p.price,
+            escrow_delta: p.escrow_delta,
             timestamp: ts_secs(p.timestamp),
         }
     }
@@ -336,8 +372,10 @@ pub struct GraduationThresholdReached {
 impl From<proto::GraduationThresholdReached> for GraduationThresholdReached {
     fn from(p: proto::GraduationThresholdReached) -> Self {
         Self {
-            token_index: p.token_index, current_mcap: p.current_mcap,
-            reason: p.reason, at: ts_secs(p.at),
+            token_index: p.token_index,
+            current_mcap: p.current_mcap,
+            reason: p.reason,
+            at: ts_secs(p.at),
         }
     }
 }
@@ -357,8 +395,10 @@ pub struct GraduationComplete {
 impl From<proto::GraduationComplete> for GraduationComplete {
     fn from(p: proto::GraduationComplete) -> Self {
         Self {
-            token_index: p.token_index, pool_id: p.pool_id,
-            mcap_at_grad: p.mcap_at_grad, burned_morm: p.burned_morm,
+            token_index: p.token_index,
+            pool_id: p.pool_id,
+            mcap_at_grad: p.mcap_at_grad,
+            burned_morm: p.burned_morm,
             lp_strategy_applied: p.lp_strategy_applied,
             graduated_at: ts_secs(p.graduated_at),
         }
@@ -378,8 +418,10 @@ pub struct PredictionEnhancementActivated {
 impl From<proto::PredictionEnhancementActivated> for PredictionEnhancementActivated {
     fn from(p: proto::PredictionEnhancementActivated) -> Self {
         Self {
-            token_index: p.token_index, mode: p.mode,
-            feed_id: p.feed_id, activated_at: ts_secs(p.activated_at),
+            token_index: p.token_index,
+            mode: p.mode,
+            feed_id: p.feed_id,
+            activated_at: ts_secs(p.activated_at),
         }
     }
 }
@@ -398,7 +440,11 @@ mod tests {
 
     #[test]
     fn curve_status_roundtrip() {
-        for cs in [CurveStatus::Active, CurveStatus::Graduating, CurveStatus::Completed] {
+        for cs in [
+            CurveStatus::Active,
+            CurveStatus::Graduating,
+            CurveStatus::Completed,
+        ] {
             let v: i32 = cs.into();
             assert_eq!(cs, CurveStatus::from(v));
         }
@@ -406,8 +452,12 @@ mod tests {
 
     #[test]
     fn lp_strategy_roundtrip() {
-        for s in [LpAntiRugStrategy::Immediate, LpAntiRugStrategy::Timelock,
-                   LpAntiRugStrategy::AfterClobMigration, LpAntiRugStrategy::Fractional] {
+        for s in [
+            LpAntiRugStrategy::Immediate,
+            LpAntiRugStrategy::Timelock,
+            LpAntiRugStrategy::AfterClobMigration,
+            LpAntiRugStrategy::Fractional,
+        ] {
             let v: i32 = s.into();
             assert_eq!(s, LpAntiRugStrategy::from(v));
         }
@@ -432,7 +482,10 @@ mod tests {
             utility_multiplier: "1".into(),
             threshold_met_at: None,
             prediction_enhancement: None,
-            created_at: Some(morpheum_proto::google::protobuf::Timestamp { seconds: 1_700_000_000, nanos: 0 }),
+            created_at: Some(morpheum_proto::google::protobuf::Timestamp {
+                seconds: 1_700_000_000,
+                nanos: 0,
+            }),
             graduated_at: None,
         };
         let state: BondingCurveState = p.into();
@@ -463,6 +516,9 @@ mod tests {
             PredictionMode::Boost(f) => assert_eq!(f.feed_id, "feed-123"),
             _ => panic!("expected Boost"),
         }
-        assert_eq!(pe.metadata.as_ref().unwrap().title.as_deref(), Some("Will BTC hit 100k?"));
+        assert_eq!(
+            pe.metadata.as_ref().unwrap().title.as_deref(),
+            Some("Will BTC hit 100k?")
+        );
     }
 }

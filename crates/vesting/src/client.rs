@@ -6,8 +6,8 @@ use alloc::vec::Vec;
 use async_trait::async_trait;
 use prost::Message as _;
 
-use morpheum_sdk_core::{MorpheumClient, SdkConfig, SdkError, Transport};
 use morpheum_proto::vesting::v1 as proto;
+use morpheum_sdk_core::{MorpheumClient, SdkConfig, SdkError, Transport};
 
 use crate::requests;
 use crate::types::{VestingEntry, VestingParams, VestingSummary};
@@ -36,29 +36,61 @@ impl VestingClient {
     }
 
     /// Gets aggregated vesting summary for a beneficiary.
-    pub async fn get_summary(&self, req: requests::QueryVestingSummaryRequest) -> Result<VestingSummary, SdkError> {
+    pub async fn get_summary(
+        &self,
+        req: requests::QueryVestingSummaryRequest,
+    ) -> Result<VestingSummary, SdkError> {
         let proto_req: proto::QueryVestingSummaryRequest = req.into();
-        let resp = self.query("/vesting.v1.Query/QueryVestingSummary", proto_req.encode_to_vec()).await?;
-        let p = proto::QueryVestingSummaryResponse::decode(resp.as_slice()).map_err(SdkError::Decode)?;
-        p.summary.map(Into::into).ok_or_else(|| SdkError::transport("summary field missing"))
+        let resp = self
+            .query(
+                "/vesting.v1.Query/QueryVestingSummary",
+                proto_req.encode_to_vec(),
+            )
+            .await?;
+        let p = proto::QueryVestingSummaryResponse::decode(resp.as_slice())
+            .map_err(SdkError::Decode)?;
+        p.summary
+            .map(Into::into)
+            .ok_or_else(|| SdkError::transport("summary field missing"))
     }
 
     /// Gets a specific vesting entry by ID.
-    pub async fn get_entry(&self, req: requests::QueryVestingEntryRequest) -> Result<VestingEntryResult, SdkError> {
+    pub async fn get_entry(
+        &self,
+        req: requests::QueryVestingEntryRequest,
+    ) -> Result<VestingEntryResult, SdkError> {
         let proto_req: proto::QueryVestingEntryRequest = req.into();
-        let resp = self.query("/vesting.v1.Query/QueryVestingEntry", proto_req.encode_to_vec()).await?;
-        let p = proto::QueryVestingEntryResponse::decode(resp.as_slice()).map_err(SdkError::Decode)?;
+        let resp = self
+            .query(
+                "/vesting.v1.Query/QueryVestingEntry",
+                proto_req.encode_to_vec(),
+            )
+            .await?;
+        let p =
+            proto::QueryVestingEntryResponse::decode(resp.as_slice()).map_err(SdkError::Decode)?;
         Ok(VestingEntryResult {
-            entry: p.entry.map(Into::into).ok_or_else(|| SdkError::transport("entry field missing"))?,
+            entry: p
+                .entry
+                .map(Into::into)
+                .ok_or_else(|| SdkError::transport("entry field missing"))?,
             currently_releasable: p.currently_releasable,
         })
     }
 
     /// Lists all vesting entries for a beneficiary.
-    pub async fn list_entries(&self, req: requests::QueryVestingEntriesRequest) -> Result<VestingEntriesPage, SdkError> {
+    pub async fn list_entries(
+        &self,
+        req: requests::QueryVestingEntriesRequest,
+    ) -> Result<VestingEntriesPage, SdkError> {
         let proto_req: proto::QueryVestingEntriesRequest = req.into();
-        let resp = self.query("/vesting.v1.Query/QueryVestingEntries", proto_req.encode_to_vec()).await?;
-        let p = proto::QueryVestingEntriesResponse::decode(resp.as_slice()).map_err(SdkError::Decode)?;
+        let resp = self
+            .query(
+                "/vesting.v1.Query/QueryVestingEntries",
+                proto_req.encode_to_vec(),
+            )
+            .await?;
+        let p = proto::QueryVestingEntriesResponse::decode(resp.as_slice())
+            .map_err(SdkError::Decode)?;
         Ok(VestingEntriesPage {
             entries: p.entries.into_iter().map(Into::into).collect(),
             total_count: p.total_count,
@@ -68,16 +100,24 @@ impl VestingClient {
     /// Gets current governance parameters.
     pub async fn get_params(&self) -> Result<VestingParams, SdkError> {
         let proto_req: proto::QueryParamsRequest = requests::QueryParamsRequest.into();
-        let resp = self.query("/vesting.v1.Query/QueryParams", proto_req.encode_to_vec()).await?;
+        let resp = self
+            .query("/vesting.v1.Query/QueryParams", proto_req.encode_to_vec())
+            .await?;
         let p = proto::QueryParamsResponse::decode(resp.as_slice()).map_err(SdkError::Decode)?;
-        p.params.map(Into::into).ok_or_else(|| SdkError::transport("params field missing"))
+        p.params
+            .map(Into::into)
+            .ok_or_else(|| SdkError::transport("params field missing"))
     }
 }
 
 #[async_trait(?Send)]
 impl MorpheumClient for VestingClient {
-    fn config(&self) -> &SdkConfig { &self.config }
-    fn transport(&self) -> &dyn Transport { &*self.transport }
+    fn config(&self) -> &SdkConfig {
+        &self.config
+    }
+    fn transport(&self) -> &dyn Transport {
+        &*self.transport
+    }
 }
 
 #[cfg(test)]
@@ -89,45 +129,60 @@ mod tests {
 
     #[async_trait(?Send)]
     impl Transport for DummyTransport {
-        async fn broadcast_tx(&self, _: Vec<u8>) -> Result<morpheum_sdk_core::BroadcastResult, SdkError> {
+        async fn broadcast_tx(
+            &self,
+            _: Vec<u8>,
+        ) -> Result<morpheum_sdk_core::BroadcastResult, SdkError> {
             unimplemented!()
         }
         async fn query(&self, path: &str, _: Vec<u8>) -> Result<Vec<u8>, SdkError> {
             match path {
-                "/vesting.v1.Query/QueryVestingSummary" => {
-                    Ok(prost::Message::encode_to_vec(&proto::QueryVestingSummaryResponse {
+                "/vesting.v1.Query/QueryVestingSummary" => Ok(prost::Message::encode_to_vec(
+                    &proto::QueryVestingSummaryResponse {
                         summary: Some(proto::VestingSummary {
-                            beneficiary: "morph1user".into(), total_vested: "1000000".into(),
-                            total_released: "250000".into(), currently_releasable: "50000".into(),
-                            total_locked: "700000".into(), next_unlock_timestamp: 1700100000,
+                            beneficiary: "morph1user".into(),
+                            total_vested: "1000000".into(),
+                            total_released: "250000".into(),
+                            currently_releasable: "50000".into(),
+                            total_locked: "700000".into(),
+                            next_unlock_timestamp: 1700100000,
                             entry_count: 3,
                         }),
                         current_timestamp: 1700000000,
-                    }))
-                }
-                "/vesting.v1.Query/QueryVestingEntry" => {
-                    Ok(prost::Message::encode_to_vec(&proto::QueryVestingEntryResponse {
+                    },
+                )),
+                "/vesting.v1.Query/QueryVestingEntry" => Ok(prost::Message::encode_to_vec(
+                    &proto::QueryVestingEntryResponse {
                         entry: Some(proto::VestingEntry {
-                            id: 1, beneficiary: "morph1user".into(),
-                            total_amount: "500000".into(), released: "100000".into(),
-                            start_timestamp: 1690000000, cliff_duration: 31536000,
-                            vesting_duration: 63072000, schedule_type: 2,
-                            revocable: true, category: 2,
-                            step_timestamps: vec![], step_amounts: vec![],
+                            id: 1,
+                            beneficiary: "morph1user".into(),
+                            total_amount: "500000".into(),
+                            released: "100000".into(),
+                            start_timestamp: 1690000000,
+                            cliff_duration: 31536000,
+                            vesting_duration: 63072000,
+                            schedule_type: 2,
+                            revocable: true,
+                            category: 2,
+                            step_timestamps: vec![],
+                            step_amounts: vec![],
                         }),
                         currently_releasable: "25000".into(),
-                    }))
-                }
-                "/vesting.v1.Query/QueryVestingEntries" => {
-                    Ok(prost::Message::encode_to_vec(&proto::QueryVestingEntriesResponse {
-                        entries: vec![], total_count: 0,
-                    }))
-                }
+                    },
+                )),
+                "/vesting.v1.Query/QueryVestingEntries" => Ok(prost::Message::encode_to_vec(
+                    &proto::QueryVestingEntriesResponse {
+                        entries: vec![],
+                        total_count: 0,
+                    },
+                )),
                 "/vesting.v1.Query/QueryParams" => {
                     Ok(prost::Message::encode_to_vec(&proto::QueryParamsResponse {
                         params: Some(proto::Params {
-                            max_entries_per_account: 32, max_cliff_duration: 157680000,
-                            max_vesting_duration: 315360000, min_vesting_duration: 2592000,
+                            max_entries_per_account: 32,
+                            max_cliff_duration: 157680000,
+                            max_vesting_duration: 315360000,
+                            min_vesting_duration: 2592000,
                             min_vesting_amount: "100000".into(),
                             allow_governance_revocation: true,
                             default_cliff_duration: 31536000,
@@ -150,7 +205,8 @@ mod tests {
     async fn get_summary_works() {
         let s = make_client()
             .get_summary(requests::QueryVestingSummaryRequest::new("morph1user"))
-            .await.unwrap();
+            .await
+            .unwrap();
         assert_eq!(s.entry_count, 3);
         assert_eq!(s.currently_releasable, "50000");
     }
@@ -159,7 +215,8 @@ mod tests {
     async fn get_entry_works() {
         let r = make_client()
             .get_entry(requests::QueryVestingEntryRequest::new("morph1user", 1))
-            .await.unwrap();
+            .await
+            .unwrap();
         assert_eq!(r.entry.id, 1);
         assert_eq!(r.currently_releasable, "25000");
     }
@@ -168,7 +225,8 @@ mod tests {
     async fn list_entries_works() {
         let page = make_client()
             .list_entries(requests::QueryVestingEntriesRequest::new("morph1user"))
-            .await.unwrap();
+            .await
+            .unwrap();
         assert!(page.entries.is_empty());
         assert_eq!(page.total_count, 0);
     }

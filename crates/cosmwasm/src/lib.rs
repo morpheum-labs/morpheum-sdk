@@ -26,13 +26,12 @@ pub mod requests;
 pub mod types;
 
 pub use builder::{
-    ExecuteContractBuilder, InstantiateContractBuilder, StoreCodeBuilder,
-    WarpRouteTransferBuilder,
+    ExecuteContractBuilder, InstantiateContractBuilder, StoreCodeBuilder, WarpRouteTransferBuilder,
 };
 pub use client::CosmWasmClient;
 pub use requests::{
-    ExecuteContractRequest, InstantiateContractRequest, QueryRawRequest,
-    QuerySmartRequest, StoreCodeRequest,
+    ExecuteContractRequest, InstantiateContractRequest, QueryRawRequest, QuerySmartRequest,
+    StoreCodeRequest,
 };
 pub use types::{ContractInfo, CosmWasmError};
 

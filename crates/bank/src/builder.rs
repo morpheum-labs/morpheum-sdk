@@ -73,18 +73,18 @@ impl TransferBuilder {
     }
 
     pub fn build(self) -> Result<TransferRequest, SdkError> {
-        let from_address = self.from_address.ok_or_else(|| {
-            SdkError::invalid_input("from_address is required for transfer")
-        })?;
-        let to_address = self.to_address.ok_or_else(|| {
-            SdkError::invalid_input("to_address is required for transfer")
-        })?;
-        let amount = self.amount.ok_or_else(|| {
-            SdkError::invalid_input("amount is required for transfer")
-        })?;
-        let asset_index = self.asset_index.ok_or_else(|| {
-            SdkError::invalid_input("asset_index is required for transfer")
-        })?;
+        let from_address = self
+            .from_address
+            .ok_or_else(|| SdkError::invalid_input("from_address is required for transfer"))?;
+        let to_address = self
+            .to_address
+            .ok_or_else(|| SdkError::invalid_input("to_address is required for transfer"))?;
+        let amount = self
+            .amount
+            .ok_or_else(|| SdkError::invalid_input("amount is required for transfer"))?;
+        let asset_index = self
+            .asset_index
+            .ok_or_else(|| SdkError::invalid_input("asset_index is required for transfer"))?;
 
         let mut req = TransferRequest::new(from_address, to_address, amount, asset_index);
         if let Some(m) = self.memo {
@@ -181,9 +181,8 @@ impl CrossChainTransferBuilder {
             SdkError::invalid_input("asset identifier is required for cross-chain transfer")
         })?;
 
-        let mut req = CrossChainTransferRequest::new(
-            from_address, target_chain, to_address, amount, asset,
-        );
+        let mut req =
+            CrossChainTransferRequest::new(from_address, target_chain, to_address, amount, asset);
         if let Some(m) = self.memo {
             req.memo = m;
         }
@@ -235,20 +234,25 @@ impl TransferToBucketBuilder {
     }
 
     pub fn build(self) -> Result<TransferToBucketRequest, SdkError> {
-        let address = self.address.ok_or_else(|| {
-            SdkError::invalid_input("address is required for transfer to bucket")
-        })?;
+        let address = self
+            .address
+            .ok_or_else(|| SdkError::invalid_input("address is required for transfer to bucket"))?;
         let bucket_id = self.bucket_id.ok_or_else(|| {
             SdkError::invalid_input("bucket_id is required for transfer to bucket")
         })?;
         let asset_index = self.asset_index.ok_or_else(|| {
             SdkError::invalid_input("asset_index is required for transfer to bucket")
         })?;
-        let amount = self.amount.ok_or_else(|| {
-            SdkError::invalid_input("amount is required for transfer to bucket")
-        })?;
+        let amount = self
+            .amount
+            .ok_or_else(|| SdkError::invalid_input("amount is required for transfer to bucket"))?;
 
-        Ok(TransferToBucketRequest::new(address, bucket_id, asset_index, amount))
+        Ok(TransferToBucketRequest::new(
+            address,
+            bucket_id,
+            asset_index,
+            amount,
+        ))
     }
 }
 
@@ -302,15 +306,15 @@ impl MintBuilder {
     }
 
     pub fn build(self) -> Result<MintRequest, SdkError> {
-        let recipient_address = self.recipient_address.ok_or_else(|| {
-            SdkError::invalid_input("recipient_address is required for minting")
-        })?;
-        let asset_index = self.asset_index.ok_or_else(|| {
-            SdkError::invalid_input("asset_index is required for minting")
-        })?;
-        let amount = self.amount.ok_or_else(|| {
-            SdkError::invalid_input("amount is required for minting")
-        })?;
+        let recipient_address = self
+            .recipient_address
+            .ok_or_else(|| SdkError::invalid_input("recipient_address is required for minting"))?;
+        let asset_index = self
+            .asset_index
+            .ok_or_else(|| SdkError::invalid_input("asset_index is required for minting"))?;
+        let amount = self
+            .amount
+            .ok_or_else(|| SdkError::invalid_input("amount is required for minting"))?;
 
         let mut req = MintRequest::new(recipient_address, asset_index, amount);
         req.permissions = self.permissions;
@@ -375,9 +379,9 @@ impl OnboardAssetBuilder {
         let from_address = self.from_address.ok_or_else(|| {
             SdkError::invalid_input("from_address is required for asset onboarding")
         })?;
-        let name = self.name.ok_or_else(|| {
-            SdkError::invalid_input("name is required for asset onboarding")
-        })?;
+        let name = self
+            .name
+            .ok_or_else(|| SdkError::invalid_input("name is required for asset onboarding"))?;
         let asset_symbol = self.asset_symbol.ok_or_else(|| {
             SdkError::invalid_input("asset_symbol is required for asset onboarding")
         })?;
@@ -453,18 +457,18 @@ impl BridgeAssetBuilder {
     }
 
     pub fn build(self) -> Result<BridgeAssetRequest, SdkError> {
-        let from_address = self.from_address.ok_or_else(|| {
-            SdkError::invalid_input("from_address is required for bridge")
-        })?;
-        let to_vm_address = self.to_vm_address.ok_or_else(|| {
-            SdkError::invalid_input("to_vm_address is required for bridge")
-        })?;
-        let asset = self.asset.ok_or_else(|| {
-            SdkError::invalid_input("asset identifier is required for bridge")
-        })?;
-        let amount = self.amount.ok_or_else(|| {
-            SdkError::invalid_input("amount is required for bridge")
-        })?;
+        let from_address = self
+            .from_address
+            .ok_or_else(|| SdkError::invalid_input("from_address is required for bridge"))?;
+        let to_vm_address = self
+            .to_vm_address
+            .ok_or_else(|| SdkError::invalid_input("to_vm_address is required for bridge"))?;
+        let asset = self
+            .asset
+            .ok_or_else(|| SdkError::invalid_input("asset identifier is required for bridge"))?;
+        let amount = self
+            .amount
+            .ok_or_else(|| SdkError::invalid_input("amount is required for bridge"))?;
 
         let mut req = BridgeAssetRequest::new(from_address, to_vm_address, asset, amount);
         req.from_external_address = self.from_external_address;
@@ -525,18 +529,18 @@ impl DepositBuilder {
     }
 
     pub fn build(self) -> Result<DepositRequest, SdkError> {
-        let from_address = self.from_address.ok_or_else(|| {
-            SdkError::invalid_input("from_address is required for deposit")
-        })?;
-        let asset = self.asset.ok_or_else(|| {
-            SdkError::invalid_input("asset identifier is required for deposit")
-        })?;
-        let amount = self.amount.ok_or_else(|| {
-            SdkError::invalid_input("amount is required for deposit")
-        })?;
-        let source_chain = self.source_chain.ok_or_else(|| {
-            SdkError::invalid_input("source_chain is required for deposit")
-        })?;
+        let from_address = self
+            .from_address
+            .ok_or_else(|| SdkError::invalid_input("from_address is required for deposit"))?;
+        let asset = self
+            .asset
+            .ok_or_else(|| SdkError::invalid_input("asset identifier is required for deposit"))?;
+        let amount = self
+            .amount
+            .ok_or_else(|| SdkError::invalid_input("amount is required for deposit"))?;
+        let source_chain = self
+            .source_chain
+            .ok_or_else(|| SdkError::invalid_input("source_chain is required for deposit"))?;
 
         let mut req = DepositRequest::new(from_address, asset, amount, source_chain);
         req.is_genesis_mint = self.is_genesis_mint;
@@ -602,15 +606,15 @@ impl WithdrawBuilder {
     }
 
     pub fn build(self) -> Result<WithdrawRequest, SdkError> {
-        let from_address = self.from_address.ok_or_else(|| {
-            SdkError::invalid_input("from_address is required for withdrawal")
-        })?;
+        let from_address = self
+            .from_address
+            .ok_or_else(|| SdkError::invalid_input("from_address is required for withdrawal"))?;
         let asset = self.asset.ok_or_else(|| {
             SdkError::invalid_input("asset identifier is required for withdrawal")
         })?;
-        let amount = self.amount.ok_or_else(|| {
-            SdkError::invalid_input("amount is required for withdrawal")
-        })?;
+        let amount = self
+            .amount
+            .ok_or_else(|| SdkError::invalid_input("amount is required for withdrawal"))?;
         let destination_chain = self.destination_chain.ok_or_else(|| {
             SdkError::invalid_input("destination_chain is required for withdrawal")
         })?;
@@ -619,7 +623,11 @@ impl WithdrawBuilder {
         })?;
 
         let mut req = WithdrawRequest::new(
-            from_address, asset, amount, destination_chain, destination_address,
+            from_address,
+            asset,
+            amount,
+            destination_chain,
+            destination_address,
         );
         req.fast_withdrawal = self.fast_withdrawal;
         req.external_address = self.external_address;
@@ -681,9 +689,9 @@ impl SetSpendingPolicyBuilder {
         let owner_address = self.owner_address.ok_or_else(|| {
             SdkError::invalid_input("owner_address is required for spending policy")
         })?;
-        let agent_id = self.agent_id.ok_or_else(|| {
-            SdkError::invalid_input("agent_id is required for spending policy")
-        })?;
+        let agent_id = self
+            .agent_id
+            .ok_or_else(|| SdkError::invalid_input("agent_id is required for spending policy"))?;
         let asset_index = self.asset_index.ok_or_else(|| {
             SdkError::invalid_input("asset_index is required for spending policy")
         })?;
@@ -728,7 +736,11 @@ mod tests {
     fn transfer_builder_missing_required() {
         assert!(TransferBuilder::new().build().is_err());
         assert!(TransferBuilder::new().from_address("a").build().is_err());
-        assert!(TransferBuilder::new().from_address("a").to_address("b").build().is_err());
+        assert!(TransferBuilder::new()
+            .from_address("a")
+            .to_address("b")
+            .build()
+            .is_err());
     }
 
     #[test]

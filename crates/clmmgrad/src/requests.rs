@@ -20,11 +20,20 @@ pub struct InitiateGraduationRequest {
 }
 
 impl InitiateGraduationRequest {
-    pub fn new(token_index: impl Into<String>) -> Self { Self { token_index: token_index.into() } }
+    pub fn new(token_index: impl Into<String>) -> Self {
+        Self {
+            token_index: token_index.into(),
+        }
+    }
 
     pub fn to_any(&self) -> ProtoAny {
-        let msg = proto::InitiateClmmGraduationRequest { token_index: self.token_index.clone() };
-        ProtoAny { type_url: "/clmmgrad.v1.InitiateClmmGraduationRequest".into(), value: msg.encode_to_vec() }
+        let msg = proto::InitiateClmmGraduationRequest {
+            token_index: self.token_index.clone(),
+        };
+        ProtoAny {
+            type_url: "/clmmgrad.v1.InitiateClmmGraduationRequest".into(),
+            value: msg.encode_to_vec(),
+        }
     }
 }
 
@@ -36,11 +45,20 @@ pub struct CancelGraduationRequest {
 }
 
 impl CancelGraduationRequest {
-    pub fn new(token_index: impl Into<String>) -> Self { Self { token_index: token_index.into() } }
+    pub fn new(token_index: impl Into<String>) -> Self {
+        Self {
+            token_index: token_index.into(),
+        }
+    }
 
     pub fn to_any(&self) -> ProtoAny {
-        let msg = proto::CancelGraduationRequest { token_index: self.token_index.clone() };
-        ProtoAny { type_url: "/clmmgrad.v1.CancelGraduationRequest".into(), value: msg.encode_to_vec() }
+        let msg = proto::CancelGraduationRequest {
+            token_index: self.token_index.clone(),
+        };
+        ProtoAny {
+            type_url: "/clmmgrad.v1.CancelGraduationRequest".into(),
+            value: msg.encode_to_vec(),
+        }
     }
 }
 
@@ -54,7 +72,10 @@ pub struct UpdateParamsRequest {
 
 impl UpdateParamsRequest {
     pub fn new(authority: impl Into<String>, params: crate::types::ClmmGraduationParams) -> Self {
-        Self { authority: authority.into(), params }
+        Self {
+            authority: authority.into(),
+            params,
+        }
     }
 
     pub fn to_any(&self) -> ProtoAny {
@@ -73,7 +94,10 @@ impl UpdateParamsRequest {
                 reserved: alloc::vec::Vec::new(),
             }),
         };
-        ProtoAny { type_url: "/clmmgrad.v1.MsgUpdateParams".into(), value: msg.encode_to_vec() }
+        ProtoAny {
+            type_url: "/clmmgrad.v1.MsgUpdateParams".into(),
+            value: msg.encode_to_vec(),
+        }
     }
 }
 
@@ -87,11 +111,19 @@ pub struct GetGraduationStateRequest {
 }
 
 impl GetGraduationStateRequest {
-    pub fn new(token_index: impl Into<String>) -> Self { Self { token_index: token_index.into() } }
+    pub fn new(token_index: impl Into<String>) -> Self {
+        Self {
+            token_index: token_index.into(),
+        }
+    }
 }
 
 impl From<GetGraduationStateRequest> for proto::GetGraduationStateRequest {
-    fn from(r: GetGraduationStateRequest) -> Self { Self { token_index: r.token_index } }
+    fn from(r: GetGraduationStateRequest) -> Self {
+        Self {
+            token_index: r.token_index,
+        }
+    }
 }
 
 /// List tokens eligible for graduation.
@@ -103,13 +135,23 @@ pub struct ListEligibleTokensRequest {
 }
 
 impl ListEligibleTokensRequest {
-    pub fn new(limit: u32) -> Self { Self { limit, offset: 0 } }
+    pub fn new(limit: u32) -> Self {
+        Self { limit, offset: 0 }
+    }
 
-    pub fn offset(mut self, o: u64) -> Self { self.offset = o; self }
+    pub fn offset(mut self, o: u64) -> Self {
+        self.offset = o;
+        self
+    }
 }
 
 impl From<ListEligibleTokensRequest> for proto::ListEligibleTokensRequest {
-    fn from(r: ListEligibleTokensRequest) -> Self { Self { limit: r.limit, offset: r.offset } }
+    fn from(r: ListEligibleTokensRequest) -> Self {
+        Self {
+            limit: r.limit,
+            offset: r.offset,
+        }
+    }
 }
 
 /// Query module parameters.
@@ -118,11 +160,15 @@ impl From<ListEligibleTokensRequest> for proto::ListEligibleTokensRequest {
 pub struct GetParamsRequest;
 
 impl GetParamsRequest {
-    pub fn new() -> Self { Self }
+    pub fn new() -> Self {
+        Self
+    }
 }
 
 impl From<GetParamsRequest> for proto::GetParamsRequest {
-    fn from(_: GetParamsRequest) -> Self { Self {} }
+    fn from(_: GetParamsRequest) -> Self {
+        Self {}
+    }
 }
 
 #[cfg(test)]

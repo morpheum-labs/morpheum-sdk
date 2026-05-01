@@ -46,10 +46,9 @@ impl UpgradeClient {
             .query("/upgrade.v1.Query/QueryUpgrade", proto_req.encode_to_vec())
             .await?;
 
-        let proto_res = morpheum_proto::upgrade::v1::QueryUpgradeResponse::decode(
-            response_bytes.as_slice(),
-        )
-        .map_err(SdkError::Decode)?;
+        let proto_res =
+            morpheum_proto::upgrade::v1::QueryUpgradeResponse::decode(response_bytes.as_slice())
+                .map_err(SdkError::Decode)?;
 
         proto_res
             .upgrade
@@ -79,10 +78,9 @@ impl UpgradeClient {
             .query("/upgrade.v1.Query/QueryUpgrades", proto_req.encode_to_vec())
             .await?;
 
-        let proto_res = morpheum_proto::upgrade::v1::QueryUpgradesResponse::decode(
-            response_bytes.as_slice(),
-        )
-        .map_err(SdkError::Decode)?;
+        let proto_res =
+            morpheum_proto::upgrade::v1::QueryUpgradesResponse::decode(response_bytes.as_slice())
+                .map_err(SdkError::Decode)?;
 
         Ok(proto_res.upgrades.into_iter().map(Into::into).collect())
     }
@@ -142,7 +140,11 @@ impl UpgradeClient {
             upgrade_id: proto_res.upgrade_id,
             total_ready_count: proto_res.total_ready_count,
             required_threshold: proto_res.required_threshold,
-            readiness_list: proto_res.readiness_list.into_iter().map(Into::into).collect(),
+            readiness_list: proto_res
+                .readiness_list
+                .into_iter()
+                .map(Into::into)
+                .collect(),
         })
     }
 
@@ -215,8 +217,7 @@ mod tests {
                     };
                     Ok(prost::Message::encode_to_vec(&dummy))
                 }
-                "/upgrade.v1.Query/QueryUpgrades"
-                | "/upgrade.v1.Query/QueryActiveUpgrades" => {
+                "/upgrade.v1.Query/QueryUpgrades" | "/upgrade.v1.Query/QueryActiveUpgrades" => {
                     let dummy = morpheum_proto::upgrade::v1::QueryUpgradesResponse {
                         success: true,
                         error_message: "".into(),

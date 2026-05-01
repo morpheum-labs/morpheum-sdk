@@ -37,7 +37,12 @@ impl SignalUpgradeReadyRequest {
         validator_pubkey: Vec<u8>,
         signature: Vec<u8>,
     ) -> Self {
-        Self { from_address, upgrade_id, validator_pubkey, signature }
+        Self {
+            from_address,
+            upgrade_id,
+            validator_pubkey,
+            signature,
+        }
     }
 
     pub fn to_any(&self) -> ProtoAny {
@@ -71,11 +76,7 @@ pub struct CancelUpgradeRequest {
 }
 
 impl CancelUpgradeRequest {
-    pub fn new(
-        from_address: AccountId,
-        upgrade_id: u64,
-        reason: impl Into<String>,
-    ) -> Self {
+    pub fn new(from_address: AccountId, upgrade_id: u64, reason: impl Into<String>) -> Self {
         Self {
             from_address,
             upgrade_id,
@@ -113,7 +114,10 @@ pub struct ExecuteUpgradeRequest {
 
 impl ExecuteUpgradeRequest {
     pub fn new(from_address: AccountId, upgrade_id: u64) -> Self {
-        Self { from_address, upgrade_id }
+        Self {
+            from_address,
+            upgrade_id,
+        }
     }
 
     pub fn to_any(&self) -> ProtoAny {
@@ -152,7 +156,9 @@ impl QueryUpgradeRequest {
 
 impl From<QueryUpgradeRequest> for proto::QueryUpgradeRequest {
     fn from(req: QueryUpgradeRequest) -> Self {
-        Self { upgrade_id: req.upgrade_id }
+        Self {
+            upgrade_id: req.upgrade_id,
+        }
     }
 }
 
@@ -231,7 +237,10 @@ pub struct QueryValidatorReadinessRequest {
 
 impl QueryValidatorReadinessRequest {
     pub fn new(upgrade_id: u64) -> Self {
-        Self { upgrade_id, validator_address: None }
+        Self {
+            upgrade_id,
+            validator_address: None,
+        }
     }
 
     pub fn validator_address(mut self, address: impl Into<String>) -> Self {
@@ -264,7 +273,9 @@ impl QueryUpgradeStatusRequest {
 
 impl From<QueryUpgradeStatusRequest> for proto::QueryUpgradeStatusRequest {
     fn from(req: QueryUpgradeStatusRequest) -> Self {
-        Self { upgrade_id: req.upgrade_id }
+        Self {
+            upgrade_id: req.upgrade_id,
+        }
     }
 }
 
@@ -315,14 +326,16 @@ mod tests {
 
         let proto_req: proto::QueryUpgradesRequest = req.into();
         assert_eq!(proto_req.limit, 20);
-        assert_eq!(proto_req.status_filter, i32::from(UpgradeStatus::ShadowMode));
+        assert_eq!(
+            proto_req.status_filter,
+            i32::from(UpgradeStatus::ShadowMode)
+        );
         assert_eq!(proto_req.type_filter, i32::from(UpgradeType::Binary));
     }
 
     #[test]
     fn query_validator_readiness_with_filter() {
-        let req = QueryValidatorReadinessRequest::new(7)
-            .validator_address("morpheum1val123");
+        let req = QueryValidatorReadinessRequest::new(7).validator_address("morpheum1val123");
 
         let proto_req: proto::QueryValidatorReadinessRequest = req.into();
         assert_eq!(proto_req.upgrade_id, 7);

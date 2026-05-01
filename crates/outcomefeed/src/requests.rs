@@ -7,8 +7,8 @@ use prost::Message as _;
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
-use morpheum_proto::outcomefeed::v1 as proto;
 use morpheum_proto::google::protobuf::Any as ProtoAny;
+use morpheum_proto::outcomefeed::v1 as proto;
 
 use crate::types::{FeedStatus, MarketResolutionCriteria, ResolutionParadigm};
 
@@ -34,7 +34,8 @@ impl RegisterPredictionFeedRequest {
         Self {
             from_address: from_address.into(),
             feed_id: feed_id.into(),
-            paradigm, criteria,
+            paradigm,
+            criteria,
         }
     }
 
@@ -45,7 +46,10 @@ impl RegisterPredictionFeedRequest {
             paradigm: i32::from(self.paradigm),
             criteria: Some(self.criteria.clone().into()),
         };
-        ProtoAny { type_url: "/outcomefeed.v1.MsgRegisterPredictionFeedRequest".into(), value: msg.encode_to_vec() }
+        ProtoAny {
+            type_url: "/outcomefeed.v1.MsgRegisterPredictionFeedRequest".into(),
+            value: msg.encode_to_vec(),
+        }
     }
 }
 
@@ -59,11 +63,17 @@ pub struct QueryResolvedOutcomeRequest {
 }
 
 impl QueryResolvedOutcomeRequest {
-    pub fn new(feed_id: impl Into<String>) -> Self { Self { feed_id: feed_id.into() } }
+    pub fn new(feed_id: impl Into<String>) -> Self {
+        Self {
+            feed_id: feed_id.into(),
+        }
+    }
 }
 
 impl From<QueryResolvedOutcomeRequest> for proto::QueryResolvedOutcomeRequest {
-    fn from(r: QueryResolvedOutcomeRequest) -> Self { Self { feed_id: r.feed_id } }
+    fn from(r: QueryResolvedOutcomeRequest) -> Self {
+        Self { feed_id: r.feed_id }
+    }
 }
 
 /// Query a single prediction market feed by ID.
@@ -74,11 +84,17 @@ pub struct QueryPredictionFeedRequest {
 }
 
 impl QueryPredictionFeedRequest {
-    pub fn new(feed_id: impl Into<String>) -> Self { Self { feed_id: feed_id.into() } }
+    pub fn new(feed_id: impl Into<String>) -> Self {
+        Self {
+            feed_id: feed_id.into(),
+        }
+    }
 }
 
 impl From<QueryPredictionFeedRequest> for proto::QueryPredictionFeedRequest {
-    fn from(r: QueryPredictionFeedRequest) -> Self { Self { feed_id: r.feed_id } }
+    fn from(r: QueryPredictionFeedRequest) -> Self {
+        Self { feed_id: r.feed_id }
+    }
 }
 
 /// List prediction market feeds with pagination and optional filters.
@@ -93,17 +109,29 @@ pub struct QueryPredictionFeedsRequest {
 
 impl QueryPredictionFeedsRequest {
     pub fn new(limit: i32, offset: i32) -> Self {
-        Self { limit, offset, paradigm_filter: None, status_filter: None }
+        Self {
+            limit,
+            offset,
+            paradigm_filter: None,
+            status_filter: None,
+        }
     }
 
-    pub fn paradigm_filter(mut self, p: ResolutionParadigm) -> Self { self.paradigm_filter = Some(p); self }
-    pub fn status_filter(mut self, s: FeedStatus) -> Self { self.status_filter = Some(s); self }
+    pub fn paradigm_filter(mut self, p: ResolutionParadigm) -> Self {
+        self.paradigm_filter = Some(p);
+        self
+    }
+    pub fn status_filter(mut self, s: FeedStatus) -> Self {
+        self.status_filter = Some(s);
+        self
+    }
 }
 
 impl From<QueryPredictionFeedsRequest> for proto::QueryPredictionFeedsRequest {
     fn from(r: QueryPredictionFeedsRequest) -> Self {
         Self {
-            limit: r.limit, offset: r.offset,
+            limit: r.limit,
+            offset: r.offset,
             paradigm_filter: r.paradigm_filter.map_or(0, i32::from),
             status_filter: r.status_filter.map_or(0, i32::from),
         }
@@ -118,14 +146,23 @@ mod tests {
     #[test]
     fn register_feed_to_any() {
         let criteria = MarketResolutionCriteria {
-            feed_id: "btc-50k".into(), resolution_deadline: 1_700_000_000,
-            dispute_window_sec: 3600, trusted_sources: Vec::new(),
+            feed_id: "btc-50k".into(),
+            resolution_deadline: 1_700_000_000,
+            dispute_window_sec: 3600,
+            trusted_sources: Vec::new(),
             criteria_json_bytes: Vec::new(),
         };
         let any = RegisterPredictionFeedRequest::new(
-            "morph1xyz", "btc-50k", ResolutionParadigm::MarketPrice, criteria,
-        ).to_any();
-        assert_eq!(any.type_url, "/outcomefeed.v1.MsgRegisterPredictionFeedRequest");
+            "morph1xyz",
+            "btc-50k",
+            ResolutionParadigm::MarketPrice,
+            criteria,
+        )
+        .to_any();
+        assert_eq!(
+            any.type_url,
+            "/outcomefeed.v1.MsgRegisterPredictionFeedRequest"
+        );
         assert!(!any.value.is_empty());
     }
 

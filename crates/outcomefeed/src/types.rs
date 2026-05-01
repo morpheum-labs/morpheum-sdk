@@ -28,9 +28,12 @@ pub enum ResolutionParadigm {
 impl From<i32> for ResolutionParadigm {
     fn from(v: i32) -> Self {
         match v {
-            1 => Self::AuthorityCertified, 2 => Self::MarketPrice,
-            3 => Self::TimestampedAnnouncement, 4 => Self::ParametricMeasurement,
-            5 => Self::SubjectiveConsensus, _ => Self::Unspecified,
+            1 => Self::AuthorityCertified,
+            2 => Self::MarketPrice,
+            3 => Self::TimestampedAnnouncement,
+            4 => Self::ParametricMeasurement,
+            5 => Self::SubjectiveConsensus,
+            _ => Self::Unspecified,
         }
     }
 }
@@ -38,9 +41,12 @@ impl From<i32> for ResolutionParadigm {
 impl From<ResolutionParadigm> for i32 {
     fn from(p: ResolutionParadigm) -> Self {
         match p {
-            ResolutionParadigm::Unspecified => 0, ResolutionParadigm::AuthorityCertified => 1,
-            ResolutionParadigm::MarketPrice => 2, ResolutionParadigm::TimestampedAnnouncement => 3,
-            ResolutionParadigm::ParametricMeasurement => 4, ResolutionParadigm::SubjectiveConsensus => 5,
+            ResolutionParadigm::Unspecified => 0,
+            ResolutionParadigm::AuthorityCertified => 1,
+            ResolutionParadigm::MarketPrice => 2,
+            ResolutionParadigm::TimestampedAnnouncement => 3,
+            ResolutionParadigm::ParametricMeasurement => 4,
+            ResolutionParadigm::SubjectiveConsensus => 5,
         }
     }
 }
@@ -59,8 +65,10 @@ pub enum FeedStatus {
 impl From<i32> for FeedStatus {
     fn from(v: i32) -> Self {
         match v {
-            1 => Self::Active, 2 => Self::Resolving,
-            3 => Self::Resolved, 4 => Self::Disputed,
+            1 => Self::Active,
+            2 => Self::Resolving,
+            3 => Self::Resolved,
+            4 => Self::Disputed,
             _ => Self::Unspecified,
         }
     }
@@ -69,8 +77,10 @@ impl From<i32> for FeedStatus {
 impl From<FeedStatus> for i32 {
     fn from(s: FeedStatus) -> Self {
         match s {
-            FeedStatus::Unspecified => 0, FeedStatus::Active => 1,
-            FeedStatus::Resolving => 2, FeedStatus::Resolved => 3,
+            FeedStatus::Unspecified => 0,
+            FeedStatus::Active => 1,
+            FeedStatus::Resolving => 2,
+            FeedStatus::Resolved => 3,
             FeedStatus::Disputed => 4,
         }
     }
@@ -97,7 +107,9 @@ impl From<proto::MarketResolutionCriteria> for MarketResolutionCriteria {
             resolution_deadline: p.resolution_deadline,
             dispute_window_sec: p.dispute_window_sec,
             trusted_sources: p.trusted_sources,
-            criteria_json_bytes: p.criteria_json.map_or(Vec::new(), |s| prost::Message::encode_to_vec(&s)),
+            criteria_json_bytes: p
+                .criteria_json
+                .map_or(Vec::new(), |s| prost::Message::encode_to_vec(&s)),
         }
     }
 }
@@ -170,18 +182,30 @@ mod tests {
 
     #[test]
     fn resolution_paradigm_roundtrip() {
-        for p in [ResolutionParadigm::AuthorityCertified, ResolutionParadigm::MarketPrice,
-                  ResolutionParadigm::TimestampedAnnouncement, ResolutionParadigm::ParametricMeasurement,
-                  ResolutionParadigm::SubjectiveConsensus] {
+        for p in [
+            ResolutionParadigm::AuthorityCertified,
+            ResolutionParadigm::MarketPrice,
+            ResolutionParadigm::TimestampedAnnouncement,
+            ResolutionParadigm::ParametricMeasurement,
+            ResolutionParadigm::SubjectiveConsensus,
+        ] {
             let v: i32 = p.into();
             assert_eq!(p, ResolutionParadigm::from(v));
         }
-        assert_eq!(ResolutionParadigm::Unspecified, ResolutionParadigm::from(99));
+        assert_eq!(
+            ResolutionParadigm::Unspecified,
+            ResolutionParadigm::from(99)
+        );
     }
 
     #[test]
     fn feed_status_roundtrip() {
-        for s in [FeedStatus::Active, FeedStatus::Resolving, FeedStatus::Resolved, FeedStatus::Disputed] {
+        for s in [
+            FeedStatus::Active,
+            FeedStatus::Resolving,
+            FeedStatus::Resolved,
+            FeedStatus::Disputed,
+        ] {
             let v: i32 = s.into();
             assert_eq!(s, FeedStatus::from(v));
         }
@@ -190,8 +214,10 @@ mod tests {
     #[test]
     fn prediction_market_feed_from_proto() {
         let p = proto::PredictionMarketFeed {
-            feed_id: "btc-50k-eoy".into(), paradigm: 2,
-            criteria: None, status: 1,
+            feed_id: "btc-50k-eoy".into(),
+            paradigm: 2,
+            criteria: None,
+            status: 1,
         };
         let f: PredictionMarketFeed = p.into();
         assert_eq!(f.feed_id, "btc-50k-eoy");
@@ -203,8 +229,11 @@ mod tests {
     #[test]
     fn resolved_outcome_from_proto() {
         let p = proto::ResolvedOutcome {
-            outcome: "yes".into(), confidence_bps: 10000, final_ts: 1_700_000_000,
-            resolution_source: "oracle".into(), paradigm: 1,
+            outcome: "yes".into(),
+            confidence_bps: 10000,
+            final_ts: 1_700_000_000,
+            resolution_source: "oracle".into(),
+            paradigm: 1,
             evidence_hash: "abc123".into(),
         };
         let r: ResolvedOutcome = p.into();

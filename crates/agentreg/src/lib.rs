@@ -33,8 +33,8 @@ extern crate alloc;
 
 pub mod builder;
 pub mod client;
-pub mod types;
 pub mod requests;
+pub mod types;
 
 // ==================== PUBLIC RE-EXPORTS ====================
 
@@ -42,13 +42,7 @@ pub use client::AgentRegistryClient;
 
 pub use builder::TriggerProtocolSyncBuilder;
 
-pub use types::{
-    AgentRecord,
-    CaipAgentId,
-    ExportStatus,
-    Params,
-    VisibilityLevel,
-};
+pub use types::{AgentRecord, CaipAgentId, ExportStatus, Params, VisibilityLevel};
 
 pub use requests::*;
 
@@ -60,18 +54,8 @@ pub const ALL_PROTOCOLS: &[&str] = &["erc8004", "a2a", "mcp", "did", "x402", "gm
 /// Recommended prelude for the Agent Registry module.
 pub mod prelude {
     pub use super::{
-        AgentRegistryClient,
-        TriggerProtocolSyncBuilder,
-        AgentRecord,
-        CaipAgentId,
-        ExportStatus,
-        Params,
-        VisibilityLevel,
-        AccountId,
-        ChainId,
-        SdkError,
-        SignedTx,
-        ALL_PROTOCOLS,
+        AccountId, AgentRecord, AgentRegistryClient, CaipAgentId, ChainId, ExportStatus, Params,
+        SdkError, SignedTx, TriggerProtocolSyncBuilder, VisibilityLevel, ALL_PROTOCOLS,
     };
 }
 

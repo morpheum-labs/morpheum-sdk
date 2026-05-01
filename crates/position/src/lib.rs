@@ -13,41 +13,27 @@
 
 extern crate alloc;
 
-pub mod client;
-pub mod types;
-pub mod requests;
 pub mod builder;
+pub mod client;
+pub mod requests;
+pub mod types;
 
 // ==================== PUBLIC RE-EXPORTS ====================
 
 pub use client::PositionClient;
 
 pub use types::{
-    LongShortVolume,
-    Position,
-    PositionConfig,
-    PositionEntry,
-    PositionPnL,
-    PositionSide,
-    PositionState,
-    Side,
+    LongShortVolume, Position, PositionConfig, PositionEntry, PositionPnL, PositionSide,
+    PositionState, Side,
 };
 
 pub use requests::{
-    ClosePositionRequest,
-    GetLongShortVolumeRequest,
-    GetPositionRequest,
-    ListOpenPositionsRequest,
-    QueryAllPositionsByMarketRequest,
-    QueryPositionPnLRequest,
-    QueryPositionsByAddressRequest,
+    ClosePositionRequest, GetLongShortVolumeRequest, GetPositionRequest, ListOpenPositionsRequest,
+    QueryAllPositionsByMarketRequest, QueryPositionPnLRequest, QueryPositionsByAddressRequest,
     UpdatePositionLeverageRequest,
 };
 
-pub use builder::{
-    ClosePositionBuilder,
-    UpdatePositionLeverageBuilder,
-};
+pub use builder::{ClosePositionBuilder, UpdatePositionLeverageBuilder};
 
 pub use morpheum_sdk_core::{AccountId, ChainId, SdkError, SignedTx};
 
@@ -58,18 +44,9 @@ pub use morpheum_sdk_core::{AccountId, ChainId, SdkError, SignedTx};
 /// ```
 pub mod prelude {
     pub use super::{
-        PositionClient,
-        PositionState,
-        PositionSide,
-        PositionEntry,
-        PositionConfig,
-        LongShortVolume,
-        ClosePositionBuilder,
+        AccountId, ChainId, ClosePositionBuilder, LongShortVolume, PositionClient, PositionConfig,
+        PositionEntry, PositionSide, PositionState, SdkError, SignedTx,
         UpdatePositionLeverageBuilder,
-        AccountId,
-        ChainId,
-        SdkError,
-        SignedTx,
     };
 }
 

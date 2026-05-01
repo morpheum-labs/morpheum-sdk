@@ -9,49 +9,39 @@
 
 extern crate alloc;
 
-pub mod client;
-pub mod types;
-pub mod requests;
 pub mod builder;
+pub mod client;
+pub mod requests;
+pub mod types;
 
 // ==================== PUBLIC RE-EXPORTS ====================
 
 pub use client::StakingClient;
 
 pub use types::{
-    CommissionInfo, Delegation, EpochRewardSnapshot, LivenessParams,
-    MisbehaviorType, Penalty, Reward, ScoringParams, SlashingEvent,
-    StakingParams, UnbondingDelegation, UserStaking, Validator,
-    ValidatorScore, ValidatorStake, ValidatorStatus,
+    CommissionInfo, Delegation, EpochRewardSnapshot, LivenessParams, MisbehaviorType, Penalty,
+    Reward, ScoringParams, SlashingEvent, StakingParams, UnbondingDelegation, UserStaking,
+    Validator, ValidatorScore, ValidatorStake, ValidatorStatus,
 };
 
 pub use requests::*;
 
 pub use builder::{
-    StakeBuilder, UnstakeBuilder,
-    DelegateBuilder, UndelegateBuilder, RedelegateBuilder,
-    ClaimRewardsBuilder,
-    ReportMisbehaviorBuilder, VoteOnSlashingBuilder, ApplySlashingBuilder,
-    UpdateParamsBuilder,
+    ApplySlashingBuilder, ClaimRewardsBuilder, DelegateBuilder, RedelegateBuilder,
+    ReportMisbehaviorBuilder, StakeBuilder, UndelegateBuilder, UnstakeBuilder, UpdateParamsBuilder,
+    VoteOnSlashingBuilder,
 };
 
-pub use morpheum_sdk_core::{
-    AccountId, ChainId, SdkError, SignedTx,
-};
+pub use morpheum_sdk_core::{AccountId, ChainId, SdkError, SignedTx};
 
 /// Recommended prelude for the staking module.
 pub mod prelude {
     pub use super::{
-        StakingClient,
-        Validator, ValidatorStatus, ValidatorStake, ValidatorScore,
-        Delegation, UnbondingDelegation, Reward, UserStaking,
-        MisbehaviorType, Penalty, SlashingEvent,
-        StakingParams, ScoringParams, LivenessParams,
-        EpochRewardSnapshot, CommissionInfo,
-        StakeBuilder, UnstakeBuilder,
-        DelegateBuilder, UndelegateBuilder, RedelegateBuilder,
-        ClaimRewardsBuilder,
-        AccountId, ChainId, SdkError, SignedTx,
+        AccountId, ChainId, ClaimRewardsBuilder, CommissionInfo, DelegateBuilder, Delegation,
+        EpochRewardSnapshot, LivenessParams, MisbehaviorType, Penalty, RedelegateBuilder, Reward,
+        ScoringParams, SdkError, SignedTx, SlashingEvent, StakeBuilder, StakingClient,
+        StakingParams, UnbondingDelegation, UndelegateBuilder, UnstakeBuilder, UserStaking,
+        Validator, ValidatorScore, ValidatorStake, ValidatorStatus,
     };
 }
 

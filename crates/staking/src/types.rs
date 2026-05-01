@@ -328,7 +328,7 @@ impl Default for StakingParams {
     fn default() -> Self {
         Self {
             asset_index: 0,
-            unbonding_period_seconds: 1_209_600, // 14 days
+            unbonding_period_seconds: 1_209_600,    // 14 days
             redelegation_cooldown_seconds: 604_800, // 7 days
             max_validators: "100".into(),
             slash_fraction_downtime: "0.01".into(),
@@ -367,12 +367,21 @@ impl From<StakingParams> for proto::Params {
         use morpheum_proto::google::protobuf::Duration;
         Self {
             asset_index: p.asset_index,
-            unbonding_period: Some(Duration { seconds: p.unbonding_period_seconds, nanos: 0 }),
-            redelegation_cooldown: Some(Duration { seconds: p.redelegation_cooldown_seconds, nanos: 0 }),
+            unbonding_period: Some(Duration {
+                seconds: p.unbonding_period_seconds,
+                nanos: 0,
+            }),
+            redelegation_cooldown: Some(Duration {
+                seconds: p.redelegation_cooldown_seconds,
+                nanos: 0,
+            }),
             max_validators: p.max_validators,
             slash_fraction_downtime: p.slash_fraction_downtime,
             slash_fraction_double_sign: p.slash_fraction_double_sign,
-            jail_duration: Some(Duration { seconds: p.jail_duration_seconds, nanos: 0 }),
+            jail_duration: Some(Duration {
+                seconds: p.jail_duration_seconds,
+                nanos: 0,
+            }),
             min_self_delegation: p.min_self_delegation,
             scoring_params: p.scoring_params.map(Into::into),
             liveness_params: p.liveness_params.map(Into::into),
@@ -621,7 +630,11 @@ mod tests {
 
     #[test]
     fn scoring_params_roundtrip() {
-        let sp = ScoringParams { stake_weight_bps: 8000, mana_weight_bps: 1500, reputation_weight_bps: 500 };
+        let sp = ScoringParams {
+            stake_weight_bps: 8000,
+            mana_weight_bps: 1500,
+            reputation_weight_bps: 500,
+        };
         let proto_sp: proto::ScoringParams = sp.clone().into();
         let back = ScoringParams::from(proto_sp);
         assert_eq!(sp, back);
@@ -629,7 +642,11 @@ mod tests {
 
     #[test]
     fn liveness_params_roundtrip() {
-        let lp = LivenessParams { max_missed_epochs: 5, downtime_slash_bps: 500, jail_after_misses: 10 };
+        let lp = LivenessParams {
+            max_missed_epochs: 5,
+            downtime_slash_bps: 500,
+            jail_after_misses: 10,
+        };
         let proto_lp: proto::LivenessParams = lp.clone().into();
         let back = LivenessParams::from(proto_lp);
         assert_eq!(lp, back);

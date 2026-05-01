@@ -11,15 +11,15 @@
 
 extern crate alloc;
 
-pub mod client;
-pub mod types;
-pub mod requests;
 pub mod builder;
+pub mod client;
+pub mod requests;
+pub mod types;
 
 // ==================== PUBLIC RE-EXPORTS ====================
 
 /// Main client for all bank query operations.
-pub use client::{BankClient, BalanceResponse};
+pub use client::{BalanceResponse, BankClient};
 
 /// Core domain types for bank operations.
 pub use types::{Asset, AssetIdentifier, AssetsResponse, Balance, ChainType, SpendingPolicy};
@@ -32,24 +32,13 @@ pub use requests::*;
 
 /// Fluent builders for bank transaction operations.
 pub use builder::{
-    TransferBuilder,
-    CrossChainTransferBuilder,
-    TransferToBucketBuilder,
-    MintBuilder,
-    OnboardAssetBuilder,
-    BridgeAssetBuilder,
-    DepositBuilder,
+    BridgeAssetBuilder, CrossChainTransferBuilder, DepositBuilder, MintBuilder,
+    OnboardAssetBuilder, SetSpendingPolicyBuilder, TransferBuilder, TransferToBucketBuilder,
     WithdrawBuilder,
-    SetSpendingPolicyBuilder,
 };
 
 // Re-export core SDK types commonly used with bank flows.
-pub use morpheum_sdk_core::{
-    AccountId,
-    ChainId,
-    SdkError,
-    SignedTx,
-};
+pub use morpheum_sdk_core::{AccountId, ChainId, SdkError, SignedTx};
 
 /// Recommended prelude for the bank module.
 ///
@@ -59,24 +48,10 @@ pub use morpheum_sdk_core::{
 /// ```
 pub mod prelude {
     pub use super::{
-        BankClient,
-        Asset,
-        AssetIdentifier,
-        AssetsResponse,
-        Balance,
-        ChainType,
-        SpendingPolicy,
-        resolve_asset_index,
-        TransferBuilder,
-        CrossChainTransferBuilder,
-        MintBuilder,
-        DepositBuilder,
+        resolve_asset_index, AccountId, Asset, AssetIdentifier, AssetsResponse, Balance,
+        BankClient, ChainId, ChainType, CrossChainTransferBuilder, DepositBuilder, MintBuilder,
+        SdkError, SetSpendingPolicyBuilder, SignedTx, SpendingPolicy, TransferBuilder,
         WithdrawBuilder,
-        SetSpendingPolicyBuilder,
-        AccountId,
-        ChainId,
-        SdkError,
-        SignedTx,
     };
 }
 

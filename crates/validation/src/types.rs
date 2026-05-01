@@ -264,7 +264,10 @@ mod tests {
         assert_eq!(ProofType::Inference.to_string(), "INFERENCE");
         assert_eq!(ProofType::HumanEval.to_string(), "HUMAN_EVAL");
         assert_eq!(ProofType::TeeAttestation.to_string(), "TEE_ATTESTATION");
-        assert_eq!(ProofType::ExternalValidator.to_string(), "EXTERNAL_VALIDATOR");
+        assert_eq!(
+            ProofType::ExternalValidator.to_string(),
+            "EXTERNAL_VALIDATOR"
+        );
         assert_eq!(ProofType::MarketplaceEval.to_string(), "MARKETPLACE_EVAL");
         assert_eq!(ProofType::Custom.to_string(), "CUSTOM");
     }

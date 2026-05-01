@@ -8,38 +8,24 @@
 
 extern crate alloc;
 
-pub mod client;
-pub mod types;
-pub mod requests;
 pub mod builder;
+pub mod client;
+pub mod requests;
+pub mod types;
 
 // ==================== PUBLIC RE-EXPORTS ====================
 
 pub use client::OsaClient;
 
-pub use types::{
-    AccountStatus,
-    Balance,
-    OutcomeSettlementAccount,
-    PayoutEvent,
-    SettlementEvent,
-};
+pub use types::{AccountStatus, Balance, OutcomeSettlementAccount, PayoutEvent, SettlementEvent};
 
 pub use requests::{
-    BuySharesRequest,
-    ClaimPayoutRequest,
-    CreateAccountRequest,
-    GetAccountRequest,
-    GetBalanceRequest,
-    MergePositionsRequest,
-    SellSharesRequest,
+    BuySharesRequest, ClaimPayoutRequest, CreateAccountRequest, GetAccountRequest,
+    GetBalanceRequest, MergePositionsRequest, SellSharesRequest,
 };
 
 pub use builder::{
-    BuySharesBuilder,
-    ClaimPayoutBuilder,
-    CreateAccountBuilder,
-    MergePositionsBuilder,
+    BuySharesBuilder, ClaimPayoutBuilder, CreateAccountBuilder, MergePositionsBuilder,
     SellSharesBuilder,
 };
 
@@ -53,13 +39,7 @@ pub use morpheum_sdk_core::{AccountId, ChainId, SdkError, SignedTx};
 /// ```
 pub mod prelude {
     pub use super::{
-        OsaClient,
-        OutcomeSettlementAccount,
-        AccountStatus,
-        Balance,
-        AccountId,
-        ChainId,
-        SdkError,
+        AccountId, AccountStatus, Balance, ChainId, OsaClient, OutcomeSettlementAccount, SdkError,
         SignedTx,
     };
 }

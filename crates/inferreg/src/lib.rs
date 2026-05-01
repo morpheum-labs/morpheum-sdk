@@ -38,8 +38,8 @@ extern crate alloc;
 
 pub mod builder;
 pub mod client;
-pub mod types;
 pub mod requests;
+pub mod types;
 
 // ==================== PUBLIC RE-EXPORTS ====================
 
@@ -47,13 +47,7 @@ pub use client::InferenceRegistryClient;
 
 pub use builder::RegisterModelBuilder;
 
-pub use types::{
-    ModelCommitment,
-    ModelStatus,
-    Params,
-    QuantFormat,
-    ops,
-};
+pub use types::{ops, ModelCommitment, ModelStatus, Params, QuantFormat};
 
 pub use requests::*;
 
@@ -62,17 +56,8 @@ pub use morpheum_sdk_core::{AccountId, ChainId, SdkError, SignedTx};
 /// Recommended prelude for the Inference Registry module.
 pub mod prelude {
     pub use super::{
-        InferenceRegistryClient,
-        RegisterModelBuilder,
-        ModelCommitment,
-        ModelStatus,
-        Params,
-        QuantFormat,
-        ops,
-        AccountId,
-        ChainId,
-        SdkError,
-        SignedTx,
+        ops, AccountId, ChainId, InferenceRegistryClient, ModelCommitment, ModelStatus, Params,
+        QuantFormat, RegisterModelBuilder, SdkError, SignedTx,
     };
 }
 

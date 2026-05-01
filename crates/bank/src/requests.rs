@@ -11,8 +11,8 @@ use prost::Message as _;
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
-use morpheum_proto::google::protobuf::Any as ProtoAny;
 use morpheum_proto::bank::v1 as proto;
+use morpheum_proto::google::protobuf::Any as ProtoAny;
 
 use crate::types::{AssetIdentifier, ChainType};
 
@@ -400,9 +400,9 @@ impl From<DepositRequest> for proto::MsgDepositRequest {
             AssetIdentifier::ByIndex(idx) => {
                 Some(proto::msg_deposit_request::AssetIdentifier::AssetIndex(idx))
             }
-            AssetIdentifier::BySymbol(sym) => {
-                Some(proto::msg_deposit_request::AssetIdentifier::AssetSymbol(sym))
-            }
+            AssetIdentifier::BySymbol(sym) => Some(
+                proto::msg_deposit_request::AssetIdentifier::AssetSymbol(sym),
+            ),
         };
         Self {
             from_address: req.from_address,
@@ -461,12 +461,12 @@ impl WithdrawRequest {
 impl From<WithdrawRequest> for proto::MsgWithdrawRequest {
     fn from(req: WithdrawRequest) -> Self {
         let asset_identifier = match req.asset {
-            AssetIdentifier::ByIndex(idx) => {
-                Some(proto::msg_withdraw_request::AssetIdentifier::AssetIndex(idx))
-            }
-            AssetIdentifier::BySymbol(sym) => {
-                Some(proto::msg_withdraw_request::AssetIdentifier::AssetSymbol(sym))
-            }
+            AssetIdentifier::ByIndex(idx) => Some(
+                proto::msg_withdraw_request::AssetIdentifier::AssetIndex(idx),
+            ),
+            AssetIdentifier::BySymbol(sym) => Some(
+                proto::msg_withdraw_request::AssetIdentifier::AssetSymbol(sym),
+            ),
         };
         Self {
             from_address: req.from_address,
@@ -587,10 +587,7 @@ pub struct SetSpendingPolicyRequest {
 }
 
 impl SetSpendingPolicyRequest {
-    pub fn new(
-        owner_address: impl Into<String>,
-        policy: crate::types::SpendingPolicy,
-    ) -> Self {
+    pub fn new(owner_address: impl Into<String>, policy: crate::types::SpendingPolicy) -> Self {
         Self {
             owner_address: owner_address.into(),
             policy,
@@ -706,12 +703,7 @@ mod tests {
 
     #[test]
     fn bridge_asset_request_to_any() {
-        let req = BridgeAssetRequest::new(
-            "morm1abc",
-            "0xVmAddr",
-            AssetIdentifier::index(1),
-            "250",
-        );
+        let req = BridgeAssetRequest::new("morm1abc", "0xVmAddr", AssetIdentifier::index(1), "250");
         let any = req.to_any();
         assert_eq!(any.type_url, "/bank.v1.MsgBridgeAssetRequest");
     }

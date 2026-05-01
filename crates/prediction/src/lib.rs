@@ -8,53 +8,45 @@
 
 extern crate alloc;
 
-pub mod client;
-pub mod types;
-pub mod requests;
 pub mod builder;
+pub mod client;
+pub mod requests;
+pub mod types;
 
 // ==================== PUBLIC RE-EXPORTS ====================
 
 pub use client::{PredictionClient, PredictionMarketsPage};
 
 pub use types::{
-    DisputeConfig,
-    PredictionMarket,
-    PredictionPhase,
-    ResolvedOutcome,
-    // Stream event types
-    PredictionMarketEvent,
-    MarketCreatedEvent,
-    MarketDisputedEvent,
     DisputeAcceptedEvent,
+    DisputeConfig,
     DisputeRejectedEvent,
     DisputeVoidedEvent,
-    LightChallengeOpenedEvent,
-    LightChallengeVoteEvent,
-    LightChallengeResolvedEvent,
-    LightChallengeEscalatedEvent,
     FeeAppliedEvent,
-    PredictionPriceUpdate,
+    LightChallengeEscalatedEvent,
+    LightChallengeOpenedEvent,
+    LightChallengeResolvedEvent,
+    LightChallengeVoteEvent,
+    MarketCreatedEvent,
+    MarketDisputedEvent,
     PredictionKlineUpdate,
+    PredictionMarket,
+    // Stream event types
+    PredictionMarketEvent,
+    PredictionPhase,
+    PredictionPriceUpdate,
+    ResolvedOutcome,
 };
 
 pub use requests::{
-    CreateMarketRequest,
-    DisputeMarketRequest,
-    LightChallengeVoteRequest,
-    OpenLightChallengeRequest,
-    QueryImpliedProbabilityRequest,
-    QueryPredictionMarketRequest,
-    QueryPredictionMarketsRequest,
-    ResolveMarketRequest,
+    CreateMarketRequest, DisputeMarketRequest, LightChallengeVoteRequest,
+    OpenLightChallengeRequest, QueryImpliedProbabilityRequest, QueryPredictionMarketRequest,
+    QueryPredictionMarketsRequest, ResolveMarketRequest,
 };
 
 pub use builder::{
-    CreateMarketBuilder,
-    DisputeMarketBuilder,
-    LightChallengeVoteBuilder,
-    OpenLightChallengeBuilder,
-    ResolveMarketBuilder,
+    CreateMarketBuilder, DisputeMarketBuilder, LightChallengeVoteBuilder,
+    OpenLightChallengeBuilder, ResolveMarketBuilder,
 };
 
 pub use morpheum_sdk_core::{AccountId, ChainId, SdkError, SignedTx};
@@ -67,14 +59,8 @@ pub use morpheum_sdk_core::{AccountId, ChainId, SdkError, SignedTx};
 /// ```
 pub mod prelude {
     pub use super::{
-        PredictionClient,
-        PredictionMarket,
-        PredictionPhase,
-        ResolvedOutcome,
-        AccountId,
-        ChainId,
-        SdkError,
-        SignedTx,
+        AccountId, ChainId, PredictionClient, PredictionMarket, PredictionPhase, ResolvedOutcome,
+        SdkError, SignedTx,
     };
 }
 

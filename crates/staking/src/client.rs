@@ -17,12 +17,12 @@ use morpheum_sdk_core::{MorpheumClient, SdkConfig, SdkError, Transport};
 
 use crate::requests::{
     QueryCommissionInfoRequest, QueryDelegationsRequest, QueryEpochRewardsRequest,
-    QueryParamsRequest, QueryRewardsRequest, QueryUserStakingRequest,
-    QueryValidatorRequest, QueryValidatorScoreRequest, QueryValidatorsRequest,
+    QueryParamsRequest, QueryRewardsRequest, QueryUserStakingRequest, QueryValidatorRequest,
+    QueryValidatorScoreRequest, QueryValidatorsRequest,
 };
 use crate::types::{
-    CommissionInfo, Delegation, EpochRewardSnapshot, Penalty, Reward, SlashingEvent,
-    StakingParams, UserStaking, Validator, ValidatorScore, ValidatorStake,
+    CommissionInfo, Delegation, EpochRewardSnapshot, Penalty, Reward, SlashingEvent, StakingParams,
+    UserStaking, Validator, ValidatorScore, ValidatorStake,
 };
 
 /// Primary client for all staking-related queries.
@@ -52,10 +52,9 @@ impl StakingClient {
         let data = proto_req.encode_to_vec();
         let response_bytes = self.query(path, data).await?;
 
-        let proto_res = morpheum_proto::staking::v1::QueryValidatorResponse::decode(
-            response_bytes.as_slice(),
-        )
-        .map_err(SdkError::Decode)?;
+        let proto_res =
+            morpheum_proto::staking::v1::QueryValidatorResponse::decode(response_bytes.as_slice())
+                .map_err(SdkError::Decode)?;
 
         if proto_res.found {
             Ok(proto_res.validator.map(Into::into))
@@ -81,10 +80,9 @@ impl StakingClient {
         let data = proto_req.encode_to_vec();
         let response_bytes = self.query(path, data).await?;
 
-        let proto_res = morpheum_proto::staking::v1::QueryValidatorsResponse::decode(
-            response_bytes.as_slice(),
-        )
-        .map_err(SdkError::Decode)?;
+        let proto_res =
+            morpheum_proto::staking::v1::QueryValidatorsResponse::decode(response_bytes.as_slice())
+                .map_err(SdkError::Decode)?;
 
         Ok(proto_res.validators.into_iter().map(Into::into).collect())
     }
@@ -108,7 +106,11 @@ impl StakingClient {
 
         Ok(UserStaking {
             delegations: proto_res.delegations.into_iter().map(Into::into).collect(),
-            unbonding_delegations: proto_res.unbonding_delegations.into_iter().map(Into::into).collect(),
+            unbonding_delegations: proto_res
+                .unbonding_delegations
+                .into_iter()
+                .map(Into::into)
+                .collect(),
             rewards: proto_res.rewards.into_iter().map(Into::into).collect(),
             total_staked: proto_res.total_staked,
             total_rewards: proto_res.total_rewards,
@@ -181,10 +183,9 @@ impl StakingClient {
         let data = proto_req.encode_to_vec();
         let response_bytes = self.query(path, data).await?;
 
-        let proto_res = morpheum_proto::staking::v1::QueryRewardsResponse::decode(
-            response_bytes.as_slice(),
-        )
-        .map_err(SdkError::Decode)?;
+        let proto_res =
+            morpheum_proto::staking::v1::QueryRewardsResponse::decode(response_bytes.as_slice())
+                .map_err(SdkError::Decode)?;
 
         Ok(proto_res.rewards.into_iter().map(Into::into).collect())
     }
@@ -206,10 +207,9 @@ impl StakingClient {
         let data = proto_req.encode_to_vec();
         let response_bytes = self.query(path, data).await?;
 
-        let proto_res = morpheum_proto::staking::v1::QueryPenaltiesResponse::decode(
-            response_bytes.as_slice(),
-        )
-        .map_err(SdkError::Decode)?;
+        let proto_res =
+            morpheum_proto::staking::v1::QueryPenaltiesResponse::decode(response_bytes.as_slice())
+                .map_err(SdkError::Decode)?;
 
         Ok(proto_res.penalties.into_iter().map(Into::into).collect())
     }
@@ -320,10 +320,9 @@ impl StakingClient {
         let data = proto_req.encode_to_vec();
         let response_bytes = self.query(path, data).await?;
 
-        let proto_res = morpheum_proto::staking::v1::QueryParamsResponse::decode(
-            response_bytes.as_slice(),
-        )
-        .map_err(SdkError::Decode)?;
+        let proto_res =
+            morpheum_proto::staking::v1::QueryParamsResponse::decode(response_bytes.as_slice())
+                .map_err(SdkError::Decode)?;
 
         proto_res
             .params
@@ -360,11 +359,7 @@ mod tests {
             unimplemented!("not needed for staking query tests")
         }
 
-        async fn query(
-            &self,
-            path: &str,
-            _data: Vec<u8>,
-        ) -> Result<Vec<u8>, SdkError> {
+        async fn query(&self, path: &str, _data: Vec<u8>) -> Result<Vec<u8>, SdkError> {
             match path {
                 "/staking.v1.Query/QueryValidator" => {
                     let dummy = morpheum_proto::staking::v1::QueryValidatorResponse {
@@ -526,7 +521,9 @@ mod tests {
     #[tokio::test]
     async fn query_rewards_works() {
         let client = make_client();
-        let result = client.query_rewards("morm1abc", Some("val-1".into()), None).await;
+        let result = client
+            .query_rewards("morm1abc", Some("val-1".into()), None)
+            .await;
         assert!(result.is_ok());
     }
 

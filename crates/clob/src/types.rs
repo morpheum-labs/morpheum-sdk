@@ -26,13 +26,21 @@ pub enum Side {
 
 impl From<i32> for Side {
     fn from(v: i32) -> Self {
-        match v { 1 => Self::Buy, 2 => Self::Sell, _ => Self::Unspecified }
+        match v {
+            1 => Self::Buy,
+            2 => Self::Sell,
+            _ => Self::Unspecified,
+        }
     }
 }
 
 impl From<Side> for i32 {
     fn from(s: Side) -> Self {
-        match s { Side::Unspecified => 0, Side::Buy => 1, Side::Sell => 2 }
+        match s {
+            Side::Unspecified => 0,
+            Side::Buy => 1,
+            Side::Sell => 2,
+        }
     }
 }
 
@@ -292,7 +300,11 @@ pub struct OrderLevel {
 
 impl From<proto::OrderLevel> for OrderLevel {
     fn from(p: proto::OrderLevel) -> Self {
-        Self { price: p.price, quantity: p.quantity, order_count: p.order_count }
+        Self {
+            price: p.price,
+            quantity: p.quantity,
+            order_count: p.order_count,
+        }
     }
 }
 
@@ -494,8 +506,14 @@ mod tests {
 
     #[test]
     fn order_type_roundtrip() {
-        for ot in [OrderType::Limit, OrderType::Market, OrderType::StopLimit,
-                    OrderType::StopMarket, OrderType::TakeProfitLimit, OrderType::TakeProfitMarket] {
+        for ot in [
+            OrderType::Limit,
+            OrderType::Market,
+            OrderType::StopLimit,
+            OrderType::StopMarket,
+            OrderType::TakeProfitLimit,
+            OrderType::TakeProfitMarket,
+        ] {
             let v: i32 = ot.into();
             let back: OrderType = v.into();
             assert_eq!(ot, back);
@@ -504,8 +522,14 @@ mod tests {
 
     #[test]
     fn order_status_roundtrip() {
-        for s in [OrderStatus::Pending, OrderStatus::Active, OrderStatus::Filled,
-                   OrderStatus::PartiallyFilled, OrderStatus::Cancelled, OrderStatus::Rejected] {
+        for s in [
+            OrderStatus::Pending,
+            OrderStatus::Active,
+            OrderStatus::Filled,
+            OrderStatus::PartiallyFilled,
+            OrderStatus::Cancelled,
+            OrderStatus::Rejected,
+        ] {
             let v: i32 = s.into();
             let back: OrderStatus = v.into();
             assert_eq!(s, back);
@@ -514,8 +538,14 @@ mod tests {
 
     #[test]
     fn time_in_force_roundtrip() {
-        for tif in [TimeInForce::Gtc, TimeInForce::Ioc, TimeInForce::Fok,
-                     TimeInForce::Day, TimeInForce::PostOnly, TimeInForce::ReduceOnly] {
+        for tif in [
+            TimeInForce::Gtc,
+            TimeInForce::Ioc,
+            TimeInForce::Fok,
+            TimeInForce::Day,
+            TimeInForce::PostOnly,
+            TimeInForce::ReduceOnly,
+        ] {
             let v: i32 = tif.into();
             let back: TimeInForce = v.into();
             assert_eq!(tif, back);
@@ -534,7 +564,10 @@ mod tests {
     #[test]
     fn funding_rate_entry_from_proto() {
         let p = proto::FundingRateData {
-            timestamp: Some(morpheum_proto::google::protobuf::Timestamp { seconds: 1_700_000_000, nanos: 0 }),
+            timestamp: Some(morpheum_proto::google::protobuf::Timestamp {
+                seconds: 1_700_000_000,
+                nanos: 0,
+            }),
             rate: "0.0001".into(),
             mark_price: "50000".into(),
             index_price: "49950".into(),

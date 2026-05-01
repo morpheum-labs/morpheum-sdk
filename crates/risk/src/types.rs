@@ -26,7 +26,8 @@ pub enum ShortfallIntendedPath {
 impl From<i32> for ShortfallIntendedPath {
     fn from(v: i32) -> Self {
         match v {
-            1 => Self::DirectToInsurance, 2 => Self::RunAuction,
+            1 => Self::DirectToInsurance,
+            2 => Self::RunAuction,
             _ => Self::Unspecified,
         }
     }
@@ -56,7 +57,12 @@ pub struct HeatmapBand {
 
 impl From<proto::HeatmapBand> for HeatmapBand {
     fn from(p: proto::HeatmapBand) -> Self {
-        Self { notional: p.notional, oi_long: p.oi_long, oi_short: p.oi_short, count: p.count }
+        Self {
+            notional: p.notional,
+            oi_long: p.oi_long,
+            oi_short: p.oi_short,
+            count: p.count,
+        }
     }
 }
 
@@ -73,7 +79,8 @@ pub struct HeatmapData {
 impl From<proto::HeatmapData> for HeatmapData {
     fn from(p: proto::HeatmapData) -> Self {
         Self {
-            market_index: p.market_index, mark_price: p.mark_price,
+            market_index: p.market_index,
+            mark_price: p.mark_price,
             bands: p.bands.into_iter().map(Into::into).collect(),
             total_at_risk: p.total_at_risk,
         }
@@ -90,7 +97,10 @@ pub struct LiquidationPlanBand {
 
 impl From<proto::LiquidationPlanBand> for LiquidationPlanBand {
     fn from(p: proto::LiquidationPlanBand) -> Self {
-        Self { band_index: p.band_index, notional: p.notional }
+        Self {
+            band_index: p.band_index,
+            notional: p.notional,
+        }
     }
 }
 
@@ -108,9 +118,11 @@ pub struct LiquidationPlan {
 impl From<proto::LiquidationPlan> for LiquidationPlan {
     fn from(p: proto::LiquidationPlan) -> Self {
         Self {
-            bucket_id: p.bucket_id, market_index: p.market_index,
+            bucket_id: p.bucket_id,
+            market_index: p.market_index,
             bands: p.bands.into_iter().map(Into::into).collect(),
-            total_at_risk: p.total_at_risk, cascade_remaining: p.cascade_remaining,
+            total_at_risk: p.total_at_risk,
+            cascade_remaining: p.cascade_remaining,
         }
     }
 }
@@ -125,7 +137,10 @@ pub struct PreTradeMarginResult {
 
 impl From<proto::PreTradeMarginResult> for PreTradeMarginResult {
     fn from(p: proto::PreTradeMarginResult) -> Self {
-        Self { projected_margin_impact: p.projected_margin_impact, health_ratio_bps: p.health_ratio_bps }
+        Self {
+            projected_margin_impact: p.projected_margin_impact,
+            health_ratio_bps: p.health_ratio_bps,
+        }
     }
 }
 
@@ -142,7 +157,8 @@ pub struct BucketRiskSummary {
 impl From<proto::BucketRiskSummary> for BucketRiskSummary {
     fn from(p: proto::BucketRiskSummary) -> Self {
         Self {
-            bucket_id: p.bucket_id, market_index: p.market_index,
+            bucket_id: p.bucket_id,
+            market_index: p.market_index,
             total_notional: p.total_notional,
             at_risk_bands: p.at_risk_bands.into_iter().map(Into::into).collect(),
         }
@@ -165,9 +181,12 @@ pub struct AuctionParams {
 impl From<proto::AuctionParams> for AuctionParams {
     fn from(p: proto::AuctionParams) -> Self {
         Self {
-            auction_duration_ms: p.auction_duration_ms, initial_premium_bps: p.initial_premium_bps,
-            max_discount_bps: p.max_discount_bps, auction_rate_limit: p.auction_rate_limit,
-            min_bid_increment_bps: p.min_bid_increment_bps, partial_fill_allowed: p.partial_fill_allowed,
+            auction_duration_ms: p.auction_duration_ms,
+            initial_premium_bps: p.initial_premium_bps,
+            max_discount_bps: p.max_discount_bps,
+            auction_rate_limit: p.auction_rate_limit,
+            min_bid_increment_bps: p.min_bid_increment_bps,
+            partial_fill_allowed: p.partial_fill_allowed,
             insurance_escalation_bps: p.insurance_escalation_bps,
         }
     }
@@ -199,14 +218,22 @@ pub struct RiskConfig {
 impl From<proto::RiskConfig> for RiskConfig {
     fn from(p: proto::RiskConfig) -> Self {
         Self {
-            band_width_bps: p.band_width_bps, num_bands_above_below: p.num_bands_above_below,
-            imbalance_threshold_bps: p.imbalance_threshold_bps, imbalance_hysteresis_bps: p.imbalance_hysteresis_bps,
-            cascade_max_per_market_per_epoch: p.cascade_max_per_market_per_epoch, max_scan_limit: p.max_scan_limit,
-            liquidation_margin_ratio_bps: p.liquidation_margin_ratio_bps, prediction_margin_ratio_bps: p.prediction_margin_ratio_bps,
-            price_move_threshold_bps: p.price_move_threshold_bps, partial_band_shift_enabled: p.partial_band_shift_enabled,
-            var_confidence_bps: p.var_confidence_bps, var_horizon_hours: p.var_horizon_hours,
-            enable_vrf_fairness: p.enable_vrf_fairness, enable_proactive_liquidation_events: p.enable_proactive_liquidation_events,
-            enable_pre_trade_simulation: p.enable_pre_trade_simulation, enable_spot_risk_integration: p.enable_spot_risk_integration,
+            band_width_bps: p.band_width_bps,
+            num_bands_above_below: p.num_bands_above_below,
+            imbalance_threshold_bps: p.imbalance_threshold_bps,
+            imbalance_hysteresis_bps: p.imbalance_hysteresis_bps,
+            cascade_max_per_market_per_epoch: p.cascade_max_per_market_per_epoch,
+            max_scan_limit: p.max_scan_limit,
+            liquidation_margin_ratio_bps: p.liquidation_margin_ratio_bps,
+            prediction_margin_ratio_bps: p.prediction_margin_ratio_bps,
+            price_move_threshold_bps: p.price_move_threshold_bps,
+            partial_band_shift_enabled: p.partial_band_shift_enabled,
+            var_confidence_bps: p.var_confidence_bps,
+            var_horizon_hours: p.var_horizon_hours,
+            enable_vrf_fairness: p.enable_vrf_fairness,
+            enable_proactive_liquidation_events: p.enable_proactive_liquidation_events,
+            enable_pre_trade_simulation: p.enable_pre_trade_simulation,
+            enable_spot_risk_integration: p.enable_spot_risk_integration,
             contagion_threshold_sat: p.contagion_threshold_sat,
         }
     }
@@ -215,14 +242,22 @@ impl From<proto::RiskConfig> for RiskConfig {
 impl From<RiskConfig> for proto::RiskConfig {
     fn from(c: RiskConfig) -> Self {
         Self {
-            band_width_bps: c.band_width_bps, num_bands_above_below: c.num_bands_above_below,
-            imbalance_threshold_bps: c.imbalance_threshold_bps, imbalance_hysteresis_bps: c.imbalance_hysteresis_bps,
-            cascade_max_per_market_per_epoch: c.cascade_max_per_market_per_epoch, max_scan_limit: c.max_scan_limit,
-            liquidation_margin_ratio_bps: c.liquidation_margin_ratio_bps, prediction_margin_ratio_bps: c.prediction_margin_ratio_bps,
-            price_move_threshold_bps: c.price_move_threshold_bps, partial_band_shift_enabled: c.partial_band_shift_enabled,
-            var_confidence_bps: c.var_confidence_bps, var_horizon_hours: c.var_horizon_hours,
-            enable_vrf_fairness: c.enable_vrf_fairness, enable_proactive_liquidation_events: c.enable_proactive_liquidation_events,
-            enable_pre_trade_simulation: c.enable_pre_trade_simulation, enable_spot_risk_integration: c.enable_spot_risk_integration,
+            band_width_bps: c.band_width_bps,
+            num_bands_above_below: c.num_bands_above_below,
+            imbalance_threshold_bps: c.imbalance_threshold_bps,
+            imbalance_hysteresis_bps: c.imbalance_hysteresis_bps,
+            cascade_max_per_market_per_epoch: c.cascade_max_per_market_per_epoch,
+            max_scan_limit: c.max_scan_limit,
+            liquidation_margin_ratio_bps: c.liquidation_margin_ratio_bps,
+            prediction_margin_ratio_bps: c.prediction_margin_ratio_bps,
+            price_move_threshold_bps: c.price_move_threshold_bps,
+            partial_band_shift_enabled: c.partial_band_shift_enabled,
+            var_confidence_bps: c.var_confidence_bps,
+            var_horizon_hours: c.var_horizon_hours,
+            enable_vrf_fairness: c.enable_vrf_fairness,
+            enable_proactive_liquidation_events: c.enable_proactive_liquidation_events,
+            enable_pre_trade_simulation: c.enable_pre_trade_simulation,
+            enable_spot_risk_integration: c.enable_spot_risk_integration,
             contagion_threshold_sat: c.contagion_threshold_sat,
         }
     }
@@ -241,7 +276,11 @@ pub struct OiUpdated {
 
 impl From<proto::OiUpdated> for OiUpdated {
     fn from(p: proto::OiUpdated) -> Self {
-        Self { market_index: p.market_index, long_oi: p.long_oi, short_oi: p.short_oi }
+        Self {
+            market_index: p.market_index,
+            long_oi: p.long_oi,
+            short_oi: p.short_oi,
+        }
     }
 }
 
@@ -255,7 +294,10 @@ pub struct HeatmapUpdatedEvent {
 
 impl From<proto::HeatmapUpdatedEvent> for HeatmapUpdatedEvent {
     fn from(p: proto::HeatmapUpdatedEvent) -> Self {
-        Self { market_index: p.market_index, band_count: p.band_count }
+        Self {
+            market_index: p.market_index,
+            band_count: p.band_count,
+        }
     }
 }
 
@@ -271,7 +313,8 @@ pub struct LiquidationTriggered {
 impl From<proto::LiquidationTriggered> for LiquidationTriggered {
     fn from(p: proto::LiquidationTriggered) -> Self {
         Self {
-            bucket_id: p.bucket_id, market_index: p.market_index,
+            bucket_id: p.bucket_id,
+            market_index: p.market_index,
             candidate_bands: p.candidate_bands.into_iter().map(Into::into).collect(),
         }
     }
@@ -294,9 +337,13 @@ pub struct LiquidationShortfallReady {
 impl From<proto::LiquidationShortfallReady> for LiquidationShortfallReady {
     fn from(p: proto::LiquidationShortfallReady) -> Self {
         Self {
-            liquidation_id: p.liquidation_id, bucket_id: p.bucket_id, market_index: p.market_index,
-            shortfall_sat: p.shortfall_sat, intended_path: ShortfallIntendedPath::from(p.intended_path),
-            block_height: p.block_height, expires_at_height: p.expires_at_height,
+            liquidation_id: p.liquidation_id,
+            bucket_id: p.bucket_id,
+            market_index: p.market_index,
+            shortfall_sat: p.shortfall_sat,
+            intended_path: ShortfallIntendedPath::from(p.intended_path),
+            block_height: p.block_height,
+            expires_at_height: p.expires_at_height,
             auction_params: p.auction_params.map(Into::into),
         }
     }
@@ -316,8 +363,11 @@ pub struct InsurancePayoutRequested {
 impl From<proto::InsurancePayoutRequested> for InsurancePayoutRequested {
     fn from(p: proto::InsurancePayoutRequested) -> Self {
         Self {
-            request_id: p.request_id, amount: p.amount, bucket_id: p.bucket_id,
-            liquidation_id: p.liquidation_id, block_height: p.block_height,
+            request_id: p.request_id,
+            amount: p.amount,
+            bucket_id: p.bucket_id,
+            liquidation_id: p.liquidation_id,
+            block_height: p.block_height,
         }
     }
 }
@@ -333,7 +383,11 @@ pub struct ContagionDetected {
 
 impl From<proto::ContagionDetected> for ContagionDetected {
     fn from(p: proto::ContagionDetected) -> Self {
-        Self { source_bucket_id: p.source_bucket_id, affected_bucket_id: p.affected_bucket_id, amount_sat: p.amount_sat }
+        Self {
+            source_bucket_id: p.source_bucket_id,
+            affected_bucket_id: p.affected_bucket_id,
+            amount_sat: p.amount_sat,
+        }
     }
 }
 
@@ -344,8 +398,16 @@ pub enum RiskEvent {
     OiUpdated(OiUpdated),
     HeatmapUpdated(HeatmapUpdatedEvent),
     LiquidationTriggered(LiquidationTriggered),
-    OiImbalanceAlert { market_index: u64, ratio_bps: u32, long_oi: String, short_oi: String },
-    LiquidationCapped { market_index: u64, capped_count: u32 },
+    OiImbalanceAlert {
+        market_index: u64,
+        ratio_bps: u32,
+        long_oi: String,
+        short_oi: String,
+    },
+    LiquidationCapped {
+        market_index: u64,
+        capped_count: u32,
+    },
     LiquidationShortfallReady(LiquidationShortfallReady),
     InsurancePayoutRequested(InsurancePayoutRequested),
     ContagionDetected(ContagionDetected),
@@ -360,11 +422,14 @@ impl RiskEvent {
             Event::HeatmapUpdated(v) => Self::HeatmapUpdated(v.into()),
             Event::LiquidationTriggered(v) => Self::LiquidationTriggered(v.into()),
             Event::OiImbalanceAlert(v) => Self::OiImbalanceAlert {
-                market_index: v.market_index, ratio_bps: v.ratio_bps,
-                long_oi: v.long_oi, short_oi: v.short_oi,
+                market_index: v.market_index,
+                ratio_bps: v.ratio_bps,
+                long_oi: v.long_oi,
+                short_oi: v.short_oi,
             },
             Event::LiquidationCapped(v) => Self::LiquidationCapped {
-                market_index: v.market_index, capped_count: v.capped_count,
+                market_index: v.market_index,
+                capped_count: v.capped_count,
             },
             Event::LiquidationShortfallReady(v) => Self::LiquidationShortfallReady(v.into()),
             Event::InsurancePayoutRequested(v) => Self::InsurancePayoutRequested(v.into()),
@@ -379,24 +444,38 @@ mod tests {
 
     #[test]
     fn shortfall_path_roundtrip() {
-        for p in [ShortfallIntendedPath::DirectToInsurance, ShortfallIntendedPath::RunAuction] {
+        for p in [
+            ShortfallIntendedPath::DirectToInsurance,
+            ShortfallIntendedPath::RunAuction,
+        ] {
             let v: i32 = p.into();
             assert_eq!(p, ShortfallIntendedPath::from(v));
         }
-        assert_eq!(ShortfallIntendedPath::Unspecified, ShortfallIntendedPath::from(99));
+        assert_eq!(
+            ShortfallIntendedPath::Unspecified,
+            ShortfallIntendedPath::from(99)
+        );
     }
 
     #[test]
     fn risk_config_roundtrip() {
         let c = RiskConfig {
-            band_width_bps: 100, num_bands_above_below: 10,
-            imbalance_threshold_bps: 500, imbalance_hysteresis_bps: 50,
-            cascade_max_per_market_per_epoch: 3, max_scan_limit: 100,
-            liquidation_margin_ratio_bps: 500, prediction_margin_ratio_bps: 1000,
-            price_move_threshold_bps: 200, partial_band_shift_enabled: true,
-            var_confidence_bps: 9900, var_horizon_hours: 24,
-            enable_vrf_fairness: true, enable_proactive_liquidation_events: true,
-            enable_pre_trade_simulation: true, enable_spot_risk_integration: false,
+            band_width_bps: 100,
+            num_bands_above_below: 10,
+            imbalance_threshold_bps: 500,
+            imbalance_hysteresis_bps: 50,
+            cascade_max_per_market_per_epoch: 3,
+            max_scan_limit: 100,
+            liquidation_margin_ratio_bps: 500,
+            prediction_margin_ratio_bps: 1000,
+            price_move_threshold_bps: 200,
+            partial_band_shift_enabled: true,
+            var_confidence_bps: 9900,
+            var_horizon_hours: 24,
+            enable_vrf_fairness: true,
+            enable_proactive_liquidation_events: true,
+            enable_pre_trade_simulation: true,
+            enable_spot_risk_integration: false,
             contagion_threshold_sat: 1_000_000,
         };
         let p: proto::RiskConfig = c.clone().into();
@@ -406,7 +485,12 @@ mod tests {
 
     #[test]
     fn heatmap_band_from_proto() {
-        let p = proto::HeatmapBand { notional: "1000".into(), oi_long: "500".into(), oi_short: "500".into(), count: 10 };
+        let p = proto::HeatmapBand {
+            notional: "1000".into(),
+            oi_long: "500".into(),
+            oi_short: "500".into(),
+            count: 10,
+        };
         let b: HeatmapBand = p.into();
         assert_eq!(b.count, 10);
     }
@@ -415,7 +499,9 @@ mod tests {
     fn risk_event_from_proto() {
         let proto_event = proto::RiskEvent {
             event: Some(proto::risk_event::Event::OiUpdated(proto::OiUpdated {
-                market_index: 1, long_oi: "100".into(), short_oi: "200".into(),
+                market_index: 1,
+                long_oi: "100".into(),
+                short_oi: "200".into(),
             })),
         };
         let event = RiskEvent::from_proto(proto_event);

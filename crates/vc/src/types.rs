@@ -11,8 +11,8 @@ use alloc::vec::Vec;
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
-use morpheum_sdk_core::AccountId;
 use morpheum_proto::vc::v1 as proto;
+use morpheum_sdk_core::AccountId;
 
 /// Verifiable Credential (VC) — the core data structure issued by an agent
 /// to another agent with specific claims and permissions.

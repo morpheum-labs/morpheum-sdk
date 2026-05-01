@@ -115,8 +115,7 @@ impl ChainRegistryOps for SolanaChainRegistry {
                         existing.x402_settlement_program = other_chain.x402_settlement_program;
                     }
                     if other_chain.native_warp_route_program.is_some() {
-                        existing.native_warp_route_program =
-                            other_chain.native_warp_route_program;
+                        existing.native_warp_route_program = other_chain.native_warp_route_program;
                     }
                     if other_chain.hyperlane_mailbox_program.is_some() {
                         existing.hyperlane_mailbox_program = other_chain.hyperlane_mailbox_program;
@@ -163,9 +162,9 @@ impl SolanaChainRegistry {
         chain_name: &str,
         token_symbol: &str,
     ) -> Result<(ResolvedSolanaChain, ResolvedSolanaToken), SvmError> {
-        let chain = self.get_chain(chain_name).ok_or_else(|| {
-            SvmError::Config(format!("unknown Solana chain: '{chain_name}'"))
-        })?;
+        let chain = self
+            .get_chain(chain_name)
+            .ok_or_else(|| SvmError::Config(format!("unknown Solana chain: '{chain_name}'")))?;
 
         let upper = token_symbol.to_ascii_uppercase();
         let token = chain.tokens.get(&upper).ok_or_else(|| {

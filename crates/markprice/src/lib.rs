@@ -8,30 +8,21 @@
 
 extern crate alloc;
 
-pub mod client;
-pub mod types;
-pub mod requests;
 pub mod builder;
+pub mod client;
+pub mod requests;
+pub mod types;
 
 // ==================== PUBLIC RE-EXPORTS ====================
 
 pub use client::MarkPriceClient;
 
 pub use types::{
-    MarkConfig,
-    MarkPriceData,
-    MarkPriceModuleConfig,
-    MarkPriceUpdated,
-    MarkPriceWithSource,
-    MarkSource,
-    PriceMoveAlert,
+    MarkConfig, MarkPriceData, MarkPriceModuleConfig, MarkPriceUpdated, MarkPriceWithSource,
+    MarkSource, PriceMoveAlert,
 };
 
-pub use requests::{
-    GetMarkPriceRequest,
-    GetMarkPriceWithSourceRequest,
-    UpdateMarkConfigRequest,
-};
+pub use requests::{GetMarkPriceRequest, GetMarkPriceWithSourceRequest, UpdateMarkConfigRequest};
 
 pub use builder::UpdateMarkConfigBuilder;
 
@@ -45,15 +36,8 @@ pub use morpheum_sdk_core::{AccountId, ChainId, SdkError, SignedTx};
 /// ```
 pub mod prelude {
     pub use super::{
-        MarkPriceClient,
-        MarkPriceData,
-        MarkPriceWithSource,
-        MarkSource,
-        MarkConfig,
-        AccountId,
-        ChainId,
-        SdkError,
-        SignedTx,
+        AccountId, ChainId, MarkConfig, MarkPriceClient, MarkPriceData, MarkPriceWithSource,
+        MarkSource, SdkError, SignedTx,
     };
 }
 

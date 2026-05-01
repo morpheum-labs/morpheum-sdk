@@ -10,14 +10,9 @@ use alloc::boxed::Box;
 use async_trait::async_trait;
 use prost::Message as _;
 
-use morpheum_sdk_core::{
-    AccountId, MorpheumClient, SdkConfig, SdkError, Transport,
-};
+use morpheum_sdk_core::{AccountId, MorpheumClient, SdkConfig, SdkError, Transport};
 
-use crate::{
-    requests::QueryNonceStateRequest,
-    types::NonceState,
-};
+use crate::{requests::QueryNonceStateRequest, types::NonceState};
 
 /// Primary client for all auth-related operations.
 ///
@@ -50,10 +45,9 @@ impl AuthClient {
 
         let response_bytes = self.query(path, data).await?;
 
-        let proto_res = morpheum_proto::auth::v1::QueryNonceStateResponse::decode(
-            response_bytes.as_slice(),
-        )
-        .map_err(SdkError::Decode)?;
+        let proto_res =
+            morpheum_proto::auth::v1::QueryNonceStateResponse::decode(response_bytes.as_slice())
+                .map_err(SdkError::Decode)?;
 
         let response: crate::requests::QueryNonceStateResponse = proto_res.into();
         Ok(response.state)
@@ -83,14 +77,17 @@ mod tests {
 
     #[async_trait(?Send)]
     impl Transport for DummyTransport {
-        async fn broadcast_tx(&self, _tx_bytes: Vec<u8>) -> Result<morpheum_sdk_core::BroadcastResult, SdkError> {
+        async fn broadcast_tx(
+            &self,
+            _tx_bytes: Vec<u8>,
+        ) -> Result<morpheum_sdk_core::BroadcastResult, SdkError> {
             unimplemented!("not needed for auth query tests")
         }
 
         async fn query(&self, path: &str, _data: Vec<u8>) -> Result<Vec<u8>, SdkError> {
             if path == "/auth.v1.Query/QueryNonceState" {
                 // Return a minimal valid response for testing
-                    let dummy_res = morpheum_proto::auth::v1::QueryNonceStateResponse {
+                let dummy_res = morpheum_proto::auth::v1::QueryNonceStateResponse {
                     state: Some(morpheum_proto::auth::v1::NonceState {
                         last_monotonic: 42,
                         ring: vec![],

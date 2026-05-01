@@ -5,23 +5,21 @@
 //! shared WASM wallet adapters, and return broadcast-ready bytes.
 
 use prost::Message;
+use serde::Deserialize;
 use sha2::Digest;
 use wasm_bindgen::prelude::*;
-use serde::Deserialize;
 
-use morpheum_signing_core::{
-    signer::Signer,
-    proto::tx::v1::{
-        self as tx, AuthInfo, ModeInfo, Nonce, SignDoc, SignerInfo, Tx, TxBody, TxRaw,
-    },
-};
-use morpheum_signing_wasm_lib::{
-    MetaMaskAdapterWasm, PhantomAdapterWasm, WasmSigner,
-};
 use morpheum_sdk_bucket::requests::{
     CreateBucketRequest, TransferBetweenBucketsRequest, TransferToBankRequest,
 };
 use morpheum_sdk_bucket::types::BucketType;
+use morpheum_signing_core::{
+    proto::tx::v1::{
+        self as tx, AuthInfo, ModeInfo, Nonce, SignDoc, SignerInfo, Tx, TxBody, TxRaw,
+    },
+    signer::Signer,
+};
+use morpheum_signing_wasm_lib::{MetaMaskAdapterWasm, PhantomAdapterWasm, WasmSigner};
 
 // ==================== JS PARAM TYPES ====================
 
@@ -84,7 +82,10 @@ pub struct MorpheumSdkWasm {
 impl MorpheumSdkWasm {
     /// Creates a new SDK instance backed by MetaMask (EVM injected wallet).
     #[wasm_bindgen(js_name = "newMetamask")]
-    pub async fn new_metamask(sentry_url: &str, chain_id: &str) -> Result<MorpheumSdkWasm, JsValue> {
+    pub async fn new_metamask(
+        sentry_url: &str,
+        chain_id: &str,
+    ) -> Result<MorpheumSdkWasm, JsValue> {
         let adapter = MetaMaskAdapterWasm::connect()
             .await
             .map_err(|e| JsValue::from_str(&e.to_string()))?;
@@ -135,8 +136,10 @@ impl MorpheumSdkWasm {
     /// Transfers margin between two buckets.
     #[wasm_bindgen(js_name = "transferBetweenBuckets")]
     pub async fn transfer_between_buckets(&self, params: JsValue) -> Result<JsValue, JsValue> {
-        let p: TransferBetweenBucketsParams = serde_wasm_bindgen::from_value(params)
-            .map_err(|e| JsValue::from_str(&format!("invalid transferBetweenBuckets params: {e}")))?;
+        let p: TransferBetweenBucketsParams =
+            serde_wasm_bindgen::from_value(params).map_err(|e| {
+                JsValue::from_str(&format!("invalid transferBetweenBuckets params: {e}"))
+            })?;
 
         let address = self.signer_address();
         let mut req = TransferBetweenBucketsRequest::new(
@@ -158,13 +161,8 @@ impl MorpheumSdkWasm {
             .map_err(|e| JsValue::from_str(&format!("invalid transferToBank params: {e}")))?;
 
         let address = self.signer_address();
-        let req = TransferToBankRequest::new(
-            &address,
-            &address,
-            p.bucket_id,
-            p.asset_index,
-            p.amount,
-        );
+        let req =
+            TransferToBankRequest::new(&address, &address, p.bucket_id, p.asset_index, p.amount);
         self.sign_and_return(req.to_any()).await
     }
 }
@@ -216,7 +214,9 @@ impl MorpheumSdkWasm {
             genesis_hash: Vec::new(),
         };
 
-        let signature = self.signer.sign(&sign_doc)
+        let signature = self
+            .signer
+            .sign(&sign_doc)
             .await
             .map_err(|e| JsValue::from_str(&e.to_string()))?;
 

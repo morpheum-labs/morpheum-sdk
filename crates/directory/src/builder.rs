@@ -74,13 +74,13 @@ impl UpdateProfileBuilder {
 
     /// Builds the update-profile request, performing validation.
     pub fn build(self) -> Result<UpdateProfileRequest, SdkError> {
-        let agent_hash = self.agent_hash.ok_or_else(|| {
-            SdkError::invalid_input("agent_hash is required for UpdateProfile")
-        })?;
+        let agent_hash = self
+            .agent_hash
+            .ok_or_else(|| SdkError::invalid_input("agent_hash is required for UpdateProfile"))?;
 
-        let display_name = self.display_name.ok_or_else(|| {
-            SdkError::invalid_input("display_name is required for UpdateProfile")
-        })?;
+        let display_name = self
+            .display_name
+            .ok_or_else(|| SdkError::invalid_input("display_name is required for UpdateProfile"))?;
 
         let owner_signature = self.owner_signature.ok_or_else(|| {
             SdkError::invalid_input("owner_signature is required for UpdateProfile")
@@ -155,7 +155,11 @@ impl UpdateVisibilityBuilder {
             SdkError::invalid_input("owner_signature is required for UpdateVisibility")
         })?;
 
-        Ok(UpdateVisibilityRequest::new(agent_hash, new_visibility, owner_signature))
+        Ok(UpdateVisibilityRequest::new(
+            agent_hash,
+            new_visibility,
+            owner_signature,
+        ))
     }
 }
 
@@ -249,5 +253,4 @@ mod tests {
             .build();
         assert!(result.is_err());
     }
-
 }

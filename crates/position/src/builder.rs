@@ -48,17 +48,17 @@ impl ClosePositionBuilder {
     }
 
     pub fn build(self) -> Result<ClosePositionRequest, SdkError> {
-        let address = self.address.ok_or_else(|| {
-            SdkError::invalid_input("address is required to close a position")
-        })?;
+        let address = self
+            .address
+            .ok_or_else(|| SdkError::invalid_input("address is required to close a position"))?;
 
         let market_index = self.market_index.ok_or_else(|| {
             SdkError::invalid_input("market_index is required to close a position")
         })?;
 
-        let exit_price = self.exit_price.ok_or_else(|| {
-            SdkError::invalid_input("exit_price is required to close a position")
-        })?;
+        let exit_price = self
+            .exit_price
+            .ok_or_else(|| SdkError::invalid_input("exit_price is required to close a position"))?;
 
         let mut req = ClosePositionRequest::new(address, market_index, exit_price);
         if let Some(bid) = self.bucket_id {
@@ -109,9 +109,9 @@ impl UpdatePositionLeverageBuilder {
     }
 
     pub fn build(self) -> Result<UpdatePositionLeverageRequest, SdkError> {
-        let address = self.address.ok_or_else(|| {
-            SdkError::invalid_input("address is required to update leverage")
-        })?;
+        let address = self
+            .address
+            .ok_or_else(|| SdkError::invalid_input("address is required to update leverage"))?;
 
         let market_index = self.market_index.ok_or_else(|| {
             SdkError::invalid_input("market_index is required to update leverage")

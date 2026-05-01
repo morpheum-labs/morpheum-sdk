@@ -7,8 +7,8 @@ use alloc::vec::Vec;
 use async_trait::async_trait;
 use prost::Message as _;
 
-use morpheum_sdk_core::{MorpheumClient, SdkConfig, SdkError, Transport};
 use morpheum_proto::clmmgrad::v1 as proto;
+use morpheum_sdk_core::{MorpheumClient, SdkConfig, SdkError, Transport};
 
 use crate::requests;
 use crate::types::{ClmmGraduationParams, GraduationState};
@@ -33,47 +33,68 @@ impl ClmmGradClient {
 
     /// Fetches graduation state for a token.
     pub async fn get_graduation_state(
-        &self, token_index: impl Into<String>,
+        &self,
+        token_index: impl Into<String>,
     ) -> Result<GraduationState, SdkError> {
         let req = requests::GetGraduationStateRequest::new(token_index);
         let proto_req: proto::GetGraduationStateRequest = req.into();
-        let resp = self.query(
-            "/clmmgrad.v1.ClmmGraduationService/GetGraduationState",
-            proto_req.encode_to_vec(),
-        ).await?;
-        let p = proto::GetGraduationStateResponse::decode(resp.as_slice()).map_err(SdkError::Decode)?;
-        p.state.map(Into::into).ok_or_else(|| SdkError::transport("state field missing"))
+        let resp = self
+            .query(
+                "/clmmgrad.v1.ClmmGraduationService/GetGraduationState",
+                proto_req.encode_to_vec(),
+            )
+            .await?;
+        let p =
+            proto::GetGraduationStateResponse::decode(resp.as_slice()).map_err(SdkError::Decode)?;
+        p.state
+            .map(Into::into)
+            .ok_or_else(|| SdkError::transport("state field missing"))
     }
 
     /// Lists tokens eligible for graduation.
     pub async fn list_eligible_tokens(
-        &self, request: requests::ListEligibleTokensRequest,
+        &self,
+        request: requests::ListEligibleTokensRequest,
     ) -> Result<EligibleTokensPage, SdkError> {
         let proto_req: proto::ListEligibleTokensRequest = request.into();
-        let resp = self.query(
-            "/clmmgrad.v1.ClmmGraduationService/ListEligibleTokens",
-            proto_req.encode_to_vec(),
-        ).await?;
-        let p = proto::ListEligibleTokensResponse::decode(resp.as_slice()).map_err(SdkError::Decode)?;
-        Ok(EligibleTokensPage { token_indexes: p.token_indexes, next_offset: p.next_offset })
+        let resp = self
+            .query(
+                "/clmmgrad.v1.ClmmGraduationService/ListEligibleTokens",
+                proto_req.encode_to_vec(),
+            )
+            .await?;
+        let p =
+            proto::ListEligibleTokensResponse::decode(resp.as_slice()).map_err(SdkError::Decode)?;
+        Ok(EligibleTokensPage {
+            token_indexes: p.token_indexes,
+            next_offset: p.next_offset,
+        })
     }
 
     /// Queries module-level graduation parameters.
     pub async fn get_params(&self) -> Result<ClmmGraduationParams, SdkError> {
         let proto_req: proto::GetParamsRequest = requests::GetParamsRequest::new().into();
-        let resp = self.query(
-            "/clmmgrad.v1.ClmmGraduationService/GetParams",
-            proto_req.encode_to_vec(),
-        ).await?;
+        let resp = self
+            .query(
+                "/clmmgrad.v1.ClmmGraduationService/GetParams",
+                proto_req.encode_to_vec(),
+            )
+            .await?;
         let p = proto::GetParamsResponse::decode(resp.as_slice()).map_err(SdkError::Decode)?;
-        p.params.map(Into::into).ok_or_else(|| SdkError::transport("params field missing"))
+        p.params
+            .map(Into::into)
+            .ok_or_else(|| SdkError::transport("params field missing"))
     }
 }
 
 #[async_trait(?Send)]
 impl MorpheumClient for ClmmGradClient {
-    fn config(&self) -> &SdkConfig { &self.config }
-    fn transport(&self) -> &dyn Transport { &*self.transport }
+    fn config(&self) -> &SdkConfig {
+        &self.config
+    }
+    fn transport(&self) -> &dyn Transport {
+        &*self.transport
+    }
 }
 
 #[cfg(test)]
@@ -85,24 +106,29 @@ mod tests {
 
     #[async_trait(?Send)]
     impl Transport for DummyTransport {
-        async fn broadcast_tx(&self, _: Vec<u8>) -> Result<morpheum_sdk_core::BroadcastResult, SdkError> {
+        async fn broadcast_tx(
+            &self,
+            _: Vec<u8>,
+        ) -> Result<morpheum_sdk_core::BroadcastResult, SdkError> {
             unimplemented!()
         }
         async fn query(&self, path: &str, _: Vec<u8>) -> Result<Vec<u8>, SdkError> {
             match path {
-                "/clmmgrad.v1.ClmmGraduationService/GetGraduationState" => {
-                    Ok(prost::Message::encode_to_vec(&proto::GetGraduationStateResponse {
+                "/clmmgrad.v1.ClmmGraduationService/GetGraduationState" => Ok(
+                    prost::Message::encode_to_vec(&proto::GetGraduationStateResponse {
                         state: Some(proto::GraduationState {
-                            token_index: "42".into(), status: 1,
+                            token_index: "42".into(),
+                            status: 1,
                             ..Default::default()
                         }),
-                    }))
-                }
-                "/clmmgrad.v1.ClmmGraduationService/ListEligibleTokens" => {
-                    Ok(prost::Message::encode_to_vec(&proto::ListEligibleTokensResponse {
-                        token_indexes: vec!["42".into(), "99".into()], next_offset: 2,
-                    }))
-                }
+                    }),
+                ),
+                "/clmmgrad.v1.ClmmGraduationService/ListEligibleTokens" => Ok(
+                    prost::Message::encode_to_vec(&proto::ListEligibleTokensResponse {
+                        token_indexes: vec!["42".into(), "99".into()],
+                        next_offset: 2,
+                    }),
+                ),
                 "/clmmgrad.v1.ClmmGraduationService/GetParams" => {
                     Ok(prost::Message::encode_to_vec(&proto::GetParamsResponse {
                         params: Some(proto::Params::default()),
@@ -114,7 +140,10 @@ mod tests {
     }
 
     fn make_client() -> ClmmGradClient {
-        ClmmGradClient::new(SdkConfig::new("https://sentry.morpheum.xyz", "morpheum-test-1"), Box::new(DummyTransport))
+        ClmmGradClient::new(
+            SdkConfig::new("https://sentry.morpheum.xyz", "morpheum-test-1"),
+            Box::new(DummyTransport),
+        )
     }
 
     #[tokio::test]
@@ -126,7 +155,10 @@ mod tests {
 
     #[tokio::test]
     async fn list_eligible_works() {
-        let page = make_client().list_eligible_tokens(requests::ListEligibleTokensRequest::new(10)).await.unwrap();
+        let page = make_client()
+            .list_eligible_tokens(requests::ListEligibleTokensRequest::new(10))
+            .await
+            .unwrap();
         assert_eq!(page.token_indexes.len(), 2);
         assert_eq!(page.next_offset, 2);
     }

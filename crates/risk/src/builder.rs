@@ -4,9 +4,7 @@ use alloc::string::String;
 
 use morpheum_sdk_core::SdkError;
 
-use crate::requests::{
-    TriggerLiquidationRequest, UpdateRiskConfigRequest,
-};
+use crate::requests::{TriggerLiquidationRequest, UpdateRiskConfigRequest};
 use crate::types::RiskConfig;
 
 // ====================== TRIGGER LIQUIDATION ======================
@@ -18,15 +16,25 @@ pub struct TriggerLiquidationBuilder {
 }
 
 impl TriggerLiquidationBuilder {
-    pub fn new() -> Self { Self::default() }
+    pub fn new() -> Self {
+        Self::default()
+    }
 
-    pub fn market_index(mut self, v: u64) -> Self { self.market_index = Some(v); self }
-    pub fn bucket_id(mut self, v: u64) -> Self { self.bucket_id = Some(v); self }
+    pub fn market_index(mut self, v: u64) -> Self {
+        self.market_index = Some(v);
+        self
+    }
+    pub fn bucket_id(mut self, v: u64) -> Self {
+        self.bucket_id = Some(v);
+        self
+    }
 
     pub fn build(self) -> Result<TriggerLiquidationRequest, SdkError> {
         Ok(TriggerLiquidationRequest::new(
-            self.market_index.ok_or_else(|| SdkError::invalid_input("market_index is required"))?,
-            self.bucket_id.ok_or_else(|| SdkError::invalid_input("bucket_id is required"))?,
+            self.market_index
+                .ok_or_else(|| SdkError::invalid_input("market_index is required"))?,
+            self.bucket_id
+                .ok_or_else(|| SdkError::invalid_input("bucket_id is required"))?,
         ))
     }
 }
@@ -39,21 +47,36 @@ pub struct UpdateRiskConfigBuilder {
 }
 
 impl UpdateRiskConfigBuilder {
-    pub fn new() -> Self { Self { authority: None, config: None } }
+    pub fn new() -> Self {
+        Self {
+            authority: None,
+            config: None,
+        }
+    }
 
-    pub fn authority(mut self, v: impl Into<String>) -> Self { self.authority = Some(v.into()); self }
-    pub fn config(mut self, v: RiskConfig) -> Self { self.config = Some(v); self }
+    pub fn authority(mut self, v: impl Into<String>) -> Self {
+        self.authority = Some(v.into());
+        self
+    }
+    pub fn config(mut self, v: RiskConfig) -> Self {
+        self.config = Some(v);
+        self
+    }
 
     pub fn build(self) -> Result<UpdateRiskConfigRequest, SdkError> {
         Ok(UpdateRiskConfigRequest::new(
-            self.authority.ok_or_else(|| SdkError::invalid_input("authority is required"))?,
-            self.config.ok_or_else(|| SdkError::invalid_input("config is required"))?,
+            self.authority
+                .ok_or_else(|| SdkError::invalid_input("authority is required"))?,
+            self.config
+                .ok_or_else(|| SdkError::invalid_input("config is required"))?,
         ))
     }
 }
 
 impl Default for UpdateRiskConfigBuilder {
-    fn default() -> Self { Self::new() }
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 #[cfg(test)]
@@ -63,8 +86,10 @@ mod tests {
     #[test]
     fn trigger_liquidation_builder_works() {
         let req = TriggerLiquidationBuilder::new()
-            .market_index(0).bucket_id(42)
-            .build().unwrap();
+            .market_index(0)
+            .bucket_id(42)
+            .build()
+            .unwrap();
         assert_eq!(req.market_index, 0);
         assert_eq!(req.bucket_id, 42);
     }
@@ -97,7 +122,8 @@ mod tests {
                 enable_spot_risk_integration: false,
                 contagion_threshold_sat: 1_000_000,
             })
-            .build().unwrap();
+            .build()
+            .unwrap();
         assert_eq!(req.authority, "morpheum1gov");
     }
 

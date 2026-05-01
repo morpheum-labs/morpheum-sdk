@@ -209,13 +209,17 @@ pub struct QueryProofRequest {
 
 impl QueryProofRequest {
     pub fn new(proof_id: impl Into<String>) -> Self {
-        Self { proof_id: proof_id.into() }
+        Self {
+            proof_id: proof_id.into(),
+        }
     }
 }
 
 impl From<QueryProofRequest> for proto::QueryProofRequest {
     fn from(req: QueryProofRequest) -> Self {
-        Self { proof_id: req.proof_id }
+        Self {
+            proof_id: req.proof_id,
+        }
     }
 }
 
@@ -293,7 +297,11 @@ pub struct QueryProofsByTypeRequest {
 
 impl QueryProofsByTypeRequest {
     pub fn new(proof_type: ProofType, limit: u32, offset: u32) -> Self {
-        Self { proof_type, limit, offset }
+        Self {
+            proof_type,
+            limit,
+            offset,
+        }
     }
 }
 

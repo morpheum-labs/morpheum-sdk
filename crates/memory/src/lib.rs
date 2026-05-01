@@ -19,8 +19,8 @@ extern crate alloc;
 // Public API modules — each has a single, clear responsibility
 pub mod builder;
 pub mod client;
-pub mod types;
 pub mod requests;
+pub mod types;
 
 // ==================== PUBLIC RE-EXPORTS ====================
 
@@ -28,30 +28,18 @@ pub mod requests;
 pub use client::MemoryClient;
 
 /// Fluent builders for memory transaction construction.
-pub use builder::{
-    DeleteEntryBuilder,
-    StoreEntryBuilder,
-    UpdateEntryBuilder,
-};
+pub use builder::{DeleteEntryBuilder, StoreEntryBuilder, UpdateEntryBuilder};
 
 /// Core domain types for the memory module.
 pub use types::{
-    MemoryEntry,
-    MemoryEntryType,
-    MemoryRoot,
-    MemorySnapshot,
-    Params,
-    VectorEmbedding,
+    MemoryEntry, MemoryEntryType, MemoryRoot, MemorySnapshot, Params, VectorEmbedding,
 };
 
 /// Re-export all request and response types for clean message construction.
 pub use requests::*;
 
 /// Re-export core SDK types commonly used with memory flows.
-pub use morpheum_sdk_core::{
-    SdkError,
-    SdkConfig,
-};
+pub use morpheum_sdk_core::{SdkConfig, SdkError};
 
 /// Recommended prelude for the memory module.
 ///
@@ -61,18 +49,8 @@ pub use morpheum_sdk_core::{
 /// ```
 pub mod prelude {
     pub use super::{
-        MemoryClient,
-        StoreEntryBuilder,
-        UpdateEntryBuilder,
-        DeleteEntryBuilder,
-        MemoryEntry,
-        MemoryEntryType,
-        MemoryRoot,
-        MemorySnapshot,
-        Params,
-        VectorEmbedding,
-        SdkError,
-        SdkConfig,
+        DeleteEntryBuilder, MemoryClient, MemoryEntry, MemoryEntryType, MemoryRoot, MemorySnapshot,
+        Params, SdkConfig, SdkError, StoreEntryBuilder, UpdateEntryBuilder, VectorEmbedding,
     };
 }
 

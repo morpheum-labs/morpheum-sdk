@@ -8,39 +8,25 @@
 
 extern crate alloc;
 
-pub mod client;
-pub mod types;
-pub mod requests;
 pub mod builder;
+pub mod client;
+pub mod requests;
+pub mod types;
 
 // ==================== PUBLIC RE-EXPORTS ====================
 
 pub use client::LiquidityClient;
 
 pub use types::{
-    DepthMetrics,
-    LiquidityProviderType,
-    PageInfo,
-    Pool,
-    PoolHealth,
-    PoolStatus,
-    PoolType,
+    DepthMetrics, LiquidityProviderType, PageInfo, Pool, PoolHealth, PoolStatus, PoolType,
 };
 
 pub use requests::{
-    CreatePoolRequest,
-    GetDepthMetricsRequest,
-    GetPoolHealthRequest,
-    GetPoolRequest,
-    GetPoolsByMarketRequest,
-    ListPoolsRequest,
-    UpdatePoolParamsRequest,
+    CreatePoolRequest, GetDepthMetricsRequest, GetPoolHealthRequest, GetPoolRequest,
+    GetPoolsByMarketRequest, ListPoolsRequest, UpdatePoolParamsRequest,
 };
 
-pub use builder::{
-    CreatePoolBuilder,
-    UpdatePoolParamsBuilder,
-};
+pub use builder::{CreatePoolBuilder, UpdatePoolParamsBuilder};
 
 pub use morpheum_sdk_core::{AccountId, ChainId, SdkError, SignedTx};
 
@@ -52,18 +38,8 @@ pub use morpheum_sdk_core::{AccountId, ChainId, SdkError, SignedTx};
 /// ```
 pub mod prelude {
     pub use super::{
-        LiquidityClient,
-        Pool,
-        PoolType,
-        PoolStatus,
-        LiquidityProviderType,
-        DepthMetrics,
-        PoolHealth,
-        PageInfo,
-        AccountId,
-        ChainId,
-        SdkError,
-        SignedTx,
+        AccountId, ChainId, DepthMetrics, LiquidityClient, LiquidityProviderType, PageInfo, Pool,
+        PoolHealth, PoolStatus, PoolType, SdkError, SignedTx,
     };
 }
 

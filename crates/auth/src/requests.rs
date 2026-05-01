@@ -14,8 +14,8 @@ use serde::{Deserialize, Serialize};
 
 use morpheum_proto::google::protobuf::Any as ProtoAny;
 
-use morpheum_sdk_core::AccountId;
 use morpheum_proto::auth::v1 as proto;
+use morpheum_sdk_core::AccountId;
 
 /// Request to approve a Trading Key (delegated session key) for an agent.
 ///
@@ -134,7 +134,9 @@ pub struct QueryNonceStateRequest {
 
 impl QueryNonceStateRequest {
     pub fn new(address: impl Into<AccountId>) -> Self {
-        Self { address: address.into() }
+        Self {
+            address: address.into(),
+        }
     }
 }
 

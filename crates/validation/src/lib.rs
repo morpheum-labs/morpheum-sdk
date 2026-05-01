@@ -18,8 +18,8 @@ extern crate alloc;
 // Public API modules — each has a single, clear responsibility
 pub mod builder;
 pub mod client;
-pub mod types;
 pub mod requests;
+pub mod types;
 
 // ==================== PUBLIC RE-EXPORTS ====================
 
@@ -27,28 +27,16 @@ pub mod requests;
 pub use client::ValidationClient;
 
 /// Fluent builders for validation transaction construction.
-pub use builder::{
-    RevokeProofBuilder,
-    SubmitProofBuilder,
-    UpdateParamsBuilder,
-};
+pub use builder::{RevokeProofBuilder, SubmitProofBuilder, UpdateParamsBuilder};
 
 /// Core domain types for the validation module.
-pub use types::{
-    CrossChainProofPacket,
-    Params,
-    ProofType,
-    ValidationProof,
-};
+pub use types::{CrossChainProofPacket, Params, ProofType, ValidationProof};
 
 /// Re-export all request and response types for clean message construction.
 pub use requests::*;
 
 /// Re-export core SDK types commonly used with validation flows.
-pub use morpheum_sdk_core::{
-    SdkError,
-    SdkConfig,
-};
+pub use morpheum_sdk_core::{SdkConfig, SdkError};
 
 /// Recommended prelude for the validation module.
 ///
@@ -58,15 +46,8 @@ pub use morpheum_sdk_core::{
 /// ```
 pub mod prelude {
     pub use super::{
-        ValidationClient,
-        SubmitProofBuilder,
-        RevokeProofBuilder,
-        CrossChainProofPacket,
-        Params,
-        ProofType,
-        ValidationProof,
-        SdkError,
-        SdkConfig,
+        CrossChainProofPacket, Params, ProofType, RevokeProofBuilder, SdkConfig, SdkError,
+        SubmitProofBuilder, ValidationClient, ValidationProof,
     };
 }
 

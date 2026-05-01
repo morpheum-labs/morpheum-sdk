@@ -7,8 +7,8 @@ use prost::Message as _;
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
-use morpheum_proto::risk::v1 as proto;
 use morpheum_proto::google::protobuf::Any as ProtoAny;
+use morpheum_proto::risk::v1 as proto;
 
 use crate::types::RiskConfig;
 
@@ -24,7 +24,10 @@ pub struct TriggerLiquidationRequest {
 
 impl TriggerLiquidationRequest {
     pub fn new(market_index: u64, bucket_id: u64) -> Self {
-        Self { market_index, bucket_id }
+        Self {
+            market_index,
+            bucket_id,
+        }
     }
 
     pub fn to_any(&self) -> ProtoAny {
@@ -32,7 +35,10 @@ impl TriggerLiquidationRequest {
             market_index: self.market_index,
             bucket_id: self.bucket_id,
         };
-        ProtoAny { type_url: "/risk.v1.MsgTriggerLiquidation".into(), value: msg.encode_to_vec() }
+        ProtoAny {
+            type_url: "/risk.v1.MsgTriggerLiquidation".into(),
+            value: msg.encode_to_vec(),
+        }
     }
 }
 
@@ -60,7 +66,10 @@ impl UpdateRiskConfigRequest {
                 auction_params: None,
             }),
         };
-        ProtoAny { type_url: "/risk.v1.MsgUpdateParams".into(), value: msg.encode_to_vec() }
+        ProtoAny {
+            type_url: "/risk.v1.MsgUpdateParams".into(),
+            value: msg.encode_to_vec(),
+        }
     }
 }
 
@@ -75,11 +84,21 @@ pub struct GetHeatmapRequest {
 }
 
 impl GetHeatmapRequest {
-    pub fn new(market_index: u64, depth: u32) -> Self { Self { market_index, depth } }
+    pub fn new(market_index: u64, depth: u32) -> Self {
+        Self {
+            market_index,
+            depth,
+        }
+    }
 }
 
 impl From<GetHeatmapRequest> for proto::GetHeatmapRequest {
-    fn from(r: GetHeatmapRequest) -> Self { Self { market_index: r.market_index, depth: r.depth } }
+    fn from(r: GetHeatmapRequest) -> Self {
+        Self {
+            market_index: r.market_index,
+            depth: r.depth,
+        }
+    }
 }
 
 /// Query OI ratio for a market.
@@ -90,11 +109,17 @@ pub struct GetOiRatioRequest {
 }
 
 impl GetOiRatioRequest {
-    pub fn new(market_index: u64) -> Self { Self { market_index } }
+    pub fn new(market_index: u64) -> Self {
+        Self { market_index }
+    }
 }
 
 impl From<GetOiRatioRequest> for proto::GetOiRatioRequest {
-    fn from(r: GetOiRatioRequest) -> Self { Self { market_index: r.market_index } }
+    fn from(r: GetOiRatioRequest) -> Self {
+        Self {
+            market_index: r.market_index,
+        }
+    }
 }
 
 /// Query maintenance margin for a position.
@@ -112,18 +137,33 @@ pub struct GetMaintenanceMarginRequest {
 
 impl GetMaintenanceMarginRequest {
     pub fn new(
-        market_index: u64, size: impl Into<String>, entry_price: u64,
-        is_long: bool, leverage: u64, mark_price: u64,
+        market_index: u64,
+        size: impl Into<String>,
+        entry_price: u64,
+        is_long: bool,
+        leverage: u64,
+        mark_price: u64,
     ) -> Self {
-        Self { market_index, size: size.into(), entry_price, is_long, leverage, mark_price }
+        Self {
+            market_index,
+            size: size.into(),
+            entry_price,
+            is_long,
+            leverage,
+            mark_price,
+        }
     }
 }
 
 impl From<GetMaintenanceMarginRequest> for proto::GetMaintenanceMarginRequest {
     fn from(r: GetMaintenanceMarginRequest) -> Self {
         Self {
-            market_index: r.market_index, size: r.size, entry_price: r.entry_price,
-            is_long: r.is_long, leverage: r.leverage, mark_price: r.mark_price,
+            market_index: r.market_index,
+            size: r.size,
+            entry_price: r.entry_price,
+            is_long: r.is_long,
+            leverage: r.leverage,
+            mark_price: r.mark_price,
         }
     }
 }
@@ -141,25 +181,29 @@ mod tests {
 
     #[test]
     fn update_risk_config_to_any() {
-        let any = UpdateRiskConfigRequest::new("morpheum1gov", RiskConfig {
-            band_width_bps: 100,
-            num_bands_above_below: 10,
-            imbalance_threshold_bps: 500,
-            imbalance_hysteresis_bps: 100,
-            cascade_max_per_market_per_epoch: 5,
-            max_scan_limit: 100,
-            liquidation_margin_ratio_bps: 500,
-            prediction_margin_ratio_bps: 700,
-            price_move_threshold_bps: 300,
-            partial_band_shift_enabled: true,
-            var_confidence_bps: 9900,
-            var_horizon_hours: 24,
-            enable_vrf_fairness: false,
-            enable_proactive_liquidation_events: true,
-            enable_pre_trade_simulation: true,
-            enable_spot_risk_integration: false,
-            contagion_threshold_sat: 1_000_000,
-        }).to_any();
+        let any = UpdateRiskConfigRequest::new(
+            "morpheum1gov",
+            RiskConfig {
+                band_width_bps: 100,
+                num_bands_above_below: 10,
+                imbalance_threshold_bps: 500,
+                imbalance_hysteresis_bps: 100,
+                cascade_max_per_market_per_epoch: 5,
+                max_scan_limit: 100,
+                liquidation_margin_ratio_bps: 500,
+                prediction_margin_ratio_bps: 700,
+                price_move_threshold_bps: 300,
+                partial_band_shift_enabled: true,
+                var_confidence_bps: 9900,
+                var_horizon_hours: 24,
+                enable_vrf_fairness: false,
+                enable_proactive_liquidation_events: true,
+                enable_pre_trade_simulation: true,
+                enable_spot_risk_integration: false,
+                contagion_threshold_sat: 1_000_000,
+            },
+        )
+        .to_any();
         assert_eq!(any.type_url, "/risk.v1.MsgUpdateParams");
         assert!(!any.value.is_empty());
     }

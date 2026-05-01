@@ -28,7 +28,10 @@ pub struct CreateJobRequest {
 
 impl CreateJobRequest {
     pub fn new(job: Job, client_signature: Vec<u8>) -> Self {
-        Self { job, client_signature }
+        Self {
+            job,
+            client_signature,
+        }
     }
 
     pub fn to_any(&self) -> ProtoAny {
@@ -138,11 +141,7 @@ pub struct AttestRequest {
 }
 
 impl AttestRequest {
-    pub fn new(
-        job_id: impl Into<String>,
-        completed: bool,
-        evaluator_signature: Vec<u8>,
-    ) -> Self {
+    pub fn new(job_id: impl Into<String>, completed: bool, evaluator_signature: Vec<u8>) -> Self {
         Self {
             job_id: job_id.into(),
             completed,
@@ -296,7 +295,9 @@ pub struct QueryJobRequest {
 
 impl QueryJobRequest {
     pub fn new(job_id: impl Into<String>) -> Self {
-        Self { job_id: job_id.into() }
+        Self {
+            job_id: job_id.into(),
+        }
     }
 }
 
@@ -470,7 +471,11 @@ pub struct QueryJobsByStateRequest {
 
 impl QueryJobsByStateRequest {
     pub fn new(state: JobState, limit: u32, offset: u32) -> Self {
-        Self { state, limit, offset }
+        Self {
+            state,
+            limit,
+            offset,
+        }
     }
 }
 
@@ -527,8 +532,7 @@ mod tests {
 
     #[test]
     fn attest_request_with_reason() {
-        let req = AttestRequest::new("job-1", true, vec![7, 8])
-            .with_reason_hash("reason-abc");
+        let req = AttestRequest::new("job-1", true, vec![7, 8]).with_reason_hash("reason-abc");
         assert_eq!(req.reason_hash, "reason-abc");
         let any = req.to_any();
         assert_eq!(any.type_url, "/job.v1.MsgAttest");
@@ -543,8 +547,7 @@ mod tests {
 
     #[test]
     fn query_jobs_by_client_with_state() {
-        let req = QueryJobsByClientRequest::new("client-hash", 10, 0)
-            .with_state(JobState::Funded);
+        let req = QueryJobsByClientRequest::new("client-hash", 10, 0).with_state(JobState::Funded);
         let proto_req: proto::QueryJobsByClientRequest = req.into();
         assert_eq!(proto_req.state, proto::JobState::Funded as i32);
     }

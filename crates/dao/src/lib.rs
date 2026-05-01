@@ -16,40 +16,24 @@
 
 extern crate alloc;
 
-pub mod client;
-pub mod types;
-pub mod requests;
 pub mod builder;
+pub mod client;
+pub mod requests;
+pub mod types;
 
 // ==================== PUBLIC RE-EXPORTS ====================
 
 pub use client::DaoClient;
 
 pub use types::{
-    Dao,
-    DaoConfig,
-    DaoDeposit,
-    DaoPlugin,
-    DaoProposal,
-    DaoProposalStatus,
-    DaoProposalUpdate,
-    DaoStatus,
-    DaoTallyResult,
-    DaoType,
-    DaoVote,
-    DaoVoteOption,
-    GovernedAsset,
+    Dao, DaoConfig, DaoDeposit, DaoPlugin, DaoProposal, DaoProposalStatus, DaoProposalUpdate,
+    DaoStatus, DaoTallyResult, DaoType, DaoVote, DaoVoteOption, GovernedAsset,
     WeightedDaoVoteOption,
 };
 
 pub use requests::*;
 
-pub use morpheum_sdk_core::{
-    AccountId,
-    ChainId,
-    SdkError,
-    SignedTx,
-};
+pub use morpheum_sdk_core::{AccountId, ChainId, SdkError, SignedTx};
 
 /// Recommended prelude for the DAO module.
 ///
@@ -58,21 +42,8 @@ pub use morpheum_sdk_core::{
 /// ```
 pub mod prelude {
     pub use super::{
-        DaoClient,
-        Dao,
-        DaoConfig,
-        DaoProposal,
-        DaoProposalStatus,
-        DaoStatus,
-        DaoTallyResult,
-        DaoType,
-        DaoVote,
-        DaoVoteOption,
-        WeightedDaoVoteOption,
-        AccountId,
-        ChainId,
-        SdkError,
-        SignedTx,
+        AccountId, ChainId, Dao, DaoClient, DaoConfig, DaoProposal, DaoProposalStatus, DaoStatus,
+        DaoTallyResult, DaoType, DaoVote, DaoVoteOption, SdkError, SignedTx, WeightedDaoVoteOption,
     };
 }
 

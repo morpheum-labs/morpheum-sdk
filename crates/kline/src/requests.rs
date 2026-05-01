@@ -19,13 +19,19 @@ pub struct GetMarkPriceWithSpreadRequest {
 
 impl GetMarkPriceWithSpreadRequest {
     pub fn new(market_index: u64, logical_timestamp: u64) -> Self {
-        Self { market_index, logical_timestamp }
+        Self {
+            market_index,
+            logical_timestamp,
+        }
     }
 }
 
 impl From<GetMarkPriceWithSpreadRequest> for proto::GetMarkPriceWithSpreadRequest {
     fn from(r: GetMarkPriceWithSpreadRequest) -> Self {
-        Self { market_index: r.market_index, logical_timestamp: r.logical_timestamp }
+        Self {
+            market_index: r.market_index,
+            logical_timestamp: r.logical_timestamp,
+        }
     }
 }
 
@@ -40,13 +46,21 @@ pub struct GetVwapRequest {
 
 impl GetVwapRequest {
     pub fn new(market_index: u64, start_logical: u64, end_logical: u64) -> Self {
-        Self { market_index, start_logical, end_logical }
+        Self {
+            market_index,
+            start_logical,
+            end_logical,
+        }
     }
 }
 
 impl From<GetVwapRequest> for proto::GetVwapRequest {
     fn from(r: GetVwapRequest) -> Self {
-        Self { market_index: r.market_index, start_logical: r.start_logical, end_logical: r.end_logical }
+        Self {
+            market_index: r.market_index,
+            start_logical: r.start_logical,
+            end_logical: r.end_logical,
+        }
     }
 }
 
@@ -61,13 +75,21 @@ pub struct GetLongShortRatioRequest {
 
 impl GetLongShortRatioRequest {
     pub fn new(market_index: u64, period: u32, open_at_logical: u64) -> Self {
-        Self { market_index, period, open_at_logical }
+        Self {
+            market_index,
+            period,
+            open_at_logical,
+        }
     }
 }
 
 impl From<GetLongShortRatioRequest> for proto::GetLongShortRatioRequest {
     fn from(r: GetLongShortRatioRequest) -> Self {
-        Self { market_index: r.market_index, period: r.period, open_at_logical: r.open_at_logical }
+        Self {
+            market_index: r.market_index,
+            period: r.period,
+            open_at_logical: r.open_at_logical,
+        }
     }
 }
 
@@ -82,13 +104,21 @@ pub struct GetLastKlineRequest {
 
 impl GetLastKlineRequest {
     pub fn new(market_index: u64, period: u32, logical_timestamp: u64) -> Self {
-        Self { market_index, period, logical_timestamp }
+        Self {
+            market_index,
+            period,
+            logical_timestamp,
+        }
     }
 }
 
 impl From<GetLastKlineRequest> for proto::GetLastKlineRequest {
     fn from(r: GetLastKlineRequest) -> Self {
-        Self { market_index: r.market_index, period: r.period, logical_timestamp: r.logical_timestamp }
+        Self {
+            market_index: r.market_index,
+            period: r.period,
+            logical_timestamp: r.logical_timestamp,
+        }
     }
 }
 
@@ -103,14 +133,29 @@ pub struct QueryKlinesSnapshotRequest {
 }
 
 impl QueryKlinesSnapshotRequest {
-    pub fn new(market_index: u64, interval: impl Into<String>, start_time: u64, end_time: u64) -> Self {
-        Self { market_index, interval: interval.into(), start_time, end_time }
+    pub fn new(
+        market_index: u64,
+        interval: impl Into<String>,
+        start_time: u64,
+        end_time: u64,
+    ) -> Self {
+        Self {
+            market_index,
+            interval: interval.into(),
+            start_time,
+            end_time,
+        }
     }
 }
 
 impl From<QueryKlinesSnapshotRequest> for proto::QueryKlinesSnapshotRequest {
     fn from(r: QueryKlinesSnapshotRequest) -> Self {
-        Self { market_index: r.market_index, interval: r.interval, start_time: r.start_time, end_time: r.end_time }
+        Self {
+            market_index: r.market_index,
+            interval: r.interval,
+            start_time: r.start_time,
+            end_time: r.end_time,
+        }
     }
 }
 
@@ -120,7 +165,8 @@ mod tests {
 
     #[test]
     fn query_conversions() {
-        let p: proto::GetMarkPriceWithSpreadRequest = GetMarkPriceWithSpreadRequest::new(1, 100).into();
+        let p: proto::GetMarkPriceWithSpreadRequest =
+            GetMarkPriceWithSpreadRequest::new(1, 100).into();
         assert_eq!(p.market_index, 1);
 
         let p: proto::GetVwapRequest = GetVwapRequest::new(1, 100, 200).into();
@@ -129,7 +175,8 @@ mod tests {
         let p: proto::GetLastKlineRequest = GetLastKlineRequest::new(1, 4, 100).into();
         assert_eq!(p.period, 4);
 
-        let p: proto::QueryKlinesSnapshotRequest = QueryKlinesSnapshotRequest::new(1, "1h", 100, 200).into();
+        let p: proto::QueryKlinesSnapshotRequest =
+            QueryKlinesSnapshotRequest::new(1, "1h", 100, 200).into();
         assert_eq!(p.interval, "1h");
     }
 }

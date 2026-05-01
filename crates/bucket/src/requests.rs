@@ -217,13 +217,17 @@ pub struct QueryBucketRequest {
 
 impl QueryBucketRequest {
     pub fn new(bucket_id: impl Into<String>) -> Self {
-        Self { bucket_id: bucket_id.into() }
+        Self {
+            bucket_id: bucket_id.into(),
+        }
     }
 }
 
 impl From<QueryBucketRequest> for proto::QueryBucketRequest {
     fn from(req: QueryBucketRequest) -> Self {
-        Self { bucket_id: req.bucket_id }
+        Self {
+            bucket_id: req.bucket_id,
+        }
     }
 }
 
@@ -237,7 +241,10 @@ pub struct QueryBucketsByAddressRequest {
 
 impl QueryBucketsByAddressRequest {
     pub fn new(address: impl Into<String>) -> Self {
-        Self { address: address.into(), type_filter: None }
+        Self {
+            address: address.into(),
+            type_filter: None,
+        }
     }
 
     pub fn type_filter(mut self, bucket_type: BucketType) -> Self {
@@ -264,13 +271,17 @@ pub struct QueryAddressPnLRequest {
 
 impl QueryAddressPnLRequest {
     pub fn new(address: impl Into<String>) -> Self {
-        Self { address: address.into() }
+        Self {
+            address: address.into(),
+        }
     }
 }
 
 impl From<QueryAddressPnLRequest> for proto::QueryAddressPnLRequest {
     fn from(req: QueryAddressPnLRequest) -> Self {
-        Self { address: req.address }
+        Self {
+            address: req.address,
+        }
     }
 }
 
@@ -283,13 +294,17 @@ pub struct QueryBucketPnLRequest {
 
 impl QueryBucketPnLRequest {
     pub fn new(bucket_id: impl Into<String>) -> Self {
-        Self { bucket_id: bucket_id.into() }
+        Self {
+            bucket_id: bucket_id.into(),
+        }
     }
 }
 
 impl From<QueryBucketPnLRequest> for proto::QueryBucketPnLRequest {
     fn from(req: QueryBucketPnLRequest) -> Self {
-        Self { bucket_id: req.bucket_id }
+        Self {
+            bucket_id: req.bucket_id,
+        }
     }
 }
 
@@ -302,13 +317,17 @@ pub struct QueryPositionsByBucketRequest {
 
 impl QueryPositionsByBucketRequest {
     pub fn new(bucket_id: impl Into<String>) -> Self {
-        Self { bucket_id: bucket_id.into() }
+        Self {
+            bucket_id: bucket_id.into(),
+        }
     }
 }
 
 impl From<QueryPositionsByBucketRequest> for proto::QueryPositionsByBucketRequest {
     fn from(req: QueryPositionsByBucketRequest) -> Self {
-        Self { bucket_id: req.bucket_id }
+        Self {
+            bucket_id: req.bucket_id,
+        }
     }
 }
 
@@ -325,7 +344,13 @@ pub struct QueryLiquidationsRequest {
 
 impl QueryLiquidationsRequest {
     pub fn new(limit: i32) -> Self {
-        Self { market_index: 0, address: None, start_time: 0, end_time: 0, limit }
+        Self {
+            market_index: 0,
+            address: None,
+            start_time: 0,
+            end_time: 0,
+            limit,
+        }
     }
 
     pub fn market_index(mut self, index: u64) -> Self {
@@ -367,13 +392,19 @@ pub struct QueryBucketStatusRequest {
 
 impl QueryBucketStatusRequest {
     pub fn new(address: impl Into<String>, bucket_id: impl Into<String>) -> Self {
-        Self { address: address.into(), bucket_id: bucket_id.into() }
+        Self {
+            address: address.into(),
+            bucket_id: bucket_id.into(),
+        }
     }
 }
 
 impl From<QueryBucketStatusRequest> for proto::QueryBucketStatusRequest {
     fn from(req: QueryBucketStatusRequest) -> Self {
-        Self { address: req.address, bucket_id: req.bucket_id }
+        Self {
+            address: req.address,
+            bucket_id: req.bucket_id,
+        }
     }
 }
 
@@ -386,13 +417,19 @@ pub struct QueryAllBucketsBalanceByAddressRequest {
 
 impl QueryAllBucketsBalanceByAddressRequest {
     pub fn new(address: impl Into<String>) -> Self {
-        Self { address: address.into() }
+        Self {
+            address: address.into(),
+        }
     }
 }
 
-impl From<QueryAllBucketsBalanceByAddressRequest> for proto::QueryAllBucketsBalanceByAddressRequest {
+impl From<QueryAllBucketsBalanceByAddressRequest>
+    for proto::QueryAllBucketsBalanceByAddressRequest
+{
     fn from(req: QueryAllBucketsBalanceByAddressRequest) -> Self {
-        Self { address: req.address }
+        Self {
+            address: req.address,
+        }
     }
 }
 
@@ -439,13 +476,19 @@ pub struct QueryLiquidationMetricsRequest {
 
 impl QueryLiquidationMetricsRequest {
     pub fn new(start_time: i64, end_time: i64) -> Self {
-        Self { start_time, end_time }
+        Self {
+            start_time,
+            end_time,
+        }
     }
 }
 
 impl From<QueryLiquidationMetricsRequest> for proto::QueryLiquidationMetricsRequest {
     fn from(req: QueryLiquidationMetricsRequest) -> Self {
-        Self { start_time: req.start_time, end_time: req.end_time }
+        Self {
+            start_time: req.start_time,
+            end_time: req.end_time,
+        }
     }
 }
 
@@ -461,7 +504,12 @@ pub struct QueryAdlHistoryRequest {
 
 impl QueryAdlHistoryRequest {
     pub fn new(limit: i32, offset: i32) -> Self {
-        Self { market_index: 0, address: None, limit, offset }
+        Self {
+            market_index: 0,
+            address: None,
+            limit,
+            offset,
+        }
     }
 
     pub fn market_index(mut self, index: u64) -> Self {
@@ -506,7 +554,11 @@ mod tests {
     #[test]
     fn create_bucket_request_to_any() {
         let req = CreateBucketRequest::new(
-            "morpheum1abc", "bucket-1", BucketType::Cross, 4, "100000000000",
+            "morpheum1abc",
+            "bucket-1",
+            BucketType::Cross,
+            4,
+            "100000000000",
         );
         let any = req.to_any();
         assert_eq!(any.type_url, "/bucket.v1.MsgCreateBucketRequest");
@@ -516,7 +568,10 @@ mod tests {
     #[test]
     fn transfer_between_buckets_to_any() {
         let req = TransferBetweenBucketsRequest::new(
-            "morpheum1abc", "bucket-1", "bucket-2", "50000000000",
+            "morpheum1abc",
+            "bucket-1",
+            "bucket-2",
+            "50000000000",
         )
         .reason("rebalance");
         let any = req.to_any();
@@ -539,11 +594,9 @@ mod tests {
 
     #[test]
     fn query_buckets_by_address_with_filter() {
-        let req = QueryBucketsByAddressRequest::new("morpheum1abc")
-            .type_filter(BucketType::Cross);
+        let req = QueryBucketsByAddressRequest::new("morpheum1abc").type_filter(BucketType::Cross);
         let proto_req: proto::QueryBucketsByAddressRequest = req.into();
         assert_eq!(proto_req.address, "morpheum1abc");
         assert_eq!(proto_req.type_filter, Some(proto::BucketType::Cross as i32));
     }
-
 }

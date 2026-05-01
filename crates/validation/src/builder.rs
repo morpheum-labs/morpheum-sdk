@@ -21,15 +21,25 @@ pub struct UpdateParamsBuilder {
 }
 
 impl UpdateParamsBuilder {
-    pub fn new() -> Self { Self::default() }
+    pub fn new() -> Self {
+        Self::default()
+    }
 
-    pub fn authority(mut self, v: impl Into<String>) -> Self { self.authority = Some(v.into()); self }
-    pub fn params(mut self, p: Params) -> Self { self.params = Some(p); self }
+    pub fn authority(mut self, v: impl Into<String>) -> Self {
+        self.authority = Some(v.into());
+        self
+    }
+    pub fn params(mut self, p: Params) -> Self {
+        self.params = Some(p);
+        self
+    }
 
     pub fn build(self) -> Result<UpdateParamsRequest, SdkError> {
         Ok(UpdateParamsRequest::new(
-            self.authority.ok_or_else(|| SdkError::invalid_input("authority is required"))?,
-            self.params.ok_or_else(|| SdkError::invalid_input("params is required"))?,
+            self.authority
+                .ok_or_else(|| SdkError::invalid_input("authority is required"))?,
+            self.params
+                .ok_or_else(|| SdkError::invalid_input("params is required"))?,
         ))
     }
 }
@@ -95,13 +105,13 @@ impl SubmitProofBuilder {
 
     /// Builds the submit-proof request, performing validation.
     pub fn build(self) -> Result<SubmitProofRequest, SdkError> {
-        let agent_hash = self.agent_hash.ok_or_else(|| {
-            SdkError::invalid_input("agent_hash is required for SubmitProof")
-        })?;
+        let agent_hash = self
+            .agent_hash
+            .ok_or_else(|| SdkError::invalid_input("agent_hash is required for SubmitProof"))?;
 
-        let proof_type = self.proof_type.ok_or_else(|| {
-            SdkError::invalid_input("proof_type is required for SubmitProof")
-        })?;
+        let proof_type = self
+            .proof_type
+            .ok_or_else(|| SdkError::invalid_input("proof_type is required for SubmitProof"))?;
 
         let score_contribution = self.score_contribution.ok_or_else(|| {
             SdkError::invalid_input("score_contribution is required for SubmitProof")
@@ -115,9 +125,9 @@ impl SubmitProofBuilder {
             )));
         }
 
-        let data_hash = self.data_hash.ok_or_else(|| {
-            SdkError::invalid_input("data_hash is required for SubmitProof")
-        })?;
+        let data_hash = self
+            .data_hash
+            .ok_or_else(|| SdkError::invalid_input("data_hash is required for SubmitProof"))?;
 
         let verifier_signature = self.verifier_signature.ok_or_else(|| {
             SdkError::invalid_input("verifier_signature is required for SubmitProof")
@@ -184,9 +194,9 @@ impl RevokeProofBuilder {
 
     /// Builds the revoke-proof request, performing validation.
     pub fn build(self) -> Result<RevokeProofRequest, SdkError> {
-        let proof_id = self.proof_id.ok_or_else(|| {
-            SdkError::invalid_input("proof_id is required for RevokeProof")
-        })?;
+        let proof_id = self
+            .proof_id
+            .ok_or_else(|| SdkError::invalid_input("proof_id is required for RevokeProof"))?;
 
         let verifier_agent_hash = self.verifier_agent_hash.ok_or_else(|| {
             SdkError::invalid_input("verifier_agent_hash is required for RevokeProof")
@@ -196,9 +206,9 @@ impl RevokeProofBuilder {
             SdkError::invalid_input("verifier_signature is required for RevokeProof")
         })?;
 
-        let reason = self.reason.ok_or_else(|| {
-            SdkError::invalid_input("reason is required for RevokeProof")
-        })?;
+        let reason = self
+            .reason
+            .ok_or_else(|| SdkError::invalid_input("reason is required for RevokeProof"))?;
 
         Ok(RevokeProofRequest::new(
             proof_id,
@@ -299,9 +309,7 @@ mod tests {
         let result = RevokeProofBuilder::new().build();
         assert!(result.is_err());
 
-        let result = RevokeProofBuilder::new()
-            .proof_id("proof-001")
-            .build();
+        let result = RevokeProofBuilder::new().proof_id("proof-001").build();
         assert!(result.is_err());
 
         let result = RevokeProofBuilder::new()
@@ -311,5 +319,4 @@ mod tests {
             .build();
         assert!(result.is_err()); // missing reason
     }
-
 }

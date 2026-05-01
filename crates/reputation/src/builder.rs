@@ -11,10 +11,7 @@ use alloc::vec::Vec;
 
 use morpheum_sdk_core::SdkError;
 
-use crate::requests::{
-    ForceMilestoneRequest,
-    UpdateParamsRequest,
-};
+use crate::requests::{ForceMilestoneRequest, UpdateParamsRequest};
 use crate::types::Params;
 
 /// Fluent builder for forcing a milestone (governance only).
@@ -60,9 +57,9 @@ impl ForceMilestoneBuilder {
 
     /// Builds the force-milestone request, performing validation.
     pub fn build(self) -> Result<ForceMilestoneRequest, SdkError> {
-        let agent_hash = self.agent_hash.ok_or_else(|| {
-            SdkError::invalid_input("agent_hash is required for force milestone")
-        })?;
+        let agent_hash = self
+            .agent_hash
+            .ok_or_else(|| SdkError::invalid_input("agent_hash is required for force milestone"))?;
 
         let milestone_level = self.milestone_level.ok_or_else(|| {
             SdkError::invalid_input("milestone_level is required for force milestone")
@@ -72,7 +69,11 @@ impl ForceMilestoneBuilder {
             SdkError::invalid_input("gov_signature is required for force milestone")
         })?;
 
-        Ok(ForceMilestoneRequest::new(agent_hash, milestone_level, gov_signature))
+        Ok(ForceMilestoneRequest::new(
+            agent_hash,
+            milestone_level,
+            gov_signature,
+        ))
     }
 }
 
@@ -99,12 +100,12 @@ impl UpdateParamsBuilder {
     }
 
     pub fn build(self) -> Result<UpdateParamsRequest, SdkError> {
-        let authority = self.authority.ok_or_else(|| {
-            SdkError::invalid_input("authority is required for params update")
-        })?;
-        let params = self.params.ok_or_else(|| {
-            SdkError::invalid_input("params are required for params update")
-        })?;
+        let authority = self
+            .authority
+            .ok_or_else(|| SdkError::invalid_input("authority is required for params update"))?;
+        let params = self
+            .params
+            .ok_or_else(|| SdkError::invalid_input("params are required for params update"))?;
 
         Ok(UpdateParamsRequest::new(authority, params))
     }
@@ -158,5 +159,4 @@ mod tests {
         let result = UpdateParamsBuilder::new().build();
         assert!(result.is_err());
     }
-
 }

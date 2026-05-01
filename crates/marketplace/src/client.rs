@@ -13,15 +13,11 @@ use async_trait::async_trait;
 use prost::Message as _;
 
 use morpheum_proto::marketplace::v1 as proto;
-use morpheum_sdk_core::{
-    MorpheumClient, SdkConfig, SdkError, Transport,
-};
+use morpheum_sdk_core::{MorpheumClient, SdkConfig, SdkError, Transport};
 
 use crate::{
     requests::{
-        QueryActiveListingsRequest,
-        QueryBidsByListingRequest,
-        QueryListingRequest,
+        QueryActiveListingsRequest, QueryBidsByListingRequest, QueryListingRequest,
         QueryListingsRequest,
     },
     types::{AgentListing, Bid, Params},
@@ -58,14 +54,21 @@ impl MarketplaceClient {
         let encoded: proto::QueryListingRequest = request.into();
 
         let raw = self
-            .query("/marketplace.v1.Query/QueryListing", encoded.encode_to_vec())
+            .query(
+                "/marketplace.v1.Query/QueryListing",
+                encoded.encode_to_vec(),
+            )
             .await?;
 
-        let decoded = proto::QueryListingResponse::decode(raw.as_slice())
-            .map_err(SdkError::Decode)?;
+        let decoded =
+            proto::QueryListingResponse::decode(raw.as_slice()).map_err(SdkError::Decode)?;
 
         let response: crate::requests::QueryListingResponse = decoded.into();
-        if response.found { Ok(response.listing) } else { Ok(None) }
+        if response.found {
+            Ok(response.listing)
+        } else {
+            Ok(None)
+        }
     }
 
     /// Queries multiple listings with optional seller/status filters (paginated).
@@ -81,11 +84,14 @@ impl MarketplaceClient {
         let encoded: proto::QueryListingsRequest = request.into();
 
         let raw = self
-            .query("/marketplace.v1.Query/QueryListings", encoded.encode_to_vec())
+            .query(
+                "/marketplace.v1.Query/QueryListings",
+                encoded.encode_to_vec(),
+            )
             .await?;
 
-        let decoded = proto::QueryListingsResponse::decode(raw.as_slice())
-            .map_err(SdkError::Decode)?;
+        let decoded =
+            proto::QueryListingsResponse::decode(raw.as_slice()).map_err(SdkError::Decode)?;
 
         let response: crate::requests::QueryListingsResponse = decoded.into();
         Ok((response.listings, response.total_count))
@@ -107,11 +113,14 @@ impl MarketplaceClient {
         let encoded: proto::QueryBidsByListingRequest = request.into();
 
         let raw = self
-            .query("/marketplace.v1.Query/QueryBidsByListing", encoded.encode_to_vec())
+            .query(
+                "/marketplace.v1.Query/QueryBidsByListing",
+                encoded.encode_to_vec(),
+            )
             .await?;
 
-        let decoded = proto::QueryBidsByListingResponse::decode(raw.as_slice())
-            .map_err(SdkError::Decode)?;
+        let decoded =
+            proto::QueryBidsByListingResponse::decode(raw.as_slice()).map_err(SdkError::Decode)?;
 
         let response: crate::requests::QueryBidsByListingResponse = decoded.into();
         Ok((response.bids, response.total_count))
@@ -132,11 +141,14 @@ impl MarketplaceClient {
         let encoded: proto::QueryActiveListingsRequest = request.into();
 
         let raw = self
-            .query("/marketplace.v1.Query/QueryActiveListings", encoded.encode_to_vec())
+            .query(
+                "/marketplace.v1.Query/QueryActiveListings",
+                encoded.encode_to_vec(),
+            )
             .await?;
 
-        let decoded = proto::QueryActiveListingsResponse::decode(raw.as_slice())
-            .map_err(SdkError::Decode)?;
+        let decoded =
+            proto::QueryActiveListingsResponse::decode(raw.as_slice()).map_err(SdkError::Decode)?;
 
         let response: crate::requests::QueryActiveListingsResponse = decoded.into();
         Ok((response.listings, response.total_count))
@@ -156,8 +168,8 @@ impl MarketplaceClient {
             .query("/marketplace.v1.Query/QueryParams", encoded.encode_to_vec())
             .await?;
 
-        let decoded = proto::QueryParamsResponse::decode(raw.as_slice())
-            .map_err(SdkError::Decode)?;
+        let decoded =
+            proto::QueryParamsResponse::decode(raw.as_slice()).map_err(SdkError::Decode)?;
 
         let response: crate::requests::QueryParamsResponse = decoded.into();
         Ok(response.params)
@@ -178,8 +190,8 @@ impl MorpheumClient for MarketplaceClient {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use alloc::vec;
     use crate::types::ListingStatus;
+    use alloc::vec;
     use morpheum_sdk_core::SdkConfig;
 
     // Deterministic transport for compile-time and basic runtime testing
@@ -220,21 +232,22 @@ mod tests {
                 }
                 "/marketplace.v1.Query/QueryBidsByListing" => {
                     let dummy = proto::QueryBidsByListingResponse {
-                        bids: vec![
-                            proto::Bid {
-                                bid_id: "bid-001".into(),
-                                listing_id: "listing-001".into(),
-                                amount_usd: 450_000,
-                                ..Default::default()
-                            },
-                        ],
+                        bids: vec![proto::Bid {
+                            bid_id: "bid-001".into(),
+                            listing_id: "listing-001".into(),
+                            amount_usd: 450_000,
+                            ..Default::default()
+                        }],
                         total_count: 1,
                     };
                     Ok(prost::Message::encode_to_vec(&dummy))
                 }
                 "/marketplace.v1.Query/QueryActiveListings" => {
                     let dummy = proto::QueryActiveListingsResponse {
-                        listings: vec![proto::AgentListing::default(), proto::AgentListing::default()],
+                        listings: vec![
+                            proto::AgentListing::default(),
+                            proto::AgentListing::default(),
+                        ],
                         total_count: 2,
                     };
                     Ok(prost::Message::encode_to_vec(&dummy))
@@ -270,7 +283,10 @@ mod tests {
         let listing = listing.expect("listing should be present");
         assert_eq!(listing.listing_id, "listing-001");
         assert_eq!(listing.agent_hash, "agent-abc");
-        assert_eq!(listing.listing_type, crate::types::ListingType::FullOwnership);
+        assert_eq!(
+            listing.listing_type,
+            crate::types::ListingType::FullOwnership
+        );
         assert!(listing.status.is_active());
     }
 
@@ -278,8 +294,7 @@ mod tests {
     async fn query_listings_works() {
         let client = make_client();
 
-        let req = QueryListingsRequest::new(10, 0)
-            .with_status(ListingStatus::Active);
+        let req = QueryListingsRequest::new(10, 0).with_status(ListingStatus::Active);
 
         let (listings, total) = client.query_listings(req).await.unwrap();
         assert_eq!(total, 1);
@@ -290,7 +305,10 @@ mod tests {
     async fn query_bids_by_listing_works() {
         let client = make_client();
 
-        let (bids, total) = client.query_bids_by_listing("listing-001", 10, 0).await.unwrap();
+        let (bids, total) = client
+            .query_bids_by_listing("listing-001", 10, 0)
+            .await
+            .unwrap();
         assert_eq!(total, 1);
         assert_eq!(bids.len(), 1);
         assert_eq!(bids[0].bid_id, "bid-001");
@@ -310,7 +328,11 @@ mod tests {
     async fn query_params_works() {
         let client = make_client();
 
-        let params = client.query_params().await.unwrap().expect("params should be present");
+        let params = client
+            .query_params()
+            .await
+            .unwrap()
+            .expect("params should be present");
         assert_eq!(params.default_platform_cut_bps, 250);
         assert_eq!(params.default_escrow_timeout_seconds, 86_400);
         assert!(params.listings_enabled);

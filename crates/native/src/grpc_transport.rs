@@ -118,11 +118,7 @@ impl Encoder for RawBytesEncoder {
     type Item = Vec<u8>;
     type Error = tonic::Status;
 
-    fn encode(
-        &mut self,
-        item: Self::Item,
-        dst: &mut EncodeBuf<'_>,
-    ) -> Result<(), Self::Error> {
+    fn encode(&mut self, item: Self::Item, dst: &mut EncodeBuf<'_>) -> Result<(), Self::Error> {
         dst.put_slice(&item);
         Ok(())
     }
@@ -135,10 +131,7 @@ impl Decoder for RawBytesDecoder {
     type Item = Vec<u8>;
     type Error = tonic::Status;
 
-    fn decode(
-        &mut self,
-        src: &mut DecodeBuf<'_>,
-    ) -> Result<Option<Self::Item>, Self::Error> {
+    fn decode(&mut self, src: &mut DecodeBuf<'_>) -> Result<Option<Self::Item>, Self::Error> {
         let remaining = src.remaining();
         let mut buf = vec![0u8; remaining];
         src.copy_to_slice(&mut buf);

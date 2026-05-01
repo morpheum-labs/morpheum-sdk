@@ -573,7 +573,11 @@ mod tests {
 
     #[test]
     fn bucket_type_roundtrip() {
-        for bt in [BucketType::Unspecified, BucketType::Isolated, BucketType::Cross] {
+        for bt in [
+            BucketType::Unspecified,
+            BucketType::Isolated,
+            BucketType::Cross,
+        ] {
             let proto_val: i32 = bt.into();
             let back: BucketType = proto_val.into();
             assert_eq!(bt, back);

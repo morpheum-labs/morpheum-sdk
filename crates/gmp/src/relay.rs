@@ -164,9 +164,7 @@ pub async fn relay_inbound(
         .map_err(|e| RelayError::Evm(format!("get tx receipt: {e}")))?
         .ok_or_else(|| RelayError::Evm("receipt not found".into()))?;
 
-    let dispatch_topic = B256::from(keccak(
-        b"Dispatch(address,uint32,bytes32,bytes)",
-    ));
+    let dispatch_topic = B256::from(keccak(b"Dispatch(address,uint32,bytes32,bytes)"));
 
     let message_bytes = receipt
         .inner
@@ -229,8 +227,8 @@ pub async fn relay_inbound(
         request.morpheum_mailbox,
         &msg_json,
     )
-        .await
-        .map_err(|e| RelayError::Grpc(format!("Mailbox.process BroadcastTx: {e}")))?;
+    .await
+    .map_err(|e| RelayError::Grpc(format!("Mailbox.process BroadcastTx: {e}")))?;
 
     tracing::info!(
         message_id = hex::encode(message_id),
@@ -260,13 +258,10 @@ pub async fn relay_outbound(
     amount: u64,
     validator_private_key: &[u8; 32],
 ) -> Result<(), RelayError> {
-    let nonce_resp = grpc::wasm_smart_query(
-        channel,
-        morpheum_mailbox,
-        br#"{"mailbox":{"nonce":{}}}"#,
-    )
-    .await
-    .map_err(|e| RelayError::Grpc(format!("query Morpheum Mailbox nonce: {e}")))?;
+    let nonce_resp =
+        grpc::wasm_smart_query(channel, morpheum_mailbox, br#"{"mailbox":{"nonce":{}}}"#)
+            .await
+            .map_err(|e| RelayError::Grpc(format!("query Morpheum Mailbox nonce: {e}")))?;
 
     let nonce_val: serde_json::Value = serde_json::from_slice(&nonce_resp)
         .map_err(|e| RelayError::Grpc(format!("parse nonce response: {e}")))?;
@@ -340,7 +335,11 @@ pub async fn relay_outbound(
     hex::decode_to_slice(root_hex, &mut root)
         .map_err(|e| RelayError::Grpc(format!("decode root hex: {e}")))?;
 
-    tracing::info!(root = root_hex, count = index, "Morpheum MerkleTreeHook state");
+    tracing::info!(
+        root = root_hex,
+        count = index,
+        "Morpheum MerkleTreeHook state"
+    );
 
     let hook_raw = morpheum_primitives::address::decode_address(morpheum_merkle_hook)
         .ok_or_else(|| RelayError::Grpc(format!("invalid bech32: {morpheum_merkle_hook}")))?;

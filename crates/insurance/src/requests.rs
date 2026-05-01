@@ -10,13 +10,16 @@ use prost::Message as _;
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
-use morpheum_proto::insurance::v1 as proto;
 use morpheum_proto::google::protobuf::Any as ProtoAny;
+use morpheum_proto::insurance::v1 as proto;
 
 use crate::types::ChainType;
 
 fn make_asset(asset_index: u64) -> morpheum_proto::primitives::v1::Asset {
-    morpheum_proto::primitives::v1::Asset { asset_index, ..Default::default() }
+    morpheum_proto::primitives::v1::Asset {
+        asset_index,
+        ..Default::default()
+    }
 }
 
 // ====================== TRANSACTION REQUESTS ======================
@@ -74,7 +77,10 @@ impl AbsorbDeficitRequest {
             absorber_external_address: self.absorber_external_address.clone(),
             absorber_chain_type: self.absorber_chain_type.map(i32::from),
         };
-        ProtoAny { type_url: "/insurance.v1.AbsorbDeficitRequest".into(), value: msg.encode_to_vec() }
+        ProtoAny {
+            type_url: "/insurance.v1.AbsorbDeficitRequest".into(),
+            value: msg.encode_to_vec(),
+        }
     }
 }
 
@@ -123,7 +129,10 @@ impl ReplenishVaultRequest {
             replenisher_external_address: self.replenisher_external_address.clone(),
             replenisher_chain_type: self.replenisher_chain_type.map(i32::from),
         };
-        ProtoAny { type_url: "/insurance.v1.ReplenishVaultRequest".into(), value: msg.encode_to_vec() }
+        ProtoAny {
+            type_url: "/insurance.v1.ReplenishVaultRequest".into(),
+            value: msg.encode_to_vec(),
+        }
     }
 }
 
@@ -139,7 +148,12 @@ pub struct StakeToVaultRequest {
 
 impl StakeToVaultRequest {
     pub fn new(address: impl Into<String>, asset_index: u64, amount: impl Into<String>) -> Self {
-        Self { address: address.into(), asset_index, amount: amount.into(), external_address: None }
+        Self {
+            address: address.into(),
+            asset_index,
+            amount: amount.into(),
+            external_address: None,
+        }
     }
 
     pub fn external_address(mut self, addr: impl Into<String>) -> Self {
@@ -155,7 +169,10 @@ impl StakeToVaultRequest {
             timestamp: None,
             external_address: self.external_address.clone(),
         };
-        ProtoAny { type_url: "/insurance.v1.StakeToVaultRequest".into(), value: msg.encode_to_vec() }
+        ProtoAny {
+            type_url: "/insurance.v1.StakeToVaultRequest".into(),
+            value: msg.encode_to_vec(),
+        }
     }
 }
 
@@ -171,7 +188,12 @@ pub struct WithdrawStakeRequest {
 
 impl WithdrawStakeRequest {
     pub fn new(address: impl Into<String>, asset_index: u64, shares: impl Into<String>) -> Self {
-        Self { address: address.into(), asset_index, shares: shares.into(), external_address: None }
+        Self {
+            address: address.into(),
+            asset_index,
+            shares: shares.into(),
+            external_address: None,
+        }
     }
 
     pub fn external_address(mut self, addr: impl Into<String>) -> Self {
@@ -187,7 +209,10 @@ impl WithdrawStakeRequest {
             timestamp: None,
             external_address: self.external_address.clone(),
         };
-        ProtoAny { type_url: "/insurance.v1.WithdrawStakeRequest".into(), value: msg.encode_to_vec() }
+        ProtoAny {
+            type_url: "/insurance.v1.WithdrawStakeRequest".into(),
+            value: msg.encode_to_vec(),
+        }
     }
 }
 
@@ -202,7 +227,11 @@ pub struct ClaimYieldRequest {
 
 impl ClaimYieldRequest {
     pub fn new(address: impl Into<String>, asset_index: u64) -> Self {
-        Self { address: address.into(), asset_index, external_address: None }
+        Self {
+            address: address.into(),
+            asset_index,
+            external_address: None,
+        }
     }
 
     pub fn external_address(mut self, addr: impl Into<String>) -> Self {
@@ -217,7 +246,10 @@ impl ClaimYieldRequest {
             timestamp: None,
             external_address: self.external_address.clone(),
         };
-        ProtoAny { type_url: "/insurance.v1.ClaimYieldRequest".into(), value: msg.encode_to_vec() }
+        ProtoAny {
+            type_url: "/insurance.v1.ClaimYieldRequest".into(),
+            value: msg.encode_to_vec(),
+        }
     }
 }
 
@@ -258,7 +290,10 @@ impl ClaimBountyRequest {
             timestamp: None,
             external_address: self.external_address.clone(),
         };
-        ProtoAny { type_url: "/insurance.v1.ClaimBountyRequest".into(), value: msg.encode_to_vec() }
+        ProtoAny {
+            type_url: "/insurance.v1.ClaimBountyRequest".into(),
+            value: msg.encode_to_vec(),
+        }
     }
 }
 
@@ -274,7 +309,12 @@ pub struct HedgeIlRequest {
 
 impl HedgeIlRequest {
     pub fn new(address: impl Into<String>, asset_index: u64, amount: impl Into<String>) -> Self {
-        Self { address: address.into(), asset_index, amount: amount.into(), external_address: None }
+        Self {
+            address: address.into(),
+            asset_index,
+            amount: amount.into(),
+            external_address: None,
+        }
     }
 
     pub fn external_address(mut self, addr: impl Into<String>) -> Self {
@@ -290,7 +330,10 @@ impl HedgeIlRequest {
             timestamp: None,
             external_address: self.external_address.clone(),
         };
-        ProtoAny { type_url: "/insurance.v1.HedgeILRequest".into(), value: msg.encode_to_vec() }
+        ProtoAny {
+            type_url: "/insurance.v1.HedgeILRequest".into(),
+            value: msg.encode_to_vec(),
+        }
     }
 }
 
@@ -304,12 +347,16 @@ pub struct GetVaultBalanceRequest {
 }
 
 impl GetVaultBalanceRequest {
-    pub fn new(asset_index: Option<u64>) -> Self { Self { asset_index } }
+    pub fn new(asset_index: Option<u64>) -> Self {
+        Self { asset_index }
+    }
 }
 
 impl From<GetVaultBalanceRequest> for proto::GetVaultBalanceRequest {
     fn from(r: GetVaultBalanceRequest) -> Self {
-        Self { asset: r.asset_index.map(make_asset) }
+        Self {
+            asset: r.asset_index.map(make_asset),
+        }
     }
 }
 
@@ -325,10 +372,18 @@ pub struct GetLpStakeRequest {
 
 impl GetLpStakeRequest {
     pub fn new(address: impl Into<String>) -> Self {
-        Self { address: address.into(), asset_index: None, external_address: None, chain_type: None }
+        Self {
+            address: address.into(),
+            asset_index: None,
+            external_address: None,
+            chain_type: None,
+        }
     }
 
-    pub fn asset_index(mut self, idx: u64) -> Self { self.asset_index = Some(idx); self }
+    pub fn asset_index(mut self, idx: u64) -> Self {
+        self.asset_index = Some(idx);
+        self
+    }
 
     pub fn external(mut self, addr: impl Into<String>, chain: ChainType) -> Self {
         self.external_address = Some(addr.into());
@@ -358,15 +413,26 @@ pub struct ListLpStakesRequest {
 }
 
 impl ListLpStakesRequest {
-    pub fn new(offset: u64, limit: u64) -> Self { Self { offset, limit, count_total: false } }
-    pub fn count_total(mut self) -> Self { self.count_total = true; self }
+    pub fn new(offset: u64, limit: u64) -> Self {
+        Self {
+            offset,
+            limit,
+            count_total: false,
+        }
+    }
+    pub fn count_total(mut self) -> Self {
+        self.count_total = true;
+        self
+    }
 }
 
 impl From<ListLpStakesRequest> for proto::ListLpStakesRequest {
     fn from(r: ListLpStakesRequest) -> Self {
         Self {
             pagination: Some(morpheum_proto::primitives::v1::PageRequest {
-                offset: r.offset, limit: r.limit, count_total: r.count_total,
+                offset: r.offset,
+                limit: r.limit,
+                count_total: r.count_total,
             }),
         }
     }
@@ -385,22 +451,49 @@ pub struct GetBadDebtHistoryRequest {
 
 impl GetBadDebtHistoryRequest {
     pub fn new(offset: u64, limit: u64) -> Self {
-        Self { offset, limit, count_total: false, start_time: None, end_time: None }
+        Self {
+            offset,
+            limit,
+            count_total: false,
+            start_time: None,
+            end_time: None,
+        }
     }
 
-    pub fn count_total(mut self) -> Self { self.count_total = true; self }
-    pub fn start_time(mut self, ts: u64) -> Self { self.start_time = Some(ts); self }
-    pub fn end_time(mut self, ts: u64) -> Self { self.end_time = Some(ts); self }
+    pub fn count_total(mut self) -> Self {
+        self.count_total = true;
+        self
+    }
+    pub fn start_time(mut self, ts: u64) -> Self {
+        self.start_time = Some(ts);
+        self
+    }
+    pub fn end_time(mut self, ts: u64) -> Self {
+        self.end_time = Some(ts);
+        self
+    }
 }
 
 impl From<GetBadDebtHistoryRequest> for proto::GetBadDebtHistoryRequest {
     fn from(r: GetBadDebtHistoryRequest) -> Self {
         Self {
             pagination: Some(morpheum_proto::primitives::v1::PageRequest {
-                offset: r.offset, limit: r.limit, count_total: r.count_total,
+                offset: r.offset,
+                limit: r.limit,
+                count_total: r.count_total,
             }),
-            start_time: r.start_time.map(|s| morpheum_proto::google::protobuf::Timestamp { seconds: s as i64, nanos: 0 }),
-            end_time: r.end_time.map(|s| morpheum_proto::google::protobuf::Timestamp { seconds: s as i64, nanos: 0 }),
+            start_time: r
+                .start_time
+                .map(|s| morpheum_proto::google::protobuf::Timestamp {
+                    seconds: s as i64,
+                    nanos: 0,
+                }),
+            end_time: r
+                .end_time
+                .map(|s| morpheum_proto::google::protobuf::Timestamp {
+                    seconds: s as i64,
+                    nanos: 0,
+                }),
         }
     }
 }
@@ -413,12 +506,16 @@ pub struct GetIlMetricsRequest {
 }
 
 impl GetIlMetricsRequest {
-    pub fn new(asset_index: Option<u64>) -> Self { Self { asset_index } }
+    pub fn new(asset_index: Option<u64>) -> Self {
+        Self { asset_index }
+    }
 }
 
 impl From<GetIlMetricsRequest> for proto::GetIlMetricsRequest {
     fn from(r: GetIlMetricsRequest) -> Self {
-        Self { asset: r.asset_index.map(make_asset) }
+        Self {
+            asset: r.asset_index.map(make_asset),
+        }
     }
 }
 
@@ -430,12 +527,16 @@ pub struct GetThresholdStatusRequest {
 }
 
 impl GetThresholdStatusRequest {
-    pub fn new(asset_index: Option<u64>) -> Self { Self { asset_index } }
+    pub fn new(asset_index: Option<u64>) -> Self {
+        Self { asset_index }
+    }
 }
 
 impl From<GetThresholdStatusRequest> for proto::GetThresholdStatusRequest {
     fn from(r: GetThresholdStatusRequest) -> Self {
-        Self { asset: r.asset_index.map(make_asset) }
+        Self {
+            asset: r.asset_index.map(make_asset),
+        }
     }
 }
 
@@ -487,8 +588,10 @@ mod tests {
 
     #[test]
     fn bad_debt_history_with_time_bounds() {
-        let p: proto::GetBadDebtHistoryRequest =
-            GetBadDebtHistoryRequest::new(0, 20).start_time(1_700_000_000).end_time(1_700_100_000).into();
+        let p: proto::GetBadDebtHistoryRequest = GetBadDebtHistoryRequest::new(0, 20)
+            .start_time(1_700_000_000)
+            .end_time(1_700_100_000)
+            .into();
         assert!(p.start_time.is_some());
         assert_eq!(p.start_time.unwrap().seconds, 1_700_000_000);
     }

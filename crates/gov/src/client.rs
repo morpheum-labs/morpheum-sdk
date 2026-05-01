@@ -16,7 +16,7 @@ use prost::Message as _;
 use morpheum_sdk_core::{MorpheumClient, SdkConfig, SdkError, Transport};
 
 use crate::requests::{
-    QueryGovParamsRequest, QueryProposalDepositsRequest, QueryProposalDepositRequest,
+    QueryGovParamsRequest, QueryProposalDepositRequest, QueryProposalDepositsRequest,
     QueryProposalRequest, QueryProposalVoteRequest, QueryProposalVotesRequest,
     QueryProposalsRequest, QueryTallyResultRequest,
 };
@@ -40,17 +40,15 @@ impl GovClient {
 
     /// Queries the current governance parameters.
     pub async fn query_params(&self) -> Result<GovParams, SdkError> {
-        let proto_req: morpheum_proto::gov::v1::QueryParamsRequest =
-            QueryGovParamsRequest.into();
+        let proto_req: morpheum_proto::gov::v1::QueryParamsRequest = QueryGovParamsRequest.into();
 
         let response_bytes = self
             .query("/gov.v1.Query/QueryParams", proto_req.encode_to_vec())
             .await?;
 
-        let proto_res = morpheum_proto::gov::v1::QueryParamsResponse::decode(
-            response_bytes.as_slice(),
-        )
-        .map_err(SdkError::Decode)?;
+        let proto_res =
+            morpheum_proto::gov::v1::QueryParamsResponse::decode(response_bytes.as_slice())
+                .map_err(SdkError::Decode)?;
 
         proto_res
             .params
@@ -67,10 +65,9 @@ impl GovClient {
             .query("/gov.v1.Query/QueryProposal", proto_req.encode_to_vec())
             .await?;
 
-        let proto_res = morpheum_proto::gov::v1::QueryProposalResponse::decode(
-            response_bytes.as_slice(),
-        )
-        .map_err(SdkError::Decode)?;
+        let proto_res =
+            morpheum_proto::gov::v1::QueryProposalResponse::decode(response_bytes.as_slice())
+                .map_err(SdkError::Decode)?;
 
         proto_res
             .proposal
@@ -104,10 +101,9 @@ impl GovClient {
             .query("/gov.v1.Query/QueryProposals", proto_req.encode_to_vec())
             .await?;
 
-        let proto_res = morpheum_proto::gov::v1::QueryProposalsResponse::decode(
-            response_bytes.as_slice(),
-        )
-        .map_err(SdkError::Decode)?;
+        let proto_res =
+            morpheum_proto::gov::v1::QueryProposalsResponse::decode(response_bytes.as_slice())
+                .map_err(SdkError::Decode)?;
 
         Ok(proto_res.proposals.into_iter().map(Into::into).collect())
     }
@@ -125,10 +121,9 @@ impl GovClient {
             .query("/gov.v1.Query/QueryVote", proto_req.encode_to_vec())
             .await?;
 
-        let proto_res = morpheum_proto::gov::v1::QueryVoteResponse::decode(
-            response_bytes.as_slice(),
-        )
-        .map_err(SdkError::Decode)?;
+        let proto_res =
+            morpheum_proto::gov::v1::QueryVoteResponse::decode(response_bytes.as_slice())
+                .map_err(SdkError::Decode)?;
 
         proto_res
             .vote
@@ -150,10 +145,9 @@ impl GovClient {
             .query("/gov.v1.Query/QueryVotes", proto_req.encode_to_vec())
             .await?;
 
-        let proto_res = morpheum_proto::gov::v1::QueryVotesResponse::decode(
-            response_bytes.as_slice(),
-        )
-        .map_err(SdkError::Decode)?;
+        let proto_res =
+            morpheum_proto::gov::v1::QueryVotesResponse::decode(response_bytes.as_slice())
+                .map_err(SdkError::Decode)?;
 
         Ok(proto_res.votes.into_iter().map(Into::into).collect())
     }
@@ -171,10 +165,9 @@ impl GovClient {
             .query("/gov.v1.Query/QueryDeposit", proto_req.encode_to_vec())
             .await?;
 
-        let proto_res = morpheum_proto::gov::v1::QueryDepositResponse::decode(
-            response_bytes.as_slice(),
-        )
-        .map_err(SdkError::Decode)?;
+        let proto_res =
+            morpheum_proto::gov::v1::QueryDepositResponse::decode(response_bytes.as_slice())
+                .map_err(SdkError::Decode)?;
 
         proto_res
             .deposit
@@ -196,19 +189,15 @@ impl GovClient {
             .query("/gov.v1.Query/QueryDeposits", proto_req.encode_to_vec())
             .await?;
 
-        let proto_res = morpheum_proto::gov::v1::QueryDepositsResponse::decode(
-            response_bytes.as_slice(),
-        )
-        .map_err(SdkError::Decode)?;
+        let proto_res =
+            morpheum_proto::gov::v1::QueryDepositsResponse::decode(response_bytes.as_slice())
+                .map_err(SdkError::Decode)?;
 
         Ok(proto_res.deposits.into_iter().map(Into::into).collect())
     }
 
     /// Queries the current or final tally result for a proposal.
-    pub async fn query_tally_result(
-        &self,
-        proposal_id: u64,
-    ) -> Result<TallyResult, SdkError> {
+    pub async fn query_tally_result(&self, proposal_id: u64) -> Result<TallyResult, SdkError> {
         let req = QueryTallyResultRequest::new(proposal_id);
         let proto_req: morpheum_proto::gov::v1::QueryTallyResultRequest = req.into();
 
@@ -216,10 +205,9 @@ impl GovClient {
             .query("/gov.v1.Query/QueryTallyResult", proto_req.encode_to_vec())
             .await?;
 
-        let proto_res = morpheum_proto::gov::v1::QueryTallyResultResponse::decode(
-            response_bytes.as_slice(),
-        )
-        .map_err(SdkError::Decode)?;
+        let proto_res =
+            morpheum_proto::gov::v1::QueryTallyResultResponse::decode(response_bytes.as_slice())
+                .map_err(SdkError::Decode)?;
 
         proto_res
             .tally

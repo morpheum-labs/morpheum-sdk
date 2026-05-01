@@ -16,10 +16,7 @@ use crate::types::Params;
 use morpheum_proto::google::protobuf::Any as ProtoAny;
 use morpheum_proto::interop::v1 as proto;
 
-use crate::types::{
-    BridgeRequestData, BridgeResponse, CrossChainProofPacket,
-    IntentExportPacket,
-};
+use crate::types::{BridgeRequestData, BridgeResponse, CrossChainProofPacket, IntentExportPacket};
 
 // ====================== TRANSACTION REQUESTS ======================
 
@@ -88,7 +85,10 @@ pub struct ExportIntentRequest {
 impl ExportIntentRequest {
     /// Creates a new export-intent request.
     pub fn new(intent_packet: IntentExportPacket, signer: Vec<u8>) -> Self {
-        Self { intent_packet, signer }
+        Self {
+            intent_packet,
+            signer,
+        }
     }
 
     /// Converts this request into a protobuf `Any` ready for `TxBuilder::add_message`.
@@ -142,7 +142,10 @@ pub struct ExportProofRequest {
 impl ExportProofRequest {
     /// Creates a new export-proof request.
     pub fn new(proof_packet: CrossChainProofPacket, signer: Vec<u8>) -> Self {
-        Self { proof_packet, signer }
+        Self {
+            proof_packet,
+            signer,
+        }
     }
 
     /// Converts this request into a protobuf `Any` ready for `TxBuilder::add_message`.
@@ -194,13 +197,17 @@ pub struct QueryBridgeRequestRequest {
 
 impl QueryBridgeRequestRequest {
     pub fn new(request_id: impl Into<String>) -> Self {
-        Self { request_id: request_id.into() }
+        Self {
+            request_id: request_id.into(),
+        }
     }
 }
 
 impl From<QueryBridgeRequestRequest> for proto::QueryBridgeRequestRequest {
     fn from(req: QueryBridgeRequestRequest) -> Self {
-        Self { request_id: req.request_id }
+        Self {
+            request_id: req.request_id,
+        }
     }
 }
 
@@ -230,13 +237,17 @@ pub struct QueryIntentExportRequest {
 
 impl QueryIntentExportRequest {
     pub fn new(intent_id: impl Into<String>) -> Self {
-        Self { intent_id: intent_id.into() }
+        Self {
+            intent_id: intent_id.into(),
+        }
     }
 }
 
 impl From<QueryIntentExportRequest> for proto::QueryIntentExportRequest {
     fn from(req: QueryIntentExportRequest) -> Self {
-        Self { intent_id: req.intent_id }
+        Self {
+            intent_id: req.intent_id,
+        }
     }
 }
 
@@ -268,13 +279,17 @@ pub struct QueryProofExportRequest {
 
 impl QueryProofExportRequest {
     pub fn new(proof_id: impl Into<String>) -> Self {
-        Self { proof_id: proof_id.into() }
+        Self {
+            proof_id: proof_id.into(),
+        }
     }
 }
 
 impl From<QueryProofExportRequest> for proto::QueryProofExportRequest {
     fn from(req: QueryProofExportRequest) -> Self {
-        Self { proof_id: req.proof_id }
+        Self {
+            proof_id: req.proof_id,
+        }
     }
 }
 

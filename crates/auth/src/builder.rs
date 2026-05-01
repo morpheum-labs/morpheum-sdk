@@ -10,10 +10,7 @@ use alloc::{string::String, vec::Vec};
 
 use morpheum_sdk_core::{AccountId, SdkError};
 
-use crate::requests::{
-    ApproveTradingKeyRequest,
-    RevokeTradingKeyRequest,
-};
+use crate::requests::{ApproveTradingKeyRequest, RevokeTradingKeyRequest};
 
 /// Fluent builder for approving a Trading Key (delegated session key).
 ///
@@ -84,9 +81,9 @@ impl ApproveTradingKeyBuilder {
 
     /// Builds the approve request, performing validation.
     pub fn build(self) -> Result<ApproveTradingKeyRequest, SdkError> {
-        let owner = self.owner.ok_or_else(|| {
-            SdkError::invalid_input("owner is required for TradingKey approval")
-        })?;
+        let owner = self
+            .owner
+            .ok_or_else(|| SdkError::invalid_input("owner is required for TradingKey approval"))?;
 
         let trading_key = self.trading_key.ok_or_else(|| {
             SdkError::invalid_input("trading_key is required for TradingKey approval")
@@ -100,12 +97,8 @@ impl ApproveTradingKeyBuilder {
             SdkError::invalid_input("owner_signature is required for TradingKey approval")
         })?;
 
-        let mut req = ApproveTradingKeyRequest::new(
-            owner,
-            trading_key,
-            expiry_timestamp,
-            owner_signature,
-        );
+        let mut req =
+            ApproveTradingKeyRequest::new(owner, trading_key, expiry_timestamp, owner_signature);
 
         if let Some(reason) = self.reason {
             req = req.with_reason(reason);
@@ -214,7 +207,10 @@ mod tests {
         assert_eq!(request.owner_address, owner);
         assert_eq!(request.trading_key_address, trading_key);
         assert_eq!(request.expiry_timestamp, 1_800_000_000);
-        assert_eq!(request.reason, Some("Delegate for high-freq trading".into()));
+        assert_eq!(
+            request.reason,
+            Some("Delegate for high-freq trading".into())
+        );
     }
 
     #[test]
@@ -238,5 +234,4 @@ mod tests {
         assert_eq!(request.owner_address, owner);
         assert_eq!(request.reason, Some("Agent compromised".into()));
     }
-
 }

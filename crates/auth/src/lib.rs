@@ -17,8 +17,8 @@ extern crate alloc;
 // Public API modules — each has a single, clear responsibility
 pub mod builder;
 pub mod client;
-pub mod types;
 pub mod requests;
+pub mod types;
 
 // ==================== PUBLIC RE-EXPORTS ====================
 
@@ -27,30 +27,16 @@ pub mod requests;
 pub use client::AuthClient;
 
 /// Fluent builders for TradingKey management.
-pub use builder::{
-    ApproveTradingKeyBuilder,
-    RevokeTradingKeyBuilder,
-};
+pub use builder::{ApproveTradingKeyBuilder, RevokeTradingKeyBuilder};
 
 /// Re-export key domain types from the auth module.
-pub use types::{
-    BaseAccount,
-    ModuleAccount,
-    ModuleCredential,
-    NonceState,
-    Params,
-};
+pub use types::{BaseAccount, ModuleAccount, ModuleCredential, NonceState, Params};
 
 // Re-export all request and response types for clean message construction.
 pub use requests::*;
 
 // Re-export commonly used core SDK types for ergonomic use with auth flows.
-pub use morpheum_sdk_core::{
-    AccountId,
-    ChainId,
-    SdkError,
-    SignedTx,
-};
+pub use morpheum_sdk_core::{AccountId, ChainId, SdkError, SignedTx};
 
 // Re-export key signing types needed for TradingKey delegation.
 // Note: AgentSigner/NativeSigner are in morpheum-signing-native (not core).
@@ -65,20 +51,9 @@ pub use morpheum_sdk_core::signing::signer::Signer;
 /// ```
 pub mod prelude {
     pub use super::{
-        AuthClient,
-        ApproveTradingKeyBuilder,
-        RevokeTradingKeyBuilder,
-        BaseAccount,
-        ModuleAccount,
-        NonceState,
-        Params,
-        Signer,
-        TradingKeyClaim,
+        AccountId, ApproveTradingKeyBuilder, AuthClient, BaseAccount, ChainId, ModuleAccount,
+        NonceState, Params, RevokeTradingKeyBuilder, SdkError, SignedTx, Signer, TradingKeyClaim,
         VcClaimBuilder,
-        AccountId,
-        ChainId,
-        SdkError,
-        SignedTx,
     };
 }
 

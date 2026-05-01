@@ -8,13 +8,16 @@ use prost::Message as _;
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
-use morpheum_proto::liquidity::v1 as proto;
 use morpheum_proto::google::protobuf::Any as ProtoAny;
+use morpheum_proto::liquidity::v1 as proto;
 
 use crate::types::PoolStatus;
 
 fn make_asset(asset_index: u64) -> morpheum_proto::primitives::v1::Asset {
-    morpheum_proto::primitives::v1::Asset { asset_index, ..Default::default() }
+    morpheum_proto::primitives::v1::Asset {
+        asset_index,
+        ..Default::default()
+    }
 }
 
 // ====================== TRANSACTION REQUESTS ======================
@@ -38,24 +41,46 @@ pub struct CreatePoolRequest {
 
 impl CreatePoolRequest {
     pub fn new(
-        market_index: u64, asset_index: u64,
-        initial_liquidity: impl Into<String>, provider_type: u32,
+        market_index: u64,
+        asset_index: u64,
+        initial_liquidity: impl Into<String>,
+        provider_type: u32,
     ) -> Self {
         Self {
-            market_index, asset_index,
+            market_index,
+            asset_index,
             initial_liquidity: initial_liquidity.into(),
-            provider_type, provider_config: Vec::new(),
-            creator_external_address: None, creator_chain_type: None,
-            display_name: None, description: None,
-            tags: Vec::new(), logo_uri: None,
+            provider_type,
+            provider_config: Vec::new(),
+            creator_external_address: None,
+            creator_chain_type: None,
+            display_name: None,
+            description: None,
+            tags: Vec::new(),
+            logo_uri: None,
         }
     }
 
-    pub fn provider_config(mut self, config: Vec<u8>) -> Self { self.provider_config = config; self }
-    pub fn display_name(mut self, v: impl Into<String>) -> Self { self.display_name = Some(v.into()); self }
-    pub fn description(mut self, v: impl Into<String>) -> Self { self.description = Some(v.into()); self }
-    pub fn tags(mut self, v: Vec<String>) -> Self { self.tags = v; self }
-    pub fn logo_uri(mut self, v: impl Into<String>) -> Self { self.logo_uri = Some(v.into()); self }
+    pub fn provider_config(mut self, config: Vec<u8>) -> Self {
+        self.provider_config = config;
+        self
+    }
+    pub fn display_name(mut self, v: impl Into<String>) -> Self {
+        self.display_name = Some(v.into());
+        self
+    }
+    pub fn description(mut self, v: impl Into<String>) -> Self {
+        self.description = Some(v.into());
+        self
+    }
+    pub fn tags(mut self, v: Vec<String>) -> Self {
+        self.tags = v;
+        self
+    }
+    pub fn logo_uri(mut self, v: impl Into<String>) -> Self {
+        self.logo_uri = Some(v.into());
+        self
+    }
 
     pub fn to_any(&self) -> ProtoAny {
         let msg = proto::CreatePoolRequest {
@@ -72,7 +97,10 @@ impl CreatePoolRequest {
             tags: self.tags.clone(),
             logo_uri: self.logo_uri.clone(),
         };
-        ProtoAny { type_url: "/liquidity.v1.CreatePoolRequest".into(), value: msg.encode_to_vec() }
+        ProtoAny {
+            type_url: "/liquidity.v1.CreatePoolRequest".into(),
+            value: msg.encode_to_vec(),
+        }
     }
 }
 
@@ -101,16 +129,31 @@ impl UpdatePoolParamsRequest {
             pool_id: pool_id.into(),
             min_deposit: min_deposit.into(),
             max_deposit: max_deposit.into(),
-            updater_external_address: None, updater_chain_type: None,
-            display_name: None, description: None,
-            tags: Vec::new(), logo_uri: None,
+            updater_external_address: None,
+            updater_chain_type: None,
+            display_name: None,
+            description: None,
+            tags: Vec::new(),
+            logo_uri: None,
         }
     }
 
-    pub fn display_name(mut self, v: impl Into<String>) -> Self { self.display_name = Some(v.into()); self }
-    pub fn description(mut self, v: impl Into<String>) -> Self { self.description = Some(v.into()); self }
-    pub fn tags(mut self, v: Vec<String>) -> Self { self.tags = v; self }
-    pub fn logo_uri(mut self, v: impl Into<String>) -> Self { self.logo_uri = Some(v.into()); self }
+    pub fn display_name(mut self, v: impl Into<String>) -> Self {
+        self.display_name = Some(v.into());
+        self
+    }
+    pub fn description(mut self, v: impl Into<String>) -> Self {
+        self.description = Some(v.into());
+        self
+    }
+    pub fn tags(mut self, v: Vec<String>) -> Self {
+        self.tags = v;
+        self
+    }
+    pub fn logo_uri(mut self, v: impl Into<String>) -> Self {
+        self.logo_uri = Some(v.into());
+        self
+    }
 
     pub fn to_any(&self) -> ProtoAny {
         let msg = proto::UpdatePoolParamsRequest {
@@ -126,7 +169,10 @@ impl UpdatePoolParamsRequest {
             logo_uri: self.logo_uri.clone(),
             authority: String::new(),
         };
-        ProtoAny { type_url: "/liquidity.v1.UpdatePoolParamsRequest".into(), value: msg.encode_to_vec() }
+        ProtoAny {
+            type_url: "/liquidity.v1.UpdatePoolParamsRequest".into(),
+            value: msg.encode_to_vec(),
+        }
     }
 }
 
@@ -140,11 +186,17 @@ pub struct GetPoolRequest {
 }
 
 impl GetPoolRequest {
-    pub fn new(pool_id: impl Into<String>) -> Self { Self { pool_id: pool_id.into() } }
+    pub fn new(pool_id: impl Into<String>) -> Self {
+        Self {
+            pool_id: pool_id.into(),
+        }
+    }
 }
 
 impl From<GetPoolRequest> for proto::GetPoolRequest {
-    fn from(r: GetPoolRequest) -> Self { Self { pool_id: r.pool_id } }
+    fn from(r: GetPoolRequest) -> Self {
+        Self { pool_id: r.pool_id }
+    }
 }
 
 /// List all pools with pagination and optional status filter.
@@ -159,17 +211,30 @@ pub struct ListPoolsRequest {
 
 impl ListPoolsRequest {
     pub fn new(offset: u64, limit: u64) -> Self {
-        Self { offset, limit, count_total: false, status_filter: None }
+        Self {
+            offset,
+            limit,
+            count_total: false,
+            status_filter: None,
+        }
     }
-    pub fn count_total(mut self) -> Self { self.count_total = true; self }
-    pub fn status_filter(mut self, s: PoolStatus) -> Self { self.status_filter = Some(s); self }
+    pub fn count_total(mut self) -> Self {
+        self.count_total = true;
+        self
+    }
+    pub fn status_filter(mut self, s: PoolStatus) -> Self {
+        self.status_filter = Some(s);
+        self
+    }
 }
 
 impl From<ListPoolsRequest> for proto::ListPoolsRequest {
     fn from(r: ListPoolsRequest) -> Self {
         Self {
             pagination: Some(morpheum_proto::primitives::v1::PageRequest {
-                offset: r.offset, limit: r.limit, count_total: r.count_total,
+                offset: r.offset,
+                limit: r.limit,
+                count_total: r.count_total,
             }),
             status_filter: r.status_filter.map(i32::from),
         }
@@ -188,9 +253,17 @@ pub struct GetPoolsByMarketRequest {
 
 impl GetPoolsByMarketRequest {
     pub fn new(market_index: u64, offset: u64, limit: u64) -> Self {
-        Self { market_index, offset, limit, count_total: false }
+        Self {
+            market_index,
+            offset,
+            limit,
+            count_total: false,
+        }
     }
-    pub fn count_total(mut self) -> Self { self.count_total = true; self }
+    pub fn count_total(mut self) -> Self {
+        self.count_total = true;
+        self
+    }
 }
 
 impl From<GetPoolsByMarketRequest> for proto::GetPoolsByMarketRequest {
@@ -198,7 +271,9 @@ impl From<GetPoolsByMarketRequest> for proto::GetPoolsByMarketRequest {
         Self {
             market_index: r.market_index,
             pagination: Some(morpheum_proto::primitives::v1::PageRequest {
-                offset: r.offset, limit: r.limit, count_total: r.count_total,
+                offset: r.offset,
+                limit: r.limit,
+                count_total: r.count_total,
             }),
         }
     }
@@ -212,11 +287,17 @@ pub struct GetDepthMetricsRequest {
 }
 
 impl GetDepthMetricsRequest {
-    pub fn new(market_index: u64) -> Self { Self { market_index } }
+    pub fn new(market_index: u64) -> Self {
+        Self { market_index }
+    }
 }
 
 impl From<GetDepthMetricsRequest> for proto::GetDepthMetricsRequest {
-    fn from(r: GetDepthMetricsRequest) -> Self { Self { market_index: r.market_index } }
+    fn from(r: GetDepthMetricsRequest) -> Self {
+        Self {
+            market_index: r.market_index,
+        }
+    }
 }
 
 /// Query pool health by pool ID.
@@ -227,11 +308,17 @@ pub struct GetPoolHealthRequest {
 }
 
 impl GetPoolHealthRequest {
-    pub fn new(pool_id: impl Into<String>) -> Self { Self { pool_id: pool_id.into() } }
+    pub fn new(pool_id: impl Into<String>) -> Self {
+        Self {
+            pool_id: pool_id.into(),
+        }
+    }
 }
 
 impl From<GetPoolHealthRequest> for proto::GetPoolHealthRequest {
-    fn from(r: GetPoolHealthRequest) -> Self { Self { pool_id: r.pool_id } }
+    fn from(r: GetPoolHealthRequest) -> Self {
+        Self { pool_id: r.pool_id }
+    }
 }
 
 #[cfg(test)]

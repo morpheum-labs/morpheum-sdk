@@ -8,8 +8,8 @@ use prost::Message as _;
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
-use morpheum_proto::osa::v1 as proto;
 use morpheum_proto::google::protobuf::Any as ProtoAny;
+use morpheum_proto::osa::v1 as proto;
 
 // ====================== TRANSACTION REQUESTS ======================
 
@@ -26,23 +26,33 @@ pub struct CreateAccountRequest {
 
 impl CreateAccountRequest {
     pub fn new(
-        creator: impl Into<String>, market_index: u64,
-        outcome_id: impl Into<String>, collateral_asset_index: u64,
+        creator: impl Into<String>,
+        market_index: u64,
+        outcome_id: impl Into<String>,
+        collateral_asset_index: u64,
         initial_collateral: u64,
     ) -> Self {
         Self {
-            creator: creator.into(), market_index, outcome_id: outcome_id.into(),
-            collateral_asset_index, initial_collateral,
+            creator: creator.into(),
+            market_index,
+            outcome_id: outcome_id.into(),
+            collateral_asset_index,
+            initial_collateral,
         }
     }
 
     pub fn to_any(&self) -> ProtoAny {
         let msg = proto::MsgCreateOutcomeSettlementAccount {
-            creator: self.creator.clone(), market_index: self.market_index,
-            outcome_id: self.outcome_id.clone(), collateral_asset_index: self.collateral_asset_index,
+            creator: self.creator.clone(),
+            market_index: self.market_index,
+            outcome_id: self.outcome_id.clone(),
+            collateral_asset_index: self.collateral_asset_index,
             initial_collateral: self.initial_collateral,
         };
-        ProtoAny { type_url: "/osa.v1.MsgCreateOutcomeSettlementAccount".into(), value: msg.encode_to_vec() }
+        ProtoAny {
+            type_url: "/osa.v1.MsgCreateOutcomeSettlementAccount".into(),
+            value: msg.encode_to_vec(),
+        }
     }
 }
 
@@ -59,22 +69,33 @@ pub struct BuySharesRequest {
 
 impl BuySharesRequest {
     pub fn new(
-        buyer: impl Into<String>, account_id: impl Into<String>,
-        collateral_amount: u64, min_shares_received: u64, max_fee_bps: u32,
+        buyer: impl Into<String>,
+        account_id: impl Into<String>,
+        collateral_amount: u64,
+        min_shares_received: u64,
+        max_fee_bps: u32,
     ) -> Self {
         Self {
-            buyer: buyer.into(), account_id: account_id.into(),
-            collateral_amount, min_shares_received, max_fee_bps,
+            buyer: buyer.into(),
+            account_id: account_id.into(),
+            collateral_amount,
+            min_shares_received,
+            max_fee_bps,
         }
     }
 
     pub fn to_any(&self) -> ProtoAny {
         let msg = proto::MsgBuyShares {
-            buyer: self.buyer.clone(), account_id: self.account_id.clone(),
-            collateral_amount: self.collateral_amount, min_shares_received: self.min_shares_received,
+            buyer: self.buyer.clone(),
+            account_id: self.account_id.clone(),
+            collateral_amount: self.collateral_amount,
+            min_shares_received: self.min_shares_received,
             max_fee_bps: self.max_fee_bps,
         };
-        ProtoAny { type_url: "/osa.v1.MsgBuyShares".into(), value: msg.encode_to_vec() }
+        ProtoAny {
+            type_url: "/osa.v1.MsgBuyShares".into(),
+            value: msg.encode_to_vec(),
+        }
     }
 }
 
@@ -90,21 +111,30 @@ pub struct SellSharesRequest {
 
 impl SellSharesRequest {
     pub fn new(
-        seller: impl Into<String>, account_id: impl Into<String>,
-        shares_amount: u64, min_collateral_received: u64,
+        seller: impl Into<String>,
+        account_id: impl Into<String>,
+        shares_amount: u64,
+        min_collateral_received: u64,
     ) -> Self {
         Self {
-            seller: seller.into(), account_id: account_id.into(),
-            shares_amount, min_collateral_received,
+            seller: seller.into(),
+            account_id: account_id.into(),
+            shares_amount,
+            min_collateral_received,
         }
     }
 
     pub fn to_any(&self) -> ProtoAny {
         let msg = proto::MsgSellShares {
-            seller: self.seller.clone(), account_id: self.account_id.clone(),
-            shares_amount: self.shares_amount, min_collateral_received: self.min_collateral_received,
+            seller: self.seller.clone(),
+            account_id: self.account_id.clone(),
+            shares_amount: self.shares_amount,
+            min_collateral_received: self.min_collateral_received,
         };
-        ProtoAny { type_url: "/osa.v1.MsgSellShares".into(), value: msg.encode_to_vec() }
+        ProtoAny {
+            type_url: "/osa.v1.MsgSellShares".into(),
+            value: msg.encode_to_vec(),
+        }
     }
 }
 
@@ -119,18 +149,27 @@ pub struct MergePositionsRequest {
 
 impl MergePositionsRequest {
     pub fn new(
-        merger: impl Into<String>, account_ids: Vec<String>,
+        merger: impl Into<String>,
+        account_ids: Vec<String>,
         min_collateral_received: u64,
     ) -> Self {
-        Self { merger: merger.into(), account_ids, min_collateral_received }
+        Self {
+            merger: merger.into(),
+            account_ids,
+            min_collateral_received,
+        }
     }
 
     pub fn to_any(&self) -> ProtoAny {
         let msg = proto::MsgMergePositions {
-            merger: self.merger.clone(), account_ids: self.account_ids.clone(),
+            merger: self.merger.clone(),
+            account_ids: self.account_ids.clone(),
             min_collateral_received: self.min_collateral_received,
         };
-        ProtoAny { type_url: "/osa.v1.MsgMergePositions".into(), value: msg.encode_to_vec() }
+        ProtoAny {
+            type_url: "/osa.v1.MsgMergePositions".into(),
+            value: msg.encode_to_vec(),
+        }
     }
 }
 
@@ -145,18 +184,27 @@ pub struct ClaimPayoutRequest {
 
 impl ClaimPayoutRequest {
     pub fn new(
-        claimer: impl Into<String>, beneficiary: impl Into<String>,
+        claimer: impl Into<String>,
+        beneficiary: impl Into<String>,
         account_id: impl Into<String>,
     ) -> Self {
-        Self { claimer: claimer.into(), beneficiary: beneficiary.into(), account_id: account_id.into() }
+        Self {
+            claimer: claimer.into(),
+            beneficiary: beneficiary.into(),
+            account_id: account_id.into(),
+        }
     }
 
     pub fn to_any(&self) -> ProtoAny {
         let msg = proto::MsgClaimPayout {
-            claimer: self.claimer.clone(), beneficiary: self.beneficiary.clone(),
+            claimer: self.claimer.clone(),
+            beneficiary: self.beneficiary.clone(),
             account_id: self.account_id.clone(),
         };
-        ProtoAny { type_url: "/osa.v1.MsgClaimPayout".into(), value: msg.encode_to_vec() }
+        ProtoAny {
+            type_url: "/osa.v1.MsgClaimPayout".into(),
+            value: msg.encode_to_vec(),
+        }
     }
 }
 
@@ -170,11 +218,19 @@ pub struct GetAccountRequest {
 }
 
 impl GetAccountRequest {
-    pub fn new(account_id: impl Into<String>) -> Self { Self { account_id: account_id.into() } }
+    pub fn new(account_id: impl Into<String>) -> Self {
+        Self {
+            account_id: account_id.into(),
+        }
+    }
 }
 
 impl From<GetAccountRequest> for proto::QueryGetAccountRequest {
-    fn from(r: GetAccountRequest) -> Self { Self { account_id: r.account_id } }
+    fn from(r: GetAccountRequest) -> Self {
+        Self {
+            account_id: r.account_id,
+        }
+    }
 }
 
 /// Query user share balance within an outcome settlement account.
@@ -187,12 +243,20 @@ pub struct GetBalanceRequest {
 
 impl GetBalanceRequest {
     pub fn new(account_id: impl Into<String>, address: impl Into<String>) -> Self {
-        Self { account_id: account_id.into(), address: address.into() }
+        Self {
+            account_id: account_id.into(),
+            address: address.into(),
+        }
     }
 }
 
 impl From<GetBalanceRequest> for proto::QueryGetBalanceRequest {
-    fn from(r: GetBalanceRequest) -> Self { Self { account_id: r.account_id, address: r.address } }
+    fn from(r: GetBalanceRequest) -> Self {
+        Self {
+            account_id: r.account_id,
+            address: r.address,
+        }
+    }
 }
 
 #[cfg(test)]

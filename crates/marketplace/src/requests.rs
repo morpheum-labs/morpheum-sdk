@@ -16,9 +16,7 @@ use crate::types::Params;
 use morpheum_proto::google::protobuf::Any as ProtoAny;
 use morpheum_proto::marketplace::v1 as proto;
 
-use crate::types::{
-    AgentListing, Bid, ListingStatus,
-};
+use crate::types::{AgentListing, Bid, ListingStatus};
 
 // ====================== TRANSACTION REQUESTS ======================
 
@@ -35,7 +33,10 @@ pub struct ListAgentRequest {
 impl ListAgentRequest {
     /// Creates a new list-agent request.
     pub fn new(listing: AgentListing, seller_signature: Vec<u8>) -> Self {
-        Self { listing, seller_signature }
+        Self {
+            listing,
+            seller_signature,
+        }
     }
 
     /// Converts this request into a protobuf `Any` ready for `TxBuilder::add_message`.
@@ -93,11 +94,7 @@ pub struct PlaceBidRequest {
 
 impl PlaceBidRequest {
     /// Creates a new place-bid request.
-    pub fn new(
-        listing_id: impl Into<String>,
-        amount_usd: u64,
-        bidder_signature: Vec<u8>,
-    ) -> Self {
+    pub fn new(listing_id: impl Into<String>, amount_usd: u64, bidder_signature: Vec<u8>) -> Self {
         Self {
             listing_id: listing_id.into(),
             amount_usd,
@@ -301,13 +298,17 @@ pub struct QueryListingRequest {
 impl QueryListingRequest {
     /// Creates a new query for a specific listing.
     pub fn new(listing_id: impl Into<String>) -> Self {
-        Self { listing_id: listing_id.into() }
+        Self {
+            listing_id: listing_id.into(),
+        }
     }
 }
 
 impl From<QueryListingRequest> for proto::QueryListingRequest {
     fn from(req: QueryListingRequest) -> Self {
-        Self { listing_id: req.listing_id }
+        Self {
+            listing_id: req.listing_id,
+        }
     }
 }
 
@@ -347,7 +348,11 @@ pub struct QueryListingsRequest {
 impl QueryListingsRequest {
     /// Creates a new query with pagination.
     pub fn new(limit: u32, offset: u32) -> Self {
-        Self { limit, offset, ..Default::default() }
+        Self {
+            limit,
+            offset,
+            ..Default::default()
+        }
     }
 
     /// Filters by seller agent hash.
@@ -570,9 +575,7 @@ mod tests {
 
     #[test]
     fn request_evaluation_to_any() {
-        let req = RequestEvaluationRequest::new(
-            "agent-abc", "evaluator-xyz", 200, vec![0u8; 64],
-        );
+        let req = RequestEvaluationRequest::new("agent-abc", "evaluator-xyz", 200, vec![0u8; 64]);
         let any = req.to_any();
         assert_eq!(any.type_url, "/marketplace.v1.MsgRequestEvaluation");
         assert!(!any.value.is_empty());
@@ -659,14 +662,12 @@ mod tests {
     #[test]
     fn query_bids_by_listing_response_conversion() {
         let proto_res = proto::QueryBidsByListingResponse {
-            bids: vec![
-                proto::Bid {
-                    bid_id: "bid-001".into(),
-                    listing_id: "listing-001".into(),
-                    amount_usd: 450_000,
-                    ..Default::default()
-                },
-            ],
+            bids: vec![proto::Bid {
+                bid_id: "bid-001".into(),
+                listing_id: "listing-001".into(),
+                amount_usd: 450_000,
+                ..Default::default()
+            }],
             total_count: 1,
         };
         let res: QueryBidsByListingResponse = proto_res.into();
@@ -677,7 +678,10 @@ mod tests {
     #[test]
     fn query_active_listings_response_conversion() {
         let proto_res = proto::QueryActiveListingsResponse {
-            listings: vec![proto::AgentListing::default(), proto::AgentListing::default()],
+            listings: vec![
+                proto::AgentListing::default(),
+                proto::AgentListing::default(),
+            ],
             total_count: 2,
         };
         let res: QueryActiveListingsResponse = proto_res.into();

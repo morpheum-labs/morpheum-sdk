@@ -13,20 +13,14 @@ use alloc::vec::Vec;
 use async_trait::async_trait;
 use prost::Message as _;
 
-use morpheum_sdk_core::{
-    MorpheumClient, SdkConfig, SdkError, Transport,
-};
+use morpheum_sdk_core::{MorpheumClient, SdkConfig, SdkError, Transport};
 
 use crate::{
     requests::{
-        QueryVcRequest,
-        QueryVcStatusRequest,
-        QueryVcsByIssuerRequest,
-        QueryVcsBySubjectRequest,
-        QueryRevocationBitmapRequest,
-        QueryParamsRequest,
+        QueryParamsRequest, QueryRevocationBitmapRequest, QueryVcRequest, QueryVcStatusRequest,
+        QueryVcsByIssuerRequest, QueryVcsBySubjectRequest,
     },
-    types::{Vc, VcStatus, Params},
+    types::{Params, Vc, VcStatus},
 };
 
 /// Primary client for all VC-related operations.
@@ -55,10 +49,8 @@ impl VcClient {
 
         let response_bytes = self.query(path, data).await?;
 
-        let proto_res = morpheum_proto::vc::v1::QueryVcResponse::decode(
-            response_bytes.as_slice(),
-        )
-        .map_err(SdkError::Decode)?;
+        let proto_res = morpheum_proto::vc::v1::QueryVcResponse::decode(response_bytes.as_slice())
+            .map_err(SdkError::Decode)?;
 
         proto_res
             .vc
@@ -67,10 +59,7 @@ impl VcClient {
     }
 
     /// Queries the current status of a VC (valid, revoked, expired, etc.).
-    pub async fn query_vc_status(
-        &self,
-        vc_id: impl Into<String>,
-    ) -> Result<VcStatus, SdkError> {
+    pub async fn query_vc_status(&self, vc_id: impl Into<String>) -> Result<VcStatus, SdkError> {
         let req = QueryVcStatusRequest::new(vc_id.into());
         let proto_req: morpheum_proto::vc::v1::QueryVcStatusRequest = req.into();
 
@@ -79,10 +68,9 @@ impl VcClient {
 
         let response_bytes = self.query(path, data).await?;
 
-        let proto_res = morpheum_proto::vc::v1::QueryVcStatusResponse::decode(
-            response_bytes.as_slice(),
-        )
-        .map_err(SdkError::Decode)?;
+        let proto_res =
+            morpheum_proto::vc::v1::QueryVcStatusResponse::decode(response_bytes.as_slice())
+                .map_err(SdkError::Decode)?;
 
         Ok(VcStatus {
             vc_id: proto_res.vc_id,
@@ -108,10 +96,9 @@ impl VcClient {
 
         let response_bytes = self.query(path, data).await?;
 
-        let proto_res = morpheum_proto::vc::v1::QueryVcsByIssuerResponse::decode(
-            response_bytes.as_slice(),
-        )
-        .map_err(SdkError::Decode)?;
+        let proto_res =
+            morpheum_proto::vc::v1::QueryVcsByIssuerResponse::decode(response_bytes.as_slice())
+                .map_err(SdkError::Decode)?;
 
         Ok(proto_res.vcs.into_iter().map(Into::into).collect())
     }
@@ -131,10 +118,9 @@ impl VcClient {
 
         let response_bytes = self.query(path, data).await?;
 
-        let proto_res = morpheum_proto::vc::v1::QueryVcsBySubjectResponse::decode(
-            response_bytes.as_slice(),
-        )
-        .map_err(SdkError::Decode)?;
+        let proto_res =
+            morpheum_proto::vc::v1::QueryVcsBySubjectResponse::decode(response_bytes.as_slice())
+                .map_err(SdkError::Decode)?;
 
         Ok(proto_res.vcs.into_iter().map(Into::into).collect())
     }
@@ -170,10 +156,9 @@ impl VcClient {
 
         let response_bytes = self.query(path, data).await?;
 
-        let proto_res = morpheum_proto::vc::v1::QueryParamsResponse::decode(
-            response_bytes.as_slice(),
-        )
-        .map_err(SdkError::Decode)?;
+        let proto_res =
+            morpheum_proto::vc::v1::QueryParamsResponse::decode(response_bytes.as_slice())
+                .map_err(SdkError::Decode)?;
 
         proto_res
             .params
@@ -203,7 +188,10 @@ mod tests {
 
     #[async_trait(?Send)]
     impl Transport for DummyTransport {
-        async fn broadcast_tx(&self, _tx_bytes: Vec<u8>) -> Result<morpheum_sdk_core::BroadcastResult, SdkError> {
+        async fn broadcast_tx(
+            &self,
+            _tx_bytes: Vec<u8>,
+        ) -> Result<morpheum_sdk_core::BroadcastResult, SdkError> {
             unimplemented!("not needed for VC query tests")
         }
 

@@ -11,10 +11,10 @@
 
 extern crate alloc;
 
-pub mod client;
-pub mod types;
-pub mod requests;
 pub mod builder;
+pub mod client;
+pub mod requests;
+pub mod types;
 
 // ==================== PUBLIC RE-EXPORTS ====================
 
@@ -22,36 +22,19 @@ pub mod builder;
 pub use client::JobClient;
 
 /// Core domain types for jobs.
-pub use types::{
-    Job,
-    JobState,
-    JobParams,
-    JobAttestation,
-    Deliverable,
-    RevenueShareConfig,
-};
+pub use types::{Deliverable, Job, JobAttestation, JobParams, JobState, RevenueShareConfig};
 
 /// Request and response wrappers for transaction construction and queries.
 pub use requests::*;
 
 /// Fluent builders for job lifecycle operations.
 pub use builder::{
-    CreateJobBuilder,
-    FundJobBuilder,
-    SubmitDeliverableBuilder,
-    AttestBuilder,
-    ClaimRefundBuilder,
-    SetProviderBuilder,
-    CancelJobBuilder,
+    AttestBuilder, CancelJobBuilder, ClaimRefundBuilder, CreateJobBuilder, FundJobBuilder,
+    SetProviderBuilder, SubmitDeliverableBuilder,
 };
 
 // Re-export core SDK types commonly used with job flows.
-pub use morpheum_sdk_core::{
-    AccountId,
-    ChainId,
-    SdkError,
-    SignedTx,
-};
+pub use morpheum_sdk_core::{AccountId, ChainId, SdkError, SignedTx};
 
 /// Recommended prelude for the job module.
 ///
@@ -61,21 +44,9 @@ pub use morpheum_sdk_core::{
 /// ```
 pub mod prelude {
     pub use super::{
-        JobClient,
-        Job,
-        JobState,
-        JobParams,
-        JobAttestation,
-        Deliverable,
-        RevenueShareConfig,
-        CreateJobBuilder,
-        FundJobBuilder,
+        AccountId, AttestBuilder, ChainId, CreateJobBuilder, Deliverable, FundJobBuilder, Job,
+        JobAttestation, JobClient, JobParams, JobState, RevenueShareConfig, SdkError, SignedTx,
         SubmitDeliverableBuilder,
-        AttestBuilder,
-        AccountId,
-        ChainId,
-        SdkError,
-        SignedTx,
     };
 }
 

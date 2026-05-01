@@ -18,8 +18,7 @@ use morpheum_sdk_core::{MorpheumClient, SdkConfig, SdkError, Transport};
 use crate::{
     requests::{
         GetLongShortVolumeRequest, GetPositionRequest, ListOpenPositionsRequest,
-        QueryAllPositionsByMarketRequest, QueryPositionPnLRequest,
-        QueryPositionsByAddressRequest,
+        QueryAllPositionsByMarketRequest, QueryPositionPnLRequest, QueryPositionsByAddressRequest,
     },
     types::{LongShortVolume, Position, PositionPnL, PositionState},
 };
@@ -55,10 +54,9 @@ impl PositionClient {
 
         let response_bytes = self.query(path, data).await?;
 
-        let proto_res = morpheum_proto::position::v1::GetPositionResponse::decode(
-            response_bytes.as_slice(),
-        )
-        .map_err(SdkError::Decode)?;
+        let proto_res =
+            morpheum_proto::position::v1::GetPositionResponse::decode(response_bytes.as_slice())
+                .map_err(SdkError::Decode)?;
 
         if proto_res.found {
             Ok(proto_res.position.map(Into::into))
@@ -121,8 +119,14 @@ impl PositionClient {
         use morpheum_proto::position::v1 as proto;
         let req = QueryPositionsByAddressRequest::new(address).active_only(active_only);
         let proto_req: proto::QueryPositionsByAddressRequest = req.into();
-        let resp = self.query("/position.v1.Query/QueryPositionsByAddress", proto_req.encode_to_vec()).await?;
-        let p = proto::QueryPositionsByAddressResponse::decode(resp.as_slice()).map_err(SdkError::Decode)?;
+        let resp = self
+            .query(
+                "/position.v1.Query/QueryPositionsByAddress",
+                proto_req.encode_to_vec(),
+            )
+            .await?;
+        let p = proto::QueryPositionsByAddressResponse::decode(resp.as_slice())
+            .map_err(SdkError::Decode)?;
         check_success(p.success, &p.error_message)?;
         Ok(p.positions.into_iter().map(Into::into).collect())
     }
@@ -134,8 +138,14 @@ impl PositionClient {
     ) -> Result<Vec<Position>, SdkError> {
         use morpheum_proto::position::v1 as proto;
         let proto_req: proto::QueryAllPositionsByMarketRequest = request.into();
-        let resp = self.query("/position.v1.Query/QueryAllPositionsByMarket", proto_req.encode_to_vec()).await?;
-        let p = proto::QueryAllPositionsByMarketResponse::decode(resp.as_slice()).map_err(SdkError::Decode)?;
+        let resp = self
+            .query(
+                "/position.v1.Query/QueryAllPositionsByMarket",
+                proto_req.encode_to_vec(),
+            )
+            .await?;
+        let p = proto::QueryAllPositionsByMarketResponse::decode(resp.as_slice())
+            .map_err(SdkError::Decode)?;
         check_success(p.success, &p.error_message)?;
         Ok(p.positions.into_iter().map(Into::into).collect())
     }
@@ -149,8 +159,14 @@ impl PositionClient {
         use morpheum_proto::position::v1 as proto;
         let req = QueryPositionPnLRequest::new(address, market_index);
         let proto_req: proto::QueryPositionPnLRequest = req.into();
-        let resp = self.query("/position.v1.Query/QueryPositionPnL", proto_req.encode_to_vec()).await?;
-        let p = proto::QueryPositionPnLResponse::decode(resp.as_slice()).map_err(SdkError::Decode)?;
+        let resp = self
+            .query(
+                "/position.v1.Query/QueryPositionPnL",
+                proto_req.encode_to_vec(),
+            )
+            .await?;
+        let p =
+            proto::QueryPositionPnLResponse::decode(resp.as_slice()).map_err(SdkError::Decode)?;
         check_success(p.success, &p.error_message)?;
         Ok(PositionPnL {
             unrealized_profit: p.unrealized_profit,
@@ -289,7 +305,9 @@ mod tests {
         let config = SdkConfig::new("https://sentry.morpheum.xyz", "morpheum-test-1");
         let client = PositionClient::new(config, Box::new(DummyTransport));
 
-        let result = client.query_positions_by_address("morpheum1abc", true).await;
+        let result = client
+            .query_positions_by_address("morpheum1abc", true)
+            .await;
         assert!(result.is_ok());
         assert!(result.unwrap().is_empty());
     }

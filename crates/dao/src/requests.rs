@@ -13,13 +13,12 @@ use prost::Message as _;
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
-use morpheum_proto::google::protobuf::Any as ProtoAny;
 use morpheum_proto::dao::v1 as proto;
+use morpheum_proto::google::protobuf::Any as ProtoAny;
 use morpheum_sdk_core::AccountId;
 
 use crate::types::{
-    DaoConfig, DaoProposalStatus, DaoStatus, DaoType, GovernedAsset,
-    WeightedDaoVoteOption,
+    DaoConfig, DaoProposalStatus, DaoStatus, DaoType, GovernedAsset, WeightedDaoVoteOption,
 };
 
 // ====================== TRANSACTION REQUESTS ======================
@@ -99,7 +98,11 @@ impl From<CreateDaoRequest> for proto::MsgCreateDaoRequest {
             council_token_mint: req.council_token_mint.unwrap_or_default(),
             dao_type: i32::from(req.dao_type),
             config: Some(req.config.into()),
-            initial_governed_assets: req.initial_governed_assets.into_iter().map(Into::into).collect(),
+            initial_governed_assets: req
+                .initial_governed_assets
+                .into_iter()
+                .map(Into::into)
+                .collect(),
             metadata: req.metadata.into_iter().collect(),
             timestamp: None,
         }
@@ -187,7 +190,11 @@ pub struct SignDaoProposalRequest {
 
 impl SignDaoProposalRequest {
     pub fn new(from_address: AccountId, dao_id: u64, proposal_id: u64) -> Self {
-        Self { from_address, dao_id, proposal_id }
+        Self {
+            from_address,
+            dao_id,
+            proposal_id,
+        }
     }
 
     pub fn to_any(&self) -> ProtoAny {
@@ -382,7 +389,11 @@ pub struct ExecuteDaoProposalRequest {
 
 impl ExecuteDaoProposalRequest {
     pub fn new(from_address: AccountId, dao_id: u64, proposal_id: u64) -> Self {
-        Self { from_address, dao_id, proposal_id }
+        Self {
+            from_address,
+            dao_id,
+            proposal_id,
+        }
     }
 
     pub fn to_any(&self) -> ProtoAny {
@@ -532,13 +543,19 @@ pub struct QueryDaoProposalRequest {
 
 impl QueryDaoProposalRequest {
     pub fn new(dao_id: u64, proposal_id: u64) -> Self {
-        Self { dao_id, proposal_id }
+        Self {
+            dao_id,
+            proposal_id,
+        }
     }
 }
 
 impl From<QueryDaoProposalRequest> for proto::QueryProposalRequest {
     fn from(req: QueryDaoProposalRequest) -> Self {
-        Self { dao_id: req.dao_id, proposal_id: req.proposal_id }
+        Self {
+            dao_id: req.dao_id,
+            proposal_id: req.proposal_id,
+        }
     }
 }
 
@@ -598,13 +615,21 @@ pub struct QueryDaoVoteRequest {
 
 impl QueryDaoVoteRequest {
     pub fn new(dao_id: u64, proposal_id: u64, voter: impl Into<String>) -> Self {
-        Self { dao_id, proposal_id, voter: voter.into() }
+        Self {
+            dao_id,
+            proposal_id,
+            voter: voter.into(),
+        }
     }
 }
 
 impl From<QueryDaoVoteRequest> for proto::QueryVoteRequest {
     fn from(req: QueryDaoVoteRequest) -> Self {
-        Self { dao_id: req.dao_id, proposal_id: req.proposal_id, voter: req.voter }
+        Self {
+            dao_id: req.dao_id,
+            proposal_id: req.proposal_id,
+            voter: req.voter,
+        }
     }
 }
 
@@ -620,7 +645,12 @@ pub struct QueryDaoVotesRequest {
 
 impl QueryDaoVotesRequest {
     pub fn new(dao_id: u64, proposal_id: u64, limit: i32, offset: i32) -> Self {
-        Self { dao_id, proposal_id, limit, offset }
+        Self {
+            dao_id,
+            proposal_id,
+            limit,
+            offset,
+        }
     }
 }
 
@@ -645,13 +675,19 @@ pub struct QueryDaoDepositRequest {
 
 impl QueryDaoDepositRequest {
     pub fn new(dao_id: u64, depositor: impl Into<String>) -> Self {
-        Self { dao_id, depositor: depositor.into() }
+        Self {
+            dao_id,
+            depositor: depositor.into(),
+        }
     }
 }
 
 impl From<QueryDaoDepositRequest> for proto::QueryDepositRequest {
     fn from(req: QueryDaoDepositRequest) -> Self {
-        Self { dao_id: req.dao_id, depositor: req.depositor }
+        Self {
+            dao_id: req.dao_id,
+            depositor: req.depositor,
+        }
     }
 }
 
@@ -667,7 +703,12 @@ pub struct QueryDaoDepositsRequest {
 
 impl QueryDaoDepositsRequest {
     pub fn new(dao_id: u64, limit: i32, offset: i32) -> Self {
-        Self { dao_id, depositor_filter: None, limit, offset }
+        Self {
+            dao_id,
+            depositor_filter: None,
+            limit,
+            offset,
+        }
     }
 
     pub fn depositor_filter(mut self, depositor: impl Into<String>) -> Self {
@@ -697,13 +738,19 @@ pub struct QueryDaoTallyResultRequest {
 
 impl QueryDaoTallyResultRequest {
     pub fn new(dao_id: u64, proposal_id: u64) -> Self {
-        Self { dao_id, proposal_id }
+        Self {
+            dao_id,
+            proposal_id,
+        }
     }
 }
 
 impl From<QueryDaoTallyResultRequest> for proto::QueryTallyResultRequest {
     fn from(req: QueryDaoTallyResultRequest) -> Self {
-        Self { dao_id: req.dao_id, proposal_id: req.proposal_id }
+        Self {
+            dao_id: req.dao_id,
+            proposal_id: req.proposal_id,
+        }
     }
 }
 
@@ -727,7 +774,8 @@ mod tests {
             max_active_proposals: 10,
             plugin_configs: BTreeMap::new(),
         };
-        let req = CreateDaoRequest::new(from, "My DAO", "morpheum1mint", DaoType::Community, config);
+        let req =
+            CreateDaoRequest::new(from, "My DAO", "morpheum1mint", DaoType::Community, config);
 
         let any = req.to_any();
         assert_eq!(any.type_url, "/dao.v1.MsgCreateDaoRequest");
@@ -774,11 +822,13 @@ mod tests {
 
     #[test]
     fn query_dao_proposals_with_filters() {
-        let req = QueryDaoProposalsRequest::new(1, 10, 0)
-            .status_filter(DaoProposalStatus::Voting);
+        let req = QueryDaoProposalsRequest::new(1, 10, 0).status_filter(DaoProposalStatus::Voting);
 
         let proto_req: proto::QueryProposalsRequest = req.into();
         assert_eq!(proto_req.dao_id, 1);
-        assert_eq!(proto_req.status_filter, i32::from(DaoProposalStatus::Voting));
+        assert_eq!(
+            proto_req.status_filter,
+            i32::from(DaoProposalStatus::Voting)
+        );
     }
 }

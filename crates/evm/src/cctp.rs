@@ -97,9 +97,7 @@ pub async fn bridge_usdc(
 
     for log in receipt.inner.logs() {
         if log.topic0() == Some(&bridge_topic) {
-            if let Ok(event) =
-                ICctpHyperlaneWrapper::BridgeInitiated::decode_log(&log.inner)
-            {
+            if let Ok(event) = ICctpHyperlaneWrapper::BridgeInitiated::decode_log(&log.inner) {
                 message_id = event.data.hyperlaneMessageId;
                 cctp_nonce = Some(event.data.cctpNonce);
                 break;

@@ -59,7 +59,10 @@ impl From<JobState> for i32 {
 impl JobState {
     /// Whether the job is in a terminal state (no further transitions possible).
     pub fn is_terminal(self) -> bool {
-        matches!(self, Self::Completed | Self::Rejected | Self::Expired | Self::Cancelled)
+        matches!(
+            self,
+            Self::Completed | Self::Rejected | Self::Expired | Self::Cancelled
+        )
     }
 
     /// Whether the job is actively in progress (non-terminal and past creation).

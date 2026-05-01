@@ -7,8 +7,8 @@ use prost::Message as _;
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
-use morpheum_proto::twap::v1 as proto;
 use morpheum_proto::google::protobuf::Any as ProtoAny;
+use morpheum_proto::twap::v1 as proto;
 
 use crate::types::{MarketTwapConfig, TwapParams};
 
@@ -52,11 +52,7 @@ pub struct UpdateTwapConfigRequest {
 }
 
 impl UpdateTwapConfigRequest {
-    pub fn new(
-        authority: impl Into<String>,
-        market_index: u64,
-        config: MarketTwapConfig,
-    ) -> Self {
+    pub fn new(authority: impl Into<String>, market_index: u64, config: MarketTwapConfig) -> Self {
         Self {
             authority: authority.into(),
             market_index,
@@ -70,7 +66,10 @@ impl UpdateTwapConfigRequest {
             market_index: self.market_index,
             config: Some(self.config.clone().into()),
         };
-        ProtoAny { type_url: "/twap.v1.MsgUpdateMarketConfig".into(), value: msg.encode_to_vec() }
+        ProtoAny {
+            type_url: "/twap.v1.MsgUpdateMarketConfig".into(),
+            value: msg.encode_to_vec(),
+        }
     }
 }
 
@@ -87,11 +86,18 @@ pub struct GetTwapRequest {
 
 impl GetTwapRequest {
     pub fn new(market_index: u64, window_blocks: u32) -> Self {
-        Self { market_index, window_blocks, current_block: 0 }
+        Self {
+            market_index,
+            window_blocks,
+            current_block: 0,
+        }
     }
 
     /// Set the current block for staleness checking.
-    pub fn current_block(mut self, v: u64) -> Self { self.current_block = v; self }
+    pub fn current_block(mut self, v: u64) -> Self {
+        self.current_block = v;
+        self
+    }
 }
 
 impl From<GetTwapRequest> for proto::GetTwapRequest {
@@ -111,7 +117,10 @@ mod tests {
 
     #[test]
     fn update_config_to_any() {
-        let cfg = MarketTwapConfig { windows: vec![60, 300], staleness_blocks: 10 };
+        let cfg = MarketTwapConfig {
+            windows: vec![60, 300],
+            staleness_blocks: 10,
+        };
         let any = UpdateTwapConfigRequest::new("morpheum1gov", 1, cfg).to_any();
         assert_eq!(any.type_url, "/twap.v1.MsgUpdateMarketConfig");
         assert!(!any.value.is_empty());

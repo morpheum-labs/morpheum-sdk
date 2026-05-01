@@ -70,7 +70,11 @@ impl TriggerProtocolSyncBuilder {
             SdkError::invalid_input("agent_hash is required for TriggerProtocolSync")
         })?;
 
-        Ok(TriggerProtocolSyncRequest::new(authority, agent_hash, self.protocols))
+        Ok(TriggerProtocolSyncRequest::new(
+            authority,
+            agent_hash,
+            self.protocols,
+        ))
     }
 }
 
@@ -128,5 +132,4 @@ mod tests {
             .build();
         assert!(result.is_err());
     }
-
 }

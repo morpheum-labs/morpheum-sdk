@@ -294,8 +294,14 @@ mod tests {
             side: PositionSide::Long,
             unrealized_pnl: 500,
             entries: vec![
-                PositionEntry { size: 500, price: 49000 },
-                PositionEntry { size: 500, price: 51000 },
+                PositionEntry {
+                    size: 500,
+                    price: 49000,
+                },
+                PositionEntry {
+                    size: 500,
+                    price: 51000,
+                },
             ],
         };
 
@@ -306,7 +312,11 @@ mod tests {
 
     #[test]
     fn position_side_roundtrip() {
-        for side in [PositionSide::Unspecified, PositionSide::Long, PositionSide::Short] {
+        for side in [
+            PositionSide::Unspecified,
+            PositionSide::Long,
+            PositionSide::Short,
+        ] {
             let proto_val: i32 = side.into();
             let back: PositionSide = proto_val.into();
             assert_eq!(side, back);
@@ -328,7 +338,10 @@ mod tests {
 
     #[test]
     fn position_entry_roundtrip() {
-        let entry = PositionEntry { size: 100, price: 45000 };
+        let entry = PositionEntry {
+            size: 100,
+            price: 45000,
+        };
         let proto_entry: proto::PositionEntry = entry.clone().into();
         let back: PositionEntry = proto_entry.into();
         assert_eq!(entry, back);

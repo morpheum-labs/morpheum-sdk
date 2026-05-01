@@ -17,8 +17,8 @@ extern crate alloc;
 // Public API modules — each has a single, clear responsibility
 pub mod builder;
 pub mod client;
-pub mod types;
 pub mod requests;
+pub mod types;
 
 // ==================== PUBLIC RE-EXPORTS ====================
 
@@ -26,34 +26,19 @@ pub mod requests;
 pub use client::IntentClient;
 
 /// Fluent builders for intent transaction construction.
-pub use builder::{
-    CancelIntentBuilder,
-    SubmitIntentBuilder,
-};
+pub use builder::{CancelIntentBuilder, SubmitIntentBuilder};
 
 /// Core domain types for the intent module.
 pub use types::{
-    AgentIntent,
-    ConditionalParams,
-    DeclarativeParams,
-    DecompositionTrace,
-    IntentParams,
-    IntentStatus,
-    IntentType,
-    Leg,
-    MultiLegParams,
-    Params,
-    TwapParams,
+    AgentIntent, ConditionalParams, DeclarativeParams, DecompositionTrace, IntentParams,
+    IntentStatus, IntentType, Leg, MultiLegParams, Params, TwapParams,
 };
 
 /// Re-export all request and response types for clean message construction.
 pub use requests::*;
 
 /// Re-export core SDK types commonly used with intent flows.
-pub use morpheum_sdk_core::{
-    SdkError,
-    SdkConfig,
-};
+pub use morpheum_sdk_core::{SdkConfig, SdkError};
 
 /// Recommended prelude for the intent module.
 ///
@@ -63,22 +48,9 @@ pub use morpheum_sdk_core::{
 /// ```
 pub mod prelude {
     pub use super::{
-        IntentClient,
-        SubmitIntentBuilder,
-        CancelIntentBuilder,
-        AgentIntent,
-        ConditionalParams,
-        DeclarativeParams,
-        DecompositionTrace,
-        IntentParams,
-        IntentStatus,
-        IntentType,
-        Leg,
-        MultiLegParams,
-        Params,
-        TwapParams,
-        SdkError,
-        SdkConfig,
+        AgentIntent, CancelIntentBuilder, ConditionalParams, DeclarativeParams, DecompositionTrace,
+        IntentClient, IntentParams, IntentStatus, IntentType, Leg, MultiLegParams, Params,
+        SdkConfig, SdkError, SubmitIntentBuilder, TwapParams,
     };
 }
 

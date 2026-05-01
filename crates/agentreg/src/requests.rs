@@ -12,8 +12,8 @@ use prost::Message as _;
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
-use morpheum_proto::google::protobuf::Any as ProtoAny;
 use morpheum_proto::agentreg::v1 as proto;
+use morpheum_proto::google::protobuf::Any as ProtoAny;
 
 use crate::types::{AgentRecord, ExportStatus, Params};
 
@@ -30,11 +30,7 @@ pub struct TriggerProtocolSyncRequest {
 }
 
 impl TriggerProtocolSyncRequest {
-    pub fn new(
-        authority: impl Into<String>,
-        agent_hash: Vec<u8>,
-        protocols: Vec<String>,
-    ) -> Self {
+    pub fn new(authority: impl Into<String>, agent_hash: Vec<u8>, protocols: Vec<String>) -> Self {
         Self {
             authority: authority.into(),
             agent_hash,
@@ -262,13 +258,11 @@ mod tests {
     #[test]
     fn query_export_status_response_conversion() {
         let proto_res = proto::QueryExportStatusResponse {
-            export_statuses: vec![
-                proto::ExportStatus {
-                    protocol: "erc8004".into(),
-                    success: true,
-                    ..Default::default()
-                },
-            ],
+            export_statuses: vec![proto::ExportStatus {
+                protocol: "erc8004".into(),
+                success: true,
+                ..Default::default()
+            }],
         };
         let res: QueryExportStatusResponse = proto_res.into();
         assert_eq!(res.export_statuses.len(), 1);

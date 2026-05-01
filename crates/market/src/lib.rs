@@ -12,10 +12,10 @@
 extern crate alloc;
 
 // Public API modules — each has a single, clear responsibility
-pub mod client;
-pub mod types;
-pub mod requests;
 pub mod builder;
+pub mod client;
+pub mod requests;
+pub mod types;
 
 // ==================== PUBLIC RE-EXPORTS ====================
 
@@ -25,33 +25,16 @@ pub use client::MarketClient;
 
 /// Core domain types for markets.
 pub use types::{
-    Market,
-    MarketFeeStats,
-    MarketParams,
-    MarketStats,
-    MarketType,
-    MarketStatus,
-    MarketCategory,
-    MarketTypeConfig,
-    MarketTypeStats,
-    ClobMarketConfig,
-    ClobStats,
-    PredictionMarketConfig,
-    PredictionStats,
-    PerpConfig,
-    MarketUpdate,
+    ClobMarketConfig, ClobStats, Market, MarketCategory, MarketFeeStats, MarketParams, MarketStats,
+    MarketStatus, MarketType, MarketTypeConfig, MarketTypeStats, MarketUpdate, PerpConfig,
+    PredictionMarketConfig, PredictionStats,
 };
 
 /// Request and response wrappers for transaction construction and queries.
 pub use requests::*;
 
 // Re-export core SDK types commonly used with market flows.
-pub use morpheum_sdk_core::{
-    AccountId,
-    ChainId,
-    SdkError,
-    SignedTx,
-};
+pub use morpheum_sdk_core::{AccountId, ChainId, SdkError, SignedTx};
 
 /// Recommended prelude for the market module.
 ///
@@ -61,17 +44,8 @@ pub use morpheum_sdk_core::{
 /// ```
 pub mod prelude {
     pub use super::{
-        MarketClient,
-        Market,
-        MarketParams,
-        MarketStats,
-        MarketType,
-        MarketStatus,
-        MarketCategory,
-        AccountId,
-        ChainId,
-        SdkError,
-        SignedTx,
+        AccountId, ChainId, Market, MarketCategory, MarketClient, MarketParams, MarketStats,
+        MarketStatus, MarketType, SdkError, SignedTx,
     };
 }
 

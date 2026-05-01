@@ -82,13 +82,13 @@ impl SdkConfigBuilder {
 
     /// Builds the final `SdkConfig`, performing validation.
     pub fn build(self) -> Result<SdkConfig, SdkError> {
-        let rpc_endpoint = self.rpc_endpoint.ok_or_else(|| {
-            SdkError::config("rpc_endpoint is required")
-        })?;
+        let rpc_endpoint = self
+            .rpc_endpoint
+            .ok_or_else(|| SdkError::config("rpc_endpoint is required"))?;
 
-        let default_chain_id = self.chain_id.ok_or_else(|| {
-            SdkError::config("default_chain_id is required")
-        })?;
+        let default_chain_id = self
+            .chain_id
+            .ok_or_else(|| SdkError::config("default_chain_id is required"))?;
 
         // Basic validation
         if rpc_endpoint.trim().is_empty() {

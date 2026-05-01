@@ -54,16 +54,12 @@ impl ClientMessage {
 
     /// Build a `Subscribe` message.
     pub fn subscribe(spec: ChannelSpec) -> Self {
-        Self::Subscribe {
-            subscription: spec,
-        }
+        Self::Subscribe { subscription: spec }
     }
 
     /// Build an `Unsubscribe` message.
     pub fn unsubscribe(spec: ChannelSpec) -> Self {
-        Self::Unsubscribe {
-            subscription: spec,
-        }
+        Self::Unsubscribe { subscription: spec }
     }
 }
 
@@ -139,14 +135,12 @@ struct RawServerMessage {
 impl From<RawServerMessage> for ServerMessage {
     fn from(raw: RawServerMessage) -> Self {
         match raw.channel.as_str() {
-            "auth" => {
-                match serde_json::from_value::<AuthResponseData>(raw.data.clone()) {
-                    Ok(auth) => ServerMessage::Auth(auth),
-                    Err(_) => ServerMessage::Error(ErrorData {
-                        message: format!("malformed auth response: {}", raw.data),
-                    }),
-                }
-            }
+            "auth" => match serde_json::from_value::<AuthResponseData>(raw.data.clone()) {
+                Ok(auth) => ServerMessage::Auth(auth),
+                Err(_) => ServerMessage::Error(ErrorData {
+                    message: format!("malformed auth response: {}", raw.data),
+                }),
+            },
             "subscriptionResponse" => {
                 match serde_json::from_value::<SubscriptionResponseData>(raw.data.clone()) {
                     Ok(sub) => ServerMessage::SubscriptionResponse(sub),
@@ -155,14 +149,12 @@ impl From<RawServerMessage> for ServerMessage {
                     }),
                 }
             }
-            "error" => {
-                match serde_json::from_value::<ErrorData>(raw.data.clone()) {
-                    Ok(err) => ServerMessage::Error(err),
-                    Err(_) => ServerMessage::Error(ErrorData {
-                        message: raw.data.to_string(),
-                    }),
-                }
-            }
+            "error" => match serde_json::from_value::<ErrorData>(raw.data.clone()) {
+                Ok(err) => ServerMessage::Error(err),
+                Err(_) => ServerMessage::Error(ErrorData {
+                    message: raw.data.to_string(),
+                }),
+            },
             channel => ServerMessage::Data {
                 channel: channel.to_owned(),
                 data: raw.data,
@@ -195,7 +187,8 @@ mod tests {
 
     #[test]
     fn server_auth_ok_parses() {
-        let json = r#"{"channel":"auth","data":{"status":"ok","tier":"basic","receipt_id":"r123"}}"#;
+        let json =
+            r#"{"channel":"auth","data":{"status":"ok","tier":"basic","receipt_id":"r123"}}"#;
         let msg: ServerMessage = serde_json::from_str(json).unwrap();
         match msg {
             ServerMessage::Auth(a) => {

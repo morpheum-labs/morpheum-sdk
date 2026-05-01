@@ -79,30 +79,48 @@ impl PlaceOrderRequest {
     }
 
     pub fn client_order_id(mut self, id: impl Into<String>) -> Self {
-        self.client_order_id = Some(id.into()); self
+        self.client_order_id = Some(id.into());
+        self
     }
     pub fn leverage(mut self, lev: impl Into<String>) -> Self {
-        self.leverage = Some(lev.into()); self
+        self.leverage = Some(lev.into());
+        self
     }
     pub fn take_profit(mut self, tp: impl Into<String>) -> Self {
-        self.take_profit = Some(tp.into()); self
+        self.take_profit = Some(tp.into());
+        self
     }
     pub fn stop_loss(mut self, sl: impl Into<String>) -> Self {
-        self.stop_loss = Some(sl.into()); self
+        self.stop_loss = Some(sl.into());
+        self
     }
     pub fn time_in_force(mut self, tif: TimeInForce) -> Self {
-        self.time_in_force = tif; self
+        self.time_in_force = tif;
+        self
     }
-    pub fn post_only(mut self, po: bool) -> Self { self.post_only = po; self }
-    pub fn hidden(mut self, h: bool) -> Self { self.hidden = h; self }
-    pub fn reduce_only(mut self, ro: bool) -> Self { self.reduce_only = ro; self }
+    pub fn post_only(mut self, po: bool) -> Self {
+        self.post_only = po;
+        self
+    }
+    pub fn hidden(mut self, h: bool) -> Self {
+        self.hidden = h;
+        self
+    }
+    pub fn reduce_only(mut self, ro: bool) -> Self {
+        self.reduce_only = ro;
+        self
+    }
     pub fn bucket_id(mut self, id: impl Into<String>) -> Self {
-        self.bucket_id = Some(id.into()); self
+        self.bucket_id = Some(id.into());
+        self
     }
 
     pub fn to_any(&self) -> ProtoAny {
         let msg: proto::MsgPlaceOrderRequest = self.clone().into();
-        ProtoAny { type_url: "/clob.v1.MsgPlaceOrderRequest".into(), value: msg.encode_to_vec() }
+        ProtoAny {
+            type_url: "/clob.v1.MsgPlaceOrderRequest".into(),
+            value: msg.encode_to_vec(),
+        }
     }
 }
 
@@ -144,24 +162,40 @@ pub struct ModifyOrderRequest {
 impl ModifyOrderRequest {
     pub fn new(address: impl Into<String>, order_id: impl Into<String>) -> Self {
         Self {
-            address: address.into(), order_id: order_id.into(),
-            symbol: None, new_price: None, new_quantity: None,
+            address: address.into(),
+            order_id: order_id.into(),
+            symbol: None,
+            new_price: None,
+            new_quantity: None,
         }
     }
-    pub fn new_price(mut self, p: impl Into<String>) -> Self { self.new_price = Some(p.into()); self }
-    pub fn new_quantity(mut self, q: impl Into<String>) -> Self { self.new_quantity = Some(q.into()); self }
-    pub fn symbol(mut self, s: impl Into<String>) -> Self { self.symbol = Some(s.into()); self }
+    pub fn new_price(mut self, p: impl Into<String>) -> Self {
+        self.new_price = Some(p.into());
+        self
+    }
+    pub fn new_quantity(mut self, q: impl Into<String>) -> Self {
+        self.new_quantity = Some(q.into());
+        self
+    }
+    pub fn symbol(mut self, s: impl Into<String>) -> Self {
+        self.symbol = Some(s.into());
+        self
+    }
 
     pub fn to_any(&self) -> ProtoAny {
         let msg: proto::MsgModifyOrderRequest = self.clone().into();
-        ProtoAny { type_url: "/clob.v1.MsgModifyOrderRequest".into(), value: msg.encode_to_vec() }
+        ProtoAny {
+            type_url: "/clob.v1.MsgModifyOrderRequest".into(),
+            value: msg.encode_to_vec(),
+        }
     }
 }
 
 impl From<ModifyOrderRequest> for proto::MsgModifyOrderRequest {
     fn from(r: ModifyOrderRequest) -> Self {
         Self {
-            address: r.address, order_id: r.order_id,
+            address: r.address,
+            order_id: r.order_id,
             symbol: r.symbol.unwrap_or_default(),
             new_price: r.new_price.unwrap_or_default(),
             new_quantity: r.new_quantity.unwrap_or_default(),
@@ -181,21 +215,33 @@ pub struct CancelOrderRequest {
 
 impl CancelOrderRequest {
     pub fn new(address: impl Into<String>, order_id: impl Into<String>) -> Self {
-        Self { address: address.into(), order_id: order_id.into(), symbol: None }
+        Self {
+            address: address.into(),
+            order_id: order_id.into(),
+            symbol: None,
+        }
     }
-    pub fn symbol(mut self, s: impl Into<String>) -> Self { self.symbol = Some(s.into()); self }
+    pub fn symbol(mut self, s: impl Into<String>) -> Self {
+        self.symbol = Some(s.into());
+        self
+    }
 
     pub fn to_any(&self) -> ProtoAny {
         let msg: proto::MsgCancelOrderRequest = self.clone().into();
-        ProtoAny { type_url: "/clob.v1.MsgCancelOrderRequest".into(), value: msg.encode_to_vec() }
+        ProtoAny {
+            type_url: "/clob.v1.MsgCancelOrderRequest".into(),
+            value: msg.encode_to_vec(),
+        }
     }
 }
 
 impl From<CancelOrderRequest> for proto::MsgCancelOrderRequest {
     fn from(r: CancelOrderRequest) -> Self {
         Self {
-            address: r.address, order_id: r.order_id,
-            symbol: r.symbol.unwrap_or_default(), timestamp: None,
+            address: r.address,
+            order_id: r.order_id,
+            symbol: r.symbol.unwrap_or_default(),
+            timestamp: None,
         }
     }
 }
@@ -325,9 +371,7 @@ fn format_rfc3339_opt(secs: u64) -> String {
     let minutes = (rem % 3_600) / 60;
     let seconds = rem % 60;
     let (year, month, day) = days_to_ymd(days);
-    format!(
-        "{year:04}-{month:02}-{day:02}T{hours:02}:{minutes:02}:{seconds:02}Z"
-    )
+    format!("{year:04}-{month:02}-{day:02}T{hours:02}:{minutes:02}:{seconds:02}Z")
 }
 
 #[cfg(feature = "std")]
@@ -406,27 +450,44 @@ pub struct ProvideMarketMakerQuoteRequest {
 
 impl ProvideMarketMakerQuoteRequest {
     pub fn new(
-        provider: impl Into<String>, pool_id: impl Into<String>,
-        market_index: u64, side: Side, price: impl Into<String>, amount: impl Into<String>,
+        provider: impl Into<String>,
+        pool_id: impl Into<String>,
+        market_index: u64,
+        side: Side,
+        price: impl Into<String>,
+        amount: impl Into<String>,
     ) -> Self {
         Self {
-            provider: provider.into(), pool_id: pool_id.into(),
-            market_index, side, price: price.into(), amount: amount.into(),
+            provider: provider.into(),
+            pool_id: pool_id.into(),
+            market_index,
+            side,
+            price: price.into(),
+            amount: amount.into(),
         }
     }
 
     pub fn to_any(&self) -> ProtoAny {
         let msg: proto::MsgProvideMarketMakerQuoteRequest = self.clone().into();
-        ProtoAny { type_url: "/clob.v1.MsgProvideMarketMakerQuoteRequest".into(), value: msg.encode_to_vec() }
+        ProtoAny {
+            type_url: "/clob.v1.MsgProvideMarketMakerQuoteRequest".into(),
+            value: msg.encode_to_vec(),
+        }
     }
 }
 
 impl From<ProvideMarketMakerQuoteRequest> for proto::MsgProvideMarketMakerQuoteRequest {
     fn from(r: ProvideMarketMakerQuoteRequest) -> Self {
         Self {
-            provider: r.provider, pool_id: r.pool_id, market_index: r.market_index,
-            side: i32::from(r.side), price: r.price, amount: r.amount,
-            duration: None, timestamp: None, provider_external_address: None,
+            provider: r.provider,
+            pool_id: r.pool_id,
+            market_index: r.market_index,
+            side: i32::from(r.side),
+            price: r.price,
+            amount: r.amount,
+            duration: None,
+            timestamp: None,
+            provider_external_address: None,
         }
     }
 }
@@ -441,18 +502,28 @@ pub struct CancelMarketMakerQuoteRequest {
 
 impl CancelMarketMakerQuoteRequest {
     pub fn new(quote_id: impl Into<String>, provider: impl Into<String>) -> Self {
-        Self { quote_id: quote_id.into(), provider: provider.into() }
+        Self {
+            quote_id: quote_id.into(),
+            provider: provider.into(),
+        }
     }
 
     pub fn to_any(&self) -> ProtoAny {
         let msg: proto::MsgCancelMarketMakerQuoteRequest = self.clone().into();
-        ProtoAny { type_url: "/clob.v1.MsgCancelMarketMakerQuoteRequest".into(), value: msg.encode_to_vec() }
+        ProtoAny {
+            type_url: "/clob.v1.MsgCancelMarketMakerQuoteRequest".into(),
+            value: msg.encode_to_vec(),
+        }
     }
 }
 
 impl From<CancelMarketMakerQuoteRequest> for proto::MsgCancelMarketMakerQuoteRequest {
     fn from(r: CancelMarketMakerQuoteRequest) -> Self {
-        Self { quote_id: r.quote_id, provider: r.provider, timestamp: None }
+        Self {
+            quote_id: r.quote_id,
+            provider: r.provider,
+            timestamp: None,
+        }
     }
 }
 
@@ -466,7 +537,10 @@ pub struct UpdateParamsRequest {
 
 impl UpdateParamsRequest {
     pub fn new(authority: impl Into<String>, params: crate::types::ClobParams) -> Self {
-        Self { authority: authority.into(), params }
+        Self {
+            authority: authority.into(),
+            params,
+        }
     }
 
     pub fn to_any(&self) -> ProtoAny {
@@ -474,7 +548,10 @@ impl UpdateParamsRequest {
             authority: self.authority.clone(),
             params: Some(self.params.clone().into()),
         };
-        ProtoAny { type_url: "/clob.v1.MsgUpdateParams".into(), value: msg.encode_to_vec() }
+        ProtoAny {
+            type_url: "/clob.v1.MsgUpdateParams".into(),
+            value: msg.encode_to_vec(),
+        }
     }
 }
 
@@ -489,11 +566,21 @@ pub struct QueryOrderBookSnapshotRequest {
 }
 
 impl QueryOrderBookSnapshotRequest {
-    pub fn new(market_index: u64, depth: i32) -> Self { Self { market_index, depth } }
+    pub fn new(market_index: u64, depth: i32) -> Self {
+        Self {
+            market_index,
+            depth,
+        }
+    }
 }
 
 impl From<QueryOrderBookSnapshotRequest> for proto::QueryOrderbookSnapshotRequest {
-    fn from(r: QueryOrderBookSnapshotRequest) -> Self { Self { market_index: r.market_index, depth: r.depth } }
+    fn from(r: QueryOrderBookSnapshotRequest) -> Self {
+        Self {
+            market_index: r.market_index,
+            depth: r.depth,
+        }
+    }
 }
 
 /// Query orders by address.
@@ -507,10 +594,20 @@ pub struct QueryOrdersByAddressRequest {
 
 impl QueryOrdersByAddressRequest {
     pub fn new(address: impl Into<String>) -> Self {
-        Self { address: address.into(), market_index: None, status: None }
+        Self {
+            address: address.into(),
+            market_index: None,
+            status: None,
+        }
     }
-    pub fn market_index(mut self, idx: u64) -> Self { self.market_index = Some(idx); self }
-    pub fn status(mut self, s: OrderStatus) -> Self { self.status = Some(s); self }
+    pub fn market_index(mut self, idx: u64) -> Self {
+        self.market_index = Some(idx);
+        self
+    }
+    pub fn status(mut self, s: OrderStatus) -> Self {
+        self.status = Some(s);
+        self
+    }
 }
 
 impl From<QueryOrdersByAddressRequest> for proto::QueryOrdersByAddressRequest {
@@ -536,11 +633,25 @@ pub struct QueryOrdersByMarketRequest {
 
 impl QueryOrdersByMarketRequest {
     pub fn new(market_index: u64) -> Self {
-        Self { market_index, symbol: None, status: None, side: None }
+        Self {
+            market_index,
+            symbol: None,
+            status: None,
+            side: None,
+        }
     }
-    pub fn symbol(mut self, s: impl Into<String>) -> Self { self.symbol = Some(s.into()); self }
-    pub fn status(mut self, s: OrderStatus) -> Self { self.status = Some(s); self }
-    pub fn side(mut self, s: Side) -> Self { self.side = Some(s); self }
+    pub fn symbol(mut self, s: impl Into<String>) -> Self {
+        self.symbol = Some(s.into());
+        self
+    }
+    pub fn status(mut self, s: OrderStatus) -> Self {
+        self.status = Some(s);
+        self
+    }
+    pub fn side(mut self, s: Side) -> Self {
+        self.side = Some(s);
+        self
+    }
 }
 
 impl From<QueryOrdersByMarketRequest> for proto::QueryOrdersByMarketRequest {
@@ -565,12 +676,20 @@ pub struct QueryOrderByIdRequest {
 
 impl QueryOrderByIdRequest {
     pub fn new(order_id: impl Into<String>, address: impl Into<String>) -> Self {
-        Self { order_id: order_id.into(), address: address.into() }
+        Self {
+            order_id: order_id.into(),
+            address: address.into(),
+        }
     }
 }
 
 impl From<QueryOrderByIdRequest> for proto::QueryOrderByIdRequest {
-    fn from(r: QueryOrderByIdRequest) -> Self { Self { order_id: r.order_id, address: r.address } }
+    fn from(r: QueryOrderByIdRequest) -> Self {
+        Self {
+            order_id: r.order_id,
+            address: r.address,
+        }
+    }
 }
 
 /// Query trades by address.
@@ -585,19 +704,32 @@ pub struct QueryTradesByAddressRequest {
 
 impl QueryTradesByAddressRequest {
     pub fn new(address: impl Into<String>) -> Self {
-        Self { address: address.into(), market_index: None, start_time: 0, end_time: 0 }
+        Self {
+            address: address.into(),
+            market_index: None,
+            start_time: 0,
+            end_time: 0,
+        }
     }
-    pub fn market_index(mut self, idx: u64) -> Self { self.market_index = Some(idx); self }
+    pub fn market_index(mut self, idx: u64) -> Self {
+        self.market_index = Some(idx);
+        self
+    }
     pub fn time_range(mut self, start: i64, end: i64) -> Self {
-        self.start_time = start; self.end_time = end; self
+        self.start_time = start;
+        self.end_time = end;
+        self
     }
 }
 
 impl From<QueryTradesByAddressRequest> for proto::QueryTradesByAddressRequest {
     fn from(r: QueryTradesByAddressRequest) -> Self {
         Self {
-            address: r.address, market_index: r.market_index,
-            start_time: r.start_time, end_time: r.end_time, pagination_request: None,
+            address: r.address,
+            market_index: r.market_index,
+            start_time: r.start_time,
+            end_time: r.end_time,
+            pagination_request: None,
         }
     }
 }
@@ -614,19 +746,32 @@ pub struct QueryTradesByMarketRequest {
 
 impl QueryTradesByMarketRequest {
     pub fn new(market_index: u64) -> Self {
-        Self { market_index, symbol: None, start_time: 0, end_time: 0 }
+        Self {
+            market_index,
+            symbol: None,
+            start_time: 0,
+            end_time: 0,
+        }
     }
-    pub fn symbol(mut self, s: impl Into<String>) -> Self { self.symbol = Some(s.into()); self }
+    pub fn symbol(mut self, s: impl Into<String>) -> Self {
+        self.symbol = Some(s.into());
+        self
+    }
     pub fn time_range(mut self, start: i64, end: i64) -> Self {
-        self.start_time = start; self.end_time = end; self
+        self.start_time = start;
+        self.end_time = end;
+        self
     }
 }
 
 impl From<QueryTradesByMarketRequest> for proto::QueryTradesByMarketRequest {
     fn from(r: QueryTradesByMarketRequest) -> Self {
         Self {
-            market_index: r.market_index, symbol: r.symbol.unwrap_or_default(),
-            start_time: r.start_time, end_time: r.end_time, pagination_request: None,
+            market_index: r.market_index,
+            symbol: r.symbol.unwrap_or_default(),
+            start_time: r.start_time,
+            end_time: r.end_time,
+            pagination_request: None,
         }
     }
 }
@@ -639,12 +784,18 @@ pub struct QueryFundingRateRequest {
 }
 
 impl QueryFundingRateRequest {
-    pub fn new(market_index: u64) -> Self { Self { market_index } }
+    pub fn new(market_index: u64) -> Self {
+        Self { market_index }
+    }
 }
 
 impl From<QueryFundingRateRequest> for proto::QueryFundingRateRequest {
     fn from(r: QueryFundingRateRequest) -> Self {
-        Self { market_index: r.market_index, timestamp: None, calculation_period_seconds: 0 }
+        Self {
+            market_index: r.market_index,
+            timestamp: None,
+            calculation_period_seconds: 0,
+        }
     }
 }
 
@@ -660,16 +811,28 @@ pub struct QueryFundingRatesRequest {
 
 impl QueryFundingRatesRequest {
     pub fn new(market_index: u64, limit: i32) -> Self {
-        Self { market_index, start_time: 0, end_time: 0, limit }
+        Self {
+            market_index,
+            start_time: 0,
+            end_time: 0,
+            limit,
+        }
     }
     pub fn time_range(mut self, start: i64, end: i64) -> Self {
-        self.start_time = start; self.end_time = end; self
+        self.start_time = start;
+        self.end_time = end;
+        self
     }
 }
 
 impl From<QueryFundingRatesRequest> for proto::QueryFundingRatesRequest {
     fn from(r: QueryFundingRatesRequest) -> Self {
-        Self { market_index: r.market_index, start_time: r.start_time, end_time: r.end_time, limit: r.limit }
+        Self {
+            market_index: r.market_index,
+            start_time: r.start_time,
+            end_time: r.end_time,
+            limit: r.limit,
+        }
     }
 }
 
@@ -682,11 +845,21 @@ pub struct GetChecksumRequest {
 }
 
 impl GetChecksumRequest {
-    pub fn new(market_index: u64, depth: i32) -> Self { Self { market_index, depth } }
+    pub fn new(market_index: u64, depth: i32) -> Self {
+        Self {
+            market_index,
+            depth,
+        }
+    }
 }
 
 impl From<GetChecksumRequest> for proto::GetChecksumRequest {
-    fn from(r: GetChecksumRequest) -> Self { Self { market_index: r.market_index, depth: r.depth } }
+    fn from(r: GetChecksumRequest) -> Self {
+        Self {
+            market_index: r.market_index,
+            depth: r.depth,
+        }
+    }
 }
 
 /// Query active market-maker quotes.
@@ -701,18 +874,35 @@ pub struct QueryActiveMarketMakerQuotesRequest {
 
 impl QueryActiveMarketMakerQuotesRequest {
     pub fn new(pool_id: impl Into<String>) -> Self {
-        Self { pool_id: pool_id.into(), market_index: None, side: None, status: None }
+        Self {
+            pool_id: pool_id.into(),
+            market_index: None,
+            side: None,
+            status: None,
+        }
     }
-    pub fn market_index(mut self, idx: u64) -> Self { self.market_index = Some(idx); self }
-    pub fn side(mut self, s: Side) -> Self { self.side = Some(s); self }
-    pub fn status(mut self, s: impl Into<String>) -> Self { self.status = Some(s.into()); self }
+    pub fn market_index(mut self, idx: u64) -> Self {
+        self.market_index = Some(idx);
+        self
+    }
+    pub fn side(mut self, s: Side) -> Self {
+        self.side = Some(s);
+        self
+    }
+    pub fn status(mut self, s: impl Into<String>) -> Self {
+        self.status = Some(s.into());
+        self
+    }
 }
 
 impl From<QueryActiveMarketMakerQuotesRequest> for proto::QueryActiveMarketMakerQuotesRequest {
     fn from(r: QueryActiveMarketMakerQuotesRequest) -> Self {
         Self {
-            pool_id: r.pool_id, market_index: r.market_index,
-            side: r.side.map(i32::from), status: r.status, pagination: None,
+            pool_id: r.pool_id,
+            market_index: r.market_index,
+            side: r.side.map(i32::from),
+            status: r.status,
+            pagination: None,
         }
     }
 }
@@ -725,11 +915,19 @@ pub struct QueryMarketMakerQuoteByIdRequest {
 }
 
 impl QueryMarketMakerQuoteByIdRequest {
-    pub fn new(quote_id: impl Into<String>) -> Self { Self { quote_id: quote_id.into() } }
+    pub fn new(quote_id: impl Into<String>) -> Self {
+        Self {
+            quote_id: quote_id.into(),
+        }
+    }
 }
 
 impl From<QueryMarketMakerQuoteByIdRequest> for proto::QueryMarketMakerQuoteByIdRequest {
-    fn from(r: QueryMarketMakerQuoteByIdRequest) -> Self { Self { quote_id: r.quote_id } }
+    fn from(r: QueryMarketMakerQuoteByIdRequest) -> Self {
+        Self {
+            quote_id: r.quote_id,
+        }
+    }
 }
 
 /// Query cumulative fee statistics for a market.
@@ -740,11 +938,17 @@ pub struct QueryMarketFeeStatsRequest {
 }
 
 impl QueryMarketFeeStatsRequest {
-    pub fn new(market_index: u64) -> Self { Self { market_index } }
+    pub fn new(market_index: u64) -> Self {
+        Self { market_index }
+    }
 }
 
 impl From<QueryMarketFeeStatsRequest> for proto::QueryMarketFeeStatsRequest {
-    fn from(r: QueryMarketFeeStatsRequest) -> Self { Self { market_index: r.market_index } }
+    fn from(r: QueryMarketFeeStatsRequest) -> Self {
+        Self {
+            market_index: r.market_index,
+        }
+    }
 }
 
 #[cfg(test)]
@@ -753,8 +957,17 @@ mod tests {
 
     #[test]
     fn place_order_request_to_any() {
-        let req = PlaceOrderRequest::new("morpheum1abc", 42, "50000", "1000", Side::Buy, OrderType::Limit)
-            .leverage("10").bucket_id("bucket-1").time_in_force(TimeInForce::Gtc);
+        let req = PlaceOrderRequest::new(
+            "morpheum1abc",
+            42,
+            "50000",
+            "1000",
+            Side::Buy,
+            OrderType::Limit,
+        )
+        .leverage("10")
+        .bucket_id("bucket-1")
+        .time_in_force(TimeInForce::Gtc);
         let any = req.to_any();
         assert_eq!(any.type_url, "/clob.v1.MsgPlaceOrderRequest");
         assert!(!any.value.is_empty());
@@ -822,14 +1035,23 @@ mod tests {
 
     #[test]
     fn provide_mm_quote_to_any() {
-        let req = ProvideMarketMakerQuoteRequest::new("morpheum1mm", "pool-1", 42, Side::Buy, "50000", "100");
+        let req = ProvideMarketMakerQuoteRequest::new(
+            "morpheum1mm",
+            "pool-1",
+            42,
+            Side::Buy,
+            "50000",
+            "100",
+        );
         let any = req.to_any();
         assert_eq!(any.type_url, "/clob.v1.MsgProvideMarketMakerQuoteRequest");
     }
 
     #[test]
     fn query_orders_by_address_conversion() {
-        let req = QueryOrdersByAddressRequest::new("morpheum1abc").market_index(42).status(OrderStatus::Active);
+        let req = QueryOrdersByAddressRequest::new("morpheum1abc")
+            .market_index(42)
+            .status(OrderStatus::Active);
         let p: proto::QueryOrdersByAddressRequest = req.into();
         assert_eq!(p.address, "morpheum1abc");
         assert_eq!(p.market_index, Some(42));

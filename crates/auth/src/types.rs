@@ -11,11 +11,8 @@ use serde::{Deserialize, Serialize};
 
 use morpheum_proto::google::protobuf::Any as ProtoAny;
 
+use morpheum_proto::{auth::v1 as proto, tx::v1::Nonce as ProtoNonce};
 use morpheum_sdk_core::{AccountId, SdkError};
-use morpheum_proto::{
-    auth::v1 as proto,
-    tx::v1::Nonce as ProtoNonce,
-};
 
 /// NonceState — the single source of truth for replay protection and
 /// parallel execution on Morpheum.
@@ -104,7 +101,8 @@ impl BaseAccount {
         // The address is typically the hex representation of the 32-byte AccountId
         let bytes = hex::decode(&self.address)
             .map_err(|e| SdkError::invalid_input(alloc::format!("invalid account address: {e}")))?;
-        let arr: [u8; 32] = bytes.try_into()
+        let arr: [u8; 32] = bytes
+            .try_into()
             .map_err(|_| SdkError::invalid_input("account address must be 32 bytes"))?;
         Ok(AccountId::new(arr))
     }
@@ -300,10 +298,9 @@ mod tests {
         assert_eq!(
             id.as_bytes(),
             &[
-                0x01, 0x23, 0x45, 0x67, 0x89, 0xab, 0xcd, 0xef,
-                0x01, 0x23, 0x45, 0x67, 0x89, 0xab, 0xcd, 0xef,
-                0x01, 0x23, 0x45, 0x67, 0x89, 0xab, 0xcd, 0xef,
-                0x01, 0x23, 0x45, 0x67, 0x89, 0xab, 0xcd, 0xef,
+                0x01, 0x23, 0x45, 0x67, 0x89, 0xab, 0xcd, 0xef, 0x01, 0x23, 0x45, 0x67, 0x89, 0xab,
+                0xcd, 0xef, 0x01, 0x23, 0x45, 0x67, 0x89, 0xab, 0xcd, 0xef, 0x01, 0x23, 0x45, 0x67,
+                0x89, 0xab, 0xcd, 0xef,
             ]
         );
     }

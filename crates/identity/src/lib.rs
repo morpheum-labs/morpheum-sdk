@@ -18,8 +18,8 @@ extern crate alloc;
 // Public API modules — each has a single, clear responsibility
 pub mod builder;
 pub mod client;
-pub mod types;
 pub mod requests;
+pub mod types;
 
 // ==================== PUBLIC RE-EXPORTS ====================
 
@@ -28,21 +28,13 @@ pub use client::IdentityClient;
 
 /// Fluent builders for identity transactions.
 pub use builder::{
-    RegisterAgentBuilder,
-    TransferOwnershipBuilder,
-    UpdateMetadataBuilder,
+    BurnAgentBuilder, RegisterAgentBuilder, TransferOwnershipBuilder, UpdateMetadataBuilder,
     UpdateStatusBuilder,
-    BurnAgentBuilder,
 };
 
 /// Core domain types for Agent Identity.
 pub use types::{
-    AgentId,
-    AgentIdentity,
-    AgentMetadataCard,
-    AgentMetadataCardInput,
-    AgentStatus,
-    Capability,
+    AgentId, AgentIdentity, AgentMetadataCard, AgentMetadataCardInput, AgentStatus, Capability,
     Params,
 };
 
@@ -50,12 +42,7 @@ pub use types::{
 pub use requests::*;
 
 // Re-export core SDK types commonly used with identity flows.
-pub use morpheum_sdk_core::{
-    AccountId,
-    ChainId,
-    SdkError,
-    SignedTx,
-};
+pub use morpheum_sdk_core::{AccountId, ChainId, SdkError, SignedTx};
 
 // Re-export signing types needed for agent identity operations.
 pub use morpheum_sdk_core::signing::signer::Signer;
@@ -68,24 +55,10 @@ pub use morpheum_sdk_core::signing::signer::Signer;
 /// ```
 pub mod prelude {
     pub use super::{
-        IdentityClient,
-        RegisterAgentBuilder,
-        TransferOwnershipBuilder,
-        UpdateMetadataBuilder,
+        AccountId, AgentId, AgentIdentity, AgentMetadataCard, AgentMetadataCardInput, AgentStatus,
+        BurnAgentBuilder, Capability, ChainId, IdentityClient, Params, RegisterAgentBuilder,
+        SdkError, SignedTx, Signer, TransferOwnershipBuilder, UpdateMetadataBuilder,
         UpdateStatusBuilder,
-        BurnAgentBuilder,
-        AgentId,
-        AgentIdentity,
-        AgentMetadataCard,
-        AgentMetadataCardInput,
-        AgentStatus,
-        Capability,
-        Params,
-        AccountId,
-        ChainId,
-        SdkError,
-        SignedTx,
-        Signer,
     };
 }
 

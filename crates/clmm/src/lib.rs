@@ -9,55 +9,31 @@
 
 extern crate alloc;
 
-pub mod client;
-pub mod types;
-pub mod requests;
 pub mod builder;
+pub mod client;
+pub mod requests;
+pub mod types;
 
 // ==================== PUBLIC RE-EXPORTS ====================
 
 pub use client::ClmmClient;
 
 pub use types::{
-    BoostedBuffer,
-    BurnEvent,
-    ClmmPosition,
-    ClmmQuote,
-    CollectEvent,
-    GlideSimulation,
-    LiquidityDepthBand,
-    MintEvent,
-    PoolRiskSummary,
-    QuoteResult,
-    ReClmmGlideUpdated,
-    Side,
-    SwapExecuted,
-    SwapSimulation,
+    BoostedBuffer, BurnEvent, ClmmPosition, ClmmQuote, CollectEvent, GlideSimulation,
+    LiquidityDepthBand, MintEvent, PoolRiskSummary, QuoteResult, ReClmmGlideUpdated, Side,
+    SwapExecuted, SwapSimulation,
 };
 
 pub use requests::{
-    AddLiquidityRequest,
-    ClaimBoostedYieldRequest,
-    ClaimYieldRequest,
-    CollectFeesRequest,
-    ForceGlideRequest,
-    GetBoostedBufferRequest,
-    GetLiquidityDepthRequest,
-    GetPoolRiskSummaryRequest,
-    GetPositionRequest,
-    GetQuoteRequest,
-    RemoveLiquidityRequest,
-    SimulateReClmmGlideRequest,
-    SimulateSwapRequest,
+    AddLiquidityRequest, ClaimBoostedYieldRequest, ClaimYieldRequest, CollectFeesRequest,
+    ForceGlideRequest, GetBoostedBufferRequest, GetLiquidityDepthRequest,
+    GetPoolRiskSummaryRequest, GetPositionRequest, GetQuoteRequest, RemoveLiquidityRequest,
+    SimulateReClmmGlideRequest, SimulateSwapRequest,
 };
 
 pub use builder::{
-    AddLiquidityBuilder,
-    ClaimBoostedYieldBuilder,
-    ClaimYieldBuilder,
-    CollectFeesBuilder,
-    ForceGlideBuilder,
-    RemoveLiquidityBuilder,
+    AddLiquidityBuilder, ClaimBoostedYieldBuilder, ClaimYieldBuilder, CollectFeesBuilder,
+    ForceGlideBuilder, RemoveLiquidityBuilder,
 };
 
 pub use morpheum_sdk_core::{AccountId, ChainId, SdkError, SignedTx};
@@ -70,20 +46,9 @@ pub use morpheum_sdk_core::{AccountId, ChainId, SdkError, SignedTx};
 /// ```
 pub mod prelude {
     pub use super::{
-        ClmmClient,
-        ClmmPosition,
-        Side,
-        SwapSimulation,
-        QuoteResult,
-        LiquidityDepthBand,
-        AddLiquidityBuilder,
-        RemoveLiquidityBuilder,
-        CollectFeesBuilder,
-        ClaimYieldBuilder,
-        AccountId,
-        ChainId,
-        SdkError,
-        SignedTx,
+        AccountId, AddLiquidityBuilder, ChainId, ClaimYieldBuilder, ClmmClient, ClmmPosition,
+        CollectFeesBuilder, LiquidityDepthBand, QuoteResult, RemoveLiquidityBuilder, SdkError,
+        Side, SignedTx, SwapSimulation,
     };
 }
 

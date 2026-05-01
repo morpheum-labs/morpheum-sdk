@@ -21,48 +21,25 @@ pub mod types;
 // ==================== PUBLIC RE-EXPORTS ====================
 
 pub use builder::{
-    ApproveOutboundBuilder,
-    FinalizeUptoBuilder,
-    RegisterPolicyBuilder,
-    RotateAddressBuilder,
-    SettleBridgePaymentBuilder,
-    UpdatePolicyBuilder,
+    ApproveOutboundBuilder, FinalizeUptoBuilder, RegisterPolicyBuilder, RotateAddressBuilder,
+    SettleBridgePaymentBuilder, UpdatePolicyBuilder,
 };
 
 pub use client::X402Client;
 
 pub use chains::{
-    ChainMetadata,
-    SignatureScheme,
+    find_by_caip2, find_by_caip2_str, resolve_chain_name, ChainMetadata, SignatureScheme,
     KNOWN_CHAINS,
-    find_by_caip2,
-    find_by_caip2_str,
-    resolve_chain_name,
 };
 
 pub use types::{
-    BridgeSettlementResult,
-    Capabilities,
-    FinalizeUptoResult,
-    Params,
-    PaymentDirection,
-    PaymentPacket,
-    Policy,
-    Receipt,
-    ReceiptStatus,
-    Scheme,
-    UptoDetails,
-    X402FeeStats,
+    BridgeSettlementResult, Capabilities, FinalizeUptoResult, Params, PaymentDirection,
+    PaymentPacket, Policy, Receipt, ReceiptStatus, Scheme, UptoDetails, X402FeeStats,
 };
 
 pub use requests::*;
 
-pub use morpheum_sdk_core::{
-    AccountId,
-    ChainId,
-    SdkError,
-    SignedTx,
-};
+pub use morpheum_sdk_core::{AccountId, ChainId, SdkError, SignedTx};
 
 /// Recommended prelude for the x402 module.
 ///
@@ -71,27 +48,10 @@ pub use morpheum_sdk_core::{
 /// ```
 pub mod prelude {
     pub use super::{
-        X402Client,
-        BridgeSettlementResult,
-        Capabilities,
-        ChainMetadata,
-        FinalizeUptoBuilder,
-        FinalizeUptoResult,
-        SignatureScheme,
-        KNOWN_CHAINS,
-        Params,
-        PaymentDirection,
-        PaymentPacket,
-        Policy,
-        Receipt,
-        ReceiptStatus,
-        Scheme,
-        SettleBridgePaymentBuilder,
-        UptoDetails,
-        AccountId,
-        ChainId,
-        SdkError,
-        SignedTx,
+        AccountId, BridgeSettlementResult, Capabilities, ChainId, ChainMetadata,
+        FinalizeUptoBuilder, FinalizeUptoResult, Params, PaymentDirection, PaymentPacket, Policy,
+        Receipt, ReceiptStatus, Scheme, SdkError, SettleBridgePaymentBuilder, SignatureScheme,
+        SignedTx, UptoDetails, X402Client, KNOWN_CHAINS,
     };
 }
 

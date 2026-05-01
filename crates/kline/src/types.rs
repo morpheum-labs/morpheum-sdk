@@ -294,7 +294,10 @@ pub struct KlineEpochBoundary {
 
 impl From<proto::KlineEpochBoundary> for KlineEpochBoundary {
     fn from(p: proto::KlineEpochBoundary) -> Self {
-        Self { epoch_id: p.epoch_id, archive_root: p.archive_root }
+        Self {
+            epoch_id: p.epoch_id,
+            archive_root: p.archive_root,
+        }
     }
 }
 
@@ -309,7 +312,11 @@ pub struct KlinePruned {
 
 impl From<proto::KlinePruned> for KlinePruned {
     fn from(p: proto::KlinePruned) -> Self {
-        Self { kind: p.kind, pruned_count: p.pruned_count, new_archive_root: p.new_archive_root }
+        Self {
+            kind: p.kind,
+            pruned_count: p.pruned_count,
+            new_archive_root: p.new_archive_root,
+        }
     }
 }
 
@@ -365,8 +372,14 @@ mod tests {
 
     #[test]
     fn period_roundtrip() {
-        for p in [Period::OneMinute, Period::FiveMinutes, Period::FifteenMinutes,
-                  Period::OneHour, Period::FourHours, Period::OneDay] {
+        for p in [
+            Period::OneMinute,
+            Period::FiveMinutes,
+            Period::FifteenMinutes,
+            Period::OneHour,
+            Period::FourHours,
+            Period::OneDay,
+        ] {
             let v: u32 = p.into();
             assert_eq!(Some(p), Period::from_u32(v));
         }
@@ -383,11 +396,22 @@ mod tests {
     #[test]
     fn kline_data_from_proto() {
         let p = proto::KlineData {
-            market_index: 1, period: 4, open_at_logical: 100,
-            open: "50000".into(), high: "51000".into(), low: "49000".into(), close: "50500".into(),
-            volume_base: "1000".into(), quote_volume: "500000".into(),
-            trade_count: 42, taker_buy_base: "600".into(), taker_buy_quote: "300000".into(),
-            spread_satoshi: 2000, mark_quality: 95_000_000, proof: vec![0u8; 32], outcome_id: 0,
+            market_index: 1,
+            period: 4,
+            open_at_logical: 100,
+            open: "50000".into(),
+            high: "51000".into(),
+            low: "49000".into(),
+            close: "50500".into(),
+            volume_base: "1000".into(),
+            quote_volume: "500000".into(),
+            trade_count: 42,
+            taker_buy_base: "600".into(),
+            taker_buy_quote: "300000".into(),
+            spread_satoshi: 2000,
+            mark_quality: 95_000_000,
+            proof: vec![0u8; 32],
+            outcome_id: 0,
         };
         let k: KlineData = p.into();
         assert_eq!(k.market_index, 1);
@@ -398,9 +422,14 @@ mod tests {
     #[test]
     fn trade_data_to_proto() {
         let t = TradeData {
-            market_index: 1, price: 50000, quantity: "10".into(),
-            is_taker_buy: true, block_height: 100, logical_timestamp: 200,
-            feed_id: String::new(), outcome_id: 0,
+            market_index: 1,
+            price: 50000,
+            quantity: "10".into(),
+            is_taker_buy: true,
+            block_height: 100,
+            logical_timestamp: 200,
+            feed_id: String::new(),
+            outcome_id: 0,
         };
         let p: proto::TradeData = t.into();
         assert_eq!(p.price, 50000);
@@ -410,8 +439,11 @@ mod tests {
     #[test]
     fn position_snapshot_to_proto() {
         let s = PositionSnapshot {
-            market_index: 1, long_oi: "500".into(), short_oi: "300".into(),
-            block_height: 100, logical_timestamp: 200,
+            market_index: 1,
+            long_oi: "500".into(),
+            short_oi: "300".into(),
+            block_height: 100,
+            logical_timestamp: 200,
         };
         let p: proto::PositionSnapshot = s.into();
         assert_eq!(p.long_oi, "500");

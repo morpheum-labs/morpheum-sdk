@@ -124,8 +124,8 @@ pub fn transfer_remote(
         .send_and_confirm_transaction(&tx)
         .map_err(|e| SvmError::TransactionFailed(format!("transfer_remote: {e}")))?;
 
-    let message_id = extract_message_id_from_logs(provider.client(), &signature)
-        .unwrap_or_else(|e| {
+    let message_id =
+        extract_message_id_from_logs(provider.client(), &signature).unwrap_or_else(|e| {
             tracing::warn!("failed to extract message ID from logs: {e}");
             [0u8; 32]
         });
@@ -214,8 +214,8 @@ pub fn transfer_remote_native(
         .send_and_confirm_transaction(&tx)
         .map_err(|e| SvmError::TransactionFailed(format!("transfer_remote_native: {e}")))?;
 
-    let message_id = extract_message_id_from_logs(provider.client(), &signature)
-        .unwrap_or_else(|e| {
+    let message_id =
+        extract_message_id_from_logs(provider.client(), &signature).unwrap_or_else(|e| {
             tracing::warn!("failed to extract message ID from logs: {e}");
             [0u8; 32]
         });
@@ -299,8 +299,7 @@ fn build_transfer_remote_instruction(
 ) -> Instruction {
     let (token_pda, _) = contracts::hyperlane_token_pda(warp_route_program);
     let (outbox_pda, _) = contracts::mailbox_outbox_pda(mailbox_program);
-    let (dispatch_authority, _) =
-        contracts::mailbox_dispatch_authority_pda(warp_route_program);
+    let (dispatch_authority, _) = contracts::mailbox_dispatch_authority_pda(warp_route_program);
     let (message_storage_pda, _) =
         contracts::mailbox_dispatched_message_pda(mailbox_program, unique_message_pubkey);
     let (escrow_pda, _) = contracts::warp_route_escrow_pda(warp_route_program);
@@ -354,8 +353,7 @@ fn build_transfer_remote_native_instruction(
 ) -> Instruction {
     let (token_pda, _) = contracts::hyperlane_token_pda(warp_route_program);
     let (outbox_pda, _) = contracts::mailbox_outbox_pda(mailbox_program);
-    let (dispatch_authority, _) =
-        contracts::mailbox_dispatch_authority_pda(warp_route_program);
+    let (dispatch_authority, _) = contracts::mailbox_dispatch_authority_pda(warp_route_program);
     let (message_storage_pda, _) =
         contracts::mailbox_dispatched_message_pda(mailbox_program, unique_message_pubkey);
     let (native_collateral_pda, _) =
@@ -424,9 +422,11 @@ fn extract_message_id_from_logs(
         )
         .map_err(|e| SvmError::Rpc(format!("get_transaction: {e}")))?;
 
-    let meta = tx.transaction.meta.as_ref().ok_or_else(|| {
-        SvmError::Deserialization("no tx metadata".into())
-    })?;
+    let meta = tx
+        .transaction
+        .meta
+        .as_ref()
+        .ok_or_else(|| SvmError::Deserialization("no tx metadata".into()))?;
 
     let logs: Vec<String> = match &meta.log_messages {
         solana_transaction_status::option_serializer::OptionSerializer::Some(logs) => logs.clone(),
@@ -435,9 +435,8 @@ fn extract_message_id_from_logs(
 
     for log in &logs {
         if let Some(id_hex) = extract_message_id_from_log_line(log) {
-            let bytes = hex::decode(id_hex).map_err(|e| {
-                SvmError::Deserialization(format!("bad message ID hex: {e}"))
-            })?;
+            let bytes = hex::decode(id_hex)
+                .map_err(|e| SvmError::Deserialization(format!("bad message ID hex: {e}")))?;
             if bytes.len() == 32 {
                 let mut id = [0u8; 32];
                 id.copy_from_slice(&bytes);

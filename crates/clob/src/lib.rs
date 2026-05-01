@@ -10,60 +10,32 @@
 
 extern crate alloc;
 
-pub mod client;
-pub mod types;
-pub mod requests;
 pub mod builder;
+pub mod client;
+pub mod requests;
+pub mod types;
 
 // ==================== PUBLIC RE-EXPORTS ====================
 
 pub use client::ClobClient;
 
 pub use types::{
-    ClobParams,
-    FundingRate,
-    FundingRateEntry,
-    MarketMakerQuote,
-    Order,
-    OrderBookChecksum,
-    OrderBookSnapshot,
-    OrderLevel,
-    OrderStatus,
-    OrderType,
-    PriceLevel,
-    Side,
-    TimeInForce,
-    Trade,
+    ClobParams, FundingRate, FundingRateEntry, MarketMakerQuote, Order, OrderBookChecksum,
+    OrderBookSnapshot, OrderLevel, OrderStatus, OrderType, PriceLevel, Side, TimeInForce, Trade,
 };
 
 pub use requests::{
-    CancelMarketMakerQuoteRequest,
-    CancelOrderRequest,
-    GetChecksumRequest,
-    ModifyOrderRequest,
-    PlaceBatchOrdersRequest,
-    PlaceOrderRequest,
-    ProvideMarketMakerQuoteRequest,
-    QueryActiveMarketMakerQuotesRequest,
-    QueryFundingRateRequest,
-    QueryFundingRatesRequest,
-    QueryMarketMakerQuoteByIdRequest,
-    QueryOrderBookSnapshotRequest,
-    QueryOrderByIdRequest,
-    QueryOrdersByAddressRequest,
-    QueryOrdersByMarketRequest,
-    QueryTradesByAddressRequest,
-    QueryTradesByMarketRequest,
-    UpdateParamsRequest,
+    CancelMarketMakerQuoteRequest, CancelOrderRequest, GetChecksumRequest, ModifyOrderRequest,
+    PlaceBatchOrdersRequest, PlaceOrderRequest, ProvideMarketMakerQuoteRequest,
+    QueryActiveMarketMakerQuotesRequest, QueryFundingRateRequest, QueryFundingRatesRequest,
+    QueryMarketMakerQuoteByIdRequest, QueryOrderBookSnapshotRequest, QueryOrderByIdRequest,
+    QueryOrdersByAddressRequest, QueryOrdersByMarketRequest, QueryTradesByAddressRequest,
+    QueryTradesByMarketRequest, UpdateParamsRequest,
 };
 
 pub use builder::{
-    CancelMarketMakerQuoteBuilder,
-    CancelOrderBuilder,
-    ModifyOrderBuilder,
-    PlaceBatchOrdersBuilder,
-    PlaceOrderBuilder,
-    ProvideMarketMakerQuoteBuilder,
+    CancelMarketMakerQuoteBuilder, CancelOrderBuilder, ModifyOrderBuilder, PlaceBatchOrdersBuilder,
+    PlaceOrderBuilder, ProvideMarketMakerQuoteBuilder,
 };
 
 pub use morpheum_sdk_core::{AccountId, ChainId, SdkError, SignedTx};
@@ -76,25 +48,10 @@ pub use morpheum_sdk_core::{AccountId, ChainId, SdkError, SignedTx};
 /// ```
 pub mod prelude {
     pub use super::{
-        ClobClient,
-        Order,
-        OrderType,
-        OrderStatus,
-        TimeInForce,
-        Side,
-        Trade,
-        OrderBookSnapshot,
-        PriceLevel,
-        FundingRate,
-        MarketMakerQuote,
-        PlaceOrderBuilder,
-        PlaceBatchOrdersBuilder,
-        ModifyOrderBuilder,
-        CancelOrderBuilder,
-        AccountId,
-        ChainId,
-        SdkError,
-        SignedTx,
+        AccountId, CancelOrderBuilder, ChainId, ClobClient, FundingRate, MarketMakerQuote,
+        ModifyOrderBuilder, Order, OrderBookSnapshot, OrderStatus, OrderType,
+        PlaceBatchOrdersBuilder, PlaceOrderBuilder, PriceLevel, SdkError, Side, SignedTx,
+        TimeInForce, Trade,
     };
 }
 

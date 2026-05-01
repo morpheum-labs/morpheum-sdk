@@ -26,8 +26,10 @@ pub enum AccountStatus {
 impl From<i32> for AccountStatus {
     fn from(v: i32) -> Self {
         match v {
-            1 => Self::Open, 2 => Self::Resolving,
-            3 => Self::Settled, 4 => Self::Archived,
+            1 => Self::Open,
+            2 => Self::Resolving,
+            3 => Self::Settled,
+            4 => Self::Archived,
             _ => Self::Unspecified,
         }
     }
@@ -36,8 +38,10 @@ impl From<i32> for AccountStatus {
 impl From<AccountStatus> for i32 {
     fn from(s: AccountStatus) -> Self {
         match s {
-            AccountStatus::Unspecified => 0, AccountStatus::Open => 1,
-            AccountStatus::Resolving => 2, AccountStatus::Settled => 3,
+            AccountStatus::Unspecified => 0,
+            AccountStatus::Open => 1,
+            AccountStatus::Resolving => 2,
+            AccountStatus::Settled => 3,
             AccountStatus::Archived => 4,
         }
     }
@@ -87,7 +91,10 @@ pub struct Balance {
 
 impl From<proto::Balance> for Balance {
     fn from(p: proto::Balance) -> Self {
-        Self { shares: p.shares, last_claimed: p.last_claimed }
+        Self {
+            shares: p.shares,
+            last_claimed: p.last_claimed,
+        }
     }
 }
 
@@ -106,8 +113,10 @@ pub struct SettlementEvent {
 impl From<proto::SettlementEvent> for SettlementEvent {
     fn from(p: proto::SettlementEvent) -> Self {
         Self {
-            account_id: p.account_id, market_index: p.market_index,
-            outcome_id: p.outcome_id, redemption_rate: p.redemption_rate,
+            account_id: p.account_id,
+            market_index: p.market_index,
+            outcome_id: p.outcome_id,
+            redemption_rate: p.redemption_rate,
         }
     }
 }
@@ -125,8 +134,10 @@ pub struct PayoutEvent {
 impl From<proto::PayoutEvent> for PayoutEvent {
     fn from(p: proto::PayoutEvent) -> Self {
         Self {
-            account_id: p.account_id, beneficiary: p.beneficiary,
-            shares: p.shares, collateral_out: p.collateral_out,
+            account_id: p.account_id,
+            beneficiary: p.beneficiary,
+            shares: p.shares,
+            collateral_out: p.collateral_out,
         }
     }
 }
@@ -137,7 +148,12 @@ mod tests {
 
     #[test]
     fn account_status_roundtrip() {
-        for s in [AccountStatus::Open, AccountStatus::Resolving, AccountStatus::Settled, AccountStatus::Archived] {
+        for s in [
+            AccountStatus::Open,
+            AccountStatus::Resolving,
+            AccountStatus::Settled,
+            AccountStatus::Archived,
+        ] {
             let v: i32 = s.into();
             assert_eq!(s, AccountStatus::from(v));
         }
@@ -147,10 +163,15 @@ mod tests {
     #[test]
     fn outcome_settlement_account_from_proto() {
         let p = proto::OutcomeSettlementAccount {
-            market_index: 1, outcome_id: "yes".into(),
-            collateral_asset_index: 2, total_locked_collateral: 1000,
-            total_shares_outstanding: 1000, status: 1,
-            redemption_rate: 0, created_at: 100, settled_at: None,
+            market_index: 1,
+            outcome_id: "yes".into(),
+            collateral_asset_index: 2,
+            total_locked_collateral: 1000,
+            total_shares_outstanding: 1000,
+            status: 1,
+            redemption_rate: 0,
+            created_at: 100,
+            settled_at: None,
         };
         let a: OutcomeSettlementAccount = p.into();
         assert_eq!(a.status, AccountStatus::Open);
@@ -159,7 +180,10 @@ mod tests {
 
     #[test]
     fn balance_from_proto() {
-        let p = proto::Balance { shares: 500, last_claimed: Some(200) };
+        let p = proto::Balance {
+            shares: 500,
+            last_claimed: Some(200),
+        };
         let b: Balance = p.into();
         assert_eq!(b.shares, 500);
         assert_eq!(b.last_claimed, Some(200));

@@ -8,47 +8,29 @@
 
 extern crate alloc;
 
-pub mod client;
-pub mod types;
-pub mod requests;
 pub mod builder;
+pub mod client;
+pub mod requests;
+pub mod types;
 
 // ==================== PUBLIC RE-EXPORTS ====================
 
 pub use client::{ProgrammableLogicResult, TokenClient, TokensPage};
 
 pub use types::{
-    HookDisabled,
-    HookExecuted,
-    HookPoint,
-    ProgrammableLogicConfig,
-    SimulateHookResult,
-    TokenCreated,
-    TokenEvent,
-    TokenInfo,
-    TokenMetadataUpdated,
-    TokenOriginSummary,
-    TokenSummary,
+    HookDisabled, HookExecuted, HookPoint, ProgrammableLogicConfig, SimulateHookResult,
+    TokenCreated, TokenEvent, TokenInfo, TokenMetadataUpdated, TokenOriginSummary, TokenSummary,
     TokenTradabilityChanged,
 };
 
 pub use requests::{
-    CreateTokenRequest,
-    DisableHookRequest,
-    GetProgrammableLogicRequest,
-    GetTokenInfoRequest,
-    ListTokensRequest,
-    SetOriginMetadataRequest,
-    SetTradableRequest,
-    SimulateHookRequest,
+    CreateTokenRequest, DisableHookRequest, GetProgrammableLogicRequest, GetTokenInfoRequest,
+    ListTokensRequest, SetOriginMetadataRequest, SetTradableRequest, SimulateHookRequest,
     UpdateMetadataRequest,
 };
 
 pub use builder::{
-    CreateTokenBuilder,
-    DisableHookBuilder,
-    SetOriginMetadataBuilder,
-    SetTradableBuilder,
+    CreateTokenBuilder, DisableHookBuilder, SetOriginMetadataBuilder, SetTradableBuilder,
     UpdateMetadataBuilder,
 };
 
@@ -62,16 +44,8 @@ pub use morpheum_sdk_core::{AccountId, ChainId, SdkError, SignedTx};
 /// ```
 pub mod prelude {
     pub use super::{
-        TokenClient,
-        TokenInfo,
-        TokenSummary,
-        HookPoint,
-        ProgrammableLogicConfig,
-        TokenEvent,
-        AccountId,
-        ChainId,
-        SdkError,
-        SignedTx,
+        AccountId, ChainId, HookPoint, ProgrammableLogicConfig, SdkError, SignedTx, TokenClient,
+        TokenEvent, TokenInfo, TokenSummary,
     };
 }
 

@@ -9,9 +9,7 @@ use alloc::vec::Vec;
 
 use morpheum_sdk_core::{AccountId, SdkError};
 
-use crate::requests::{
-    CancelUpgradeRequest, ExecuteUpgradeRequest, SignalUpgradeReadyRequest,
-};
+use crate::requests::{CancelUpgradeRequest, ExecuteUpgradeRequest, SignalUpgradeReadyRequest};
 
 // ====================== SIGNAL UPGRADE READY ======================
 
@@ -52,12 +50,12 @@ impl SignalUpgradeReadyBuilder {
         let from_address = self.from_address.ok_or_else(|| {
             SdkError::invalid_input("from_address is required for signaling upgrade readiness")
         })?;
-        let upgrade_id = self.upgrade_id.ok_or_else(|| {
-            SdkError::invalid_input("upgrade_id is required")
-        })?;
-        let validator_pubkey = self.validator_pubkey.ok_or_else(|| {
-            SdkError::invalid_input("validator_pubkey is required")
-        })?;
+        let upgrade_id = self
+            .upgrade_id
+            .ok_or_else(|| SdkError::invalid_input("upgrade_id is required"))?;
+        let validator_pubkey = self
+            .validator_pubkey
+            .ok_or_else(|| SdkError::invalid_input("validator_pubkey is required"))?;
         let signature = self.signature.ok_or_else(|| {
             SdkError::invalid_input("signature is required (BLS over upgrade_id + binary_hash)")
         })?;
@@ -104,12 +102,12 @@ impl CancelUpgradeBuilder {
         let from_address = self.from_address.ok_or_else(|| {
             SdkError::invalid_input("from_address is required for upgrade cancellation")
         })?;
-        let upgrade_id = self.upgrade_id.ok_or_else(|| {
-            SdkError::invalid_input("upgrade_id is required")
-        })?;
-        let reason = self.reason.ok_or_else(|| {
-            SdkError::invalid_input("reason is required for audit purposes")
-        })?;
+        let upgrade_id = self
+            .upgrade_id
+            .ok_or_else(|| SdkError::invalid_input("upgrade_id is required"))?;
+        let reason = self
+            .reason
+            .ok_or_else(|| SdkError::invalid_input("reason is required for audit purposes"))?;
 
         Ok(CancelUpgradeRequest::new(from_address, upgrade_id, reason))
     }
@@ -142,9 +140,9 @@ impl ExecuteUpgradeBuilder {
         let from_address = self.from_address.ok_or_else(|| {
             SdkError::invalid_input("from_address is required for upgrade execution")
         })?;
-        let upgrade_id = self.upgrade_id.ok_or_else(|| {
-            SdkError::invalid_input("upgrade_id is required")
-        })?;
+        let upgrade_id = self
+            .upgrade_id
+            .ok_or_else(|| SdkError::invalid_input("upgrade_id is required"))?;
 
         Ok(ExecuteUpgradeRequest::new(from_address, upgrade_id))
     }

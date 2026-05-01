@@ -30,7 +30,11 @@ pub struct RegisterPolicyRequest {
 
 impl RegisterPolicyRequest {
     pub fn new(owner_address: AccountId, policy: Policy, owner_signature: Vec<u8>) -> Self {
-        Self { owner_address, policy, owner_signature }
+        Self {
+            owner_address,
+            policy,
+            owner_signature,
+        }
     }
 
     pub fn to_any(&self) -> ProtoAny {
@@ -247,13 +251,17 @@ pub struct QueryReceiptRequest {
 
 impl QueryReceiptRequest {
     pub fn new(receipt_id: impl Into<String>) -> Self {
-        Self { receipt_id: receipt_id.into() }
+        Self {
+            receipt_id: receipt_id.into(),
+        }
     }
 }
 
 impl From<QueryReceiptRequest> for proto::QueryReceiptRequest {
     fn from(req: QueryReceiptRequest) -> Self {
-        Self { receipt_id: req.receipt_id }
+        Self {
+            receipt_id: req.receipt_id,
+        }
     }
 }
 
@@ -326,13 +334,17 @@ pub struct QueryCapabilitiesRequest {
 
 impl QueryCapabilitiesRequest {
     pub fn new(agent_id: impl Into<String>) -> Self {
-        Self { agent_id: agent_id.into() }
+        Self {
+            agent_id: agent_id.into(),
+        }
     }
 }
 
 impl From<QueryCapabilitiesRequest> for proto::QueryCapabilitiesRequest {
     fn from(req: QueryCapabilitiesRequest) -> Self {
-        Self { agent_id: req.agent_id }
+        Self {
+            agent_id: req.agent_id,
+        }
     }
 }
 
@@ -458,11 +470,8 @@ mod tests {
 
     #[test]
     fn register_policy_to_any() {
-        let req = RegisterPolicyRequest::new(
-            AccountId::new([1u8; 32]),
-            test_policy(),
-            vec![0xAB, 0xCD],
-        );
+        let req =
+            RegisterPolicyRequest::new(AccountId::new([1u8; 32]), test_policy(), vec![0xAB, 0xCD]);
 
         let any = req.to_any();
         assert_eq!(any.type_url, "/x402.v1.MsgRegisterPolicy");
@@ -474,12 +483,7 @@ mod tests {
         let mut policy = test_policy();
         policy.policy_id = "pol-1".into();
 
-        let req = UpdatePolicyRequest::new(
-            AccountId::new([2u8; 32]),
-            "pol-1",
-            policy,
-            vec![0xEF],
-        );
+        let req = UpdatePolicyRequest::new(AccountId::new([2u8; 32]), "pol-1", policy, vec![0xEF]);
 
         let any = req.to_any();
         assert_eq!(any.type_url, "/x402.v1.MsgUpdatePolicy");
@@ -487,11 +491,8 @@ mod tests {
 
     #[test]
     fn rotate_address_to_any() {
-        let req = RotateAddressRequest::new(
-            AccountId::new([3u8; 32]),
-            vec![0xFF],
-            "scheduled rotation",
-        );
+        let req =
+            RotateAddressRequest::new(AccountId::new([3u8; 32]), vec![0xFF], "scheduled rotation");
 
         let any = req.to_any();
         assert_eq!(any.type_url, "/x402.v1.MsgRotateAddress");
@@ -553,8 +554,7 @@ mod tests {
         assert_eq!(r3.agent_id, "agent-1");
         assert_eq!(r3.policy_id, "pol-1");
 
-        let r4: proto::QueryCapabilitiesRequest =
-            QueryCapabilitiesRequest::new("agent-1").into();
+        let r4: proto::QueryCapabilitiesRequest = QueryCapabilitiesRequest::new("agent-1").into();
         assert_eq!(r4.agent_id, "agent-1");
 
         let _r5: proto::QueryParamsRequest = QueryParamsRequest.into();

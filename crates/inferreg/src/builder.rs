@@ -95,21 +95,21 @@ impl RegisterModelBuilder {
 
     /// Builds the register-model request, performing validation.
     pub fn build(self) -> Result<RegisterModelRequest, SdkError> {
-        let authority = self.authority.ok_or_else(|| {
-            SdkError::invalid_input("authority is required for RegisterModel")
-        })?;
+        let authority = self
+            .authority
+            .ok_or_else(|| SdkError::invalid_input("authority is required for RegisterModel"))?;
 
-        let display_name = self.display_name.ok_or_else(|| {
-            SdkError::invalid_input("display_name is required for RegisterModel")
-        })?;
+        let display_name = self
+            .display_name
+            .ok_or_else(|| SdkError::invalid_input("display_name is required for RegisterModel"))?;
 
-        let quant_format = self.quant_format.ok_or_else(|| {
-            SdkError::invalid_input("quant_format is required for RegisterModel")
-        })?;
+        let quant_format = self
+            .quant_format
+            .ok_or_else(|| SdkError::invalid_input("quant_format is required for RegisterModel"))?;
 
-        let param_count = self.param_count.ok_or_else(|| {
-            SdkError::invalid_input("param_count is required for RegisterModel")
-        })?;
+        let param_count = self
+            .param_count
+            .ok_or_else(|| SdkError::invalid_input("param_count is required for RegisterModel"))?;
 
         let zk_commitment = self.zk_commitment.ok_or_else(|| {
             SdkError::invalid_input("zk_commitment is required for RegisterModel")
@@ -119,9 +119,9 @@ impl RegisterModelBuilder {
             SdkError::invalid_input("supported_ops is required for RegisterModel")
         })?;
 
-        let version = self.version.ok_or_else(|| {
-            SdkError::invalid_input("version is required for RegisterModel")
-        })?;
+        let version = self
+            .version
+            .ok_or_else(|| SdkError::invalid_input("version is required for RegisterModel"))?;
 
         let mut req = RegisterModelRequest::new(
             authority,
@@ -144,8 +144,8 @@ impl RegisterModelBuilder {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use alloc::vec;
     use crate::types::ops;
+    use alloc::vec;
 
     #[test]
     fn register_model_builder_full_flow() {
@@ -207,5 +207,4 @@ mod tests {
             .build();
         assert!(result.is_err());
     }
-
 }

@@ -66,12 +66,7 @@ pub use morpheum_sdk_vc as vc;
 #[cfg(feature = "morpheum-sdk-auth")]
 pub use morpheum_sdk_auth as auth;
 
-pub use morpheum_sdk_core::{
-    AccountId,
-    ChainId,
-    SdkError,
-    SignedTx,
-};
+pub use morpheum_sdk_core::{AccountId, ChainId, SdkError, SignedTx};
 
 pub use morpheum_sdk_core::signing::claim::{TradingKeyClaim, VcClaimBuilder};
 
@@ -80,13 +75,7 @@ pub use morpheum_sdk_core::signing::claim::{TradingKeyClaim, VcClaimBuilder};
 /// Recommended prelude for WASM/TypeScript usage.
 pub mod prelude {
     pub use super::{
-        set_panic_hook,
-        version,
-        AccountId,
-        ChainId,
-        SdkError,
-        SignedTx,
-        TradingKeyClaim,
+        set_panic_hook, version, AccountId, ChainId, SdkError, SignedTx, TradingKeyClaim,
         VcClaimBuilder,
     };
 

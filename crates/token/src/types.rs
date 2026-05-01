@@ -31,8 +31,12 @@ pub enum HookPoint {
 impl From<i32> for HookPoint {
     fn from(v: i32) -> Self {
         match v {
-            1 => Self::OnMint,       2 => Self::OnTransfer, 3 => Self::OnBurn,
-            4 => Self::RevenueShare, 5 => Self::CustomGovernance, 6 => Self::ViewQuery,
+            1 => Self::OnMint,
+            2 => Self::OnTransfer,
+            3 => Self::OnBurn,
+            4 => Self::RevenueShare,
+            5 => Self::CustomGovernance,
+            6 => Self::ViewQuery,
             _ => Self::Unspecified,
         }
     }
@@ -41,9 +45,12 @@ impl From<i32> for HookPoint {
 impl From<HookPoint> for i32 {
     fn from(h: HookPoint) -> Self {
         match h {
-            HookPoint::Unspecified => 0,     HookPoint::OnMint => 1,
-            HookPoint::OnTransfer => 2,      HookPoint::OnBurn => 3,
-            HookPoint::RevenueShare => 4,    HookPoint::CustomGovernance => 5,
+            HookPoint::Unspecified => 0,
+            HookPoint::OnMint => 1,
+            HookPoint::OnTransfer => 2,
+            HookPoint::OnBurn => 3,
+            HookPoint::RevenueShare => 4,
+            HookPoint::CustomGovernance => 5,
             HookPoint::ViewQuery => 6,
         }
     }
@@ -66,9 +73,11 @@ pub struct ProgrammableLogicConfig {
 impl From<proto::ProgrammableLogicConfig> for ProgrammableLogicConfig {
     fn from(p: proto::ProgrammableLogicConfig) -> Self {
         Self {
-            bytecode_hash: p.bytecode_hash, version: p.version,
+            bytecode_hash: p.bytecode_hash,
+            version: p.version,
             enabled_hooks: p.enabled_hooks.into_iter().map(HookPoint::from).collect(),
-            params_cbor: p.params_cbor, required_runtime_version: p.required_runtime_version,
+            params_cbor: p.params_cbor,
+            required_runtime_version: p.required_runtime_version,
             disabled_hooks: p.disabled_hooks.into_iter().map(HookPoint::from).collect(),
         }
     }
@@ -77,9 +86,11 @@ impl From<proto::ProgrammableLogicConfig> for ProgrammableLogicConfig {
 impl From<ProgrammableLogicConfig> for proto::ProgrammableLogicConfig {
     fn from(c: ProgrammableLogicConfig) -> Self {
         Self {
-            bytecode_hash: c.bytecode_hash, version: c.version,
+            bytecode_hash: c.bytecode_hash,
+            version: c.version,
             enabled_hooks: c.enabled_hooks.into_iter().map(i32::from).collect(),
-            params_cbor: c.params_cbor, required_runtime_version: c.required_runtime_version,
+            params_cbor: c.params_cbor,
+            required_runtime_version: c.required_runtime_version,
             disabled_hooks: c.disabled_hooks.into_iter().map(i32::from).collect(),
         }
     }
@@ -98,8 +109,10 @@ pub struct TokenOriginSummary {
 impl From<proto::TokenOriginSummary> for TokenOriginSummary {
     fn from(p: proto::TokenOriginSummary) -> Self {
         Self {
-            origin_chain: p.origin_chain, origin_address: p.origin_address,
-            bridge_protocol: p.bridge_protocol, is_wrapped: p.is_wrapped,
+            origin_chain: p.origin_chain,
+            origin_address: p.origin_address,
+            bridge_protocol: p.bridge_protocol,
+            is_wrapped: p.is_wrapped,
         }
     }
 }
@@ -118,8 +131,11 @@ pub struct TokenSummary {
 impl From<proto::TokenSummary> for TokenSummary {
     fn from(p: proto::TokenSummary) -> Self {
         Self {
-            asset_index: p.asset_index, name: p.name, symbol: p.symbol,
-            decimals: p.decimals, tradable: p.tradable,
+            asset_index: p.asset_index,
+            name: p.name,
+            symbol: p.symbol,
+            decimals: p.decimals,
+            tradable: p.tradable,
         }
     }
 }
@@ -141,7 +157,10 @@ pub struct TokenInfo {
 impl From<proto::GetTokenInfoResponse> for TokenInfo {
     fn from(p: proto::GetTokenInfoResponse) -> Self {
         Self {
-            name: p.name, symbol: p.symbol, decimals: p.decimals, tradable: p.tradable,
+            name: p.name,
+            symbol: p.symbol,
+            decimals: p.decimals,
+            tradable: p.tradable,
             agent_creator_did: p.agent_creator_did,
             metadata: p.metadata.into_iter().collect(),
             created_at: p.created_at.as_ref().map_or(0, |t| t.seconds as u64),
@@ -164,8 +183,11 @@ pub struct SimulateHookResult {
 impl From<proto::SimulateHookResponse> for SimulateHookResult {
     fn from(p: proto::SimulateHookResponse) -> Self {
         Self {
-            success: p.success, fuel_used: p.fuel_used, return_data: p.return_data,
-            error_message: p.error_message, emitted_events: p.emitted_events,
+            success: p.success,
+            fuel_used: p.fuel_used,
+            return_data: p.return_data,
+            error_message: p.error_message,
+            emitted_events: p.emitted_events,
         }
     }
 }
@@ -193,12 +215,18 @@ pub struct TokenCreated {
 impl From<proto::TokenCreated> for TokenCreated {
     fn from(p: proto::TokenCreated) -> Self {
         Self {
-            asset_index: p.asset_index, name: p.name, symbol: p.symbol,
-            decimals: p.decimals, initial_supply: p.initial_supply, tradable: p.tradable,
+            asset_index: p.asset_index,
+            name: p.name,
+            symbol: p.symbol,
+            decimals: p.decimals,
+            initial_supply: p.initial_supply,
+            tradable: p.tradable,
             agent_creator_did: p.agent_creator_did,
             timestamp: p.timestamp.as_ref().map_or(0, |t| t.seconds as u64),
-            origin_chain: p.origin_chain, origin_address: p.origin_address,
-            bridge_protocol: p.bridge_protocol, is_wrapped: p.is_wrapped,
+            origin_chain: p.origin_chain,
+            origin_address: p.origin_address,
+            bridge_protocol: p.bridge_protocol,
+            is_wrapped: p.is_wrapped,
         }
     }
 }
@@ -216,7 +244,8 @@ pub struct TokenTradabilityChanged {
 impl From<proto::TokenTradabilityChanged> for TokenTradabilityChanged {
     fn from(p: proto::TokenTradabilityChanged) -> Self {
         Self {
-            asset_index: p.asset_index, old_tradable: p.old_tradable,
+            asset_index: p.asset_index,
+            old_tradable: p.old_tradable,
             new_tradable: p.new_tradable,
             timestamp: p.timestamp.as_ref().map_or(0, |t| t.seconds as u64),
         }
@@ -240,9 +269,13 @@ pub struct HookExecuted {
 impl From<proto::HookExecuted> for HookExecuted {
     fn from(p: proto::HookExecuted) -> Self {
         Self {
-            asset_index: p.asset_index, hook_point: HookPoint::from(p.hook_point),
-            success: p.success, fuel_used: p.fuel_used, error_code: p.error_code,
-            return_data_hash: p.return_data_hash, emitted_events: p.emitted_events,
+            asset_index: p.asset_index,
+            hook_point: HookPoint::from(p.hook_point),
+            success: p.success,
+            fuel_used: p.fuel_used,
+            error_code: p.error_code,
+            return_data_hash: p.return_data_hash,
+            emitted_events: p.emitted_events,
             timestamp: p.timestamp.as_ref().map_or(0, |t| t.seconds as u64),
         }
     }
@@ -260,7 +293,8 @@ pub struct HookDisabled {
 impl From<proto::HookDisabled> for HookDisabled {
     fn from(p: proto::HookDisabled) -> Self {
         Self {
-            asset_index: p.asset_index, hook_point: HookPoint::from(p.hook_point),
+            asset_index: p.asset_index,
+            hook_point: HookPoint::from(p.hook_point),
             timestamp: p.timestamp.as_ref().map_or(0, |t| t.seconds as u64),
         }
     }
@@ -278,7 +312,8 @@ pub struct TokenMetadataUpdated {
 impl From<proto::TokenMetadataUpdated> for TokenMetadataUpdated {
     fn from(p: proto::TokenMetadataUpdated) -> Self {
         Self {
-            asset_index: p.asset_index, updated_fields: p.updated_fields,
+            asset_index: p.asset_index,
+            updated_fields: p.updated_fields,
             timestamp: p.timestamp.as_ref().map_or(0, |t| t.seconds as u64),
         }
     }
@@ -292,7 +327,12 @@ pub enum TokenEvent {
     TradabilityChanged(TokenTradabilityChanged),
     HookExecuted(HookExecuted),
     MetadataUpdated(TokenMetadataUpdated),
-    OriginMetadataUpdated { asset_index: u64, origin_chain: String, origin_address: String, timestamp: u64 },
+    OriginMetadataUpdated {
+        asset_index: u64,
+        origin_chain: String,
+        origin_address: String,
+        timestamp: u64,
+    },
     HookDisabled(HookDisabled),
 }
 
@@ -306,7 +346,8 @@ impl TokenEvent {
             Event::HookExecuted(v) => Self::HookExecuted(v.into()),
             Event::TokenMetadataUpdated(v) => Self::MetadataUpdated(v.into()),
             Event::TokenOriginMetadataUpdated(v) => Self::OriginMetadataUpdated {
-                asset_index: v.asset_index, origin_chain: v.origin_chain,
+                asset_index: v.asset_index,
+                origin_chain: v.origin_chain,
                 origin_address: v.origin_address,
                 timestamp: v.timestamp.as_ref().map_or(0, |t| t.seconds as u64),
             },
@@ -322,8 +363,14 @@ mod tests {
 
     #[test]
     fn hook_point_roundtrip() {
-        for h in [HookPoint::OnMint, HookPoint::OnTransfer, HookPoint::OnBurn,
-                  HookPoint::RevenueShare, HookPoint::CustomGovernance, HookPoint::ViewQuery] {
+        for h in [
+            HookPoint::OnMint,
+            HookPoint::OnTransfer,
+            HookPoint::OnBurn,
+            HookPoint::RevenueShare,
+            HookPoint::CustomGovernance,
+            HookPoint::ViewQuery,
+        ] {
             let v: i32 = h.into();
             assert_eq!(h, HookPoint::from(v));
         }
@@ -333,9 +380,11 @@ mod tests {
     #[test]
     fn programmable_logic_roundtrip() {
         let c = ProgrammableLogicConfig {
-            bytecode_hash: vec![1, 2, 3], version: 1,
+            bytecode_hash: vec![1, 2, 3],
+            version: 1,
             enabled_hooks: vec![HookPoint::OnMint, HookPoint::OnTransfer],
-            params_cbor: vec![0xA0], required_runtime_version: 1,
+            params_cbor: vec![0xA0],
+            required_runtime_version: 1,
             disabled_hooks: vec![],
         };
         let p: proto::ProgrammableLogicConfig = c.clone().into();
@@ -346,8 +395,11 @@ mod tests {
     #[test]
     fn token_summary_from_proto() {
         let p = proto::TokenSummary {
-            asset_index: 1, name: "MORM".into(), symbol: "MORM".into(),
-            decimals: 18, tradable: true,
+            asset_index: 1,
+            name: "MORM".into(),
+            symbol: "MORM".into(),
+            decimals: 18,
+            tradable: true,
         };
         let s: TokenSummary = p.into();
         assert_eq!(s.asset_index, 1);
@@ -357,13 +409,23 @@ mod tests {
     #[test]
     fn token_event_from_proto() {
         let proto_event = proto::TokenEvent {
-            event: Some(proto::token_event::Event::TokenCreated(proto::TokenCreated {
-                asset_index: 1, name: "Test".into(), symbol: "TST".into(),
-                decimals: 18, initial_supply: "1000000".into(), tradable: true,
-                agent_creator_did: None, programmable: None, timestamp: None,
-                origin_chain: None, origin_address: None, bridge_protocol: None,
-                is_wrapped: false,
-            })),
+            event: Some(proto::token_event::Event::TokenCreated(
+                proto::TokenCreated {
+                    asset_index: 1,
+                    name: "Test".into(),
+                    symbol: "TST".into(),
+                    decimals: 18,
+                    initial_supply: "1000000".into(),
+                    tradable: true,
+                    agent_creator_did: None,
+                    programmable: None,
+                    timestamp: None,
+                    origin_chain: None,
+                    origin_address: None,
+                    bridge_protocol: None,
+                    is_wrapped: false,
+                },
+            )),
         };
         let event = TokenEvent::from_proto(proto_event);
         assert!(matches!(event, Some(TokenEvent::Created(_))));

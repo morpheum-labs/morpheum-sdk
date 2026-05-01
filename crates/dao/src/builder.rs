@@ -12,9 +12,8 @@ use morpheum_proto::google::protobuf::Any as ProtoAny;
 use morpheum_sdk_core::{AccountId, SdkError};
 
 use crate::requests::{
-    CancelDaoProposalRequest, CreateDaoProposalRequest, CreateDaoRequest,
-    DaoDepositRequest, DaoVoteRequest, ExecuteDaoProposalRequest,
-    SignDaoProposalRequest, WithdrawDaoDepositRequest,
+    CancelDaoProposalRequest, CreateDaoProposalRequest, CreateDaoRequest, DaoDepositRequest,
+    DaoVoteRequest, ExecuteDaoProposalRequest, SignDaoProposalRequest, WithdrawDaoDepositRequest,
 };
 use crate::types::{DaoConfig, DaoType, GovernedAsset, WeightedDaoVoteOption};
 
@@ -84,29 +83,24 @@ impl CreateDaoBuilder {
     }
 
     pub fn build(self) -> Result<CreateDaoRequest, SdkError> {
-        let from_address = self.from_address.ok_or_else(|| {
-            SdkError::invalid_input("from_address is required for DAO creation")
-        })?;
-        let name = self.name.ok_or_else(|| {
-            SdkError::invalid_input("name is required")
-        })?;
-        let community_token_mint = self.community_token_mint.ok_or_else(|| {
-            SdkError::invalid_input("community_token_mint is required")
-        })?;
-        let dao_type = self.dao_type.ok_or_else(|| {
-            SdkError::invalid_input("dao_type is required")
-        })?;
-        let config = self.config.ok_or_else(|| {
-            SdkError::invalid_input("config is required for DAO creation")
-        })?;
+        let from_address = self
+            .from_address
+            .ok_or_else(|| SdkError::invalid_input("from_address is required for DAO creation"))?;
+        let name = self
+            .name
+            .ok_or_else(|| SdkError::invalid_input("name is required"))?;
+        let community_token_mint = self
+            .community_token_mint
+            .ok_or_else(|| SdkError::invalid_input("community_token_mint is required"))?;
+        let dao_type = self
+            .dao_type
+            .ok_or_else(|| SdkError::invalid_input("dao_type is required"))?;
+        let config = self
+            .config
+            .ok_or_else(|| SdkError::invalid_input("config is required for DAO creation"))?;
 
-        let mut req = CreateDaoRequest::new(
-            from_address,
-            name,
-            community_token_mint,
-            dao_type,
-            config,
-        );
+        let mut req =
+            CreateDaoRequest::new(from_address, name, community_token_mint, dao_type, config);
 
         if let Some(desc) = self.description {
             req = req.with_description(desc);
@@ -187,15 +181,15 @@ impl CreateDaoProposalBuilder {
         let from_address = self.from_address.ok_or_else(|| {
             SdkError::invalid_input("from_address is required for proposal creation")
         })?;
-        let dao_id = self.dao_id.ok_or_else(|| {
-            SdkError::invalid_input("dao_id is required")
-        })?;
-        let title = self.title.ok_or_else(|| {
-            SdkError::invalid_input("title is required")
-        })?;
-        let description = self.description.ok_or_else(|| {
-            SdkError::invalid_input("description is required")
-        })?;
+        let dao_id = self
+            .dao_id
+            .ok_or_else(|| SdkError::invalid_input("dao_id is required"))?;
+        let title = self
+            .title
+            .ok_or_else(|| SdkError::invalid_input("title is required"))?;
+        let description = self
+            .description
+            .ok_or_else(|| SdkError::invalid_input("description is required"))?;
 
         let mut req = CreateDaoProposalRequest::new(from_address, dao_id, title, description);
 
@@ -260,17 +254,19 @@ impl DaoVoteBuilder {
     }
 
     pub fn build(self) -> Result<DaoVoteRequest, SdkError> {
-        let from_address = self.from_address.ok_or_else(|| {
-            SdkError::invalid_input("from_address is required for voting")
-        })?;
-        let dao_id = self.dao_id.ok_or_else(|| {
-            SdkError::invalid_input("dao_id is required")
-        })?;
-        let proposal_id = self.proposal_id.ok_or_else(|| {
-            SdkError::invalid_input("proposal_id is required")
-        })?;
+        let from_address = self
+            .from_address
+            .ok_or_else(|| SdkError::invalid_input("from_address is required for voting"))?;
+        let dao_id = self
+            .dao_id
+            .ok_or_else(|| SdkError::invalid_input("dao_id is required"))?;
+        let proposal_id = self
+            .proposal_id
+            .ok_or_else(|| SdkError::invalid_input("proposal_id is required"))?;
         if self.options.is_empty() {
-            return Err(SdkError::invalid_input("at least one vote option is required"));
+            return Err(SdkError::invalid_input(
+                "at least one vote option is required",
+            ));
         }
 
         Ok(DaoVoteRequest {
@@ -316,14 +312,18 @@ impl SignDaoProposalBuilder {
         let from_address = self.from_address.ok_or_else(|| {
             SdkError::invalid_input("from_address is required for signing a proposal")
         })?;
-        let dao_id = self.dao_id.ok_or_else(|| {
-            SdkError::invalid_input("dao_id is required")
-        })?;
-        let proposal_id = self.proposal_id.ok_or_else(|| {
-            SdkError::invalid_input("proposal_id is required")
-        })?;
+        let dao_id = self
+            .dao_id
+            .ok_or_else(|| SdkError::invalid_input("dao_id is required"))?;
+        let proposal_id = self
+            .proposal_id
+            .ok_or_else(|| SdkError::invalid_input("proposal_id is required"))?;
 
-        Ok(SignDaoProposalRequest::new(from_address, dao_id, proposal_id))
+        Ok(SignDaoProposalRequest::new(
+            from_address,
+            dao_id,
+            proposal_id,
+        ))
     }
 }
 
@@ -369,18 +369,18 @@ impl DaoDepositBuilder {
     }
 
     pub fn build(self) -> Result<DaoDepositRequest, SdkError> {
-        let from_address = self.from_address.ok_or_else(|| {
-            SdkError::invalid_input("from_address is required for deposit")
-        })?;
-        let dao_id = self.dao_id.ok_or_else(|| {
-            SdkError::invalid_input("dao_id is required")
-        })?;
-        let token_mint = self.token_mint.ok_or_else(|| {
-            SdkError::invalid_input("token_mint is required")
-        })?;
-        let amount = self.amount.ok_or_else(|| {
-            SdkError::invalid_input("amount is required")
-        })?;
+        let from_address = self
+            .from_address
+            .ok_or_else(|| SdkError::invalid_input("from_address is required for deposit"))?;
+        let dao_id = self
+            .dao_id
+            .ok_or_else(|| SdkError::invalid_input("dao_id is required"))?;
+        let token_mint = self
+            .token_mint
+            .ok_or_else(|| SdkError::invalid_input("token_mint is required"))?;
+        let amount = self
+            .amount
+            .ok_or_else(|| SdkError::invalid_input("amount is required"))?;
 
         let mut req = DaoDepositRequest::new(from_address, dao_id, token_mint, amount);
         if self.lock_until > 0 {
@@ -426,15 +426,15 @@ impl CancelDaoProposalBuilder {
     }
 
     pub fn build(self) -> Result<CancelDaoProposalRequest, SdkError> {
-        let from_address = self.from_address.ok_or_else(|| {
-            SdkError::invalid_input("from_address is required for cancellation")
-        })?;
-        let dao_id = self.dao_id.ok_or_else(|| {
-            SdkError::invalid_input("dao_id is required")
-        })?;
-        let proposal_id = self.proposal_id.ok_or_else(|| {
-            SdkError::invalid_input("proposal_id is required")
-        })?;
+        let from_address = self
+            .from_address
+            .ok_or_else(|| SdkError::invalid_input("from_address is required for cancellation"))?;
+        let dao_id = self
+            .dao_id
+            .ok_or_else(|| SdkError::invalid_input("dao_id is required"))?;
+        let proposal_id = self
+            .proposal_id
+            .ok_or_else(|| SdkError::invalid_input("proposal_id is required"))?;
 
         Ok(CancelDaoProposalRequest::new(
             from_address,
@@ -475,17 +475,21 @@ impl ExecuteDaoProposalBuilder {
     }
 
     pub fn build(self) -> Result<ExecuteDaoProposalRequest, SdkError> {
-        let from_address = self.from_address.ok_or_else(|| {
-            SdkError::invalid_input("from_address is required for execution")
-        })?;
-        let dao_id = self.dao_id.ok_or_else(|| {
-            SdkError::invalid_input("dao_id is required")
-        })?;
-        let proposal_id = self.proposal_id.ok_or_else(|| {
-            SdkError::invalid_input("proposal_id is required")
-        })?;
+        let from_address = self
+            .from_address
+            .ok_or_else(|| SdkError::invalid_input("from_address is required for execution"))?;
+        let dao_id = self
+            .dao_id
+            .ok_or_else(|| SdkError::invalid_input("dao_id is required"))?;
+        let proposal_id = self
+            .proposal_id
+            .ok_or_else(|| SdkError::invalid_input("proposal_id is required"))?;
 
-        Ok(ExecuteDaoProposalRequest::new(from_address, dao_id, proposal_id))
+        Ok(ExecuteDaoProposalRequest::new(
+            from_address,
+            dao_id,
+            proposal_id,
+        ))
     }
 }
 
@@ -525,20 +529,25 @@ impl WithdrawDaoDepositBuilder {
     }
 
     pub fn build(self) -> Result<WithdrawDaoDepositRequest, SdkError> {
-        let from_address = self.from_address.ok_or_else(|| {
-            SdkError::invalid_input("from_address is required for withdrawal")
-        })?;
-        let dao_id = self.dao_id.ok_or_else(|| {
-            SdkError::invalid_input("dao_id is required")
-        })?;
-        let token_mint = self.token_mint.ok_or_else(|| {
-            SdkError::invalid_input("token_mint is required")
-        })?;
-        let amount = self.amount.ok_or_else(|| {
-            SdkError::invalid_input("amount is required (use \"0\" for all)")
-        })?;
+        let from_address = self
+            .from_address
+            .ok_or_else(|| SdkError::invalid_input("from_address is required for withdrawal"))?;
+        let dao_id = self
+            .dao_id
+            .ok_or_else(|| SdkError::invalid_input("dao_id is required"))?;
+        let token_mint = self
+            .token_mint
+            .ok_or_else(|| SdkError::invalid_input("token_mint is required"))?;
+        let amount = self
+            .amount
+            .ok_or_else(|| SdkError::invalid_input("amount is required (use \"0\" for all)"))?;
 
-        Ok(WithdrawDaoDepositRequest::new(from_address, dao_id, token_mint, amount))
+        Ok(WithdrawDaoDepositRequest::new(
+            from_address,
+            dao_id,
+            token_mint,
+            amount,
+        ))
     }
 }
 

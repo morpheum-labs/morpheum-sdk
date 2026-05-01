@@ -13,8 +13,8 @@ use serde::{Deserialize, Serialize};
 
 use morpheum_proto::google::protobuf::Any as ProtoAny;
 
-use morpheum_sdk_core::AccountId;
 use morpheum_proto::market::v1 as proto;
+use morpheum_sdk_core::AccountId;
 
 use crate::types::{MarketParams, MarketType};
 
@@ -93,7 +93,10 @@ pub struct ActivateMarketRequest {
 
 impl ActivateMarketRequest {
     pub fn new(market_index: u64, activator: AccountId) -> Self {
-        Self { market_index, activator }
+        Self {
+            market_index,
+            activator,
+        }
     }
 
     pub fn to_any(&self) -> ProtoAny {
@@ -126,7 +129,11 @@ pub struct SuspendMarketRequest {
 
 impl SuspendMarketRequest {
     pub fn new(market_index: u64, reason: String, suspender: AccountId) -> Self {
-        Self { market_index, reason, suspender }
+        Self {
+            market_index,
+            reason,
+            suspender,
+        }
     }
 
     pub fn to_any(&self) -> ProtoAny {
@@ -438,14 +445,7 @@ mod tests {
             )),
         };
 
-        let req = CreateMarketRequest::new(
-            from,
-            1,
-            2,
-            MarketType::Perp,
-            "clob".into(),
-            params,
-        )
+        let req = CreateMarketRequest::new(from, 1, 2, MarketType::Perp, "clob".into(), params)
             .with_governance_proposal_id("gov-123");
 
         let any = req.to_any();

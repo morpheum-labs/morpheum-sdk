@@ -17,8 +17,8 @@ extern crate alloc;
 // Public API modules — each has a single, clear responsibility
 pub mod builder;
 pub mod client;
-pub mod types;
 pub mod requests;
+pub mod types;
 
 // ==================== PUBLIC RE-EXPORTS ====================
 
@@ -26,27 +26,16 @@ pub mod requests;
 pub use client::DirectoryClient;
 
 /// Fluent builders for directory transaction construction.
-pub use builder::{
-    UpdateProfileBuilder,
-    UpdateVisibilityBuilder,
-};
+pub use builder::{UpdateProfileBuilder, UpdateVisibilityBuilder};
 
 /// Core domain types for the directory module.
-pub use types::{
-    AgentDirectoryProfile,
-    DirectoryFilter,
-    Params,
-    VisibilityLevel,
-};
+pub use types::{AgentDirectoryProfile, DirectoryFilter, Params, VisibilityLevel};
 
 /// Re-export all request and response types for clean message construction.
 pub use requests::*;
 
 /// Re-export core SDK types commonly used with directory flows.
-pub use morpheum_sdk_core::{
-    SdkError,
-    SdkConfig,
-};
+pub use morpheum_sdk_core::{SdkConfig, SdkError};
 
 /// Recommended prelude for the directory module.
 ///
@@ -56,15 +45,8 @@ pub use morpheum_sdk_core::{
 /// ```
 pub mod prelude {
     pub use super::{
-        DirectoryClient,
-        UpdateProfileBuilder,
-        UpdateVisibilityBuilder,
-        AgentDirectoryProfile,
-        DirectoryFilter,
-        Params,
-        VisibilityLevel,
-        SdkError,
-        SdkConfig,
+        AgentDirectoryProfile, DirectoryClient, DirectoryFilter, Params, SdkConfig, SdkError,
+        UpdateProfileBuilder, UpdateVisibilityBuilder, VisibilityLevel,
     };
 }
 

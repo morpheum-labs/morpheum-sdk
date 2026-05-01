@@ -23,15 +23,13 @@ pub mod x402;
 
 pub use bridge::{balance_of, create_ata_if_needed, transfer_remote};
 pub use config::{SolanaChainConfig, SolanaChainRegistry, SolanaTokenConfig, DEFAULT_CHAINS_TOML};
-pub use contracts::{
-    HYPERLANE_WARP_ROUTE_PROGRAM_ID, X402_SETTLEMENT_PROGRAM_ID,
-};
+pub use contracts::{HYPERLANE_WARP_ROUTE_PROGRAM_ID, X402_SETTLEMENT_PROGRAM_ID};
 pub use provider::{build_provider, SvmProvider};
 pub use types::{DispatchResult, PaymentResult, SvmError};
 pub use usdc::{usdc_program_id, USDC_ASSET_INDEX};
 pub use x402::{get_payment, pay_x402};
 
-pub use solana_sdk;
 pub use solana_client;
+pub use solana_sdk;
 
 pub const VERSION: &str = env!("CARGO_PKG_VERSION");

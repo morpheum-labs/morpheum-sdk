@@ -12,16 +12,10 @@ use alloc::boxed::Box;
 use async_trait::async_trait;
 use prost::Message as _;
 
-use morpheum_sdk_core::{
-    MorpheumClient, SdkConfig, SdkError, Transport,
-};
+use morpheum_sdk_core::{MorpheumClient, SdkConfig, SdkError, Transport};
 
 use crate::{
-    requests::{
-        QueryBridgeRequestRequest,
-        QueryIntentExportRequest,
-        QueryProofExportRequest,
-    },
+    requests::{QueryBridgeRequestRequest, QueryIntentExportRequest, QueryProofExportRequest},
     types::{BridgeResponse, CrossChainProofPacket, IntentExportPacket, Params},
 };
 
@@ -136,10 +130,9 @@ impl InteropClient {
 
         let response_bytes = self.query(path, data).await?;
 
-        let proto_res = morpheum_proto::interop::v1::QueryParamsResponse::decode(
-            response_bytes.as_slice(),
-        )
-        .map_err(SdkError::Decode)?;
+        let proto_res =
+            morpheum_proto::interop::v1::QueryParamsResponse::decode(response_bytes.as_slice())
+                .map_err(SdkError::Decode)?;
 
         let response: crate::requests::QueryParamsResponse = proto_res.into();
         Ok(response.params)
@@ -299,7 +292,11 @@ mod tests {
         let config = SdkConfig::new("https://sentry.morpheum.xyz", "morpheum-test-1");
         let client = InteropClient::new(config, Box::new(DummyTransport));
 
-        let params = client.query_params().await.unwrap().expect("params should be present");
+        let params = client
+            .query_params()
+            .await
+            .unwrap()
+            .expect("params should be present");
         assert!(params.bridging_enabled);
         assert!(params.intent_export_enabled);
         assert_eq!(params.default_proof_ttl_seconds, 86_400);

@@ -62,7 +62,9 @@ pub struct VaultBalance {
 
 impl From<proto::VaultBalance> for VaultBalance {
     fn from(p: proto::VaultBalance) -> Self {
-        let (asset_index, asset_symbol) = p.asset.map_or((0, String::new()), |a| (a.asset_index, a.symbol));
+        let (asset_index, asset_symbol) = p
+            .asset
+            .map_or((0, String::new()), |a| (a.asset_index, a.symbol));
         Self {
             asset_index,
             asset_symbol,
@@ -94,7 +96,9 @@ pub struct LpStake {
 
 impl From<proto::LpStake> for LpStake {
     fn from(p: proto::LpStake) -> Self {
-        let (asset_index, asset_symbol) = p.asset.map_or((0, String::new()), |a| (a.asset_index, a.symbol));
+        let (asset_index, asset_symbol) = p
+            .asset
+            .map_or((0, String::new()), |a| (a.asset_index, a.symbol));
         Self {
             stake_id: p.stake_id,
             address: p.address,
@@ -132,7 +136,9 @@ pub struct BadDebtRecord {
 
 impl From<proto::BadDebtRecord> for BadDebtRecord {
     fn from(p: proto::BadDebtRecord) -> Self {
-        let (asset_index, asset_symbol) = p.asset.map_or((0, String::new()), |a| (a.asset_index, a.symbol));
+        let (asset_index, asset_symbol) = p
+            .asset
+            .map_or((0, String::new()), |a| (a.asset_index, a.symbol));
         Self {
             record_id: p.record_id,
             position_id: p.position_id,
@@ -165,7 +171,9 @@ pub struct IlMetrics {
 
 impl From<proto::IlMetrics> for IlMetrics {
     fn from(p: proto::IlMetrics) -> Self {
-        let (asset_index, asset_symbol) = p.asset.map_or((0, String::new()), |a| (a.asset_index, a.symbol));
+        let (asset_index, asset_symbol) = p
+            .asset
+            .map_or((0, String::new()), |a| (a.asset_index, a.symbol));
         Self {
             asset_index,
             asset_symbol,
@@ -191,7 +199,9 @@ pub struct ThresholdStatus {
 
 impl From<proto::ThresholdStatus> for ThresholdStatus {
     fn from(p: proto::ThresholdStatus) -> Self {
-        let (asset_index, asset_symbol) = p.asset.map_or((0, String::new()), |a| (a.asset_index, a.symbol));
+        let (asset_index, asset_symbol) = p
+            .asset
+            .map_or((0, String::new()), |a| (a.asset_index, a.symbol));
         Self {
             asset_index,
             asset_symbol,
@@ -236,7 +246,10 @@ mod tests {
             available_balance: "800000".into(),
             reserved_balance: "200000".into(),
             min_threshold: "100000".into(),
-            updated_at: Some(morpheum_proto::google::protobuf::Timestamp { seconds: 1_700_000_000, nanos: 0 }),
+            updated_at: Some(morpheum_proto::google::protobuf::Timestamp {
+                seconds: 1_700_000_000,
+                nanos: 0,
+            }),
         };
         let v: VaultBalance = p.into();
         assert_eq!(v.asset_index, 1);
@@ -270,7 +283,10 @@ mod tests {
             amount: "500".into(),
             shares: "500".into(),
             pending_yield: "10".into(),
-            stake_time: Some(morpheum_proto::google::protobuf::Timestamp { seconds: 1_700_000_000, nanos: 0 }),
+            stake_time: Some(morpheum_proto::google::protobuf::Timestamp {
+                seconds: 1_700_000_000,
+                nanos: 0,
+            }),
             last_claim_time: None,
             external_address: Some("0xdead".into()),
             chain_type: Some(1),
@@ -289,7 +305,10 @@ mod tests {
             near_depletion: true,
             paused: false,
             depletion_percentage: "8500".into(),
-            last_checked: Some(morpheum_proto::google::protobuf::Timestamp { seconds: 1_700_000_000, nanos: 0 }),
+            last_checked: Some(morpheum_proto::google::protobuf::Timestamp {
+                seconds: 1_700_000_000,
+                nanos: 0,
+            }),
         };
         let s: ThresholdStatus = p.into();
         assert!(s.near_depletion);

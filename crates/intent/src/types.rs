@@ -101,7 +101,10 @@ impl IntentStatus {
 
     /// Returns `true` if the intent is in a terminal state.
     pub fn is_terminal(self) -> bool {
-        matches!(self, Self::Completed | Self::Failed | Self::Cancelled | Self::Expired)
+        matches!(
+            self,
+            Self::Completed | Self::Failed | Self::Cancelled | Self::Expired
+        )
     }
 
     /// Returns `true` if the intent is still live (pending or executing).
@@ -602,8 +605,16 @@ mod tests {
     fn multi_leg_params_roundtrip() {
         let params = MultiLegParams {
             legs: vec![
-                Leg { action: "buy".into(), size: 1000, pair: "BTC-USDC".into() },
-                Leg { action: "sell".into(), size: 500, pair: "ETH-USDC".into() },
+                Leg {
+                    action: "buy".into(),
+                    size: 1000,
+                    pair: "BTC-USDC".into(),
+                },
+                Leg {
+                    action: "sell".into(),
+                    size: 500,
+                    pair: "ETH-USDC".into(),
+                },
             ],
             atomic: true,
         };

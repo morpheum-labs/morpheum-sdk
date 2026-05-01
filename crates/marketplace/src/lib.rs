@@ -36,7 +36,7 @@
 #![allow(
     clippy::module_name_repetitions,
     clippy::must_use_candidate,
-    clippy::return_self_not_must_use,
+    clippy::return_self_not_must_use
 )]
 
 extern crate alloc;
@@ -47,9 +47,7 @@ pub mod requests;
 pub mod types;
 
 // Re-export core domain types at crate root for convenience
-pub use builder::{
-    AcceptBidBuilder, ListAgentBuilder, PlaceBidBuilder, RequestEvaluationBuilder,
-};
+pub use builder::{AcceptBidBuilder, ListAgentBuilder, PlaceBidBuilder, RequestEvaluationBuilder};
 pub use client::MarketplaceClient;
 pub use types::{
     AgentListing, Bid, EscrowState, EvaluationReport, ListingStatus, ListingType, Params,
@@ -63,8 +61,8 @@ pub mod prelude {
     };
     pub use crate::client::MarketplaceClient;
     pub use crate::requests::{
-        AcceptBidRequest, AcceptBidResponse, ListAgentRequest, ListAgentResponse,
-        PlaceBidRequest, PlaceBidResponse, QueryActiveListingsRequest, QueryActiveListingsResponse,
+        AcceptBidRequest, AcceptBidResponse, ListAgentRequest, ListAgentResponse, PlaceBidRequest,
+        PlaceBidResponse, QueryActiveListingsRequest, QueryActiveListingsResponse,
         QueryBidsByListingRequest, QueryBidsByListingResponse, QueryListingRequest,
         QueryListingResponse, QueryListingsRequest, QueryListingsResponse, QueryParamsRequest,
         QueryParamsResponse, RequestEvaluationRequest, RequestEvaluationResponse,

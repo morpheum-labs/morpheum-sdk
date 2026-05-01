@@ -37,7 +37,10 @@ pub struct SubmitIntentRequest {
 impl SubmitIntentRequest {
     /// Creates a new submit request.
     pub fn new(intent: AgentIntent, agent_signature: Vec<u8>) -> Self {
-        Self { intent, agent_signature }
+        Self {
+            intent,
+            agent_signature,
+        }
     }
 
     /// Converts this request into a protobuf `Any` ready for `TxBuilder::add_message`.
@@ -158,13 +161,17 @@ pub struct QueryIntentRequest {
 
 impl QueryIntentRequest {
     pub fn new(intent_id: impl Into<String>) -> Self {
-        Self { intent_id: intent_id.into() }
+        Self {
+            intent_id: intent_id.into(),
+        }
     }
 }
 
 impl From<QueryIntentRequest> for proto::QueryIntentRequest {
     fn from(req: QueryIntentRequest) -> Self {
-        Self { intent_id: req.intent_id }
+        Self {
+            intent_id: req.intent_id,
+        }
     }
 }
 
@@ -303,8 +310,8 @@ impl From<proto::QueryParamsResponse> for QueryParamsResponse {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use alloc::vec;
     use crate::types::*;
+    use alloc::vec;
 
     fn sample_conditional_intent() -> AgentIntent {
         AgentIntent {

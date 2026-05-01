@@ -24,12 +24,11 @@ pub use bridge::{
     approve_erc20, parse_dispatch_id, quote_warp_fee, transfer_remote, transfer_remote_native,
 };
 pub use cctp::{
-    bridge_usdc, extract_cctp_message, quote_cctp_dispatch, CctpBridgeResult,
-    ICctpHyperlaneWrapper,
+    bridge_usdc, extract_cctp_message, quote_cctp_dispatch, CctpBridgeResult, ICctpHyperlaneWrapper,
 };
 pub use config::{ChainConfig, ChainRegistry, TokenConfig, TokenType, DEFAULT_CHAINS_TOML};
 pub use contracts::{
-    IERC20, IHypERC20Collateral, IMailbox, IMerkleTreeHook, IWarpFee, IX402Settlement,
+    IHypERC20Collateral, IMailbox, IMerkleTreeHook, IWarpFee, IX402Settlement, IERC20,
 };
 pub use provider::{build_provider, EvmProvider};
 pub use types::{DispatchResult, EvmError, PaymentInfo, PaymentResult, X402PayParams};

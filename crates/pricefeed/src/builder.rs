@@ -33,24 +33,68 @@ pub struct RegisterFeedBuilder {
 
 impl RegisterFeedBuilder {
     pub fn new() -> Self {
-        Self { decimals: 8, agg_method: AggregationMethod::Median, ..Self::default() }
+        Self {
+            decimals: 8,
+            agg_method: AggregationMethod::Median,
+            ..Self::default()
+        }
     }
 
-    pub fn from_address(mut self, v: impl Into<String>) -> Self { self.from_address = Some(v.into()); self }
-    pub fn symbol(mut self, v: impl Into<String>) -> Self { self.symbol = Some(v.into()); self }
-    pub fn add_source(mut self, source_type: impl Into<String>, params: BTreeMap<String, String>) -> Self {
-        self.sources.push(SourceConfig { source_type: source_type.into(), params });
+    pub fn from_address(mut self, v: impl Into<String>) -> Self {
+        self.from_address = Some(v.into());
         self
     }
-    pub fn agg_method(mut self, v: AggregationMethod) -> Self { self.agg_method = v; self }
-    pub fn decimals(mut self, v: u32) -> Self { self.decimals = v; self }
-    pub fn threshold_pct(mut self, v: u32) -> Self { self.threshold_pct = v; self }
-    pub fn heartbeat_sec(mut self, v: u32) -> Self { self.heartbeat_sec = v; self }
-    pub fn staleness_sec(mut self, v: u32) -> Self { self.staleness_sec = v; self }
-    pub fn min_answer(mut self, v: impl Into<String>) -> Self { self.min_answer = v.into(); self }
-    pub fn max_answer(mut self, v: impl Into<String>) -> Self { self.max_answer = v.into(); self }
-    pub fn base_asset_index(mut self, v: u64) -> Self { self.base_asset_index = Some(v); self }
-    pub fn quote_asset_index(mut self, v: u64) -> Self { self.quote_asset_index = Some(v); self }
+    pub fn symbol(mut self, v: impl Into<String>) -> Self {
+        self.symbol = Some(v.into());
+        self
+    }
+    pub fn add_source(
+        mut self,
+        source_type: impl Into<String>,
+        params: BTreeMap<String, String>,
+    ) -> Self {
+        self.sources.push(SourceConfig {
+            source_type: source_type.into(),
+            params,
+        });
+        self
+    }
+    pub fn agg_method(mut self, v: AggregationMethod) -> Self {
+        self.agg_method = v;
+        self
+    }
+    pub fn decimals(mut self, v: u32) -> Self {
+        self.decimals = v;
+        self
+    }
+    pub fn threshold_pct(mut self, v: u32) -> Self {
+        self.threshold_pct = v;
+        self
+    }
+    pub fn heartbeat_sec(mut self, v: u32) -> Self {
+        self.heartbeat_sec = v;
+        self
+    }
+    pub fn staleness_sec(mut self, v: u32) -> Self {
+        self.staleness_sec = v;
+        self
+    }
+    pub fn min_answer(mut self, v: impl Into<String>) -> Self {
+        self.min_answer = v.into();
+        self
+    }
+    pub fn max_answer(mut self, v: impl Into<String>) -> Self {
+        self.max_answer = v.into();
+        self
+    }
+    pub fn base_asset_index(mut self, v: u64) -> Self {
+        self.base_asset_index = Some(v);
+        self
+    }
+    pub fn quote_asset_index(mut self, v: u64) -> Self {
+        self.quote_asset_index = Some(v);
+        self
+    }
     pub fn derived(mut self, base_feed: u64, quote_feed: u64) -> Self {
         self.feed_kind = FeedKind::Derived;
         self.base_feed_index = base_feed;
@@ -64,18 +108,26 @@ impl RegisterFeedBuilder {
         }
 
         let config = PriceFeedConfig {
-            sources: self.sources, agg_method: self.agg_method,
-            decimals: self.decimals, threshold_pct: self.threshold_pct,
-            heartbeat_sec: self.heartbeat_sec, staleness_sec: self.staleness_sec,
-            min_answer: self.min_answer, max_answer: self.max_answer,
+            sources: self.sources,
+            agg_method: self.agg_method,
+            decimals: self.decimals,
+            threshold_pct: self.threshold_pct,
+            heartbeat_sec: self.heartbeat_sec,
+            staleness_sec: self.staleness_sec,
+            min_answer: self.min_answer,
+            max_answer: self.max_answer,
         };
 
         let mut req = RegisterFeedRequest::new(
-            self.from_address.ok_or_else(|| SdkError::invalid_input("from_address is required"))?,
-            self.symbol.ok_or_else(|| SdkError::invalid_input("symbol is required"))?,
+            self.from_address
+                .ok_or_else(|| SdkError::invalid_input("from_address is required"))?,
+            self.symbol
+                .ok_or_else(|| SdkError::invalid_input("symbol is required"))?,
             config,
-            self.base_asset_index.ok_or_else(|| SdkError::invalid_input("base_asset_index is required"))?,
-            self.quote_asset_index.ok_or_else(|| SdkError::invalid_input("quote_asset_index is required"))?,
+            self.base_asset_index
+                .ok_or_else(|| SdkError::invalid_input("base_asset_index is required"))?,
+            self.quote_asset_index
+                .ok_or_else(|| SdkError::invalid_input("quote_asset_index is required"))?,
         );
 
         if self.feed_kind == FeedKind::Derived {
@@ -98,15 +150,25 @@ pub struct DeregisterFeedBuilder {
 }
 
 impl DeregisterFeedBuilder {
-    pub fn new() -> Self { Self::default() }
+    pub fn new() -> Self {
+        Self::default()
+    }
 
-    pub fn from_address(mut self, v: impl Into<String>) -> Self { self.from_address = Some(v.into()); self }
-    pub fn feed_index(mut self, v: u64) -> Self { self.feed_index = Some(v); self }
+    pub fn from_address(mut self, v: impl Into<String>) -> Self {
+        self.from_address = Some(v.into());
+        self
+    }
+    pub fn feed_index(mut self, v: u64) -> Self {
+        self.feed_index = Some(v);
+        self
+    }
 
     pub fn build(self) -> Result<DeregisterFeedRequest, SdkError> {
         Ok(DeregisterFeedRequest::new(
-            self.from_address.ok_or_else(|| SdkError::invalid_input("from_address is required"))?,
-            self.feed_index.ok_or_else(|| SdkError::invalid_input("feed_index is required"))?,
+            self.from_address
+                .ok_or_else(|| SdkError::invalid_input("from_address is required"))?,
+            self.feed_index
+                .ok_or_else(|| SdkError::invalid_input("feed_index is required"))?,
         ))
     }
 }
@@ -118,11 +180,15 @@ mod tests {
     #[test]
     fn register_feed_builder_works() {
         let req = RegisterFeedBuilder::new()
-            .from_address("morph1xyz").symbol("BTC/USD")
+            .from_address("morph1xyz")
+            .symbol("BTC/USD")
             .add_source("chainlink", BTreeMap::new())
-            .base_asset_index(0).quote_asset_index(1)
-            .heartbeat_sec(60).staleness_sec(300)
-            .build().unwrap();
+            .base_asset_index(0)
+            .quote_asset_index(1)
+            .heartbeat_sec(60)
+            .staleness_sec(300)
+            .build()
+            .unwrap();
         assert_eq!(req.symbol, "BTC/USD");
         assert_eq!(req.feed_kind, FeedKind::Direct);
     }
@@ -130,11 +196,14 @@ mod tests {
     #[test]
     fn register_derived_feed_builder_works() {
         let req = RegisterFeedBuilder::new()
-            .from_address("morph1xyz").symbol("BTC/USDC")
+            .from_address("morph1xyz")
+            .symbol("BTC/USDC")
             .add_source("derived", BTreeMap::new())
-            .base_asset_index(0).quote_asset_index(2)
+            .base_asset_index(0)
+            .quote_asset_index(2)
             .derived(1, 3)
-            .build().unwrap();
+            .build()
+            .unwrap();
         assert_eq!(req.feed_kind, FeedKind::Derived);
         assert_eq!(req.base_feed_index, 1);
         assert_eq!(req.quote_feed_index, 3);
@@ -143,8 +212,10 @@ mod tests {
     #[test]
     fn register_feed_requires_source() {
         let result = RegisterFeedBuilder::new()
-            .from_address("morph1xyz").symbol("BTC/USD")
-            .base_asset_index(0).quote_asset_index(1)
+            .from_address("morph1xyz")
+            .symbol("BTC/USD")
+            .base_asset_index(0)
+            .quote_asset_index(1)
             .build();
         assert!(result.is_err());
     }
@@ -157,8 +228,10 @@ mod tests {
     #[test]
     fn deregister_feed_builder_works() {
         let req = DeregisterFeedBuilder::new()
-            .from_address("morph1xyz").feed_index(1)
-            .build().unwrap();
+            .from_address("morph1xyz")
+            .feed_index(1)
+            .build()
+            .unwrap();
         assert_eq!(req.feed_index, 1);
     }
 

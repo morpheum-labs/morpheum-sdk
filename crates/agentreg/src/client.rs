@@ -15,11 +15,7 @@ use prost::Message as _;
 use morpheum_sdk_core::{MorpheumClient, SdkConfig, SdkError, Transport};
 
 use crate::{
-    requests::{
-        QueryAgentByCaipRequest,
-        QueryAgentRecordRequest,
-        QueryExportStatusRequest,
-    },
+    requests::{QueryAgentByCaipRequest, QueryAgentRecordRequest, QueryExportStatusRequest},
     types::{AgentRecord, ExportStatus, Params},
 };
 
@@ -52,11 +48,10 @@ impl AgentRegistryClient {
         let data = proto_req.encode_to_vec();
         let response_bytes = self.query(path, data).await?;
 
-        let proto_res =
-            morpheum_proto::agentreg::v1::QueryAgentRecordResponse::decode(
-                response_bytes.as_slice(),
-            )
-            .map_err(SdkError::Decode)?;
+        let proto_res = morpheum_proto::agentreg::v1::QueryAgentRecordResponse::decode(
+            response_bytes.as_slice(),
+        )
+        .map_err(SdkError::Decode)?;
 
         let response: crate::requests::QueryAgentRecordResponse = proto_res.into();
         Ok(response.record)
@@ -76,11 +71,10 @@ impl AgentRegistryClient {
         let data = proto_req.encode_to_vec();
         let response_bytes = self.query(path, data).await?;
 
-        let proto_res =
-            morpheum_proto::agentreg::v1::QueryAgentByCaipResponse::decode(
-                response_bytes.as_slice(),
-            )
-            .map_err(SdkError::Decode)?;
+        let proto_res = morpheum_proto::agentreg::v1::QueryAgentByCaipResponse::decode(
+            response_bytes.as_slice(),
+        )
+        .map_err(SdkError::Decode)?;
 
         let response: crate::requests::QueryAgentByCaipResponse = proto_res.into();
         Ok(response.record)
@@ -101,11 +95,10 @@ impl AgentRegistryClient {
         let data = proto_req.encode_to_vec();
         let response_bytes = self.query(path, data).await?;
 
-        let proto_res =
-            morpheum_proto::agentreg::v1::QueryExportStatusResponse::decode(
-                response_bytes.as_slice(),
-            )
-            .map_err(SdkError::Decode)?;
+        let proto_res = morpheum_proto::agentreg::v1::QueryExportStatusResponse::decode(
+            response_bytes.as_slice(),
+        )
+        .map_err(SdkError::Decode)?;
 
         let response: crate::requests::QueryExportStatusResponse = proto_res.into();
         Ok(response.export_statuses)
@@ -121,10 +114,8 @@ impl AgentRegistryClient {
         let response_bytes = self.query(path, data).await?;
 
         let proto_res =
-            morpheum_proto::agentreg::v1::QueryParamsResponse::decode(
-                response_bytes.as_slice(),
-            )
-            .map_err(SdkError::Decode)?;
+            morpheum_proto::agentreg::v1::QueryParamsResponse::decode(response_bytes.as_slice())
+                .map_err(SdkError::Decode)?;
 
         let response: crate::requests::QueryParamsResponse = proto_res.into();
         Ok(response.params)
@@ -183,13 +174,11 @@ mod tests {
                 }
                 "/agentreg.v1.Query/QueryExportStatus" => {
                     let dummy = morpheum_proto::agentreg::v1::QueryExportStatusResponse {
-                        export_statuses: vec![
-                            morpheum_proto::agentreg::v1::ExportStatus {
-                                protocol: "erc8004".into(),
-                                success: true,
-                                ..Default::default()
-                            },
-                        ],
+                        export_statuses: vec![morpheum_proto::agentreg::v1::ExportStatus {
+                            protocol: "erc8004".into(),
+                            success: true,
+                            ..Default::default()
+                        }],
                     };
                     Ok(prost::Message::encode_to_vec(&dummy))
                 }

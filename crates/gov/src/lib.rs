@@ -13,39 +13,23 @@
 
 extern crate alloc;
 
-pub mod client;
-pub mod types;
-pub mod requests;
 pub mod builder;
+pub mod client;
+pub mod requests;
+pub mod types;
 
 // ==================== PUBLIC RE-EXPORTS ====================
 
 pub use client::GovClient;
 
 pub use types::{
-    Proposal,
-    ProposalClass,
-    ProposalClassParams,
-    ProposalStatus,
-    ProposalUpdate,
-    GovParams,
-    TallyResult,
-    Deposit,
-    Vote,
-    VoteOption,
-    WeightedVoteOption,
-    UpgradePlan,
-    UpgradeStatus,
+    Deposit, GovParams, Proposal, ProposalClass, ProposalClassParams, ProposalStatus,
+    ProposalUpdate, TallyResult, UpgradePlan, UpgradeStatus, Vote, VoteOption, WeightedVoteOption,
 };
 
 pub use requests::*;
 
-pub use morpheum_sdk_core::{
-    AccountId,
-    ChainId,
-    SdkError,
-    SignedTx,
-};
+pub use morpheum_sdk_core::{AccountId, ChainId, SdkError, SignedTx};
 
 /// Recommended prelude for the governance module.
 ///
@@ -54,21 +38,9 @@ pub use morpheum_sdk_core::{
 /// ```
 pub mod prelude {
     pub use super::{
-        GovClient,
-        Proposal,
-        ProposalClass,
-        ProposalStatus,
-        GovParams,
-        TallyResult,
-        Vote,
-        VoteOption,
+        AccountId, ChainId, GovClient, GovParams, Proposal, ProposalClass, ProposalStatus,
+        SdkError, SignedTx, TallyResult, UpgradePlan, UpgradeStatus, Vote, VoteOption,
         WeightedVoteOption,
-        UpgradePlan,
-        UpgradeStatus,
-        AccountId,
-        ChainId,
-        SdkError,
-        SignedTx,
     };
 }
 

@@ -196,17 +196,17 @@ impl CancelIntentBuilder {
 
     /// Builds the cancel request, performing validation.
     pub fn build(self) -> Result<CancelIntentRequest, SdkError> {
-        let intent_id = self.intent_id.ok_or_else(|| {
-            SdkError::invalid_input("intent_id is required for cancellation")
-        })?;
+        let intent_id = self
+            .intent_id
+            .ok_or_else(|| SdkError::invalid_input("intent_id is required for cancellation"))?;
 
         let agent_signature = self.agent_signature.ok_or_else(|| {
             SdkError::invalid_input("agent_signature is required for cancellation")
         })?;
 
-        let reason = self.reason.ok_or_else(|| {
-            SdkError::invalid_input("reason is required for cancellation")
-        })?;
+        let reason = self
+            .reason
+            .ok_or_else(|| SdkError::invalid_input("reason is required for cancellation"))?;
 
         Ok(CancelIntentRequest::new(intent_id, agent_signature, reason))
     }
@@ -215,8 +215,8 @@ impl CancelIntentBuilder {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use alloc::vec;
     use crate::types::Leg;
+    use alloc::vec;
 
     #[test]
     fn submit_conditional_builder_full_flow() {
@@ -269,8 +269,16 @@ mod tests {
             .agent_hash("agent-ml")
             .multi_leg(MultiLegParams {
                 legs: vec![
-                    Leg { action: "buy".into(), size: 1000, pair: "BTC-USDC".into() },
-                    Leg { action: "sell".into(), size: 500, pair: "ETH-USDC".into() },
+                    Leg {
+                        action: "buy".into(),
+                        size: 1000,
+                        pair: "BTC-USDC".into(),
+                    },
+                    Leg {
+                        action: "sell".into(),
+                        size: 500,
+                        pair: "ETH-USDC".into(),
+                    },
                 ],
                 atomic: true,
             })
@@ -356,10 +364,7 @@ mod tests {
         let result = CancelIntentBuilder::new().build();
         assert!(result.is_err());
 
-        let result = CancelIntentBuilder::new()
-            .intent_id("intent-001")
-            .build();
+        let result = CancelIntentBuilder::new().intent_id("intent-001").build();
         assert!(result.is_err());
     }
-
 }

@@ -16,9 +16,8 @@ use prost::Message as _;
 use morpheum_sdk_core::{MorpheumClient, SdkConfig, SdkError, Transport};
 
 use crate::requests::{
-    QueryActiveJobsRequest, QueryJobRequest, QueryJobsByClientRequest,
-    QueryJobsByEvaluatorRequest, QueryJobsByProviderRequest,
-    QueryJobsByStateRequest, QueryParamsRequest,
+    QueryActiveJobsRequest, QueryJobRequest, QueryJobsByClientRequest, QueryJobsByEvaluatorRequest,
+    QueryJobsByProviderRequest, QueryJobsByStateRequest, QueryParamsRequest,
 };
 use crate::types::{Job, JobParams, JobState};
 
@@ -39,10 +38,7 @@ impl JobClient {
     }
 
     /// Queries a single job by its ID.
-    pub async fn query_job(
-        &self,
-        job_id: impl Into<String>,
-    ) -> Result<Option<Job>, SdkError> {
+    pub async fn query_job(&self, job_id: impl Into<String>) -> Result<Option<Job>, SdkError> {
         let req = QueryJobRequest::new(job_id);
         let proto_req: morpheum_proto::job::v1::QueryJobRequest = req.into();
 
@@ -50,10 +46,9 @@ impl JobClient {
         let data = proto_req.encode_to_vec();
         let response_bytes = self.query(path, data).await?;
 
-        let proto_res = morpheum_proto::job::v1::QueryJobResponse::decode(
-            response_bytes.as_slice(),
-        )
-        .map_err(SdkError::Decode)?;
+        let proto_res =
+            morpheum_proto::job::v1::QueryJobResponse::decode(response_bytes.as_slice())
+                .map_err(SdkError::Decode)?;
 
         if proto_res.found {
             Ok(proto_res.job.map(Into::into))
@@ -80,10 +75,9 @@ impl JobClient {
         let data = proto_req.encode_to_vec();
         let response_bytes = self.query(path, data).await?;
 
-        let proto_res = morpheum_proto::job::v1::QueryJobsByClientResponse::decode(
-            response_bytes.as_slice(),
-        )
-        .map_err(SdkError::Decode)?;
+        let proto_res =
+            morpheum_proto::job::v1::QueryJobsByClientResponse::decode(response_bytes.as_slice())
+                .map_err(SdkError::Decode)?;
 
         Ok(proto_res.job.into_iter().map(Into::into).collect())
     }
@@ -106,10 +100,9 @@ impl JobClient {
         let data = proto_req.encode_to_vec();
         let response_bytes = self.query(path, data).await?;
 
-        let proto_res = morpheum_proto::job::v1::QueryJobsByProviderResponse::decode(
-            response_bytes.as_slice(),
-        )
-        .map_err(SdkError::Decode)?;
+        let proto_res =
+            morpheum_proto::job::v1::QueryJobsByProviderResponse::decode(response_bytes.as_slice())
+                .map_err(SdkError::Decode)?;
 
         Ok(proto_res.job.into_iter().map(Into::into).collect())
     }
@@ -161,10 +154,9 @@ impl JobClient {
         let data = proto_req.encode_to_vec();
         let response_bytes = self.query(path, data).await?;
 
-        let proto_res = morpheum_proto::job::v1::QueryActiveJobsResponse::decode(
-            response_bytes.as_slice(),
-        )
-        .map_err(SdkError::Decode)?;
+        let proto_res =
+            morpheum_proto::job::v1::QueryActiveJobsResponse::decode(response_bytes.as_slice())
+                .map_err(SdkError::Decode)?;
 
         Ok(proto_res.job.into_iter().map(Into::into).collect())
     }
@@ -183,10 +175,9 @@ impl JobClient {
         let data = proto_req.encode_to_vec();
         let response_bytes = self.query(path, data).await?;
 
-        let proto_res = morpheum_proto::job::v1::QueryJobsByStateResponse::decode(
-            response_bytes.as_slice(),
-        )
-        .map_err(SdkError::Decode)?;
+        let proto_res =
+            morpheum_proto::job::v1::QueryJobsByStateResponse::decode(response_bytes.as_slice())
+                .map_err(SdkError::Decode)?;
 
         Ok(proto_res.job.into_iter().map(Into::into).collect())
     }
@@ -200,10 +191,9 @@ impl JobClient {
         let data = proto_req.encode_to_vec();
         let response_bytes = self.query(path, data).await?;
 
-        let proto_res = morpheum_proto::job::v1::QueryParamsResponse::decode(
-            response_bytes.as_slice(),
-        )
-        .map_err(SdkError::Decode)?;
+        let proto_res =
+            morpheum_proto::job::v1::QueryParamsResponse::decode(response_bytes.as_slice())
+                .map_err(SdkError::Decode)?;
 
         proto_res
             .params
@@ -240,11 +230,7 @@ mod tests {
             unimplemented!("not needed for job query tests")
         }
 
-        async fn query(
-            &self,
-            path: &str,
-            _data: Vec<u8>,
-        ) -> Result<Vec<u8>, SdkError> {
+        async fn query(&self, path: &str, _data: Vec<u8>) -> Result<Vec<u8>, SdkError> {
             match path {
                 "/job.v1.Query/QueryJob" => {
                     let dummy = morpheum_proto::job::v1::QueryJobResponse {

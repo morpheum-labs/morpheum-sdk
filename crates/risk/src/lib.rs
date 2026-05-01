@@ -8,46 +8,28 @@
 
 extern crate alloc;
 
-pub mod client;
-pub mod types;
-pub mod requests;
 pub mod builder;
+pub mod client;
+pub mod requests;
+pub mod types;
 
 // ==================== PUBLIC RE-EXPORTS ====================
 
 pub use client::{HeatmapResult, OiRatioResult, RiskClient};
 
 pub use types::{
-    AuctionParams,
-    BucketRiskSummary,
-    ContagionDetected,
-    HeatmapBand,
-    HeatmapData,
-    HeatmapUpdatedEvent,
-    InsurancePayoutRequested,
-    LiquidationPlan,
-    LiquidationPlanBand,
-    LiquidationShortfallReady,
-    LiquidationTriggered,
-    OiUpdated,
-    PreTradeMarginResult,
-    RiskConfig,
-    RiskEvent,
-    ShortfallIntendedPath,
+    AuctionParams, BucketRiskSummary, ContagionDetected, HeatmapBand, HeatmapData,
+    HeatmapUpdatedEvent, InsurancePayoutRequested, LiquidationPlan, LiquidationPlanBand,
+    LiquidationShortfallReady, LiquidationTriggered, OiUpdated, PreTradeMarginResult, RiskConfig,
+    RiskEvent, ShortfallIntendedPath,
 };
 
 pub use requests::{
-    GetHeatmapRequest,
-    GetMaintenanceMarginRequest,
-    GetOiRatioRequest,
-    TriggerLiquidationRequest,
+    GetHeatmapRequest, GetMaintenanceMarginRequest, GetOiRatioRequest, TriggerLiquidationRequest,
     UpdateRiskConfigRequest,
 };
 
-pub use builder::{
-    TriggerLiquidationBuilder,
-    UpdateRiskConfigBuilder,
-};
+pub use builder::{TriggerLiquidationBuilder, UpdateRiskConfigBuilder};
 
 pub use morpheum_sdk_core::{AccountId, ChainId, SdkError, SignedTx};
 
@@ -59,16 +41,8 @@ pub use morpheum_sdk_core::{AccountId, ChainId, SdkError, SignedTx};
 /// ```
 pub mod prelude {
     pub use super::{
-        RiskClient,
-        RiskConfig,
-        RiskEvent,
-        HeatmapResult,
-        OiRatioResult,
-        ShortfallIntendedPath,
-        AccountId,
-        ChainId,
-        SdkError,
-        SignedTx,
+        AccountId, ChainId, HeatmapResult, OiRatioResult, RiskClient, RiskConfig, RiskEvent,
+        SdkError, ShortfallIntendedPath, SignedTx,
     };
 }
 

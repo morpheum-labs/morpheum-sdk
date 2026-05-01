@@ -25,10 +25,7 @@ pub struct Subscription {
 }
 
 impl Subscription {
-    pub(crate) fn new(
-        spec: ChannelSpec,
-        rx: mpsc::Receiver<Result<StreamEvent, WsError>>,
-    ) -> Self {
+    pub(crate) fn new(spec: ChannelSpec, rx: mpsc::Receiver<Result<StreamEvent, WsError>>) -> Self {
         Self { spec, rx }
     }
 

@@ -28,7 +28,9 @@ pub enum FundingApplicationMode {
 impl From<i32> for FundingApplicationMode {
     fn from(v: i32) -> Self {
         match v {
-            1 => Self::BothSides, 2 => Self::UpsideOnly, 3 => Self::MormBoost,
+            1 => Self::BothSides,
+            2 => Self::UpsideOnly,
+            3 => Self::MormBoost,
             _ => Self::Unspecified,
         }
     }
@@ -37,8 +39,10 @@ impl From<i32> for FundingApplicationMode {
 impl From<FundingApplicationMode> for i32 {
     fn from(m: FundingApplicationMode) -> Self {
         match m {
-            FundingApplicationMode::Unspecified => 0, FundingApplicationMode::BothSides => 1,
-            FundingApplicationMode::UpsideOnly => 2, FundingApplicationMode::MormBoost => 3,
+            FundingApplicationMode::Unspecified => 0,
+            FundingApplicationMode::BothSides => 1,
+            FundingApplicationMode::UpsideOnly => 2,
+            FundingApplicationMode::MormBoost => 3,
         }
     }
 }
@@ -54,13 +58,21 @@ pub enum FundingType {
 
 impl From<i32> for FundingType {
     fn from(v: i32) -> Self {
-        match v { 1 => Self::Linear, 2 => Self::Power, _ => Self::Unspecified }
+        match v {
+            1 => Self::Linear,
+            2 => Self::Power,
+            _ => Self::Unspecified,
+        }
     }
 }
 
 impl From<FundingType> for i32 {
     fn from(t: FundingType) -> Self {
-        match t { FundingType::Unspecified => 0, FundingType::Linear => 1, FundingType::Power => 2 }
+        match t {
+            FundingType::Unspecified => 0,
+            FundingType::Linear => 1,
+            FundingType::Power => 2,
+        }
     }
 }
 
@@ -82,9 +94,12 @@ pub struct FundingRateData {
 impl From<proto::FundingRateData> for FundingRateData {
     fn from(p: proto::FundingRateData) -> Self {
         Self {
-            market_index: p.market_index, symbol: p.symbol,
-            funding_rate: p.funding_rate, mark_price: p.mark_price,
-            index_price: p.index_price, ema_funding_rate: p.ema_funding_rate,
+            market_index: p.market_index,
+            symbol: p.symbol,
+            funding_rate: p.funding_rate,
+            mark_price: p.mark_price,
+            index_price: p.index_price,
+            ema_funding_rate: p.ema_funding_rate,
             next_funding_time: p.next_funding_time,
         }
     }
@@ -139,9 +154,14 @@ pub struct FundingPosition {
 impl From<FundingPosition> for proto::FundingPosition {
     fn from(p: FundingPosition) -> Self {
         Self {
-            address: p.address, position_id: p.position_id,
-            size: p.size, entry_price: p.entry_price, is_long: p.is_long,
-            leverage: p.leverage, power: p.power, entries_count: p.entries_count,
+            address: p.address,
+            position_id: p.position_id,
+            size: p.size,
+            entry_price: p.entry_price,
+            is_long: p.is_long,
+            leverage: p.leverage,
+            power: p.power,
+            entries_count: p.entries_count,
         }
     }
 }
@@ -199,11 +219,17 @@ pub struct FundingApplied {
 impl From<proto::FundingApplied> for FundingApplied {
     fn from(p: proto::FundingApplied) -> Self {
         Self {
-            address: p.address, market_index: p.market_index,
-            payment: p.payment, shortfall: p.shortfall,
-            profile_mode: p.profile_mode, funding_type: FundingType::from(p.funding_type),
-            timestamp: p.timestamp, size: p.size, is_long: p.is_long,
-            mark_price: p.mark_price, index_price: p.index_price,
+            address: p.address,
+            market_index: p.market_index,
+            payment: p.payment,
+            shortfall: p.shortfall,
+            profile_mode: p.profile_mode,
+            funding_type: FundingType::from(p.funding_type),
+            timestamp: p.timestamp,
+            size: p.size,
+            is_long: p.is_long,
+            mark_price: p.mark_price,
+            index_price: p.index_price,
         }
     }
 }
@@ -219,7 +245,11 @@ pub struct FundingShortfall {
 
 impl From<proto::FundingShortfall> for FundingShortfall {
     fn from(p: proto::FundingShortfall) -> Self {
-        Self { market_index: p.market_index, shortfall_satoshi: p.shortfall_satoshi, timestamp: p.timestamp }
+        Self {
+            market_index: p.market_index,
+            shortfall_satoshi: p.shortfall_satoshi,
+            timestamp: p.timestamp,
+        }
     }
 }
 
@@ -234,7 +264,11 @@ pub struct MormFundingCutEvent {
 
 impl From<proto::MormFundingCutEvent> for MormFundingCutEvent {
     fn from(p: proto::MormFundingCutEvent) -> Self {
-        Self { market_index: p.market_index, treasury_amount: p.treasury_amount, lp_reward_amount: p.lp_reward_amount }
+        Self {
+            market_index: p.market_index,
+            treasury_amount: p.treasury_amount,
+            lp_reward_amount: p.lp_reward_amount,
+        }
     }
 }
 
@@ -244,7 +278,11 @@ mod tests {
 
     #[test]
     fn application_mode_roundtrip() {
-        for m in [FundingApplicationMode::BothSides, FundingApplicationMode::UpsideOnly, FundingApplicationMode::MormBoost] {
+        for m in [
+            FundingApplicationMode::BothSides,
+            FundingApplicationMode::UpsideOnly,
+            FundingApplicationMode::MormBoost,
+        ] {
             let v: i32 = m.into();
             assert_eq!(m, FundingApplicationMode::from(v));
         }
@@ -261,9 +299,12 @@ mod tests {
     #[test]
     fn funding_rate_data_from_proto() {
         let p = proto::FundingRateData {
-            market_index: 42, symbol: "BTC-USDC-PERP".into(),
-            funding_rate: -500, mark_price: 5_000_000_000_000,
-            index_price: 4_999_000_000_000, ema_funding_rate: -480,
+            market_index: 42,
+            symbol: "BTC-USDC-PERP".into(),
+            funding_rate: -500,
+            mark_price: 5_000_000_000_000,
+            index_price: 4_999_000_000_000,
+            ema_funding_rate: -480,
             next_funding_time: 1_700_028_800,
         };
         let d: FundingRateData = p.into();
@@ -275,7 +316,9 @@ mod tests {
     fn market_profile_bidirectional() {
         let profile = FundingMarketProfile {
             mode: FundingApplicationMode::MormBoost,
-            vrf_bias_bps: 50, protocol_cut_bps: 500, lp_incentive_bps: 200,
+            vrf_bias_bps: 50,
+            protocol_cut_bps: 500,
+            lp_incentive_bps: 200,
         };
         let proto_profile: proto::FundingMarketProfile = profile.clone().into();
         let back: FundingMarketProfile = proto_profile.into();

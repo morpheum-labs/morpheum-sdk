@@ -42,7 +42,10 @@ impl UpdateMarketProfileRequest {
             market_index: self.market_index,
             profile: Some(self.profile.clone().into()),
         };
-        ProtoAny { type_url: "/fundingrate.v1.MsgUpdateMarketConfig".into(), value: msg.encode_to_vec() }
+        ProtoAny {
+            type_url: "/fundingrate.v1.MsgUpdateMarketConfig".into(),
+            value: msg.encode_to_vec(),
+        }
     }
 }
 
@@ -56,11 +59,17 @@ pub struct GetFundingRateRequest {
 }
 
 impl GetFundingRateRequest {
-    pub fn new(market_index: u64) -> Self { Self { market_index } }
+    pub fn new(market_index: u64) -> Self {
+        Self { market_index }
+    }
 }
 
 impl From<GetFundingRateRequest> for proto::GetFundingRateRequest {
-    fn from(r: GetFundingRateRequest) -> Self { Self { market_index: r.market_index } }
+    fn from(r: GetFundingRateRequest) -> Self {
+        Self {
+            market_index: r.market_index,
+        }
+    }
 }
 
 /// Query next funding time for a market.
@@ -71,11 +80,17 @@ pub struct GetNextFundingTimeRequest {
 }
 
 impl GetNextFundingTimeRequest {
-    pub fn new(market_index: u64) -> Self { Self { market_index } }
+    pub fn new(market_index: u64) -> Self {
+        Self { market_index }
+    }
 }
 
 impl From<GetNextFundingTimeRequest> for proto::GetNextFundingTimeRequest {
-    fn from(r: GetNextFundingTimeRequest) -> Self { Self { market_index: r.market_index } }
+    fn from(r: GetNextFundingTimeRequest) -> Self {
+        Self {
+            market_index: r.market_index,
+        }
+    }
 }
 
 /// Query market funding profile.
@@ -86,11 +101,17 @@ pub struct GetMarketProfileRequest {
 }
 
 impl GetMarketProfileRequest {
-    pub fn new(market_index: u64) -> Self { Self { market_index } }
+    pub fn new(market_index: u64) -> Self {
+        Self { market_index }
+    }
 }
 
 impl From<GetMarketProfileRequest> for proto::GetMarketProfileRequest {
-    fn from(r: GetMarketProfileRequest) -> Self { Self { market_index: r.market_index } }
+    fn from(r: GetMarketProfileRequest) -> Self {
+        Self {
+            market_index: r.market_index,
+        }
+    }
 }
 
 #[cfg(test)]
@@ -102,7 +123,9 @@ mod tests {
     fn update_market_profile_to_any() {
         let profile = FundingMarketProfile {
             mode: FundingApplicationMode::BothSides,
-            vrf_bias_bps: 0, protocol_cut_bps: 0, lp_incentive_bps: 0,
+            vrf_bias_bps: 0,
+            protocol_cut_bps: 0,
+            lp_incentive_bps: 0,
         };
         let any = UpdateMarketProfileRequest::new("morpheum1gov", 42, profile).to_any();
         assert_eq!(any.type_url, "/fundingrate.v1.MsgUpdateMarketConfig");

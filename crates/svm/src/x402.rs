@@ -115,10 +115,7 @@ pub fn pay_x402_via_hyperlane(
 }
 
 /// Queries the on-chain payment record for a given payment ID.
-pub fn get_payment(
-    provider: &SvmProvider,
-    payment_id: &[u8; 32],
-) -> Result<PaymentInfo, SvmError> {
+pub fn get_payment(provider: &SvmProvider, payment_id: &[u8; 32]) -> Result<PaymentInfo, SvmError> {
     let (pda, _) = contracts::payment_pda(payment_id);
 
     let account = provider

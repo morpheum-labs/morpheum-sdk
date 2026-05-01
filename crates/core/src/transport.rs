@@ -40,11 +40,7 @@ pub trait Transport: Send + Sync + 'static {
     /// Used internally by `AuthClient` for nonce and account queries.
     /// Default implementation returns a clear error so that transports
     /// that only support broadcasting can still compile.
-    async fn query(
-        &self,
-        path: &str,
-        data: Vec<u8>,
-    ) -> Result<Vec<u8>, SdkError> {
+    async fn query(&self, path: &str, data: Vec<u8>) -> Result<Vec<u8>, SdkError> {
         let _ = (path, data);
         Err(SdkError::transport(
             "query is not supported by this transport implementation",

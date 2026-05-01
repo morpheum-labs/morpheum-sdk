@@ -16,13 +16,12 @@ use prost::Message as _;
 use morpheum_sdk_core::{MorpheumClient, SdkConfig, SdkError, Transport};
 
 use crate::requests::{
-    QueryDaoDepositsRequest, QueryDaoDepositRequest, QueryDaoProposalRequest,
-    QueryDaoProposalsRequest, QueryDaoRequest, QueryDaoTallyResultRequest,
-    QueryDaoVoteRequest, QueryDaoVotesRequest, QueryDaosRequest,
+    QueryDaoDepositRequest, QueryDaoDepositsRequest, QueryDaoProposalRequest,
+    QueryDaoProposalsRequest, QueryDaoRequest, QueryDaoTallyResultRequest, QueryDaoVoteRequest,
+    QueryDaoVotesRequest, QueryDaosRequest,
 };
 use crate::types::{
-    Dao, DaoDeposit, DaoProposal, DaoProposalStatus, DaoStatus, DaoTallyResult,
-    DaoType, DaoVote,
+    Dao, DaoDeposit, DaoProposal, DaoProposalStatus, DaoStatus, DaoTallyResult, DaoType, DaoVote,
 };
 
 /// Primary client for all DAO-related queries.
@@ -48,10 +47,9 @@ impl DaoClient {
             .query("/dao.v1.Query/QueryDao", proto_req.encode_to_vec())
             .await?;
 
-        let proto_res = morpheum_proto::dao::v1::QueryDaoResponse::decode(
-            response_bytes.as_slice(),
-        )
-        .map_err(SdkError::Decode)?;
+        let proto_res =
+            morpheum_proto::dao::v1::QueryDaoResponse::decode(response_bytes.as_slice())
+                .map_err(SdkError::Decode)?;
 
         proto_res
             .dao
@@ -85,10 +83,9 @@ impl DaoClient {
             .query("/dao.v1.Query/QueryDaos", proto_req.encode_to_vec())
             .await?;
 
-        let proto_res = morpheum_proto::dao::v1::QueryDaosResponse::decode(
-            response_bytes.as_slice(),
-        )
-        .map_err(SdkError::Decode)?;
+        let proto_res =
+            morpheum_proto::dao::v1::QueryDaosResponse::decode(response_bytes.as_slice())
+                .map_err(SdkError::Decode)?;
 
         Ok(proto_res.daos.into_iter().map(Into::into).collect())
     }
@@ -106,10 +103,9 @@ impl DaoClient {
             .query("/dao.v1.Query/QueryProposal", proto_req.encode_to_vec())
             .await?;
 
-        let proto_res = morpheum_proto::dao::v1::QueryProposalResponse::decode(
-            response_bytes.as_slice(),
-        )
-        .map_err(SdkError::Decode)?;
+        let proto_res =
+            morpheum_proto::dao::v1::QueryProposalResponse::decode(response_bytes.as_slice())
+                .map_err(SdkError::Decode)?;
 
         proto_res
             .proposal
@@ -140,10 +136,9 @@ impl DaoClient {
             .query("/dao.v1.Query/QueryProposals", proto_req.encode_to_vec())
             .await?;
 
-        let proto_res = morpheum_proto::dao::v1::QueryProposalsResponse::decode(
-            response_bytes.as_slice(),
-        )
-        .map_err(SdkError::Decode)?;
+        let proto_res =
+            morpheum_proto::dao::v1::QueryProposalsResponse::decode(response_bytes.as_slice())
+                .map_err(SdkError::Decode)?;
 
         Ok(proto_res.proposals.into_iter().map(Into::into).collect())
     }
@@ -162,10 +157,9 @@ impl DaoClient {
             .query("/dao.v1.Query/QueryVote", proto_req.encode_to_vec())
             .await?;
 
-        let proto_res = morpheum_proto::dao::v1::QueryVoteResponse::decode(
-            response_bytes.as_slice(),
-        )
-        .map_err(SdkError::Decode)?;
+        let proto_res =
+            morpheum_proto::dao::v1::QueryVoteResponse::decode(response_bytes.as_slice())
+                .map_err(SdkError::Decode)?;
 
         proto_res
             .vote
@@ -188,10 +182,9 @@ impl DaoClient {
             .query("/dao.v1.Query/QueryVotes", proto_req.encode_to_vec())
             .await?;
 
-        let proto_res = morpheum_proto::dao::v1::QueryVotesResponse::decode(
-            response_bytes.as_slice(),
-        )
-        .map_err(SdkError::Decode)?;
+        let proto_res =
+            morpheum_proto::dao::v1::QueryVotesResponse::decode(response_bytes.as_slice())
+                .map_err(SdkError::Decode)?;
 
         Ok(proto_res.votes.into_iter().map(Into::into).collect())
     }
@@ -209,10 +202,9 @@ impl DaoClient {
             .query("/dao.v1.Query/QueryDeposit", proto_req.encode_to_vec())
             .await?;
 
-        let proto_res = morpheum_proto::dao::v1::QueryDepositResponse::decode(
-            response_bytes.as_slice(),
-        )
-        .map_err(SdkError::Decode)?;
+        let proto_res =
+            morpheum_proto::dao::v1::QueryDepositResponse::decode(response_bytes.as_slice())
+                .map_err(SdkError::Decode)?;
 
         proto_res
             .deposit
@@ -239,10 +231,9 @@ impl DaoClient {
             .query("/dao.v1.Query/QueryDeposits", proto_req.encode_to_vec())
             .await?;
 
-        let proto_res = morpheum_proto::dao::v1::QueryDepositsResponse::decode(
-            response_bytes.as_slice(),
-        )
-        .map_err(SdkError::Decode)?;
+        let proto_res =
+            morpheum_proto::dao::v1::QueryDepositsResponse::decode(response_bytes.as_slice())
+                .map_err(SdkError::Decode)?;
 
         Ok(proto_res.deposits.into_iter().map(Into::into).collect())
     }
@@ -260,10 +251,9 @@ impl DaoClient {
             .query("/dao.v1.Query/QueryTallyResult", proto_req.encode_to_vec())
             .await?;
 
-        let proto_res = morpheum_proto::dao::v1::QueryTallyResultResponse::decode(
-            response_bytes.as_slice(),
-        )
-        .map_err(SdkError::Decode)?;
+        let proto_res =
+            morpheum_proto::dao::v1::QueryTallyResultResponse::decode(response_bytes.as_slice())
+                .map_err(SdkError::Decode)?;
 
         proto_res
             .tally

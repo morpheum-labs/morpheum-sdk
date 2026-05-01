@@ -12,58 +12,31 @@
 
 extern crate alloc;
 
-pub mod client;
-pub mod types;
-pub mod requests;
 pub mod builder;
+pub mod client;
+pub mod requests;
+pub mod types;
 
 // ==================== PUBLIC RE-EXPORTS ====================
 
 pub use client::BucketClient;
 
 pub use types::{
-    AddressPnL,
-    AllBucketsBalance,
-    Bucket,
-    BucketBalance,
-    BucketHealthSummary,
-    BucketPnL,
-    BucketPnLInfo,
-    BucketStatus,
-    BucketType,
-    Liquidation,
-    LiquidationEvent,
-    LiquidationMetrics,
-    Position,
-    PositionHealth,
-    PositionPnL,
-    PositionPnLInfo,
-    Side,
+    AddressPnL, AllBucketsBalance, Bucket, BucketBalance, BucketHealthSummary, BucketPnL,
+    BucketPnLInfo, BucketStatus, BucketType, Liquidation, LiquidationEvent, LiquidationMetrics,
+    Position, PositionHealth, PositionPnL, PositionPnLInfo, Side,
 };
 
 pub use requests::{
-    CloseBucketRequest,
-    CreateBucketRequest,
-    QueryAdlHistoryRequest,
-    QueryAddressPnLRequest,
-    QueryAllBucketsBalanceByAddressRequest,
-    QueryBucketPnLRequest,
-    QueryBucketRequest,
-    QueryBucketStatusRequest,
-    QueryBucketsByAddressRequest,
-    QueryLiquidationMetricsRequest,
-    QueryLiquidationsRequest,
-    QueryPositionHealthRequest,
-    QueryPositionsByBucketRequest,
-    TransferBetweenBucketsRequest,
-    TransferToBankRequest,
+    CloseBucketRequest, CreateBucketRequest, QueryAddressPnLRequest, QueryAdlHistoryRequest,
+    QueryAllBucketsBalanceByAddressRequest, QueryBucketPnLRequest, QueryBucketRequest,
+    QueryBucketStatusRequest, QueryBucketsByAddressRequest, QueryLiquidationMetricsRequest,
+    QueryLiquidationsRequest, QueryPositionHealthRequest, QueryPositionsByBucketRequest,
+    TransferBetweenBucketsRequest, TransferToBankRequest,
 };
 
 pub use builder::{
-    CloseBucketBuilder,
-    CreateBucketBuilder,
-    TransferBetweenBucketsBuilder,
-    TransferToBankBuilder,
+    CloseBucketBuilder, CreateBucketBuilder, TransferBetweenBucketsBuilder, TransferToBankBuilder,
 };
 
 pub use morpheum_sdk_core::{AccountId, ChainId, SdkError, SignedTx};
@@ -76,24 +49,10 @@ pub use morpheum_sdk_core::{AccountId, ChainId, SdkError, SignedTx};
 /// ```
 pub mod prelude {
     pub use super::{
-        BucketClient,
-        Bucket,
-        BucketType,
-        BucketBalance,
-        BucketPnLInfo,
-        BucketStatus,
-        Position,
-        PositionPnLInfo,
-        PositionHealth,
-        Side,
-        CreateBucketBuilder,
-        TransferBetweenBucketsBuilder,
+        AccountId, Bucket, BucketBalance, BucketClient, BucketPnLInfo, BucketStatus, BucketType,
+        ChainId, CloseBucketBuilder, CreateBucketBuilder, Position, PositionHealth,
+        PositionPnLInfo, SdkError, Side, SignedTx, TransferBetweenBucketsBuilder,
         TransferToBankBuilder,
-        CloseBucketBuilder,
-        AccountId,
-        ChainId,
-        SdkError,
-        SignedTx,
     };
 }
 

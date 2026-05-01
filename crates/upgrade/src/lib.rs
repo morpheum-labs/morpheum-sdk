@@ -12,35 +12,23 @@
 
 extern crate alloc;
 
-pub mod client;
-pub mod types;
-pub mod requests;
 pub mod builder;
+pub mod client;
+pub mod requests;
+pub mod types;
 
 // ==================== PUBLIC RE-EXPORTS ====================
 
 pub use client::UpgradeClient;
 
 pub use types::{
-    Upgrade,
-    UpgradePlan,
-    UpgradeSignal,
-    UpgradeStatus,
-    UpgradeStatusSummary,
-    UpgradeType,
-    UpgradeUpdate,
-    ValidatorReadiness,
-    ValidatorReadinessOverview,
+    Upgrade, UpgradePlan, UpgradeSignal, UpgradeStatus, UpgradeStatusSummary, UpgradeType,
+    UpgradeUpdate, ValidatorReadiness, ValidatorReadinessOverview,
 };
 
 pub use requests::*;
 
-pub use morpheum_sdk_core::{
-    AccountId,
-    ChainId,
-    SdkError,
-    SignedTx,
-};
+pub use morpheum_sdk_core::{AccountId, ChainId, SdkError, SignedTx};
 
 /// Recommended prelude for the upgrade module.
 ///
@@ -49,17 +37,8 @@ pub use morpheum_sdk_core::{
 /// ```
 pub mod prelude {
     pub use super::{
-        UpgradeClient,
-        Upgrade,
-        UpgradePlan,
-        UpgradeStatus,
-        UpgradeStatusSummary,
-        UpgradeType,
-        ValidatorReadiness,
-        AccountId,
-        ChainId,
-        SdkError,
-        SignedTx,
+        AccountId, ChainId, SdkError, SignedTx, Upgrade, UpgradeClient, UpgradePlan, UpgradeStatus,
+        UpgradeStatusSummary, UpgradeType, ValidatorReadiness,
     };
 }
 

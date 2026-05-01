@@ -12,11 +12,7 @@ use alloc::vec::Vec;
 use morpheum_sdk_core::{AccountId, SdkError};
 
 use crate::requests::{
-    IssueVcRequest,
-    RevokeVcRequest,
-    SelfRevokeVcRequest,
-    UpdateClaimsRequest,
-    UpdateParamsRequest,
+    IssueVcRequest, RevokeVcRequest, SelfRevokeVcRequest, UpdateClaimsRequest, UpdateParamsRequest,
 };
 use crate::types::VcClaims;
 
@@ -76,28 +72,23 @@ impl VcIssueBuilder {
 
     /// Builds the issuance request, performing validation.
     pub fn build(self) -> Result<IssueVcRequest, SdkError> {
-        let issuer = self.issuer.ok_or_else(|| {
-            SdkError::invalid_input("issuer is required for VC issuance")
-        })?;
+        let issuer = self
+            .issuer
+            .ok_or_else(|| SdkError::invalid_input("issuer is required for VC issuance"))?;
 
-        let subject = self.subject.ok_or_else(|| {
-            SdkError::invalid_input("subject is required for VC issuance")
-        })?;
+        let subject = self
+            .subject
+            .ok_or_else(|| SdkError::invalid_input("subject is required for VC issuance"))?;
 
-        let claims = self.claims.ok_or_else(|| {
-            SdkError::invalid_input("claims are required for VC issuance")
-        })?;
+        let claims = self
+            .claims
+            .ok_or_else(|| SdkError::invalid_input("claims are required for VC issuance"))?;
 
         let issuer_signature = self.issuer_signature.ok_or_else(|| {
             SdkError::invalid_input("issuer_signature is required for VC issuance")
         })?;
 
-        let mut req = IssueVcRequest::new(
-            issuer,
-            subject,
-            claims,
-            issuer_signature,
-        );
+        let mut req = IssueVcRequest::new(issuer, subject, claims, issuer_signature);
 
         if let Some(expiry) = self.expiry_timestamp {
             req = req.with_expiry(expiry);
@@ -145,13 +136,13 @@ impl VcRevokeBuilder {
     }
 
     pub fn build(self) -> Result<RevokeVcRequest, SdkError> {
-        let vc_id = self.vc_id.ok_or_else(|| {
-            SdkError::invalid_input("vc_id is required for revocation")
-        })?;
+        let vc_id = self
+            .vc_id
+            .ok_or_else(|| SdkError::invalid_input("vc_id is required for revocation"))?;
 
-        let issuer = self.issuer.ok_or_else(|| {
-            SdkError::invalid_input("issuer is required for revocation")
-        })?;
+        let issuer = self
+            .issuer
+            .ok_or_else(|| SdkError::invalid_input("issuer is required for revocation"))?;
 
         let issuer_signature = self.issuer_signature.ok_or_else(|| {
             SdkError::invalid_input("issuer_signature is required for revocation")
@@ -195,9 +186,9 @@ impl VcSelfRevokeBuilder {
     }
 
     pub fn build(self) -> Result<SelfRevokeVcRequest, SdkError> {
-        let vc_id = self.vc_id.ok_or_else(|| {
-            SdkError::invalid_input("vc_id is required for self-revocation")
-        })?;
+        let vc_id = self
+            .vc_id
+            .ok_or_else(|| SdkError::invalid_input("vc_id is required for self-revocation"))?;
 
         let agent_signature = self.agent_signature.ok_or_else(|| {
             SdkError::invalid_input("agent_signature is required for self-revocation")
@@ -265,23 +256,28 @@ impl UpdateClaimsBuilder {
 
     /// Builds the update claims request, performing validation.
     pub fn build(self) -> Result<UpdateClaimsRequest, SdkError> {
-        let vc_id = self.vc_id.ok_or_else(|| {
-            SdkError::invalid_input("vc_id is required for claims update")
-        })?;
+        let vc_id = self
+            .vc_id
+            .ok_or_else(|| SdkError::invalid_input("vc_id is required for claims update"))?;
 
-        let issuer = self.issuer.ok_or_else(|| {
-            SdkError::invalid_input("issuer is required for claims update")
-        })?;
+        let issuer = self
+            .issuer
+            .ok_or_else(|| SdkError::invalid_input("issuer is required for claims update"))?;
 
-        let new_claims = self.new_claims.ok_or_else(|| {
-            SdkError::invalid_input("new_claims are required for claims update")
-        })?;
+        let new_claims = self
+            .new_claims
+            .ok_or_else(|| SdkError::invalid_input("new_claims are required for claims update"))?;
 
         let issuer_signature = self.issuer_signature.ok_or_else(|| {
             SdkError::invalid_input("issuer_signature is required for claims update")
         })?;
 
-        Ok(UpdateClaimsRequest::new(vc_id, issuer, new_claims, issuer_signature))
+        Ok(UpdateClaimsRequest::new(
+            vc_id,
+            issuer,
+            new_claims,
+            issuer_signature,
+        ))
     }
 }
 
@@ -308,13 +304,13 @@ impl UpdateModuleParamsBuilder {
     }
 
     pub fn build(self) -> Result<UpdateParamsRequest, SdkError> {
-        let authority = self.authority.ok_or_else(|| {
-            SdkError::invalid_input("authority is required for UpdateParams")
-        })?;
+        let authority = self
+            .authority
+            .ok_or_else(|| SdkError::invalid_input("authority is required for UpdateParams"))?;
 
-        let params = self.params.ok_or_else(|| {
-            SdkError::invalid_input("params are required for UpdateParams")
-        })?;
+        let params = self
+            .params
+            .ok_or_else(|| SdkError::invalid_input("params are required for UpdateParams"))?;
 
         Ok(UpdateParamsRequest::new(authority, params))
     }

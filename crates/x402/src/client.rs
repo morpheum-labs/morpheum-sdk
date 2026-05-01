@@ -12,24 +12,15 @@ use alloc::vec::Vec;
 use async_trait::async_trait;
 use prost::Message as _;
 
-use morpheum_sdk_core::{
-    MorpheumClient, SdkConfig, SdkError, Transport,
-};
+use morpheum_sdk_core::{MorpheumClient, SdkConfig, SdkError, Transport};
 
 use crate::requests::{
-    FinalizeUptoRequest,
-    QueryCapabilitiesRequest,
-    QueryParamsRequest,
-    QueryPendingUptoRequest,
-    QueryPolicyRequest,
-    QueryReceiptRequest,
-    QueryReceiptsByAgentRequest,
-    QueryX402FeeStatsRequest,
+    FinalizeUptoRequest, QueryCapabilitiesRequest, QueryParamsRequest, QueryPendingUptoRequest,
+    QueryPolicyRequest, QueryReceiptRequest, QueryReceiptsByAgentRequest, QueryX402FeeStatsRequest,
     SettleBridgePaymentRequest,
 };
 use crate::types::{
-    BridgeSettlementResult, Capabilities, FinalizeUptoResult,
-    Params, Policy, Receipt,
+    BridgeSettlementResult, Capabilities, FinalizeUptoResult, Params, Policy, Receipt,
 };
 
 /// Primary client for all x402 payment queries.
@@ -48,10 +39,7 @@ impl X402Client {
     }
 
     /// Queries a single receipt by its ID.
-    pub async fn query_receipt(
-        &self,
-        receipt_id: impl Into<String>,
-    ) -> Result<Receipt, SdkError> {
+    pub async fn query_receipt(&self, receipt_id: impl Into<String>) -> Result<Receipt, SdkError> {
         let req = QueryReceiptRequest::new(receipt_id);
         let proto_req: morpheum_proto::x402::v1::QueryReceiptRequest = req.into();
 
@@ -60,10 +48,9 @@ impl X402Client {
 
         let response_bytes = self.query(path, data).await?;
 
-        let proto_res = morpheum_proto::x402::v1::QueryReceiptResponse::decode(
-            response_bytes.as_slice(),
-        )
-        .map_err(SdkError::Decode)?;
+        let proto_res =
+            morpheum_proto::x402::v1::QueryReceiptResponse::decode(response_bytes.as_slice())
+                .map_err(SdkError::Decode)?;
 
         proto_res
             .receipt
@@ -113,10 +100,9 @@ impl X402Client {
 
         let response_bytes = self.query(path, data).await?;
 
-        let proto_res = morpheum_proto::x402::v1::QueryPolicyResponse::decode(
-            response_bytes.as_slice(),
-        )
-        .map_err(SdkError::Decode)?;
+        let proto_res =
+            morpheum_proto::x402::v1::QueryPolicyResponse::decode(response_bytes.as_slice())
+                .map_err(SdkError::Decode)?;
 
         if !proto_res.exists {
             return Ok(None);
@@ -138,10 +124,9 @@ impl X402Client {
 
         let response_bytes = self.query(path, data).await?;
 
-        let proto_res = morpheum_proto::x402::v1::QueryCapabilitiesResponse::decode(
-            response_bytes.as_slice(),
-        )
-        .map_err(SdkError::Decode)?;
+        let proto_res =
+            morpheum_proto::x402::v1::QueryCapabilitiesResponse::decode(response_bytes.as_slice())
+                .map_err(SdkError::Decode)?;
 
         proto_res
             .capabilities
@@ -188,10 +173,9 @@ impl X402Client {
 
         let response_bytes = self.query(path, data).await?;
 
-        let proto_res = morpheum_proto::x402::v1::FinalizeUptoResponse::decode(
-            response_bytes.as_slice(),
-        )
-        .map_err(SdkError::Decode)?;
+        let proto_res =
+            morpheum_proto::x402::v1::FinalizeUptoResponse::decode(response_bytes.as_slice())
+                .map_err(SdkError::Decode)?;
 
         Ok(proto_res.into())
     }
@@ -208,10 +192,9 @@ impl X402Client {
 
         let response_bytes = self.query(path, data).await?;
 
-        let proto_res = morpheum_proto::x402::v1::QueryPendingUptoResponse::decode(
-            response_bytes.as_slice(),
-        )
-        .map_err(SdkError::Decode)?;
+        let proto_res =
+            morpheum_proto::x402::v1::QueryPendingUptoResponse::decode(response_bytes.as_slice())
+                .map_err(SdkError::Decode)?;
 
         Ok(proto_res.pending)
     }
@@ -225,10 +208,9 @@ impl X402Client {
 
         let response_bytes = self.query(path, data).await?;
 
-        let proto_res = morpheum_proto::x402::v1::QueryParamsResponse::decode(
-            response_bytes.as_slice(),
-        )
-        .map_err(SdkError::Decode)?;
+        let proto_res =
+            morpheum_proto::x402::v1::QueryParamsResponse::decode(response_bytes.as_slice())
+                .map_err(SdkError::Decode)?;
 
         proto_res
             .params
@@ -246,10 +228,9 @@ impl X402Client {
 
         let response_bytes = self.query(path, data).await?;
 
-        let proto_res = morpheum_proto::x402::v1::QueryX402FeeStatsResponse::decode(
-            response_bytes.as_slice(),
-        )
-        .map_err(SdkError::Decode)?;
+        let proto_res =
+            morpheum_proto::x402::v1::QueryX402FeeStatsResponse::decode(response_bytes.as_slice())
+                .map_err(SdkError::Decode)?;
 
         Ok(proto_res.into())
     }
@@ -335,9 +316,8 @@ mod tests {
                     Ok(prost::Message::encode_to_vec(&dummy))
                 }
                 "/x402.v1.Query/QueryPendingUpto" => {
-                    let dummy = morpheum_proto::x402::v1::QueryPendingUptoResponse {
-                        pending: vec![],
-                    };
+                    let dummy =
+                        morpheum_proto::x402::v1::QueryPendingUptoResponse { pending: vec![] };
                     Ok(prost::Message::encode_to_vec(&dummy))
                 }
                 "/x402.v1.Query/QueryX402FeeStats" => {

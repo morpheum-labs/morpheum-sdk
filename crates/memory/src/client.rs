@@ -12,16 +12,10 @@ use alloc::vec::Vec;
 use async_trait::async_trait;
 use prost::Message as _;
 
-use morpheum_sdk_core::{
-    MorpheumClient, SdkConfig, SdkError, Transport,
-};
+use morpheum_sdk_core::{MorpheumClient, SdkConfig, SdkError, Transport};
 
 use crate::{
-    requests::{
-        QueryMemoryEntriesByAgentRequest,
-        QueryMemoryEntryRequest,
-        QueryMemoryRootRequest,
-    },
+    requests::{QueryMemoryEntriesByAgentRequest, QueryMemoryEntryRequest, QueryMemoryRootRequest},
     types::{MemoryEntry, MemoryRoot, Params},
 };
 
@@ -56,10 +50,9 @@ impl MemoryClient {
 
         let response_bytes = self.query(path, data).await?;
 
-        let proto_res = morpheum_proto::memory::v1::QueryMemoryEntryResponse::decode(
-            response_bytes.as_slice(),
-        )
-        .map_err(SdkError::Decode)?;
+        let proto_res =
+            morpheum_proto::memory::v1::QueryMemoryEntryResponse::decode(response_bytes.as_slice())
+                .map_err(SdkError::Decode)?;
 
         let response: crate::requests::QueryMemoryEntryResponse = proto_res.into();
         Ok(response.entry)
@@ -104,10 +97,9 @@ impl MemoryClient {
 
         let response_bytes = self.query(path, data).await?;
 
-        let proto_res = morpheum_proto::memory::v1::QueryMemoryRootResponse::decode(
-            response_bytes.as_slice(),
-        )
-        .map_err(SdkError::Decode)?;
+        let proto_res =
+            morpheum_proto::memory::v1::QueryMemoryRootResponse::decode(response_bytes.as_slice())
+                .map_err(SdkError::Decode)?;
 
         let response: crate::requests::QueryMemoryRootResponse = proto_res.into();
         Ok(response.root)
@@ -123,10 +115,9 @@ impl MemoryClient {
 
         let response_bytes = self.query(path, data).await?;
 
-        let proto_res = morpheum_proto::memory::v1::QueryParamsResponse::decode(
-            response_bytes.as_slice(),
-        )
-        .map_err(SdkError::Decode)?;
+        let proto_res =
+            morpheum_proto::memory::v1::QueryParamsResponse::decode(response_bytes.as_slice())
+                .map_err(SdkError::Decode)?;
 
         let response: crate::requests::QueryParamsResponse = proto_res.into();
         Ok(response.params)
@@ -265,7 +256,11 @@ mod tests {
         let config = SdkConfig::new("https://sentry.morpheum.xyz", "morpheum-test-1");
         let client = MemoryClient::new(config, Box::new(DummyTransport));
 
-        let params = client.query_params().await.unwrap().expect("params should be present");
+        let params = client
+            .query_params()
+            .await
+            .unwrap()
+            .expect("params should be present");
         assert_eq!(params.max_memory_per_agent_bytes, 10_000_000);
         assert_eq!(params.default_entry_ttl_seconds, 86400);
         assert!(params.enable_vector_search);

@@ -23,13 +23,21 @@ pub enum Side {
 
 impl From<i32> for Side {
     fn from(v: i32) -> Self {
-        match v { 1 => Self::Buy, 2 => Self::Sell, _ => Self::Unspecified }
+        match v {
+            1 => Self::Buy,
+            2 => Self::Sell,
+            _ => Self::Unspecified,
+        }
     }
 }
 
 impl From<Side> for i32 {
     fn from(s: Side) -> Self {
-        match s { Side::Unspecified => 0, Side::Buy => 1, Side::Sell => 2 }
+        match s {
+            Side::Unspecified => 0,
+            Side::Buy => 1,
+            Side::Sell => 2,
+        }
     }
 }
 
@@ -134,8 +142,10 @@ pub struct LiquidityDepthBand {
 impl From<proto::LiquidityDepthBand> for LiquidityDepthBand {
     fn from(p: proto::LiquidityDepthBand) -> Self {
         Self {
-            price_lower: p.price_lower, price_upper: p.price_upper,
-            liquidity: p.liquidity, volume_24h: p.volume_24h,
+            price_lower: p.price_lower,
+            price_upper: p.price_upper,
+            liquidity: p.liquidity,
+            volume_24h: p.volume_24h,
         }
     }
 }
@@ -233,9 +243,14 @@ pub struct SwapExecuted {
 impl From<proto::SwapExecuted> for SwapExecuted {
     fn from(p: proto::SwapExecuted) -> Self {
         Self {
-            pool_id: p.pool_id, market_index: p.market_index, sender: p.sender,
-            side: Side::from(p.side), amount_in: p.amount_in, amount_out: p.amount_out,
-            fee_amount: p.fee_amount, timestamp: ts_secs(p.timestamp),
+            pool_id: p.pool_id,
+            market_index: p.market_index,
+            sender: p.sender,
+            side: Side::from(p.side),
+            amount_in: p.amount_in,
+            amount_out: p.amount_out,
+            fee_amount: p.fee_amount,
+            timestamp: ts_secs(p.timestamp),
         }
     }
 }
@@ -258,9 +273,15 @@ pub struct MintEvent {
 impl From<proto::MintEvent> for MintEvent {
     fn from(p: proto::MintEvent) -> Self {
         Self {
-            pool_id: p.pool_id, position_id: p.position_id, owner: p.owner,
-            tick_lower: p.tick_lower, tick_upper: p.tick_upper, liquidity: p.liquidity,
-            amount_a: p.amount_a, amount_b: p.amount_b, timestamp: ts_secs(p.timestamp),
+            pool_id: p.pool_id,
+            position_id: p.position_id,
+            owner: p.owner,
+            tick_lower: p.tick_lower,
+            tick_upper: p.tick_upper,
+            liquidity: p.liquidity,
+            amount_a: p.amount_a,
+            amount_b: p.amount_b,
+            timestamp: ts_secs(p.timestamp),
         }
     }
 }
@@ -281,8 +302,12 @@ pub struct BurnEvent {
 impl From<proto::BurnEvent> for BurnEvent {
     fn from(p: proto::BurnEvent) -> Self {
         Self {
-            pool_id: p.pool_id, position_id: p.position_id, owner: p.owner,
-            liquidity: p.liquidity, amount_a: p.amount_a, amount_b: p.amount_b,
+            pool_id: p.pool_id,
+            position_id: p.position_id,
+            owner: p.owner,
+            liquidity: p.liquidity,
+            amount_a: p.amount_a,
+            amount_b: p.amount_b,
             timestamp: ts_secs(p.timestamp),
         }
     }
@@ -303,8 +328,12 @@ pub struct CollectEvent {
 impl From<proto::CollectEvent> for CollectEvent {
     fn from(p: proto::CollectEvent) -> Self {
         Self {
-            pool_id: p.pool_id, position_id: p.position_id, owner: p.owner,
-            amount_0: p.amount_0, amount_1: p.amount_1, timestamp: ts_secs(p.timestamp),
+            pool_id: p.pool_id,
+            position_id: p.position_id,
+            owner: p.owner,
+            amount_0: p.amount_0,
+            amount_1: p.amount_1,
+            timestamp: ts_secs(p.timestamp),
         }
     }
 }
@@ -323,8 +352,10 @@ pub struct ReClmmGlideUpdated {
 impl From<proto::ReClmmGlideUpdated> for ReClmmGlideUpdated {
     fn from(p: proto::ReClmmGlideUpdated) -> Self {
         Self {
-            pool_id: p.pool_id, virtual_price: p.virtual_price,
-            glide_target: p.glide_target, glide_speed: p.glide_speed,
+            pool_id: p.pool_id,
+            virtual_price: p.virtual_price,
+            glide_target: p.glide_target,
+            glide_speed: p.glide_speed,
             timestamp: ts_secs(p.timestamp),
         }
     }
@@ -351,7 +382,10 @@ mod tests {
             tick_lower: -1000,
             tick_upper: 1000,
             liquidity: "500000".into(),
-            deposit_time: Some(morpheum_proto::google::protobuf::Timestamp { seconds: 1_700_000_000, nanos: 0 }),
+            deposit_time: Some(morpheum_proto::google::protobuf::Timestamp {
+                seconds: 1_700_000_000,
+                nanos: 0,
+            }),
             ..Default::default()
         };
         let pos: ClmmPosition = p.into();
@@ -364,8 +398,10 @@ mod tests {
     #[test]
     fn depth_band_from_proto() {
         let p = proto::LiquidityDepthBand {
-            price_lower: "49000".into(), price_upper: "51000".into(),
-            liquidity: "1000000".into(), volume_24h: "500000".into(),
+            price_lower: "49000".into(),
+            price_upper: "51000".into(),
+            liquidity: "1000000".into(),
+            volume_24h: "500000".into(),
         };
         let band: LiquidityDepthBand = p.into();
         assert_eq!(band.price_lower, "49000");

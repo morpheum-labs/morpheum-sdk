@@ -10,8 +10,8 @@ use alloc::vec::Vec;
 use morpheum_sdk_core::SdkError;
 
 use crate::requests::{
-    AttestRequest, CancelJobRequest, ClaimRefundRequest, CreateJobRequest,
-    FundJobRequest, SetProviderRequest, SubmitDeliverableRequest,
+    AttestRequest, CancelJobRequest, ClaimRefundRequest, CreateJobRequest, FundJobRequest,
+    SetProviderRequest, SubmitDeliverableRequest,
 };
 use crate::types::{Deliverable, Job, RevenueShareConfig};
 
@@ -100,9 +100,9 @@ impl CreateJobBuilder {
             SdkError::invalid_input("evaluator_agent_hash is required for job creation")
         })?;
 
-        let budget_usd = self.budget_usd.ok_or_else(|| {
-            SdkError::invalid_input("budget_usd is required for job creation")
-        })?;
+        let budget_usd = self
+            .budget_usd
+            .ok_or_else(|| SdkError::invalid_input("budget_usd is required for job creation"))?;
 
         let client_signature = self.client_signature.ok_or_else(|| {
             SdkError::invalid_input("client_signature is required for job creation")
@@ -155,17 +155,17 @@ impl FundJobBuilder {
     }
 
     pub fn build(self) -> Result<FundJobRequest, SdkError> {
-        let job_id = self.job_id.ok_or_else(|| {
-            SdkError::invalid_input("job_id is required for funding")
-        })?;
+        let job_id = self
+            .job_id
+            .ok_or_else(|| SdkError::invalid_input("job_id is required for funding"))?;
 
-        let amount_usd = self.amount_usd.ok_or_else(|| {
-            SdkError::invalid_input("amount_usd is required for funding")
-        })?;
+        let amount_usd = self
+            .amount_usd
+            .ok_or_else(|| SdkError::invalid_input("amount_usd is required for funding"))?;
 
-        let client_signature = self.client_signature.ok_or_else(|| {
-            SdkError::invalid_input("client_signature is required for funding")
-        })?;
+        let client_signature = self
+            .client_signature
+            .ok_or_else(|| SdkError::invalid_input("client_signature is required for funding"))?;
 
         Ok(FundJobRequest::new(job_id, amount_usd, client_signature))
     }
@@ -204,15 +204,19 @@ impl SubmitDeliverableBuilder {
             SdkError::invalid_input("job_id is required for deliverable submission")
         })?;
 
-        let deliverable = self.deliverable.ok_or_else(|| {
-            SdkError::invalid_input("deliverable is required for submission")
-        })?;
+        let deliverable = self
+            .deliverable
+            .ok_or_else(|| SdkError::invalid_input("deliverable is required for submission"))?;
 
         let provider_signature = self.provider_signature.ok_or_else(|| {
             SdkError::invalid_input("provider_signature is required for submission")
         })?;
 
-        Ok(SubmitDeliverableRequest::new(job_id, deliverable, provider_signature))
+        Ok(SubmitDeliverableRequest::new(
+            job_id,
+            deliverable,
+            provider_signature,
+        ))
     }
 }
 
@@ -251,13 +255,13 @@ impl AttestBuilder {
     }
 
     pub fn build(self) -> Result<AttestRequest, SdkError> {
-        let job_id = self.job_id.ok_or_else(|| {
-            SdkError::invalid_input("job_id is required for attestation")
-        })?;
+        let job_id = self
+            .job_id
+            .ok_or_else(|| SdkError::invalid_input("job_id is required for attestation"))?;
 
-        let completed = self.completed.ok_or_else(|| {
-            SdkError::invalid_input("completed flag is required for attestation")
-        })?;
+        let completed = self
+            .completed
+            .ok_or_else(|| SdkError::invalid_input("completed flag is required for attestation"))?;
 
         let evaluator_signature = self.evaluator_signature.ok_or_else(|| {
             SdkError::invalid_input("evaluator_signature is required for attestation")
@@ -294,9 +298,9 @@ impl ClaimRefundBuilder {
     }
 
     pub fn build(self) -> Result<ClaimRefundRequest, SdkError> {
-        let job_id = self.job_id.ok_or_else(|| {
-            SdkError::invalid_input("job_id is required for refund claim")
-        })?;
+        let job_id = self
+            .job_id
+            .ok_or_else(|| SdkError::invalid_input("job_id is required for refund claim"))?;
 
         let caller_signature = self.caller_signature.ok_or_else(|| {
             SdkError::invalid_input("caller_signature is required for refund claim")
@@ -335,19 +339,23 @@ impl SetProviderBuilder {
     }
 
     pub fn build(self) -> Result<SetProviderRequest, SdkError> {
-        let job_id = self.job_id.ok_or_else(|| {
-            SdkError::invalid_input("job_id is required for setting provider")
-        })?;
+        let job_id = self
+            .job_id
+            .ok_or_else(|| SdkError::invalid_input("job_id is required for setting provider"))?;
 
-        let new_provider_agent_hash = self.new_provider_agent_hash.ok_or_else(|| {
-            SdkError::invalid_input("new_provider_agent_hash is required")
-        })?;
+        let new_provider_agent_hash = self
+            .new_provider_agent_hash
+            .ok_or_else(|| SdkError::invalid_input("new_provider_agent_hash is required"))?;
 
         let client_signature = self.client_signature.ok_or_else(|| {
             SdkError::invalid_input("client_signature is required for setting provider")
         })?;
 
-        Ok(SetProviderRequest::new(job_id, new_provider_agent_hash, client_signature))
+        Ok(SetProviderRequest::new(
+            job_id,
+            new_provider_agent_hash,
+            client_signature,
+        ))
     }
 }
 
@@ -374,9 +382,9 @@ impl CancelJobBuilder {
     }
 
     pub fn build(self) -> Result<CancelJobRequest, SdkError> {
-        let job_id = self.job_id.ok_or_else(|| {
-            SdkError::invalid_input("job_id is required for cancellation")
-        })?;
+        let job_id = self
+            .job_id
+            .ok_or_else(|| SdkError::invalid_input("job_id is required for cancellation"))?;
 
         let signer_signature = self.signer_signature.ok_or_else(|| {
             SdkError::invalid_input("signer_signature is required for cancellation")
@@ -445,9 +453,7 @@ mod tests {
 
     #[test]
     fn set_provider_builder_validation() {
-        let result = SetProviderBuilder::new()
-            .job_id("job-1")
-            .build();
+        let result = SetProviderBuilder::new().job_id("job-1").build();
         assert!(result.is_err());
     }
 

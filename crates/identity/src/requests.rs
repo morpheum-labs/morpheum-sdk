@@ -205,11 +205,7 @@ pub struct UpdateStatusRequest {
 }
 
 impl UpdateStatusRequest {
-    pub fn new(
-        agent_hash: impl Into<String>,
-        new_status: AgentStatus,
-        signature: Vec<u8>,
-    ) -> Self {
+    pub fn new(agent_hash: impl Into<String>, new_status: AgentStatus, signature: Vec<u8>) -> Self {
         Self {
             agent_hash: agent_hash.into(),
             new_status,
@@ -255,10 +251,7 @@ pub struct BurnAgentRequest {
 }
 
 impl BurnAgentRequest {
-    pub fn new(
-        agent_hash: impl Into<String>,
-        gov_signature: Vec<u8>,
-    ) -> Self {
+    pub fn new(agent_hash: impl Into<String>, gov_signature: Vec<u8>) -> Self {
         Self {
             agent_hash: agent_hash.into(),
             gov_signature,
@@ -466,8 +459,7 @@ mod tests {
 
     #[test]
     fn burn_request_to_any() {
-        let req = BurnAgentRequest::new("hash", vec![0u8; 64])
-            .with_reason("governance decision");
+        let req = BurnAgentRequest::new("hash", vec![0u8; 64]).with_reason("governance decision");
         let any = req.to_any();
         assert_eq!(any.type_url, "/identity.v1.MsgBurnAgent");
         assert!(!any.value.is_empty());

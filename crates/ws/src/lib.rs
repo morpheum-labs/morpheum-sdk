@@ -28,21 +28,20 @@
 //! }
 //! ```
 
+pub mod client;
+pub mod connection;
 pub mod error;
-pub mod types;
 pub mod protocol;
 pub mod subscription;
-pub mod connection;
-pub mod client;
+pub mod types;
 
+pub use client::WsClient;
 pub use error::WsError;
-pub use types::{
-    AuthCredentials, AuthResponse, ChannelSpec, ReconnectPolicy, StreamEvent,
-    StreamTier, WsConfig,
-};
 pub use protocol::{ClientMessage, ServerMessage};
 pub use subscription::Subscription;
-pub use client::WsClient;
+pub use types::{
+    AuthCredentials, AuthResponse, ChannelSpec, ReconnectPolicy, StreamEvent, StreamTier, WsConfig,
+};
 
 /// Recommended imports for most users.
 ///
@@ -51,8 +50,8 @@ pub use client::WsClient;
 /// ```
 pub mod prelude {
     pub use crate::{
-        AuthCredentials, AuthResponse, ChannelSpec, ReconnectPolicy, StreamEvent,
-        StreamTier, Subscription, WsClient, WsConfig, WsError,
+        AuthCredentials, AuthResponse, ChannelSpec, ReconnectPolicy, StreamEvent, StreamTier,
+        Subscription, WsClient, WsConfig, WsError,
     };
 }
 

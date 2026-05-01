@@ -617,10 +617,17 @@ mod tests {
 
     #[test]
     fn escrow_state_pending() {
-        let pending = EscrowState { released: false, ..Default::default() };
+        let pending = EscrowState {
+            released: false,
+            ..Default::default()
+        };
         assert!(pending.is_pending());
 
-        let released = EscrowState { released: true, released_at: 123, ..Default::default() };
+        let released = EscrowState {
+            released: true,
+            released_at: 123,
+            ..Default::default()
+        };
         assert!(!released.is_pending());
     }
 
@@ -642,7 +649,10 @@ mod tests {
 
     #[test]
     fn evaluation_report_score_percent() {
-        let report = EvaluationReport { score: 8500, ..Default::default() };
+        let report = EvaluationReport {
+            score: 8500,
+            ..Default::default()
+        };
         assert!((report.score_percent() - 85.0).abs() < f64::EPSILON);
     }
 

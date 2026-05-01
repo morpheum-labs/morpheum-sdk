@@ -6,11 +6,7 @@
 #[cfg(not(feature = "std"))]
 extern crate alloc;
 #[cfg(not(feature = "std"))]
-use alloc::{
-    collections::BTreeMap,
-    string::String,
-    vec::Vec,
-};
+use alloc::{collections::BTreeMap, string::String, vec::Vec};
 #[cfg(feature = "std")]
 use std::collections::BTreeMap;
 
@@ -206,8 +202,6 @@ impl From<pb::WarpRouteTransferResponse> for WarpRouteTransferResult {
 
 impl From<pb::SettleGmpPaymentResponse> for SettleGmpPaymentResult {
     fn from(r: pb::SettleGmpPaymentResponse) -> Self {
-        Self {
-            success: r.success,
-        }
+        Self { success: r.success }
     }
 }

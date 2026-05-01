@@ -13,17 +13,12 @@ use alloc::vec::Vec;
 use async_trait::async_trait;
 use prost::Message as _;
 
-use morpheum_sdk_core::{
-    MorpheumClient, SdkConfig, SdkError, Transport,
-};
+use morpheum_sdk_core::{MorpheumClient, SdkConfig, SdkError, Transport};
 
 use crate::{
     requests::{
-        QueryAgentRequest,
-        QueryAgentByOwnerRequest,
-        QueryMetadataCardRequest,
-        QueryAgentStatusRequest,
-        QueryParamsRequest,
+        QueryAgentByOwnerRequest, QueryAgentRequest, QueryAgentStatusRequest,
+        QueryMetadataCardRequest, QueryParamsRequest,
     },
     types::{AgentIdentity, AgentMetadataCard, AgentStatus, Params},
 };
@@ -49,7 +44,8 @@ impl IdentityClient {
         &self,
         agent_hash: impl Into<String>,
     ) -> Result<AgentIdentity, SdkError> {
-        self.execute_query_agent(QueryAgentRequest::by_hash(agent_hash)).await
+        self.execute_query_agent(QueryAgentRequest::by_hash(agent_hash))
+            .await
     }
 
     /// Queries an agent identity by its DID.
@@ -57,25 +53,20 @@ impl IdentityClient {
         &self,
         did: impl Into<String>,
     ) -> Result<AgentIdentity, SdkError> {
-        self.execute_query_agent(QueryAgentRequest::by_did(did)).await
+        self.execute_query_agent(QueryAgentRequest::by_did(did))
+            .await
     }
 
     /// Shared implementation for both agent lookup variants.
-    async fn execute_query_agent(
-        &self,
-        req: QueryAgentRequest,
-    ) -> Result<AgentIdentity, SdkError> {
+    async fn execute_query_agent(&self, req: QueryAgentRequest) -> Result<AgentIdentity, SdkError> {
         let proto_req: morpheum_proto::identity::v1::QueryAgentRequest = req.into();
         let data = proto_req.encode_to_vec();
 
-        let response_bytes = self
-            .query("/identity.v1.Query/QueryAgent", data)
-            .await?;
+        let response_bytes = self.query("/identity.v1.Query/QueryAgent", data).await?;
 
-        let proto_res = morpheum_proto::identity::v1::QueryAgentResponse::decode(
-            response_bytes.as_slice(),
-        )
-        .map_err(SdkError::Decode)?;
+        let proto_res =
+            morpheum_proto::identity::v1::QueryAgentResponse::decode(response_bytes.as_slice())
+                .map_err(SdkError::Decode)?;
 
         if !proto_res.found {
             return Err(SdkError::transport("agent not found"));
@@ -169,18 +160,14 @@ impl IdentityClient {
 
     /// Queries the current identity module parameters.
     pub async fn query_params(&self) -> Result<Params, SdkError> {
-        let proto_req: morpheum_proto::identity::v1::QueryParamsRequest =
-            QueryParamsRequest.into();
+        let proto_req: morpheum_proto::identity::v1::QueryParamsRequest = QueryParamsRequest.into();
         let data = proto_req.encode_to_vec();
 
-        let response_bytes = self
-            .query("/identity.v1.Query/QueryParams", data)
-            .await?;
+        let response_bytes = self.query("/identity.v1.Query/QueryParams", data).await?;
 
-        let proto_res = morpheum_proto::identity::v1::QueryParamsResponse::decode(
-            response_bytes.as_slice(),
-        )
-        .map_err(SdkError::Decode)?;
+        let proto_res =
+            morpheum_proto::identity::v1::QueryParamsResponse::decode(response_bytes.as_slice())
+                .map_err(SdkError::Decode)?;
 
         proto_res
             .params

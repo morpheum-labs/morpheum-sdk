@@ -349,13 +349,17 @@ pub struct QueryMemoryRootRequest {
 
 impl QueryMemoryRootRequest {
     pub fn new(agent_hash: impl Into<String>) -> Self {
-        Self { agent_hash: agent_hash.into() }
+        Self {
+            agent_hash: agent_hash.into(),
+        }
     }
 }
 
 impl From<QueryMemoryRootRequest> for proto::QueryMemoryRootRequest {
     fn from(req: QueryMemoryRootRequest) -> Self {
-        Self { agent_hash: req.agent_hash }
+        Self {
+            agent_hash: req.agent_hash,
+        }
     }
 }
 
@@ -425,13 +429,8 @@ mod tests {
 
     #[test]
     fn update_entry_request_to_any() {
-        let req = UpdateEntryRequest::new(
-            "agent-abc",
-            "strategy/v1",
-            vec![4, 5, 6],
-            vec![0u8; 64],
-        )
-        .with_new_expires_at(1_700_010_000);
+        let req = UpdateEntryRequest::new("agent-abc", "strategy/v1", vec![4, 5, 6], vec![0u8; 64])
+            .with_new_expires_at(1_700_010_000);
 
         let any = req.to_any();
         assert_eq!(any.type_url, "/memory.v1.MsgUpdateEntry");

@@ -7,31 +7,22 @@
 
 extern crate alloc;
 
-pub mod client;
-pub mod types;
-pub mod requests;
 pub mod builder;
+pub mod client;
+pub mod requests;
+pub mod types;
 
 // ==================== PUBLIC RE-EXPORTS ====================
 
 pub use client::{FundingRateClient, FundingRateSnapshot};
 
 pub use types::{
-    FundingApplicationMode,
-    FundingApplied,
-    FundingMarketProfile,
-    FundingPosition,
-    FundingRateConfig,
-    FundingRateData,
-    FundingShortfall,
-    FundingType,
-    MormFundingCutEvent,
+    FundingApplicationMode, FundingApplied, FundingMarketProfile, FundingPosition,
+    FundingRateConfig, FundingRateData, FundingShortfall, FundingType, MormFundingCutEvent,
 };
 
 pub use requests::{
-    GetFundingRateRequest,
-    GetMarketProfileRequest,
-    GetNextFundingTimeRequest,
+    GetFundingRateRequest, GetMarketProfileRequest, GetNextFundingTimeRequest,
     UpdateMarketProfileRequest,
 };
 
@@ -47,16 +38,8 @@ pub use morpheum_sdk_core::{AccountId, ChainId, SdkError, SignedTx};
 /// ```
 pub mod prelude {
     pub use super::{
-        FundingRateClient,
-        FundingRateSnapshot,
-        FundingRateData,
-        FundingMarketProfile,
-        FundingApplicationMode,
-        FundingType,
-        AccountId,
-        ChainId,
-        SdkError,
-        SignedTx,
+        AccountId, ChainId, FundingApplicationMode, FundingMarketProfile, FundingRateClient,
+        FundingRateData, FundingRateSnapshot, FundingType, SdkError, SignedTx,
     };
 }
 

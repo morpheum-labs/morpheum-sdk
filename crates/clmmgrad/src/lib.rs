@@ -8,42 +8,27 @@
 
 extern crate alloc;
 
-pub mod client;
-pub mod types;
-pub mod requests;
 pub mod builder;
+pub mod client;
+pub mod requests;
+pub mod types;
 
 // ==================== PUBLIC RE-EXPORTS ====================
 
 pub use client::{ClmmGradClient, EligibleTokensPage};
 
 pub use types::{
-    ClmmGraduationParams,
-    GraduationCheckpoint,
-    GraduationComplete,
-    GraduationFailed,
-    GraduationInitiated,
-    GraduationRollbackAttempted,
-    GraduationState,
-    GraduationStatus,
-    LiquidityDrained,
-    PerpMarketCreated,
-    SpotMarketCreated,
+    ClmmGraduationParams, GraduationCheckpoint, GraduationComplete, GraduationFailed,
+    GraduationInitiated, GraduationRollbackAttempted, GraduationState, GraduationStatus,
+    LiquidityDrained, PerpMarketCreated, SpotMarketCreated,
 };
 
 pub use requests::{
-    CancelGraduationRequest,
-    GetGraduationStateRequest,
-    GetParamsRequest,
-    InitiateGraduationRequest,
-    ListEligibleTokensRequest,
-    UpdateParamsRequest,
+    CancelGraduationRequest, GetGraduationStateRequest, GetParamsRequest,
+    InitiateGraduationRequest, ListEligibleTokensRequest, UpdateParamsRequest,
 };
 
-pub use builder::{
-    CancelGraduationBuilder,
-    InitiateGraduationBuilder,
-};
+pub use builder::{CancelGraduationBuilder, InitiateGraduationBuilder};
 
 pub use morpheum_sdk_core::{AccountId, ChainId, SdkError, SignedTx};
 
@@ -55,15 +40,8 @@ pub use morpheum_sdk_core::{AccountId, ChainId, SdkError, SignedTx};
 /// ```
 pub mod prelude {
     pub use super::{
-        ClmmGradClient,
-        GraduationState,
-        GraduationStatus,
-        InitiateGraduationBuilder,
-        CancelGraduationBuilder,
-        AccountId,
-        ChainId,
-        SdkError,
-        SignedTx,
+        AccountId, CancelGraduationBuilder, ChainId, ClmmGradClient, GraduationState,
+        GraduationStatus, InitiateGraduationBuilder, SdkError, SignedTx,
     };
 }
 

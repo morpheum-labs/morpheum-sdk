@@ -8,41 +8,26 @@
 
 extern crate alloc;
 
-pub mod client;
-pub mod types;
-pub mod requests;
 pub mod builder;
+pub mod client;
+pub mod requests;
+pub mod types;
 
 // ==================== PUBLIC RE-EXPORTS ====================
 
 pub use client::{VestingClient, VestingEntriesPage, VestingEntryResult};
 
 pub use types::{
-    ScheduleType,
-    VestingCategory,
-    VestingEntry,
-    VestingEvent,
-    VestingParams,
-    VestingSummary,
+    ScheduleType, VestingCategory, VestingEntry, VestingEvent, VestingParams, VestingSummary,
 };
 
 pub use requests::{
-    ClaimRequest,
-    CreateVestingRequest,
-    QueryParamsRequest,
-    QueryVestingEntriesRequest,
-    QueryVestingEntryRequest,
-    QueryVestingSummaryRequest,
-    RevokeVestingRequest,
+    ClaimRequest, CreateVestingRequest, QueryParamsRequest, QueryVestingEntriesRequest,
+    QueryVestingEntryRequest, QueryVestingSummaryRequest, RevokeVestingRequest,
     UpdateParamsRequest,
 };
 
-pub use builder::{
-    ClaimBuilder,
-    CreateVestingBuilder,
-    RevokeVestingBuilder,
-    UpdateParamsBuilder,
-};
+pub use builder::{ClaimBuilder, CreateVestingBuilder, RevokeVestingBuilder, UpdateParamsBuilder};
 
 pub use morpheum_sdk_core::{AccountId, ChainId, SdkError, SignedTx};
 
@@ -54,15 +39,8 @@ pub use morpheum_sdk_core::{AccountId, ChainId, SdkError, SignedTx};
 /// ```
 pub mod prelude {
     pub use super::{
-        VestingClient,
-        VestingEntry,
-        VestingSummary,
-        ScheduleType,
-        VestingCategory,
-        AccountId,
-        ChainId,
-        SdkError,
-        SignedTx,
+        AccountId, ChainId, ScheduleType, SdkError, SignedTx, VestingCategory, VestingClient,
+        VestingEntry, VestingSummary,
     };
 }
 

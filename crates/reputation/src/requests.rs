@@ -135,13 +135,17 @@ pub struct QueryReputationScoreRequest {
 
 impl QueryReputationScoreRequest {
     pub fn new(agent_hash: impl Into<String>) -> Self {
-        Self { agent_hash: agent_hash.into() }
+        Self {
+            agent_hash: agent_hash.into(),
+        }
     }
 }
 
 impl From<QueryReputationScoreRequest> for proto::QueryReputationScoreRequest {
     fn from(req: QueryReputationScoreRequest) -> Self {
-        Self { agent_hash: req.agent_hash }
+        Self {
+            agent_hash: req.agent_hash,
+        }
     }
 }
 
@@ -219,13 +223,17 @@ pub struct QueryMilestoneStatusRequest {
 
 impl QueryMilestoneStatusRequest {
     pub fn new(agent_hash: impl Into<String>) -> Self {
-        Self { agent_hash: agent_hash.into() }
+        Self {
+            agent_hash: agent_hash.into(),
+        }
     }
 }
 
 impl From<QueryMilestoneStatusRequest> for proto::QueryMilestoneStatusRequest {
     fn from(req: QueryMilestoneStatusRequest) -> Self {
-        Self { agent_hash: req.agent_hash }
+        Self {
+            agent_hash: req.agent_hash,
+        }
     }
 }
 
@@ -270,15 +278,18 @@ mod tests {
 
     #[test]
     fn update_params_request_to_any() {
-        let req = UpdateParamsRequest::new("morpheum1gov", Params {
-            daily_recovery_cap_bps: 3000,
-            min_reputation_to_register: 0,
-            enable_reputation_priority: true,
-            slashing_multiplier: 100,
-            milestone_thresholds: vec![10_000, 50_000, 100_000],
-            milestone_rewards: vec![500, 1_000, 2_000],
-            perk_multiplier_bps: 1500,
-        });
+        let req = UpdateParamsRequest::new(
+            "morpheum1gov",
+            Params {
+                daily_recovery_cap_bps: 3000,
+                min_reputation_to_register: 0,
+                enable_reputation_priority: true,
+                slashing_multiplier: 100,
+                milestone_thresholds: vec![10_000, 50_000, 100_000],
+                milestone_rewards: vec![500, 1_000, 2_000],
+                perk_multiplier_bps: 1500,
+            },
+        );
         let any = req.to_any();
         assert_eq!(any.type_url, "/reputation.v1.MsgUpdateParams");
         assert!(!any.value.is_empty());

@@ -9,12 +9,8 @@ use alloc::vec::Vec;
 use morpheum_sdk_core::{AccountId, SdkError};
 
 use crate::requests::{
-    ApproveOutboundRequest,
-    FinalizeUptoRequest,
-    RegisterPolicyRequest,
-    RotateAddressRequest,
-    SettleBridgePaymentRequest,
-    UpdatePolicyRequest,
+    ApproveOutboundRequest, FinalizeUptoRequest, RegisterPolicyRequest, RotateAddressRequest,
+    SettleBridgePaymentRequest, UpdatePolicyRequest,
 };
 use crate::types::{PaymentPacket, Policy, Scheme};
 
@@ -51,15 +47,19 @@ impl RegisterPolicyBuilder {
             SdkError::invalid_input("owner_address is required for policy registration")
         })?;
 
-        let policy = self.policy.ok_or_else(|| {
-            SdkError::invalid_input("policy is required")
-        })?;
+        let policy = self
+            .policy
+            .ok_or_else(|| SdkError::invalid_input("policy is required"))?;
 
-        let owner_signature = self.owner_signature.ok_or_else(|| {
-            SdkError::invalid_input("owner_signature is required")
-        })?;
+        let owner_signature = self
+            .owner_signature
+            .ok_or_else(|| SdkError::invalid_input("owner_signature is required"))?;
 
-        Ok(RegisterPolicyRequest::new(owner_address, policy, owner_signature))
+        Ok(RegisterPolicyRequest::new(
+            owner_address,
+            policy,
+            owner_signature,
+        ))
     }
 }
 
@@ -102,19 +102,24 @@ impl UpdatePolicyBuilder {
             SdkError::invalid_input("owner_address is required for policy update")
         })?;
 
-        let policy_id = self.policy_id.ok_or_else(|| {
-            SdkError::invalid_input("policy_id is required")
-        })?;
+        let policy_id = self
+            .policy_id
+            .ok_or_else(|| SdkError::invalid_input("policy_id is required"))?;
 
-        let updated_policy = self.updated_policy.ok_or_else(|| {
-            SdkError::invalid_input("updated_policy is required")
-        })?;
+        let updated_policy = self
+            .updated_policy
+            .ok_or_else(|| SdkError::invalid_input("updated_policy is required"))?;
 
-        let owner_signature = self.owner_signature.ok_or_else(|| {
-            SdkError::invalid_input("owner_signature is required")
-        })?;
+        let owner_signature = self
+            .owner_signature
+            .ok_or_else(|| SdkError::invalid_input("owner_signature is required"))?;
 
-        Ok(UpdatePolicyRequest::new(owner_address, policy_id, updated_policy, owner_signature))
+        Ok(UpdatePolicyRequest::new(
+            owner_address,
+            policy_id,
+            updated_policy,
+            owner_signature,
+        ))
     }
 }
 
@@ -151,9 +156,9 @@ impl RotateAddressBuilder {
             SdkError::invalid_input("owner_address is required for address rotation")
         })?;
 
-        let owner_signature = self.owner_signature.ok_or_else(|| {
-            SdkError::invalid_input("owner_signature is required")
-        })?;
+        let owner_signature = self
+            .owner_signature
+            .ok_or_else(|| SdkError::invalid_input("owner_signature is required"))?;
 
         Ok(RotateAddressRequest::new(
             owner_address,
@@ -216,33 +221,33 @@ impl ApproveOutboundBuilder {
     }
 
     pub fn build(self) -> Result<ApproveOutboundRequest, SdkError> {
-        let agent_id = self.agent_id.ok_or_else(|| {
-            SdkError::invalid_input("agent_id is required for outbound approval")
-        })?;
+        let agent_id = self
+            .agent_id
+            .ok_or_else(|| SdkError::invalid_input("agent_id is required for outbound approval"))?;
 
-        let destination = self.destination.ok_or_else(|| {
-            SdkError::invalid_input("destination is required")
-        })?;
+        let destination = self
+            .destination
+            .ok_or_else(|| SdkError::invalid_input("destination is required"))?;
 
-        let amount = self.amount.ok_or_else(|| {
-            SdkError::invalid_input("amount is required")
-        })?;
+        let amount = self
+            .amount
+            .ok_or_else(|| SdkError::invalid_input("amount is required"))?;
 
         if amount == 0 {
             return Err(SdkError::invalid_input("amount must be greater than zero"));
         }
 
-        let asset = self.asset.ok_or_else(|| {
-            SdkError::invalid_input("asset is required")
-        })?;
+        let asset = self
+            .asset
+            .ok_or_else(|| SdkError::invalid_input("asset is required"))?;
 
-        let scheme = self.scheme.ok_or_else(|| {
-            SdkError::invalid_input("scheme is required")
-        })?;
+        let scheme = self
+            .scheme
+            .ok_or_else(|| SdkError::invalid_input("scheme is required"))?;
 
-        let idempotency_key = self.idempotency_key.ok_or_else(|| {
-            SdkError::invalid_input("idempotency_key is required")
-        })?;
+        let idempotency_key = self
+            .idempotency_key
+            .ok_or_else(|| SdkError::invalid_input("idempotency_key is required"))?;
 
         let mut req = ApproveOutboundRequest::new(
             agent_id,
@@ -353,37 +358,37 @@ impl SettleBridgePaymentBuilder {
             SdkError::invalid_input("relayer_address is required for bridge settlement")
         })?;
 
-        let payment_id = self.payment_id.ok_or_else(|| {
-            SdkError::invalid_input("payment_id is required")
-        })?;
+        let payment_id = self
+            .payment_id
+            .ok_or_else(|| SdkError::invalid_input("payment_id is required"))?;
 
-        let source_chain = self.source_chain.ok_or_else(|| {
-            SdkError::invalid_input("source_chain is required")
-        })?;
+        let source_chain = self
+            .source_chain
+            .ok_or_else(|| SdkError::invalid_input("source_chain is required"))?;
 
-        let target_agent_id = self.target_agent_id.ok_or_else(|| {
-            SdkError::invalid_input("target_agent_id is required")
-        })?;
+        let target_agent_id = self
+            .target_agent_id
+            .ok_or_else(|| SdkError::invalid_input("target_agent_id is required"))?;
 
-        let amount = self.amount.ok_or_else(|| {
-            SdkError::invalid_input("amount is required")
-        })?;
+        let amount = self
+            .amount
+            .ok_or_else(|| SdkError::invalid_input("amount is required"))?;
 
         if amount == 0 {
             return Err(SdkError::invalid_input("amount must be greater than zero"));
         }
 
-        let asset = self.asset.ok_or_else(|| {
-            SdkError::invalid_input("asset is required")
-        })?;
+        let asset = self
+            .asset
+            .ok_or_else(|| SdkError::invalid_input("asset is required"))?;
 
-        let signature_payload = self.signature_payload.ok_or_else(|| {
-            SdkError::invalid_input("signature_payload is required")
-        })?;
+        let signature_payload = self
+            .signature_payload
+            .ok_or_else(|| SdkError::invalid_input("signature_payload is required"))?;
 
-        let reply_channel = self.reply_channel.ok_or_else(|| {
-            SdkError::invalid_input("reply_channel is required")
-        })?;
+        let reply_channel = self
+            .reply_channel
+            .ok_or_else(|| SdkError::invalid_input("reply_channel is required"))?;
 
         let packet = PaymentPacket {
             payment_id,
@@ -437,15 +442,19 @@ impl FinalizeUptoBuilder {
             SdkError::invalid_input("seller_address is required for Upto finalization")
         })?;
 
-        let pre_auth_id = self.pre_auth_id.ok_or_else(|| {
-            SdkError::invalid_input("pre_auth_id is required")
-        })?;
+        let pre_auth_id = self
+            .pre_auth_id
+            .ok_or_else(|| SdkError::invalid_input("pre_auth_id is required"))?;
 
-        let actual_amount = self.actual_amount.ok_or_else(|| {
-            SdkError::invalid_input("actual_amount is required")
-        })?;
+        let actual_amount = self
+            .actual_amount
+            .ok_or_else(|| SdkError::invalid_input("actual_amount is required"))?;
 
-        Ok(FinalizeUptoRequest::new(seller_address, pre_auth_id, actual_amount))
+        Ok(FinalizeUptoRequest::new(
+            seller_address,
+            pre_auth_id,
+            actual_amount,
+        ))
     }
 }
 

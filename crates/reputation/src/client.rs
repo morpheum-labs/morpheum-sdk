@@ -12,15 +12,11 @@ use alloc::vec::Vec;
 use async_trait::async_trait;
 use prost::Message as _;
 
-use morpheum_sdk_core::{
-    MorpheumClient, SdkConfig, SdkError, Transport,
-};
+use morpheum_sdk_core::{MorpheumClient, SdkConfig, SdkError, Transport};
 
 use crate::{
     requests::{
-        QueryMilestoneStatusRequest,
-        QueryReputationHistoryRequest,
-        QueryReputationScoreRequest,
+        QueryMilestoneStatusRequest, QueryReputationHistoryRequest, QueryReputationScoreRequest,
     },
     types::{MilestoneStatus, Params, ReputationEvent, ReputationScore},
 };
@@ -119,10 +115,9 @@ impl ReputationClient {
 
         let response_bytes = self.query(path, data).await?;
 
-        let proto_res = morpheum_proto::reputation::v1::QueryParamsResponse::decode(
-            response_bytes.as_slice(),
-        )
-        .map_err(SdkError::Decode)?;
+        let proto_res =
+            morpheum_proto::reputation::v1::QueryParamsResponse::decode(response_bytes.as_slice())
+                .map_err(SdkError::Decode)?;
 
         let response: crate::requests::QueryParamsResponse = proto_res.into();
         Ok(response.params)
@@ -268,7 +263,11 @@ mod tests {
         let config = SdkConfig::new("https://sentry.morpheum.xyz", "morpheum-test-1");
         let client = ReputationClient::new(config, Box::new(DummyTransport));
 
-        let params = client.query_params().await.unwrap().expect("params should be present");
+        let params = client
+            .query_params()
+            .await
+            .unwrap()
+            .expect("params should be present");
         assert_eq!(params.daily_recovery_cap_bps, 3000);
         assert!(params.enable_reputation_priority);
         assert_eq!(params.milestone_thresholds.len(), 8);

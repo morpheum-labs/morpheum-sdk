@@ -16,8 +16,8 @@ use prost::Message as _;
 use morpheum_sdk_core::{MorpheumClient, SdkConfig, SdkError, Transport};
 
 use crate::requests::{
-    QueryAssetsRequest, QueryBalanceRequest, QueryBalancesRequest,
-    QueryBankFeeStatsRequest, QuerySpendingPolicyRequest,
+    QueryAssetsRequest, QueryBalanceRequest, QueryBalancesRequest, QueryBankFeeStatsRequest,
+    QuerySpendingPolicyRequest,
 };
 use crate::types::{Asset, AssetsResponse, Balance, BankFeeStats, SpendingPolicy};
 
@@ -50,10 +50,9 @@ impl BankClient {
         let data = proto_req.encode_to_vec();
         let response_bytes = self.query(path, data).await?;
 
-        let proto_res = morpheum_proto::bank::v1::QueryBalanceResponse::decode(
-            response_bytes.as_slice(),
-        )
-        .map_err(SdkError::Decode)?;
+        let proto_res =
+            morpheum_proto::bank::v1::QueryBalanceResponse::decode(response_bytes.as_slice())
+                .map_err(SdkError::Decode)?;
 
         Ok(BalanceResponse {
             address: proto_res.address,
@@ -76,17 +75,19 @@ impl BankClient {
         let data = proto_req.encode_to_vec();
         let response_bytes = self.query(path, data).await?;
 
-        let proto_res = morpheum_proto::bank::v1::QueryBalancesResponse::decode(
-            response_bytes.as_slice(),
-        )
-        .map_err(SdkError::Decode)?;
+        let proto_res =
+            morpheum_proto::bank::v1::QueryBalancesResponse::decode(response_bytes.as_slice())
+                .map_err(SdkError::Decode)?;
 
         Ok(proto_res
             .balances
             .into_iter()
             .map(|b| Balance {
                 asset_index: b.asset.as_ref().map_or(0, |a| a.asset_index),
-                asset_symbol: b.asset.as_ref().map_or_else(String::new, |a| a.symbol.clone()),
+                asset_symbol: b
+                    .asset
+                    .as_ref()
+                    .map_or_else(String::new, |a| a.symbol.clone()),
                 balance: b.balance,
                 available_balance: b.available_balance,
                 locked_balance: b.locked_balance,
@@ -95,10 +96,7 @@ impl BankClient {
     }
 
     /// Queries all registered assets in the bank's asset registry.
-    pub async fn query_assets(
-        &self,
-        type_filter: Option<i32>,
-    ) -> Result<AssetsResponse, SdkError> {
+    pub async fn query_assets(&self, type_filter: Option<i32>) -> Result<AssetsResponse, SdkError> {
         let req = QueryAssetsRequest::new(type_filter);
         let proto_req: morpheum_proto::bank::v1::QueryAssetsRequest = req.into();
 
@@ -106,10 +104,9 @@ impl BankClient {
         let data = proto_req.encode_to_vec();
         let response_bytes = self.query(path, data).await?;
 
-        let proto_res = morpheum_proto::bank::v1::QueryAssetsResponse::decode(
-            response_bytes.as_slice(),
-        )
-        .map_err(SdkError::Decode)?;
+        let proto_res =
+            morpheum_proto::bank::v1::QueryAssetsResponse::decode(response_bytes.as_slice())
+                .map_err(SdkError::Decode)?;
 
         Ok(AssetsResponse {
             total_count: proto_res.total_count,
@@ -156,10 +153,9 @@ impl BankClient {
         let data = proto_req.encode_to_vec();
         let response_bytes = self.query(path, data).await?;
 
-        let proto_res = morpheum_proto::bank::v1::QueryBankFeeStatsResponse::decode(
-            response_bytes.as_slice(),
-        )
-        .map_err(SdkError::Decode)?;
+        let proto_res =
+            morpheum_proto::bank::v1::QueryBankFeeStatsResponse::decode(response_bytes.as_slice())
+                .map_err(SdkError::Decode)?;
 
         Ok(BankFeeStats::from(proto_res))
     }
@@ -204,11 +200,7 @@ mod tests {
             unimplemented!("not needed for bank query tests")
         }
 
-        async fn query(
-            &self,
-            path: &str,
-            _data: Vec<u8>,
-        ) -> Result<Vec<u8>, SdkError> {
+        async fn query(&self, path: &str, _data: Vec<u8>) -> Result<Vec<u8>, SdkError> {
             match path {
                 "/bank.v1.Query/QueryBalance" => {
                     let dummy = morpheum_proto::bank::v1::QueryBalanceResponse {
@@ -253,5 +245,4 @@ mod tests {
         let result = client.query_balances("morm1test").await;
         assert!(result.is_ok());
     }
-
 }

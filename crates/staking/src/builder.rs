@@ -28,29 +28,44 @@ pub struct StakeBuilder {
 }
 
 impl StakeBuilder {
-    pub fn new() -> Self { Self::default() }
+    pub fn new() -> Self {
+        Self::default()
+    }
 
     pub fn address(mut self, addr: impl Into<String>) -> Self {
-        self.address = Some(addr.into()); self
+        self.address = Some(addr.into());
+        self
     }
     pub fn validator_id(mut self, id: impl Into<String>) -> Self {
-        self.validator_id = Some(id.into()); self
+        self.validator_id = Some(id.into());
+        self
     }
     pub fn asset_index(mut self, idx: u64) -> Self {
-        self.asset_index = Some(idx); self
+        self.asset_index = Some(idx);
+        self
     }
     pub fn amount(mut self, amount: impl Into<String>) -> Self {
-        self.amount = Some(amount.into()); self
+        self.amount = Some(amount.into());
+        self
     }
     pub fn external_address(mut self, addr: impl Into<String>) -> Self {
-        self.external_address = Some(addr.into()); self
+        self.external_address = Some(addr.into());
+        self
     }
 
     pub fn build(self) -> Result<StakeRequest, SdkError> {
-        let address = self.address.ok_or_else(|| SdkError::invalid_input("address is required for staking"))?;
-        let validator_id = self.validator_id.ok_or_else(|| SdkError::invalid_input("validator_id is required for staking"))?;
-        let asset_index = self.asset_index.ok_or_else(|| SdkError::invalid_input("asset_index is required for staking"))?;
-        let amount = self.amount.ok_or_else(|| SdkError::invalid_input("amount is required for staking"))?;
+        let address = self
+            .address
+            .ok_or_else(|| SdkError::invalid_input("address is required for staking"))?;
+        let validator_id = self
+            .validator_id
+            .ok_or_else(|| SdkError::invalid_input("validator_id is required for staking"))?;
+        let asset_index = self
+            .asset_index
+            .ok_or_else(|| SdkError::invalid_input("asset_index is required for staking"))?;
+        let amount = self
+            .amount
+            .ok_or_else(|| SdkError::invalid_input("amount is required for staking"))?;
 
         let mut req = StakeRequest::new(address, validator_id, asset_index, amount);
         req.external_address = self.external_address;
@@ -73,29 +88,44 @@ pub struct UnstakeBuilder {
 }
 
 impl UnstakeBuilder {
-    pub fn new() -> Self { Self::default() }
+    pub fn new() -> Self {
+        Self::default()
+    }
 
     pub fn address(mut self, addr: impl Into<String>) -> Self {
-        self.address = Some(addr.into()); self
+        self.address = Some(addr.into());
+        self
     }
     pub fn validator_id(mut self, id: impl Into<String>) -> Self {
-        self.validator_id = Some(id.into()); self
+        self.validator_id = Some(id.into());
+        self
     }
     pub fn asset_index(mut self, idx: u64) -> Self {
-        self.asset_index = Some(idx); self
+        self.asset_index = Some(idx);
+        self
     }
     pub fn amount(mut self, amount: impl Into<String>) -> Self {
-        self.amount = Some(amount.into()); self
+        self.amount = Some(amount.into());
+        self
     }
     pub fn external_address(mut self, addr: impl Into<String>) -> Self {
-        self.external_address = Some(addr.into()); self
+        self.external_address = Some(addr.into());
+        self
     }
 
     pub fn build(self) -> Result<UnstakeRequest, SdkError> {
-        let address = self.address.ok_or_else(|| SdkError::invalid_input("address is required for unstaking"))?;
-        let validator_id = self.validator_id.ok_or_else(|| SdkError::invalid_input("validator_id is required for unstaking"))?;
-        let asset_index = self.asset_index.ok_or_else(|| SdkError::invalid_input("asset_index is required for unstaking"))?;
-        let amount = self.amount.ok_or_else(|| SdkError::invalid_input("amount is required for unstaking"))?;
+        let address = self
+            .address
+            .ok_or_else(|| SdkError::invalid_input("address is required for unstaking"))?;
+        let validator_id = self
+            .validator_id
+            .ok_or_else(|| SdkError::invalid_input("validator_id is required for unstaking"))?;
+        let asset_index = self
+            .asset_index
+            .ok_or_else(|| SdkError::invalid_input("asset_index is required for unstaking"))?;
+        let amount = self
+            .amount
+            .ok_or_else(|| SdkError::invalid_input("amount is required for unstaking"))?;
 
         let mut req = UnstakeRequest::new(address, validator_id, asset_index, amount);
         req.external_address = self.external_address;
@@ -118,29 +148,44 @@ pub struct DelegateBuilder {
 }
 
 impl DelegateBuilder {
-    pub fn new() -> Self { Self::default() }
+    pub fn new() -> Self {
+        Self::default()
+    }
 
     pub fn delegator_address(mut self, addr: impl Into<String>) -> Self {
-        self.delegator_address = Some(addr.into()); self
+        self.delegator_address = Some(addr.into());
+        self
     }
     pub fn validator_id(mut self, id: impl Into<String>) -> Self {
-        self.validator_id = Some(id.into()); self
+        self.validator_id = Some(id.into());
+        self
     }
     pub fn asset_index(mut self, idx: u64) -> Self {
-        self.asset_index = Some(idx); self
+        self.asset_index = Some(idx);
+        self
     }
     pub fn amount(mut self, amount: impl Into<String>) -> Self {
-        self.amount = Some(amount.into()); self
+        self.amount = Some(amount.into());
+        self
     }
     pub fn delegator_external_address(mut self, addr: impl Into<String>) -> Self {
-        self.delegator_external_address = Some(addr.into()); self
+        self.delegator_external_address = Some(addr.into());
+        self
     }
 
     pub fn build(self) -> Result<DelegateRequest, SdkError> {
-        let delegator_address = self.delegator_address.ok_or_else(|| SdkError::invalid_input("delegator_address is required for delegation"))?;
-        let validator_id = self.validator_id.ok_or_else(|| SdkError::invalid_input("validator_id is required for delegation"))?;
-        let asset_index = self.asset_index.ok_or_else(|| SdkError::invalid_input("asset_index is required for delegation"))?;
-        let amount = self.amount.ok_or_else(|| SdkError::invalid_input("amount is required for delegation"))?;
+        let delegator_address = self.delegator_address.ok_or_else(|| {
+            SdkError::invalid_input("delegator_address is required for delegation")
+        })?;
+        let validator_id = self
+            .validator_id
+            .ok_or_else(|| SdkError::invalid_input("validator_id is required for delegation"))?;
+        let asset_index = self
+            .asset_index
+            .ok_or_else(|| SdkError::invalid_input("asset_index is required for delegation"))?;
+        let amount = self
+            .amount
+            .ok_or_else(|| SdkError::invalid_input("amount is required for delegation"))?;
 
         let mut req = DelegateRequest::new(delegator_address, validator_id, asset_index, amount);
         req.delegator_external_address = self.delegator_external_address;
@@ -164,32 +209,48 @@ pub struct UndelegateBuilder {
 }
 
 impl UndelegateBuilder {
-    pub fn new() -> Self { Self::default() }
+    pub fn new() -> Self {
+        Self::default()
+    }
 
     pub fn delegator_address(mut self, addr: impl Into<String>) -> Self {
-        self.delegator_address = Some(addr.into()); self
+        self.delegator_address = Some(addr.into());
+        self
     }
     pub fn validator_id(mut self, id: impl Into<String>) -> Self {
-        self.validator_id = Some(id.into()); self
+        self.validator_id = Some(id.into());
+        self
     }
     pub fn asset_index(mut self, idx: u64) -> Self {
-        self.asset_index = Some(idx); self
+        self.asset_index = Some(idx);
+        self
     }
     pub fn amount(mut self, amount: impl Into<String>) -> Self {
-        self.amount = Some(amount.into()); self
+        self.amount = Some(amount.into());
+        self
     }
     pub fn delegator_external_address(mut self, addr: impl Into<String>) -> Self {
-        self.delegator_external_address = Some(addr.into()); self
+        self.delegator_external_address = Some(addr.into());
+        self
     }
     pub fn delegator_chain_type(mut self, ct: i32) -> Self {
-        self.delegator_chain_type = Some(ct); self
+        self.delegator_chain_type = Some(ct);
+        self
     }
 
     pub fn build(self) -> Result<UndelegateRequest, SdkError> {
-        let delegator_address = self.delegator_address.ok_or_else(|| SdkError::invalid_input("delegator_address is required for undelegation"))?;
-        let validator_id = self.validator_id.ok_or_else(|| SdkError::invalid_input("validator_id is required for undelegation"))?;
-        let asset_index = self.asset_index.ok_or_else(|| SdkError::invalid_input("asset_index is required for undelegation"))?;
-        let amount = self.amount.ok_or_else(|| SdkError::invalid_input("amount is required for undelegation"))?;
+        let delegator_address = self.delegator_address.ok_or_else(|| {
+            SdkError::invalid_input("delegator_address is required for undelegation")
+        })?;
+        let validator_id = self
+            .validator_id
+            .ok_or_else(|| SdkError::invalid_input("validator_id is required for undelegation"))?;
+        let asset_index = self
+            .asset_index
+            .ok_or_else(|| SdkError::invalid_input("asset_index is required for undelegation"))?;
+        let amount = self
+            .amount
+            .ok_or_else(|| SdkError::invalid_input("amount is required for undelegation"))?;
 
         let mut req = UndelegateRequest::new(delegator_address, validator_id, asset_index, amount);
         req.delegator_external_address = self.delegator_external_address;
@@ -215,38 +276,63 @@ pub struct RedelegateBuilder {
 }
 
 impl RedelegateBuilder {
-    pub fn new() -> Self { Self::default() }
+    pub fn new() -> Self {
+        Self::default()
+    }
 
     pub fn delegator_address(mut self, addr: impl Into<String>) -> Self {
-        self.delegator_address = Some(addr.into()); self
+        self.delegator_address = Some(addr.into());
+        self
     }
     pub fn from_validator_id(mut self, id: impl Into<String>) -> Self {
-        self.from_validator_id = Some(id.into()); self
+        self.from_validator_id = Some(id.into());
+        self
     }
     pub fn to_validator_id(mut self, id: impl Into<String>) -> Self {
-        self.to_validator_id = Some(id.into()); self
+        self.to_validator_id = Some(id.into());
+        self
     }
     pub fn asset_index(mut self, idx: u64) -> Self {
-        self.asset_index = Some(idx); self
+        self.asset_index = Some(idx);
+        self
     }
     pub fn amount(mut self, amount: impl Into<String>) -> Self {
-        self.amount = Some(amount.into()); self
+        self.amount = Some(amount.into());
+        self
     }
     pub fn delegator_external_address(mut self, addr: impl Into<String>) -> Self {
-        self.delegator_external_address = Some(addr.into()); self
+        self.delegator_external_address = Some(addr.into());
+        self
     }
     pub fn delegator_chain_type(mut self, ct: i32) -> Self {
-        self.delegator_chain_type = Some(ct); self
+        self.delegator_chain_type = Some(ct);
+        self
     }
 
     pub fn build(self) -> Result<RedelegateRequest, SdkError> {
-        let delegator_address = self.delegator_address.ok_or_else(|| SdkError::invalid_input("delegator_address is required for redelegation"))?;
-        let from_validator_id = self.from_validator_id.ok_or_else(|| SdkError::invalid_input("from_validator_id is required for redelegation"))?;
-        let to_validator_id = self.to_validator_id.ok_or_else(|| SdkError::invalid_input("to_validator_id is required for redelegation"))?;
-        let asset_index = self.asset_index.ok_or_else(|| SdkError::invalid_input("asset_index is required for redelegation"))?;
-        let amount = self.amount.ok_or_else(|| SdkError::invalid_input("amount is required for redelegation"))?;
+        let delegator_address = self.delegator_address.ok_or_else(|| {
+            SdkError::invalid_input("delegator_address is required for redelegation")
+        })?;
+        let from_validator_id = self.from_validator_id.ok_or_else(|| {
+            SdkError::invalid_input("from_validator_id is required for redelegation")
+        })?;
+        let to_validator_id = self.to_validator_id.ok_or_else(|| {
+            SdkError::invalid_input("to_validator_id is required for redelegation")
+        })?;
+        let asset_index = self
+            .asset_index
+            .ok_or_else(|| SdkError::invalid_input("asset_index is required for redelegation"))?;
+        let amount = self
+            .amount
+            .ok_or_else(|| SdkError::invalid_input("amount is required for redelegation"))?;
 
-        let mut req = RedelegateRequest::new(delegator_address, from_validator_id, to_validator_id, asset_index, amount);
+        let mut req = RedelegateRequest::new(
+            delegator_address,
+            from_validator_id,
+            to_validator_id,
+            asset_index,
+            amount,
+        );
         req.delegator_external_address = self.delegator_external_address;
         req.delegator_chain_type = self.delegator_chain_type;
         Ok(req)
@@ -266,20 +352,27 @@ pub struct ClaimRewardsBuilder {
 }
 
 impl ClaimRewardsBuilder {
-    pub fn new() -> Self { Self::default() }
+    pub fn new() -> Self {
+        Self::default()
+    }
 
     pub fn address(mut self, addr: impl Into<String>) -> Self {
-        self.address = Some(addr.into()); self
+        self.address = Some(addr.into());
+        self
     }
     pub fn validator_id(mut self, id: impl Into<String>) -> Self {
-        self.validator_id = Some(id.into()); self
+        self.validator_id = Some(id.into());
+        self
     }
     pub fn external_address(mut self, addr: impl Into<String>) -> Self {
-        self.external_address = Some(addr.into()); self
+        self.external_address = Some(addr.into());
+        self
     }
 
     pub fn build(self) -> Result<ClaimRewardsRequest, SdkError> {
-        let address = self.address.ok_or_else(|| SdkError::invalid_input("address is required for claiming rewards"))?;
+        let address = self
+            .address
+            .ok_or_else(|| SdkError::invalid_input("address is required for claiming rewards"))?;
         let validator_id = self.validator_id.unwrap_or_default();
 
         let mut req = ClaimRewardsRequest::new(address, validator_id);
@@ -307,45 +400,75 @@ pub struct ReportMisbehaviorBuilder {
 }
 
 impl ReportMisbehaviorBuilder {
-    pub fn new() -> Self { Self::default() }
+    pub fn new() -> Self {
+        Self::default()
+    }
 
     pub fn validator_id(mut self, id: impl Into<String>) -> Self {
-        self.validator_id = Some(id.into()); self
+        self.validator_id = Some(id.into());
+        self
     }
     pub fn misbehavior_type(mut self, t: MisbehaviorType) -> Self {
-        self.misbehavior_type = Some(t); self
+        self.misbehavior_type = Some(t);
+        self
     }
     pub fn evidence(mut self, evidence: Vec<u8>) -> Self {
-        self.evidence = Some(evidence); self
+        self.evidence = Some(evidence);
+        self
     }
     pub fn severity(mut self, severity: impl Into<String>) -> Self {
-        self.severity = Some(severity.into()); self
+        self.severity = Some(severity.into());
+        self
     }
     pub fn height(mut self, height: u64) -> Self {
-        self.height = height; self
+        self.height = height;
+        self
     }
     pub fn sig(mut self, sig: Vec<u8>) -> Self {
-        self.sig = Some(sig); self
+        self.sig = Some(sig);
+        self
     }
     pub fn reporter_address(mut self, addr: impl Into<String>) -> Self {
-        self.reporter_address = Some(addr.into()); self
+        self.reporter_address = Some(addr.into());
+        self
     }
     pub fn reporter_external_address(mut self, addr: impl Into<String>) -> Self {
-        self.reporter_external_address = Some(addr.into()); self
+        self.reporter_external_address = Some(addr.into());
+        self
     }
     pub fn reporter_chain_type(mut self, ct: i32) -> Self {
-        self.reporter_chain_type = Some(ct); self
+        self.reporter_chain_type = Some(ct);
+        self
     }
 
     pub fn build(self) -> Result<ReportMisbehaviorRequest, SdkError> {
-        let validator_id = self.validator_id.ok_or_else(|| SdkError::invalid_input("validator_id is required for misbehavior report"))?;
-        let misbehavior_type = self.misbehavior_type.ok_or_else(|| SdkError::invalid_input("misbehavior_type is required for misbehavior report"))?;
-        let evidence = self.evidence.ok_or_else(|| SdkError::invalid_input("evidence is required for misbehavior report"))?;
-        let severity = self.severity.ok_or_else(|| SdkError::invalid_input("severity is required for misbehavior report"))?;
-        let sig = self.sig.ok_or_else(|| SdkError::invalid_input("sig is required for misbehavior report"))?;
-        let reporter_address = self.reporter_address.ok_or_else(|| SdkError::invalid_input("reporter_address is required for misbehavior report"))?;
+        let validator_id = self.validator_id.ok_or_else(|| {
+            SdkError::invalid_input("validator_id is required for misbehavior report")
+        })?;
+        let misbehavior_type = self.misbehavior_type.ok_or_else(|| {
+            SdkError::invalid_input("misbehavior_type is required for misbehavior report")
+        })?;
+        let evidence = self.evidence.ok_or_else(|| {
+            SdkError::invalid_input("evidence is required for misbehavior report")
+        })?;
+        let severity = self.severity.ok_or_else(|| {
+            SdkError::invalid_input("severity is required for misbehavior report")
+        })?;
+        let sig = self
+            .sig
+            .ok_or_else(|| SdkError::invalid_input("sig is required for misbehavior report"))?;
+        let reporter_address = self.reporter_address.ok_or_else(|| {
+            SdkError::invalid_input("reporter_address is required for misbehavior report")
+        })?;
 
-        let mut req = ReportMisbehaviorRequest::new(validator_id, misbehavior_type, evidence, severity, reporter_address, sig);
+        let mut req = ReportMisbehaviorRequest::new(
+            validator_id,
+            misbehavior_type,
+            evidence,
+            severity,
+            reporter_address,
+            sig,
+        );
         req.height = self.height;
         req.reporter_external_address = self.reporter_external_address;
         req.reporter_chain_type = self.reporter_chain_type;
@@ -369,32 +492,48 @@ pub struct VoteOnSlashingBuilder {
 }
 
 impl VoteOnSlashingBuilder {
-    pub fn new() -> Self { Self::default() }
+    pub fn new() -> Self {
+        Self::default()
+    }
 
     pub fn misbehavior_id(mut self, id: impl Into<String>) -> Self {
-        self.misbehavior_id = Some(id.into()); self
+        self.misbehavior_id = Some(id.into());
+        self
     }
     pub fn vote(mut self, vote: bool) -> Self {
-        self.vote = Some(vote); self
+        self.vote = Some(vote);
+        self
     }
     pub fn voter_address(mut self, addr: impl Into<String>) -> Self {
-        self.voter_address = Some(addr.into()); self
+        self.voter_address = Some(addr.into());
+        self
     }
     pub fn sig(mut self, sig: Vec<u8>) -> Self {
-        self.sig = Some(sig); self
+        self.sig = Some(sig);
+        self
     }
     pub fn voter_external_address(mut self, addr: impl Into<String>) -> Self {
-        self.voter_external_address = Some(addr.into()); self
+        self.voter_external_address = Some(addr.into());
+        self
     }
     pub fn voter_chain_type(mut self, ct: i32) -> Self {
-        self.voter_chain_type = Some(ct); self
+        self.voter_chain_type = Some(ct);
+        self
     }
 
     pub fn build(self) -> Result<VoteOnSlashingRequest, SdkError> {
-        let misbehavior_id = self.misbehavior_id.ok_or_else(|| SdkError::invalid_input("misbehavior_id is required for slashing vote"))?;
-        let vote = self.vote.ok_or_else(|| SdkError::invalid_input("vote is required for slashing vote"))?;
-        let voter_address = self.voter_address.ok_or_else(|| SdkError::invalid_input("voter_address is required for slashing vote"))?;
-        let sig = self.sig.ok_or_else(|| SdkError::invalid_input("sig is required for slashing vote"))?;
+        let misbehavior_id = self.misbehavior_id.ok_or_else(|| {
+            SdkError::invalid_input("misbehavior_id is required for slashing vote")
+        })?;
+        let vote = self
+            .vote
+            .ok_or_else(|| SdkError::invalid_input("vote is required for slashing vote"))?;
+        let voter_address = self.voter_address.ok_or_else(|| {
+            SdkError::invalid_input("voter_address is required for slashing vote")
+        })?;
+        let sig = self
+            .sig
+            .ok_or_else(|| SdkError::invalid_input("sig is required for slashing vote"))?;
 
         let mut req = VoteOnSlashingRequest::new(misbehavior_id, vote, voter_address, sig);
         req.voter_external_address = self.voter_external_address;
@@ -421,43 +560,65 @@ pub struct ApplySlashingBuilder {
 }
 
 impl ApplySlashingBuilder {
-    pub fn new() -> Self { Self::default() }
+    pub fn new() -> Self {
+        Self::default()
+    }
 
     pub fn misbehavior_id(mut self, id: impl Into<String>) -> Self {
-        self.misbehavior_id = Some(id.into()); self
+        self.misbehavior_id = Some(id.into());
+        self
     }
     pub fn validator_id(mut self, id: impl Into<String>) -> Self {
-        self.validator_id = Some(id.into()); self
+        self.validator_id = Some(id.into());
+        self
     }
     pub fn slash_type(mut self, t: impl Into<String>) -> Self {
-        self.slash_type = Some(t.into()); self
+        self.slash_type = Some(t.into());
+        self
     }
     pub fn asset_index(mut self, idx: u64) -> Self {
-        self.asset_index = idx; self
+        self.asset_index = idx;
+        self
     }
     pub fn balance_penalty(mut self, penalty: impl Into<String>) -> Self {
-        self.balance_penalty = Some(penalty.into()); self
+        self.balance_penalty = Some(penalty.into());
+        self
     }
     pub fn reputation_penalty(mut self, penalty: impl Into<String>) -> Self {
-        self.reputation_penalty = Some(penalty.into()); self
+        self.reputation_penalty = Some(penalty.into());
+        self
     }
     pub fn quorum_vote(mut self, voter: impl Into<String>, vote: bool) -> Self {
-        self.quorum_votes.insert(voter.into(), vote); self
+        self.quorum_votes.insert(voter.into(), vote);
+        self
     }
     pub fn sig(mut self, sig: Vec<u8>) -> Self {
-        self.sig = Some(sig); self
+        self.sig = Some(sig);
+        self
     }
 
     pub fn build(self) -> Result<ApplySlashingRequest, SdkError> {
-        let misbehavior_id = self.misbehavior_id.ok_or_else(|| SdkError::invalid_input("misbehavior_id is required for slashing"))?;
-        let validator_id = self.validator_id.ok_or_else(|| SdkError::invalid_input("validator_id is required for slashing"))?;
-        let slash_type = self.slash_type.ok_or_else(|| SdkError::invalid_input("slash_type is required for slashing"))?;
-        let sig = self.sig.ok_or_else(|| SdkError::invalid_input("sig is required for slashing"))?;
+        let misbehavior_id = self
+            .misbehavior_id
+            .ok_or_else(|| SdkError::invalid_input("misbehavior_id is required for slashing"))?;
+        let validator_id = self
+            .validator_id
+            .ok_or_else(|| SdkError::invalid_input("validator_id is required for slashing"))?;
+        let slash_type = self
+            .slash_type
+            .ok_or_else(|| SdkError::invalid_input("slash_type is required for slashing"))?;
+        let sig = self
+            .sig
+            .ok_or_else(|| SdkError::invalid_input("sig is required for slashing"))?;
 
         let mut req = ApplySlashingRequest::new(misbehavior_id, validator_id, slash_type, sig);
         req.asset_index = self.asset_index;
-        if let Some(bp) = self.balance_penalty { req.balance_penalty = bp; }
-        if let Some(rp) = self.reputation_penalty { req.reputation_penalty = rp; }
+        if let Some(bp) = self.balance_penalty {
+            req.balance_penalty = bp;
+        }
+        if let Some(rp) = self.reputation_penalty {
+            req.reputation_penalty = rp;
+        }
         req.quorum_votes = self.quorum_votes;
         Ok(req)
     }
@@ -475,18 +636,26 @@ pub struct UpdateParamsBuilder {
 }
 
 impl UpdateParamsBuilder {
-    pub fn new() -> Self { Self::default() }
+    pub fn new() -> Self {
+        Self::default()
+    }
 
     pub fn authority(mut self, authority: impl Into<String>) -> Self {
-        self.authority = Some(authority.into()); self
+        self.authority = Some(authority.into());
+        self
     }
     pub fn params(mut self, params: morpheum_proto::staking::v1::Params) -> Self {
-        self.params = Some(params); self
+        self.params = Some(params);
+        self
     }
 
     pub fn build(self) -> Result<UpdateParamsRequest, SdkError> {
-        let authority = self.authority.ok_or_else(|| SdkError::invalid_input("authority is required for update_params"))?;
-        let params = self.params.ok_or_else(|| SdkError::invalid_input("params is required for update_params"))?;
+        let authority = self
+            .authority
+            .ok_or_else(|| SdkError::invalid_input("authority is required for update_params"))?;
+        let params = self
+            .params
+            .ok_or_else(|| SdkError::invalid_input("params is required for update_params"))?;
         Ok(UpdateParamsRequest::new(authority, params))
     }
 }
@@ -603,5 +772,4 @@ mod tests {
             .unwrap();
         assert_eq!(req.quorum_votes.len(), 2);
     }
-
 }

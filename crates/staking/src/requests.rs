@@ -284,10 +284,7 @@ pub struct ClaimRewardsRequest {
 }
 
 impl ClaimRewardsRequest {
-    pub fn new(
-        address: impl Into<String>,
-        validator_id: impl Into<String>,
-    ) -> Self {
+    pub fn new(address: impl Into<String>, validator_id: impl Into<String>) -> Self {
         Self {
             address: address.into(),
             validator_id: validator_id.into(),
@@ -499,13 +496,17 @@ pub struct QueryValidatorRequest {
 
 impl QueryValidatorRequest {
     pub fn new(validator_id: impl Into<String>) -> Self {
-        Self { validator_id: validator_id.into() }
+        Self {
+            validator_id: validator_id.into(),
+        }
     }
 }
 
 impl From<QueryValidatorRequest> for proto::QueryValidatorRequest {
     fn from(req: QueryValidatorRequest) -> Self {
-        Self { validator_id: req.validator_id }
+        Self {
+            validator_id: req.validator_id,
+        }
     }
 }
 
@@ -520,7 +521,11 @@ pub struct QueryValidatorsRequest {
 
 impl QueryValidatorsRequest {
     pub fn new(limit: i32, offset: i32) -> Self {
-        Self { active_only: false, limit, offset }
+        Self {
+            active_only: false,
+            limit,
+            offset,
+        }
     }
 
     pub fn active_only(mut self) -> Self {
@@ -548,7 +553,9 @@ pub struct QueryUserStakingRequest {
 
 impl QueryUserStakingRequest {
     pub fn new(address: impl Into<String>) -> Self {
-        Self { address: address.into() }
+        Self {
+            address: address.into(),
+        }
     }
 }
 
@@ -573,7 +580,11 @@ pub struct QueryDelegationsRequest {
 
 impl QueryDelegationsRequest {
     pub fn new(address: impl Into<String>, limit: i32, offset: i32) -> Self {
-        Self { address: address.into(), limit, offset }
+        Self {
+            address: address.into(),
+            limit,
+            offset,
+        }
     }
 }
 
@@ -698,7 +709,10 @@ pub struct QueryValidatorScoreRequest {
 
 impl QueryValidatorScoreRequest {
     pub fn new(validator_id: impl Into<String>) -> Self {
-        Self { validator_id: validator_id.into(), epoch: 0 }
+        Self {
+            validator_id: validator_id.into(),
+            epoch: 0,
+        }
     }
 
     pub fn with_epoch(mut self, epoch: u64) -> Self {
@@ -709,7 +723,10 @@ impl QueryValidatorScoreRequest {
 
 impl From<QueryValidatorScoreRequest> for proto::QueryValidatorScoreRequest {
     fn from(req: QueryValidatorScoreRequest) -> Self {
-        Self { validator_id: req.validator_id, epoch: req.epoch }
+        Self {
+            validator_id: req.validator_id,
+            epoch: req.epoch,
+        }
     }
 }
 
@@ -722,13 +739,17 @@ pub struct QueryCommissionInfoRequest {
 
 impl QueryCommissionInfoRequest {
     pub fn new(validator_id: impl Into<String>) -> Self {
-        Self { validator_id: validator_id.into() }
+        Self {
+            validator_id: validator_id.into(),
+        }
     }
 }
 
 impl From<QueryCommissionInfoRequest> for proto::QueryCommissionInfoRequest {
     fn from(req: QueryCommissionInfoRequest) -> Self {
-        Self { validator_id: req.validator_id }
+        Self {
+            validator_id: req.validator_id,
+        }
     }
 }
 
@@ -793,5 +814,4 @@ mod tests {
         let any = req.to_any();
         assert_eq!(any.type_url, "/staking.v1.MsgApplySlashingRequest");
     }
-
 }

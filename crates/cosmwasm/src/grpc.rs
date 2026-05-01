@@ -99,8 +99,8 @@ pub async fn broadcast_execute_contract_with_funds(
         "msg": msg_json,
         "funds": coins
     });
-    let value_bytes = serde_json::to_vec(&exec_json)
-        .map_err(|e| CosmWasmError::Serialization(e.to_string()))?;
+    let value_bytes =
+        serde_json::to_vec(&exec_json).map_err(|e| CosmWasmError::Serialization(e.to_string()))?;
 
     let request = BroadcastTxRequest {
         tx_bytes: Vec::new(),

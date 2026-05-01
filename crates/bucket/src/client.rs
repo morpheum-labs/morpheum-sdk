@@ -17,8 +17,8 @@ use morpheum_sdk_core::{MorpheumClient, SdkConfig, SdkError, Transport};
 
 use crate::requests;
 use crate::types::{
-    AddressPnL, AllBucketsBalance, Bucket, BucketPnL, BucketStatus,
-    LiquidationEvent, LiquidationMetrics, Position, PositionHealth,
+    AddressPnL, AllBucketsBalance, Bucket, BucketPnL, BucketStatus, LiquidationEvent,
+    LiquidationMetrics, Position, PositionHealth,
 };
 
 use morpheum_proto::bucket::v1 as proto;
@@ -35,16 +35,19 @@ impl BucketClient {
     }
 
     /// Gets a specific bucket by ID.
-    pub async fn get_bucket(
-        &self,
-        bucket_id: impl Into<String>,
-    ) -> Result<Bucket, SdkError> {
+    pub async fn get_bucket(&self, bucket_id: impl Into<String>) -> Result<Bucket, SdkError> {
         let req = requests::QueryBucketRequest::new(bucket_id);
         let proto_req: proto::QueryBucketRequest = req.into();
-        let resp = self.query("/bucket.v1.Query/GetBucket", proto_req.encode_to_vec()).await?;
-        let proto_res = proto::QueryBucketResponse::decode(resp.as_slice()).map_err(SdkError::Decode)?;
+        let resp = self
+            .query("/bucket.v1.Query/GetBucket", proto_req.encode_to_vec())
+            .await?;
+        let proto_res =
+            proto::QueryBucketResponse::decode(resp.as_slice()).map_err(SdkError::Decode)?;
         check_success(proto_res.success, &proto_res.message)?;
-        proto_res.bucket.map(Into::into).ok_or_else(|| SdkError::transport("bucket field missing"))
+        proto_res
+            .bucket
+            .map(Into::into)
+            .ok_or_else(|| SdkError::transport("bucket field missing"))
     }
 
     /// Gets all buckets for an address, with optional type filter.
@@ -58,8 +61,14 @@ impl BucketClient {
             req = req.type_filter(tf);
         }
         let proto_req: proto::QueryBucketsByAddressRequest = req.into();
-        let resp = self.query("/bucket.v1.Query/GetBucketsByAddress", proto_req.encode_to_vec()).await?;
-        let proto_res = proto::QueryBucketsByAddressResponse::decode(resp.as_slice()).map_err(SdkError::Decode)?;
+        let resp = self
+            .query(
+                "/bucket.v1.Query/GetBucketsByAddress",
+                proto_req.encode_to_vec(),
+            )
+            .await?;
+        let proto_res = proto::QueryBucketsByAddressResponse::decode(resp.as_slice())
+            .map_err(SdkError::Decode)?;
         check_success(proto_res.success, &proto_res.message)?;
         Ok(proto_res.buckets.into_iter().map(Into::into).collect())
     }
@@ -71,8 +80,11 @@ impl BucketClient {
     ) -> Result<AddressPnL, SdkError> {
         let req = requests::QueryAddressPnLRequest::new(address);
         let proto_req: proto::QueryAddressPnLRequest = req.into();
-        let resp = self.query("/bucket.v1.Query/GetAddressPnL", proto_req.encode_to_vec()).await?;
-        let p = proto::QueryAddressPnLResponse::decode(resp.as_slice()).map_err(SdkError::Decode)?;
+        let resp = self
+            .query("/bucket.v1.Query/GetAddressPnL", proto_req.encode_to_vec())
+            .await?;
+        let p =
+            proto::QueryAddressPnLResponse::decode(resp.as_slice()).map_err(SdkError::Decode)?;
         check_success(p.success, &p.error_message)?;
         Ok(AddressPnL {
             address: p.address,
@@ -94,7 +106,9 @@ impl BucketClient {
     ) -> Result<BucketPnL, SdkError> {
         let req = requests::QueryBucketPnLRequest::new(bucket_id);
         let proto_req: proto::QueryBucketPnLRequest = req.into();
-        let resp = self.query("/bucket.v1.Query/QueryBucketPnL", proto_req.encode_to_vec()).await?;
+        let resp = self
+            .query("/bucket.v1.Query/QueryBucketPnL", proto_req.encode_to_vec())
+            .await?;
         let p = proto::QueryBucketPnLResponse::decode(resp.as_slice()).map_err(SdkError::Decode)?;
         check_success(p.success, &p.error_message)?;
         Ok(BucketPnL {
@@ -121,8 +135,14 @@ impl BucketClient {
     ) -> Result<Vec<Position>, SdkError> {
         let req = requests::QueryPositionsByBucketRequest::new(bucket_id);
         let proto_req: proto::QueryPositionsByBucketRequest = req.into();
-        let resp = self.query("/bucket.v1.Query/QueryPositionsByBucket", proto_req.encode_to_vec()).await?;
-        let p = proto::QueryPositionsByBucketResponse::decode(resp.as_slice()).map_err(SdkError::Decode)?;
+        let resp = self
+            .query(
+                "/bucket.v1.Query/QueryPositionsByBucket",
+                proto_req.encode_to_vec(),
+            )
+            .await?;
+        let p = proto::QueryPositionsByBucketResponse::decode(resp.as_slice())
+            .map_err(SdkError::Decode)?;
         check_success(p.success, &p.message)?;
         Ok(p.positions.into_iter().map(Into::into).collect())
     }
@@ -133,8 +153,14 @@ impl BucketClient {
         request: requests::QueryLiquidationsRequest,
     ) -> Result<Vec<LiquidationEvent>, SdkError> {
         let proto_req: proto::QueryLiquidationsRequest = request.into();
-        let resp = self.query("/bucket.v1.Query/QueryLiquidations", proto_req.encode_to_vec()).await?;
-        let p = proto::QueryLiquidationsResponse::decode(resp.as_slice()).map_err(SdkError::Decode)?;
+        let resp = self
+            .query(
+                "/bucket.v1.Query/QueryLiquidations",
+                proto_req.encode_to_vec(),
+            )
+            .await?;
+        let p =
+            proto::QueryLiquidationsResponse::decode(resp.as_slice()).map_err(SdkError::Decode)?;
         Ok(p.liquidations.into_iter().map(Into::into).collect())
     }
 
@@ -146,8 +172,14 @@ impl BucketClient {
     ) -> Result<BucketStatus, SdkError> {
         let req = requests::QueryBucketStatusRequest::new(address, bucket_id);
         let proto_req: proto::QueryBucketStatusRequest = req.into();
-        let resp = self.query("/bucket.v1.Query/QueryBucketStatus", proto_req.encode_to_vec()).await?;
-        let p = proto::QueryBucketStatusResponse::decode(resp.as_slice()).map_err(SdkError::Decode)?;
+        let resp = self
+            .query(
+                "/bucket.v1.Query/QueryBucketStatus",
+                proto_req.encode_to_vec(),
+            )
+            .await?;
+        let p =
+            proto::QueryBucketStatusResponse::decode(resp.as_slice()).map_err(SdkError::Decode)?;
         check_success(p.success, &p.message)?;
         Ok(BucketStatus {
             exists: p.exists,
@@ -163,8 +195,14 @@ impl BucketClient {
     ) -> Result<AllBucketsBalance, SdkError> {
         let req = requests::QueryAllBucketsBalanceByAddressRequest::new(address);
         let proto_req: proto::QueryAllBucketsBalanceByAddressRequest = req.into();
-        let resp = self.query("/bucket.v1.Query/QueryAllBucketsBalanceByAddress", proto_req.encode_to_vec()).await?;
-        let p = proto::QueryAllBucketsBalanceByAddressResponse::decode(resp.as_slice()).map_err(SdkError::Decode)?;
+        let resp = self
+            .query(
+                "/bucket.v1.Query/QueryAllBucketsBalanceByAddress",
+                proto_req.encode_to_vec(),
+            )
+            .await?;
+        let p = proto::QueryAllBucketsBalanceByAddressResponse::decode(resp.as_slice())
+            .map_err(SdkError::Decode)?;
         check_success(p.success, &p.error_message)?;
         Ok(AllBucketsBalance {
             balance: p.balance,
@@ -182,8 +220,14 @@ impl BucketClient {
     ) -> Result<PositionHealth, SdkError> {
         let req = requests::QueryPositionHealthRequest::new(address, market_index, current_price);
         let proto_req: proto::QueryPositionHealthRequest = req.into();
-        let resp = self.query("/bucket.v1.Query/QueryPositionHealth", proto_req.encode_to_vec()).await?;
-        let p = proto::QueryPositionHealthResponse::decode(resp.as_slice()).map_err(SdkError::Decode)?;
+        let resp = self
+            .query(
+                "/bucket.v1.Query/QueryPositionHealth",
+                proto_req.encode_to_vec(),
+            )
+            .await?;
+        let p = proto::QueryPositionHealthResponse::decode(resp.as_slice())
+            .map_err(SdkError::Decode)?;
         check_success(p.success, &p.error_message)?;
         Ok(PositionHealth {
             liquidation_required: p.liquidation_required,
@@ -201,8 +245,14 @@ impl BucketClient {
     ) -> Result<LiquidationMetrics, SdkError> {
         let req = requests::QueryLiquidationMetricsRequest::new(start_time, end_time);
         let proto_req: proto::QueryLiquidationMetricsRequest = req.into();
-        let resp = self.query("/bucket.v1.Query/QueryLiquidationMetrics", proto_req.encode_to_vec()).await?;
-        let p = proto::QueryLiquidationMetricsResponse::decode(resp.as_slice()).map_err(SdkError::Decode)?;
+        let resp = self
+            .query(
+                "/bucket.v1.Query/QueryLiquidationMetrics",
+                proto_req.encode_to_vec(),
+            )
+            .await?;
+        let p = proto::QueryLiquidationMetricsResponse::decode(resp.as_slice())
+            .map_err(SdkError::Decode)?;
         check_success(p.success, &p.message)?;
         Ok(LiquidationMetrics {
             total_liquidations: p.total_liquidations,
@@ -217,8 +267,14 @@ impl BucketClient {
     /// Gets aggregate fee statistics for the bucket module.
     pub async fn query_bucket_fee_stats(&self) -> Result<crate::types::BucketFeeStats, SdkError> {
         let proto_req = proto::QueryBucketFeeStatsRequest {};
-        let resp = self.query("/bucket.v1.Query/QueryBucketFeeStats", proto_req.encode_to_vec()).await?;
-        let proto_res = proto::QueryBucketFeeStatsResponse::decode(resp.as_slice()).map_err(SdkError::Decode)?;
+        let resp = self
+            .query(
+                "/bucket.v1.Query/QueryBucketFeeStats",
+                proto_req.encode_to_vec(),
+            )
+            .await?;
+        let proto_res = proto::QueryBucketFeeStatsResponse::decode(resp.as_slice())
+            .map_err(SdkError::Decode)?;
         Ok(proto_res.into())
     }
 
@@ -228,8 +284,11 @@ impl BucketClient {
         request: requests::QueryAdlHistoryRequest,
     ) -> Result<i32, SdkError> {
         let proto_req: proto::QueryAdlHistoryRequest = request.into();
-        let resp = self.query("/bucket.v1.Query/GetADLHistory", proto_req.encode_to_vec()).await?;
-        let p = proto::QueryAdlHistoryResponse::decode(resp.as_slice()).map_err(SdkError::Decode)?;
+        let resp = self
+            .query("/bucket.v1.Query/GetADLHistory", proto_req.encode_to_vec())
+            .await?;
+        let p =
+            proto::QueryAdlHistoryResponse::decode(resp.as_slice()).map_err(SdkError::Decode)?;
         check_success(p.success, &p.error_message)?;
         Ok(p.total_count)
     }
@@ -269,7 +328,8 @@ mod tests {
     #[async_trait(?Send)]
     impl Transport for DummyTransport {
         async fn broadcast_tx(
-            &self, _tx_bytes: Vec<u8>,
+            &self,
+            _tx_bytes: Vec<u8>,
         ) -> Result<morpheum_sdk_core::BroadcastResult, SdkError> {
             unimplemented!()
         }
@@ -387,7 +447,9 @@ mod tests {
     #[tokio::test]
     async fn query_position_health_works() {
         let client = make_client();
-        let result = client.query_position_health("morpheum1abc", 42, "50000").await;
+        let result = client
+            .query_position_health("morpheum1abc", 42, "50000")
+            .await;
         assert!(result.is_ok());
     }
 

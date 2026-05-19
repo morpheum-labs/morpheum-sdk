@@ -94,6 +94,42 @@ impl<S: Signer> TxBuilder<S> {
         self
     }
 
+    /// Declares the transaction's semantics tier for the Phase 23A
+    /// tier-aware intra-block tie-break. Leaving this unset defaults
+    /// to `TxClass::Standard` (wire `0`), matching pre-23A behavior.
+    ///
+    /// Submitter-asserted on the wire; the consensus crate orders by
+    /// tier but does NOT verify semantics — the runtime executor
+    /// rejects mis-declared transactions at execution (a `PostOnly`
+    /// that crosses, a `Cancel` against a non-existent order, etc.).
+    /// See `morpheum_signing_core::tx_class` for the encoding
+    /// contract and the SRP boundary.
+    pub fn with_tx_class(
+        mut self,
+        class: crate::signing::tx_class::TxClass,
+    ) -> Self {
+        self.inner = self.inner.with_tx_class(class);
+        self
+    }
+
+    /// Sets an optional priority tip in oneirs (1 MORM = 10^18
+    /// oneirs) for faster inclusion during congestion. A value of
+    /// `0` (default) means no tip — the transaction relies solely
+    /// on mana-score sponsorship. Tips below 1 MORM are treated as
+    /// dust and ignored by validators.
+    ///
+    /// Thin zero-cost wrapper over
+    /// `morpheum_signing_core::TxBuilder::priority_tip` so the SDK
+    /// builder exposes the wire-side `TxBody.priority_tip` field
+    /// without re-implementing signing logic. Required for the
+    /// Phase 22T MEV-extraction observability gates
+    /// (`non_zero_tip_tx_count >= 1` / `>= 2`) which the bench
+    /// drives via the Phase 22X Stage 6 tipped-tx interleave.
+    pub fn priority_tip(mut self, tip_oneirs: u128) -> Self {
+        self.inner = self.inner.priority_tip(tip_oneirs);
+        self
+    }
+
     /// Finalizes and signs the transaction.
     ///
     /// Returns the SDK's `SignedTx` wrapper on success.

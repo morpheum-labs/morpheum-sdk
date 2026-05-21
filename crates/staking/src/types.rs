@@ -113,6 +113,8 @@ pub struct Validator {
     pub dvt_cluster_id: Option<String>,
     pub dvt_threshold_t: Option<u32>,
     pub dvt_threshold_n: Option<u32>,
+    /// Per-validator DVT operator indices; empty for solo validators.
+    pub dvt_operator_ids: Vec<u32>,
     /// Rewards and unstaked funds; chain default is operator address when unset on-chain.
     pub withdrawal_address: Option<String>,
 }
@@ -140,6 +142,7 @@ impl From<proto::Validator> for Validator {
             dvt_cluster_id: p.dvt_cluster_id,
             dvt_threshold_t: p.dvt_threshold_t,
             dvt_threshold_n: p.dvt_threshold_n,
+            dvt_operator_ids: p.dvt_operator_ids,
             withdrawal_address: p.withdrawal_address,
         }
     }
@@ -165,6 +168,7 @@ impl From<Validator> for proto::Validator {
             dvt_cluster_id: v.dvt_cluster_id,
             dvt_threshold_t: v.dvt_threshold_t,
             dvt_threshold_n: v.dvt_threshold_n,
+            dvt_operator_ids: v.dvt_operator_ids,
             withdrawal_address: v.withdrawal_address,
         }
     }

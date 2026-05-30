@@ -130,6 +130,31 @@ impl<S: Signer> TxBuilder<S> {
         self
     }
 
+    /// Declares the transaction's `urgent` routing hint
+    /// (Phase 22X.5.D Stage 2.E.1 — L17
+    /// `WorkloadUrgentFlagAssignmentPolicyMode` implementation).
+    ///
+    /// Stamped onto `TxBody.urgent` (proto field 6); signed via
+    /// `SignDoc.body_bytes` so a relayer or gossip peer cannot
+    /// forge it. Consumed chain-side by
+    /// `priority_flood::classify_validated` to route between the
+    /// MAV path (`false`, default — the `MarkerRoutedToMavPathOnlyByDesign`
+    /// Hypothesis-B confirmed path closed in §2.15.R) and the
+    /// direct flood path (`true` — the §5.2I 4-axis matrix
+    /// `TipsConvergeToFloodPath` slot enabled by §2.15.S).
+    ///
+    /// Thin zero-cost wrapper over
+    /// `morpheum_signing_core::TxBuilder::urgent` so the SDK
+    /// builder exposes the wire-side `TxBody.urgent` field
+    /// without re-implementing signing logic. Required for the
+    /// Phase 22X.5.D Stage 2.E.1 bench workload's
+    /// [`WorkloadUrgentFlagAssignmentPolicyMode`]-driven `urgent`
+    /// flag plumbing.
+    pub fn urgent(mut self, urgent: bool) -> Self {
+        self.inner = self.inner.urgent(urgent);
+        self
+    }
+
     /// Finalizes and signs the transaction.
     ///
     /// Returns the SDK's `SignedTx` wrapper on success.

@@ -326,6 +326,9 @@ pub struct StakingParams {
     pub liveness_params: Option<LivenessParams>,
     pub inflation_rate_bps: String,
     pub max_commission_bps: String,
+    /// Decimal slash fraction applied to bonded self-stake for a provable
+    /// oracle misreport (balance-only; consumed by the default-OFF oracle paths).
+    pub slash_fraction_oracle_misreport: String,
 }
 
 impl Default for StakingParams {
@@ -343,6 +346,7 @@ impl Default for StakingParams {
             liveness_params: Some(LivenessParams::default()),
             inflation_rate_bps: "0".into(),
             max_commission_bps: "2000".into(),
+            slash_fraction_oracle_misreport: "0.001".into(),
         }
     }
 }
@@ -362,6 +366,7 @@ impl From<proto::Params> for StakingParams {
             liveness_params: p.liveness_params.map(Into::into),
             inflation_rate_bps: p.inflation_rate_bps,
             max_commission_bps: p.max_commission_bps,
+            slash_fraction_oracle_misreport: p.slash_fraction_oracle_misreport,
         }
     }
 }
@@ -391,6 +396,7 @@ impl From<StakingParams> for proto::Params {
             liveness_params: p.liveness_params.map(Into::into),
             inflation_rate_bps: p.inflation_rate_bps,
             max_commission_bps: p.max_commission_bps,
+            slash_fraction_oracle_misreport: p.slash_fraction_oracle_misreport,
         }
     }
 }

@@ -29,6 +29,8 @@ pub enum IntentType {
     MultiLeg = 2,
     /// Declarative: high-level goal decomposed by the runtime.
     Declarative = 3,
+    /// RFQ: sealed-bid request-for-quote auction (zkRFQ, ADR-ZK-002).
+    Rfq = 4,
 }
 
 impl IntentType {
@@ -38,6 +40,7 @@ impl IntentType {
             1 => Self::Twap,
             2 => Self::MultiLeg,
             3 => Self::Declarative,
+            4 => Self::Rfq,
             _ => Self::Conditional,
         }
     }
@@ -55,6 +58,7 @@ impl fmt::Display for IntentType {
             Self::Twap => f.write_str("TWAP"),
             Self::MultiLeg => f.write_str("MULTI_LEG"),
             Self::Declarative => f.write_str("DECLARATIVE"),
+            Self::Rfq => f.write_str("RFQ"),
         }
     }
 }
@@ -308,6 +312,84 @@ impl From<DeclarativeParams> for proto::DeclarativeParams {
     }
 }
 
+// ====================== RFQ ======================
+
+/// Side of an RFQ request — the direction the taker wants quoted.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[repr(i32)]
+pub enum RfqSide {
+    /// Taker wants to buy.
+    #[default]
+    Buy = 0,
+    /// Taker wants to sell.
+    Sell = 1,
+}
+
+impl RfqSide {
+    /// Converts from the proto `i32` representation.
+    pub fn from_proto(value: i32) -> Self {
+        match value {
+            1 => Self::Sell,
+            _ => Self::Buy,
+        }
+    }
+
+    /// Converts to the proto `i32` representation.
+    pub fn to_proto(self) -> i32 {
+        self as i32
+    }
+}
+
+impl fmt::Display for RfqSide {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Buy => f.write_str("BUY"),
+            Self::Sell => f.write_str("SELL"),
+        }
+    }
+}
+
+/// Public terms of a sealed-bid RFQ auction (zkRFQ, ADR-ZK-002).
+#[derive(Clone, Debug, PartialEq, Eq)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+pub struct RfqParams {
+    /// Market the quote is solicited for.
+    pub market_id: u32,
+    /// Taker's requested maximum size (1e8-scaled).
+    pub size: u64,
+    /// Direction the taker wants quoted.
+    pub side: RfqSide,
+    /// Band tolerance in basis points.
+    pub tol_bps: u32,
+    /// Deadline (unix seconds) by which an accepted maker must reveal-and-settle.
+    pub reveal_deadline: u64,
+}
+
+impl From<proto::RfqParams> for RfqParams {
+    fn from(p: proto::RfqParams) -> Self {
+        Self {
+            market_id: p.market_id,
+            size: p.size,
+            side: RfqSide::from_proto(p.side),
+            tol_bps: p.tol_bps,
+            reveal_deadline: p.reveal_deadline,
+        }
+    }
+}
+
+impl From<RfqParams> for proto::RfqParams {
+    fn from(p: RfqParams) -> Self {
+        Self {
+            market_id: p.market_id,
+            size: p.size,
+            side: p.side.to_proto(),
+            tol_bps: p.tol_bps,
+            reveal_deadline: p.reveal_deadline,
+        }
+    }
+}
+
 /// Typed union of intent parameter variants.
 ///
 /// Maps directly to the protobuf `oneof params` in `AgentIntent`.
@@ -322,6 +404,8 @@ pub enum IntentParams {
     MultiLeg(MultiLegParams),
     /// Declarative: high-level goal decomposition.
     Declarative(DeclarativeParams),
+    /// RFQ: sealed-bid request-for-quote auction.
+    Rfq(RfqParams),
 }
 
 impl From<proto::agent_intent::Params> for IntentParams {
@@ -331,6 +415,7 @@ impl From<proto::agent_intent::Params> for IntentParams {
             proto::agent_intent::Params::Twap(t) => Self::Twap(t.into()),
             proto::agent_intent::Params::MultiLeg(m) => Self::MultiLeg(m.into()),
             proto::agent_intent::Params::Declarative(d) => Self::Declarative(d.into()),
+            proto::agent_intent::Params::Rfq(r) => Self::Rfq(r.into()),
         }
     }
 }
@@ -342,6 +427,7 @@ impl From<IntentParams> for proto::agent_intent::Params {
             IntentParams::Twap(t) => Self::Twap(t.into()),
             IntentParams::MultiLeg(m) => Self::MultiLeg(m.into()),
             IntentParams::Declarative(d) => Self::Declarative(d.into()),
+            IntentParams::Rfq(r) => Self::Rfq(r.into()),
         }
     }
 }
@@ -527,6 +613,7 @@ impl From<Params> for proto::Params {
             scheduler_tick_ms: p.scheduler_tick_ms,
             require_simulation: p.require_simulation,
             max_decomposition_steps: p.max_decomposition_steps,
+            rfq_enabled: false,
         }
     }
 }
@@ -543,6 +630,7 @@ mod tests {
             IntentType::Twap,
             IntentType::MultiLeg,
             IntentType::Declarative,
+            IntentType::Rfq,
         ] {
             assert_eq!(IntentType::from_proto(t.to_proto()), t);
         }

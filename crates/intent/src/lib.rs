@@ -31,7 +31,7 @@ pub use builder::{CancelIntentBuilder, SubmitIntentBuilder};
 /// Core domain types for the intent module.
 pub use types::{
     AgentIntent, ConditionalParams, DeclarativeParams, DecompositionTrace, IntentParams,
-    IntentStatus, IntentType, Leg, MultiLegParams, Params, TwapParams,
+    IntentStatus, IntentType, Leg, MultiLegParams, Params, RfqParams, RfqSide, TwapParams,
 };
 
 /// Re-export all request and response types for clean message construction.
@@ -50,7 +50,7 @@ pub mod prelude {
     pub use super::{
         AgentIntent, CancelIntentBuilder, ConditionalParams, DeclarativeParams, DecompositionTrace,
         IntentClient, IntentParams, IntentStatus, IntentType, Leg, MultiLegParams, Params,
-        SdkConfig, SdkError, SubmitIntentBuilder, TwapParams,
+        RfqParams, RfqSide, SdkConfig, SdkError, SubmitIntentBuilder, TwapParams,
     };
 }
 

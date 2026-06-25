@@ -203,6 +203,7 @@ mod tests {
                             scheduler_tick_ms: 500,
                             require_simulation: false,
                             max_decomposition_steps: 20,
+                            rfq_enabled: false,
                         }),
                     };
                     Ok(prost::Message::encode_to_vec(&dummy))

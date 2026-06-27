@@ -362,8 +362,10 @@ pub struct RfqParams {
     pub side: RfqSide,
     /// Band tolerance in basis points.
     pub tol_bps: u32,
-    /// Deadline (unix seconds) by which an accepted maker must reveal-and-settle.
-    pub reveal_deadline: u64,
+    /// Duration (unix seconds) an accepted maker has to reveal-and-settle,
+    /// applied per acceptance: the effective deadline is
+    /// `min(accepted_at + reveal_window_secs, expiry_timestamp)`.
+    pub reveal_window_secs: u64,
 }
 
 impl From<proto::RfqParams> for RfqParams {
@@ -373,7 +375,7 @@ impl From<proto::RfqParams> for RfqParams {
             size: p.size,
             side: RfqSide::from_proto(p.side),
             tol_bps: p.tol_bps,
-            reveal_deadline: p.reveal_deadline,
+            reveal_window_secs: p.reveal_window_secs,
         }
     }
 }
@@ -385,7 +387,7 @@ impl From<RfqParams> for proto::RfqParams {
             size: p.size,
             side: p.side.to_proto(),
             tol_bps: p.tol_bps,
-            reveal_deadline: p.reveal_deadline,
+            reveal_window_secs: p.reveal_window_secs,
         }
     }
 }

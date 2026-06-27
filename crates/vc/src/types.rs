@@ -26,6 +26,10 @@ pub struct Vc {
     pub issuance_timestamp: u64,
     pub expiry_timestamp: u64,
     pub status_list_index: u32,
+    /// zkClaims commitment (WS3-D). Empty for a plaintext credential; a 32-byte
+    /// Pedersen commitment for a privacy-mode credential, in which case the
+    /// numeric `claims` fields are zero.
+    pub claims_commitment: Vec<u8>,
 }
 
 impl Default for Vc {
@@ -38,6 +42,7 @@ impl Default for Vc {
             issuance_timestamp: 0,
             expiry_timestamp: 0,
             status_list_index: 0,
+            claims_commitment: Vec::new(),
         }
     }
 }
@@ -69,6 +74,7 @@ impl From<proto::Vc> for Vc {
             issuance_timestamp: p.issuance_timestamp,
             expiry_timestamp: p.expiry_timestamp,
             status_list_index: p.status_list_index,
+            claims_commitment: p.claims_commitment,
         }
     }
 }
@@ -83,6 +89,7 @@ impl From<Vc> for proto::Vc {
             issuance_timestamp: v.issuance_timestamp,
             expiry_timestamp: v.expiry_timestamp,
             status_list_index: v.status_list_index,
+            claims_commitment: v.claims_commitment,
         }
     }
 }
@@ -298,6 +305,7 @@ mod tests {
             issuance_timestamp: 1_700_000_000,
             expiry_timestamp: 1_800_000_000,
             status_list_index: 42,
+            claims_commitment: Vec::new(),
         };
 
         let proto: proto::Vc = vc.clone().into();

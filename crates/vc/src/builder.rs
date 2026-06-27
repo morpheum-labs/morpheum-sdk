@@ -27,6 +27,7 @@ pub struct VcIssueBuilder {
     claims: Option<VcClaims>,
     expiry_timestamp: Option<u64>,
     issuer_signature: Option<Vec<u8>>,
+    claims_commitment: Vec<u8>,
 }
 
 impl VcIssueBuilder {
@@ -70,6 +71,60 @@ impl VcIssueBuilder {
         self
     }
 
+    /// Sets a pre-computed zkClaims commitment for a privacy-mode credential
+    /// (WS3-D). Use this when the 32-byte Pedersen commitment was computed
+    /// elsewhere (e.g. the prover crate). The numeric [`claims`](Self::claims)
+    /// must be zero alongside a commitment (mode disjointness, enforced on
+    /// chain). Prefer [`privacy_limits`](Self::privacy_limits) (with the `zk`
+    /// feature) which computes the commitment and zeroes the numeric fields for
+    /// you.
+    pub fn claims_commitment(mut self, commitment: Vec<u8>) -> Self {
+        self.claims_commitment = commitment;
+        self
+    }
+
+    /// Configures this builder for a **privacy-mode** credential (WS3-D): the
+    /// four owner-issued limits stay hidden behind a Pedersen commitment and the
+    /// on-chain numeric claims are zeroed (mode disjointness). Computes
+    /// `claims_commitment` from the supplied limits and a 32-byte `blinding`
+    /// (a canonical JubJub scalar) via the same primitive the zkClaims circuit
+    /// opens, so the resulting commitment verifies against proofs produced for
+    /// these limits.
+    ///
+    /// Any previously set [`claims`](Self::claims) are replaced; a custom
+    /// constraints string, if present, is preserved (it is not part of the ZK
+    /// statement). Requires the `zk` feature.
+    #[cfg(feature = "zk")]
+    pub fn privacy_limits(
+        mut self,
+        max_position_usd: u64,
+        max_daily_usd: u64,
+        max_slippage_bps: u32,
+        allowed_pairs_bitflags: u64,
+        blinding: &[u8; 32],
+    ) -> Result<Self, SdkError> {
+        let commitment = morpheum_primitives::crypto::zk::claims_pedersen_commit(
+            max_position_usd,
+            max_daily_usd,
+            max_slippage_bps,
+            allowed_pairs_bitflags,
+            blinding,
+        )
+        .map_err(|_| {
+            SdkError::invalid_input(
+                "failed to compute zkClaims commitment (non-canonical blinding scalar)",
+            )
+        })?;
+
+        let custom_constraints = self.claims.and_then(|c| c.custom_constraints);
+        self.claims = Some(VcClaims {
+            custom_constraints,
+            ..Default::default()
+        });
+        self.claims_commitment = commitment.to_vec();
+        Ok(self)
+    }
+
     /// Builds the issuance request, performing validation.
     pub fn build(self) -> Result<IssueVcRequest, SdkError> {
         let issuer = self
@@ -92,6 +147,10 @@ impl VcIssueBuilder {
 
         if let Some(expiry) = self.expiry_timestamp {
             req = req.with_expiry(expiry);
+        }
+
+        if !self.claims_commitment.is_empty() {
+            req = req.with_claims_commitment(self.claims_commitment);
         }
 
         Ok(req)
@@ -222,6 +281,7 @@ pub struct UpdateClaimsBuilder {
     issuer: Option<AccountId>,
     new_claims: Option<VcClaims>,
     issuer_signature: Option<Vec<u8>>,
+    claims_commitment: Vec<u8>,
 }
 
 impl UpdateClaimsBuilder {
@@ -254,6 +314,49 @@ impl UpdateClaimsBuilder {
         self
     }
 
+    /// Sets a pre-computed zkClaims commitment, rotating the credential into
+    /// privacy mode (WS3-D). The numeric [`new_claims`](Self::new_claims) must
+    /// be zero alongside a commitment. Prefer
+    /// [`privacy_limits`](Self::privacy_limits) (with the `zk` feature).
+    pub fn claims_commitment(mut self, commitment: Vec<u8>) -> Self {
+        self.claims_commitment = commitment;
+        self
+    }
+
+    /// Rotates this claims update into **privacy mode** (WS3-D): computes the
+    /// `claims_commitment` from the supplied limits and a 32-byte `blinding`
+    /// scalar and zeroes the on-chain numeric claims. Requires the `zk` feature.
+    #[cfg(feature = "zk")]
+    pub fn privacy_limits(
+        mut self,
+        max_position_usd: u64,
+        max_daily_usd: u64,
+        max_slippage_bps: u32,
+        allowed_pairs_bitflags: u64,
+        blinding: &[u8; 32],
+    ) -> Result<Self, SdkError> {
+        let commitment = morpheum_primitives::crypto::zk::claims_pedersen_commit(
+            max_position_usd,
+            max_daily_usd,
+            max_slippage_bps,
+            allowed_pairs_bitflags,
+            blinding,
+        )
+        .map_err(|_| {
+            SdkError::invalid_input(
+                "failed to compute zkClaims commitment (non-canonical blinding scalar)",
+            )
+        })?;
+
+        let custom_constraints = self.new_claims.and_then(|c| c.custom_constraints);
+        self.new_claims = Some(VcClaims {
+            custom_constraints,
+            ..Default::default()
+        });
+        self.claims_commitment = commitment.to_vec();
+        Ok(self)
+    }
+
     /// Builds the update claims request, performing validation.
     pub fn build(self) -> Result<UpdateClaimsRequest, SdkError> {
         let vc_id = self
@@ -272,12 +375,13 @@ impl UpdateClaimsBuilder {
             SdkError::invalid_input("issuer_signature is required for claims update")
         })?;
 
-        Ok(UpdateClaimsRequest::new(
-            vc_id,
-            issuer,
-            new_claims,
-            issuer_signature,
-        ))
+        let mut req = UpdateClaimsRequest::new(vc_id, issuer, new_claims, issuer_signature);
+
+        if !self.claims_commitment.is_empty() {
+            req = req.with_claims_commitment(self.claims_commitment);
+        }
+
+        Ok(req)
     }
 }
 
@@ -392,5 +496,58 @@ mod tests {
     fn update_claims_builder_validation() {
         let result = UpdateClaimsBuilder::new().build();
         assert!(result.is_err());
+    }
+
+    #[test]
+    fn issue_builder_accepts_precomputed_commitment() {
+        let issuer = AccountId::new([1u8; 32]);
+        let subject = AccountId::new([2u8; 32]);
+        let request = VcIssueBuilder::new()
+            .issuer(issuer)
+            .subject(subject)
+            .claims(VcClaims::default())
+            .claims_commitment(vec![7u8; 32])
+            .issuer_signature(vec![0u8; 64])
+            .build()
+            .unwrap();
+
+        assert_eq!(request.claims_commitment, vec![7u8; 32]);
+        assert_eq!(request.claims.max_position_usd, 0);
+    }
+
+    #[cfg(feature = "zk")]
+    #[test]
+    fn privacy_limits_zeroes_claims_and_sets_commitment() {
+        let issuer = AccountId::new([1u8; 32]);
+        let subject = AccountId::new([2u8; 32]);
+        let blinding = [3u8; 32];
+
+        let request = VcIssueBuilder::new()
+            .issuer(issuer)
+            .subject(subject)
+            .claims(VcClaims {
+                custom_constraints: Some("{\"k\":1}".into()),
+                ..Default::default()
+            })
+            .privacy_limits(500_000, 100_000, 50, 0b0011, &blinding)
+            .unwrap()
+            .issuer_signature(vec![0u8; 64])
+            .build()
+            .unwrap();
+
+        // Numeric limits are hidden (zeroed) in privacy mode; custom constraints kept.
+        assert_eq!(request.claims.max_position_usd, 0);
+        assert_eq!(request.claims.max_daily_usd, 0);
+        assert_eq!(request.claims.max_slippage_bps, 0);
+        assert_eq!(request.claims.allowed_pairs_bitflags, 0);
+        assert_eq!(request.claims.custom_constraints.as_deref(), Some("{\"k\":1}"));
+
+        // Commitment is the deterministic 32-byte Pedersen commitment.
+        assert_eq!(request.claims_commitment.len(), 32);
+        let expected = morpheum_primitives::crypto::zk::claims_pedersen_commit(
+            500_000, 100_000, 50, 0b0011, &blinding,
+        )
+        .unwrap();
+        assert_eq!(request.claims_commitment, expected.to_vec());
     }
 }

@@ -26,6 +26,10 @@ serde = [
 ]
 # Convenience feature for full std + serde
 full = ["std", "serde"]
+# Enables host-side zkClaims commitment computation in the issue builder
+# (WS3-D). Pulls the heavy dusk-plonk-backed primitive (`ai`), so it is std-only
+# and opt-in — a plaintext-only client never links it.
+zk = ["std", "dep:morpheum-primitives"]
 
 [dependencies]
 # Core SDK foundation (types, config, transport, client trait, error, builder)
@@ -33,6 +37,9 @@ morpheum-sdk-core = { path = "../core", default-features = false }
 
 # Canonical protobuf definitions
 morpheum-proto = { workspace = true }
+
+# zkClaims host-side commitment (WS3-D); only with the `zk` feature.
+morpheum-primitives = { workspace = true, features = ["ai"], optional = true }
 
 # Protobuf runtime (for Message::decode / encode_to_vec)
 prost = { version = "0.14", default-features = false }

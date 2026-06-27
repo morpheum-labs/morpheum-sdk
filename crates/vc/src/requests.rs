@@ -30,6 +30,15 @@ pub struct IssueVcRequest {
     pub claims: VcClaims,
     pub expiry_timestamp: u64, // 0 = use module default
     pub issuer_signature: Vec<u8>,
+    /// zkClaims commitment binding the hidden owner-issued limits (WS3-D).
+    /// Empty for a plaintext credential (the default); a 32-byte Pedersen
+    /// commitment for a privacy-mode credential, in which case the numeric
+    /// `claims` fields MUST be zero (mode disjointness, enforced on-chain at
+    /// issuance). Build privacy credentials with
+    /// [`VcIssueBuilder::privacy_limits`](crate::VcIssueBuilder::privacy_limits)
+    /// (with the `zk` feature) or set a pre-computed commitment via
+    /// [`with_claims_commitment`](Self::with_claims_commitment).
+    pub claims_commitment: Vec<u8>,
 }
 
 impl IssueVcRequest {
@@ -46,12 +55,20 @@ impl IssueVcRequest {
             claims,
             expiry_timestamp: 0,
             issuer_signature,
+            claims_commitment: Vec::new(),
         }
     }
 
     /// Sets a custom expiry timestamp (0 = use module default from Params).
     pub fn with_expiry(mut self, timestamp: u64) -> Self {
         self.expiry_timestamp = timestamp;
+        self
+    }
+
+    /// Sets the zkClaims commitment for a privacy-mode credential (WS3-D). The
+    /// numeric `claims` fields must be zero alongside a non-empty commitment.
+    pub fn with_claims_commitment(mut self, commitment: Vec<u8>) -> Self {
+        self.claims_commitment = commitment;
         self
     }
 
@@ -73,6 +90,7 @@ impl From<IssueVcRequest> for proto::MsgIssue {
             claims: Some(req.claims.into()),
             expiry_timestamp: req.expiry_timestamp,
             issuer_signature: req.issuer_signature,
+            claims_commitment: req.claims_commitment,
         }
     }
 }
@@ -179,6 +197,10 @@ pub struct UpdateClaimsRequest {
     pub issuer: AccountId,
     pub new_claims: VcClaims,
     pub issuer_signature: Vec<u8>,
+    /// zkClaims commitment for the updated claims (WS3-D). Empty keeps/rotates
+    /// the credential into plaintext mode; a 32-byte commitment (with zeroed
+    /// numeric `new_claims`) rotates it into privacy mode.
+    pub claims_commitment: Vec<u8>,
 }
 
 impl UpdateClaimsRequest {
@@ -193,7 +215,14 @@ impl UpdateClaimsRequest {
             issuer: issuer.into(),
             new_claims,
             issuer_signature,
+            claims_commitment: Vec::new(),
         }
+    }
+
+    /// Sets the zkClaims commitment for a privacy-mode claims update (WS3-D).
+    pub fn with_claims_commitment(mut self, commitment: Vec<u8>) -> Self {
+        self.claims_commitment = commitment;
+        self
     }
 
     pub fn to_any(&self) -> ProtoAny {
@@ -212,6 +241,7 @@ impl From<UpdateClaimsRequest> for proto::MsgUpdateClaims {
             issuer_agent_hash: req.issuer.to_string(),
             new_claims: Some(req.new_claims.into()),
             issuer_signature: req.issuer_signature,
+            claims_commitment: req.claims_commitment,
         }
     }
 }

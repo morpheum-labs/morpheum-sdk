@@ -20,8 +20,8 @@ pub use client::{HeatmapResult, OiRatioResult, RiskClient};
 pub use types::{
     AuctionParams, BucketRiskSummary, ContagionDetected, HeatmapBand, HeatmapData,
     HeatmapUpdatedEvent, InsurancePayoutRequested, LiquidationPlan, LiquidationPlanBand,
-    LiquidationShortfallReady, LiquidationTriggered, OiUpdated, PreTradeMarginResult, RiskConfig,
-    RiskEvent, ShortfallIntendedPath,
+    LiquidationShortfallReady, LiquidationTriggered, OiUpdated, RiskConfig, RiskEvent,
+    ShortfallIntendedPath,
 };
 
 pub use requests::{

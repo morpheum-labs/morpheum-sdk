@@ -127,23 +127,6 @@ impl From<proto::LiquidationPlan> for LiquidationPlan {
     }
 }
 
-/// Pre-trade margin simulation result.
-#[derive(Clone, Debug, PartialEq, Eq)]
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-pub struct PreTradeMarginResult {
-    pub projected_margin_impact: String,
-    pub health_ratio_bps: u32,
-}
-
-impl From<proto::PreTradeMarginResult> for PreTradeMarginResult {
-    fn from(p: proto::PreTradeMarginResult) -> Self {
-        Self {
-            projected_margin_impact: p.projected_margin_impact,
-            health_ratio_bps: p.health_ratio_bps,
-        }
-    }
-}
-
 /// Lightweight risk summary for a bucket.
 #[derive(Clone, Debug, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
@@ -210,7 +193,6 @@ pub struct RiskConfig {
     pub var_horizon_hours: u32,
     pub enable_vrf_fairness: bool,
     pub enable_proactive_liquidation_events: bool,
-    pub enable_pre_trade_simulation: bool,
     pub enable_spot_risk_integration: bool,
     pub contagion_threshold_sat: u64,
 }
@@ -232,7 +214,6 @@ impl From<proto::RiskConfig> for RiskConfig {
             var_horizon_hours: p.var_horizon_hours,
             enable_vrf_fairness: p.enable_vrf_fairness,
             enable_proactive_liquidation_events: p.enable_proactive_liquidation_events,
-            enable_pre_trade_simulation: p.enable_pre_trade_simulation,
             enable_spot_risk_integration: p.enable_spot_risk_integration,
             contagion_threshold_sat: p.contagion_threshold_sat,
         }
@@ -256,7 +237,6 @@ impl From<RiskConfig> for proto::RiskConfig {
             var_horizon_hours: c.var_horizon_hours,
             enable_vrf_fairness: c.enable_vrf_fairness,
             enable_proactive_liquidation_events: c.enable_proactive_liquidation_events,
-            enable_pre_trade_simulation: c.enable_pre_trade_simulation,
             enable_spot_risk_integration: c.enable_spot_risk_integration,
             contagion_threshold_sat: c.contagion_threshold_sat,
         }
@@ -474,7 +454,6 @@ mod tests {
             var_horizon_hours: 24,
             enable_vrf_fairness: true,
             enable_proactive_liquidation_events: true,
-            enable_pre_trade_simulation: true,
             enable_spot_risk_integration: false,
             contagion_threshold_sat: 1_000_000,
         };

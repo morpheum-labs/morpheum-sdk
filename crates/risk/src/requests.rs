@@ -198,7 +198,6 @@ mod tests {
                 var_horizon_hours: 24,
                 enable_vrf_fairness: false,
                 enable_proactive_liquidation_events: true,
-                enable_pre_trade_simulation: true,
                 enable_spot_risk_integration: false,
                 contagion_threshold_sat: 1_000_000,
             },

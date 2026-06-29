@@ -428,8 +428,6 @@ mod tests {
         let from = AccountId::new([1u8; 32]);
         let params = crate::types::MarketParams {
             min_order_size: "0.001".into(),
-            taker_fee_rate: "0.0005".into(),
-            maker_fee_rate: "0.0002".into(),
             additional_params: alloc::collections::BTreeMap::new(),
             type_config: Some(crate::types::MarketTypeConfig::Clob(
                 crate::types::ClobMarketConfig {

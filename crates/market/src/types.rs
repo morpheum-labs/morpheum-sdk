@@ -259,8 +259,10 @@ pub enum MarketTypeConfig {
 
 /// MarketParams — trading parameters for a market.
 ///
-/// Universal fields (`min_order_size`, `taker_fee_rate`, `maker_fee_rate`) apply to
-/// all market types. Market-type-specific configuration lives in [`type_config`](Self::type_config).
+/// `min_order_size` is universal across market types; market-type-specific
+/// configuration lives in [`type_config`](Self::type_config). Trading fees are
+/// **not** market params: the clob fee schedule (`clob.v1`) is the single fee
+/// SSOT, set via `clob.v1.MsgUpdateMarketFeeParams`.
 ///
 /// ```rust,ignore
 /// let params = MarketParams::clob_default();
@@ -269,8 +271,6 @@ pub enum MarketTypeConfig {
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct MarketParams {
     pub min_order_size: String,
-    pub taker_fee_rate: String,
-    pub maker_fee_rate: String,
     pub additional_params: BTreeMap<String, String>,
     pub type_config: Option<MarketTypeConfig>,
 }
@@ -279,8 +279,6 @@ impl Default for MarketParams {
     fn default() -> Self {
         Self {
             min_order_size: "1".into(),
-            taker_fee_rate: "0.001".into(),
-            maker_fee_rate: "0.0005".into(),
             additional_params: BTreeMap::new(),
             type_config: None,
         }
@@ -338,8 +336,6 @@ impl From<proto::MarketParams> for MarketParams {
 
         Self {
             min_order_size: p.min_order_size,
-            taker_fee_rate: p.taker_fee_rate,
-            maker_fee_rate: p.maker_fee_rate,
             additional_params: p.additional_params.into_iter().collect(),
             type_config,
         }
@@ -384,8 +380,6 @@ impl From<MarketParams> for proto::MarketParams {
 
         Self {
             min_order_size: p.min_order_size,
-            taker_fee_rate: p.taker_fee_rate,
-            maker_fee_rate: p.maker_fee_rate,
             additional_params: p.additional_params.into_iter().collect(),
             type_config,
             tick_size,
@@ -709,8 +703,6 @@ mod tests {
             status: MarketStatus::Active,
             params: MarketParams {
                 min_order_size: "0.001".into(),
-                taker_fee_rate: "0.0005".into(),
-                maker_fee_rate: "0.0002".into(),
                 additional_params: BTreeMap::new(),
                 type_config: Some(MarketTypeConfig::Clob(ClobMarketConfig {
                     tick_size: "0.01".into(),
@@ -788,8 +780,6 @@ mod tests {
         #[allow(deprecated)]
         let proto_params = proto::MarketParams {
             min_order_size: "0.1".into(),
-            taker_fee_rate: "0.001".into(),
-            maker_fee_rate: "0.0005".into(),
             additional_params: Default::default(),
             type_config: None,
             tick_size: "0.01".into(),

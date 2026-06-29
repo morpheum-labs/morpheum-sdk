@@ -32,8 +32,6 @@ async fn main() -> Result<(), Box<dyn Error>> {
         max_leverage: "100".to_string(),
         initial_margin_ratio: "0.1".to_string(),
         maintenance_margin_ratio: "0.05".to_string(),
-        taker_fee_rate: "0.0005".to_string(),
-        maker_fee_rate: "0.0002".to_string(),
         allow_market_orders: true,
         allow_stop_orders: true,
         perp_config: None,

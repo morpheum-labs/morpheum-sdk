@@ -305,6 +305,10 @@ impl PlaceBatchOrdersRequest {
             from_address: self.from_address.clone(),
             orders,
             orders_hash,
+            // Independent batch by default; composite (OCO/bracket) construction is
+            // a separate higher-level client helper (request-level metadata,
+            // outside the orders_hash/EIP-712 surface).
+            composite_type: proto::CompositeType::Unspecified as i32,
         }
     }
 }
@@ -315,6 +319,7 @@ impl From<PlaceBatchOrdersRequest> for proto::MsgPlaceBatchOrdersRequest {
             from_address: r.from_address,
             orders: r.orders.into_iter().map(Into::into).collect(),
             orders_hash: r.orders_hash,
+            composite_type: proto::CompositeType::Unspecified as i32,
         }
     }
 }

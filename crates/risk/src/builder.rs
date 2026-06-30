@@ -108,18 +108,9 @@ mod tests {
                 num_bands_above_below: 10,
                 imbalance_threshold_bps: 500,
                 imbalance_hysteresis_bps: 100,
-                cascade_max_per_market_per_epoch: 5,
                 max_scan_limit: 100,
                 liquidation_margin_ratio_bps: 500,
-                prediction_margin_ratio_bps: 700,
-                price_move_threshold_bps: 300,
                 partial_band_shift_enabled: true,
-                var_confidence_bps: 9900,
-                var_horizon_hours: 24,
-                enable_vrf_fairness: false,
-                enable_proactive_liquidation_events: true,
-                enable_spot_risk_integration: false,
-                contagion_threshold_sat: 1_000_000,
             })
             .build()
             .unwrap();

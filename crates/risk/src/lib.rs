@@ -18,10 +18,8 @@ pub mod types;
 pub use client::{HeatmapResult, OiRatioResult, RiskClient};
 
 pub use types::{
-    AuctionParams, BucketRiskSummary, ContagionDetected, HeatmapBand, HeatmapData,
-    HeatmapUpdatedEvent, InsurancePayoutRequested, LiquidationPlan, LiquidationPlanBand,
-    LiquidationShortfallReady, LiquidationTriggered, OiUpdated, RiskConfig, RiskEvent,
-    ShortfallIntendedPath,
+    AuctionCleared, AuctionExpired, AuctionOpened, BucketRiskSummary, HeatmapBand, HeatmapData,
+    HeatmapUpdatedEvent, LiquidationPlanBand, OiUpdated, RiskConfig, RiskEvent,
 };
 
 pub use requests::{
@@ -42,7 +40,7 @@ pub use morpheum_sdk_core::{AccountId, ChainId, SdkError, SignedTx};
 pub mod prelude {
     pub use super::{
         AccountId, ChainId, HeatmapResult, OiRatioResult, RiskClient, RiskConfig, RiskEvent,
-        SdkError, ShortfallIntendedPath, SignedTx,
+        SdkError, SignedTx,
     };
 }
 

@@ -1,7 +1,7 @@
 //! Domain types for the risk module.
 //!
-//! Covers heatmaps, liquidation plans, margin snapshots, OI analytics,
-//! risk configuration, and streaming risk events.
+//! Covers heatmaps, margin snapshots, OI analytics, risk configuration,
+//! the Dutch-auction lifecycle, and streaming risk events.
 
 use alloc::string::String;
 use alloc::vec::Vec;
@@ -10,38 +10,6 @@ use alloc::vec::Vec;
 use serde::{Deserialize, Serialize};
 
 use morpheum_proto::risk::v1 as proto;
-
-// ====================== ENUMS ======================
-
-/// Resolution path for liquidation shortfall.
-#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash)]
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-pub enum ShortfallIntendedPath {
-    #[default]
-    Unspecified,
-    DirectToInsurance,
-    RunAuction,
-}
-
-impl From<i32> for ShortfallIntendedPath {
-    fn from(v: i32) -> Self {
-        match v {
-            1 => Self::DirectToInsurance,
-            2 => Self::RunAuction,
-            _ => Self::Unspecified,
-        }
-    }
-}
-
-impl From<ShortfallIntendedPath> for i32 {
-    fn from(p: ShortfallIntendedPath) -> Self {
-        match p {
-            ShortfallIntendedPath::Unspecified => 0,
-            ShortfallIntendedPath::DirectToInsurance => 1,
-            ShortfallIntendedPath::RunAuction => 2,
-        }
-    }
-}
 
 // ====================== DOMAIN TYPES ======================
 
@@ -104,29 +72,6 @@ impl From<proto::LiquidationPlanBand> for LiquidationPlanBand {
     }
 }
 
-/// Heatmap scan + anti-cascade sequencing for a bucket.
-#[derive(Clone, Debug, PartialEq, Eq)]
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-pub struct LiquidationPlan {
-    pub bucket_id: u64,
-    pub market_index: u64,
-    pub bands: Vec<LiquidationPlanBand>,
-    pub total_at_risk: String,
-    pub cascade_remaining: u32,
-}
-
-impl From<proto::LiquidationPlan> for LiquidationPlan {
-    fn from(p: proto::LiquidationPlan) -> Self {
-        Self {
-            bucket_id: p.bucket_id,
-            market_index: p.market_index,
-            bands: p.bands.into_iter().map(Into::into).collect(),
-            total_at_risk: p.total_at_risk,
-            cascade_remaining: p.cascade_remaining,
-        }
-    }
-}
-
 /// Lightweight risk summary for a bucket.
 #[derive(Clone, Debug, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
@@ -148,33 +93,6 @@ impl From<proto::BucketRiskSummary> for BucketRiskSummary {
     }
 }
 
-/// Governance-tunable Dutch auction parameters.
-#[derive(Clone, Debug, PartialEq, Eq)]
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-pub struct AuctionParams {
-    pub auction_duration_ms: u32,
-    pub initial_premium_bps: u32,
-    pub max_discount_bps: u32,
-    pub auction_rate_limit: u32,
-    pub min_bid_increment_bps: u32,
-    pub partial_fill_allowed: bool,
-    pub insurance_escalation_bps: u32,
-}
-
-impl From<proto::AuctionParams> for AuctionParams {
-    fn from(p: proto::AuctionParams) -> Self {
-        Self {
-            auction_duration_ms: p.auction_duration_ms,
-            initial_premium_bps: p.initial_premium_bps,
-            max_discount_bps: p.max_discount_bps,
-            auction_rate_limit: p.auction_rate_limit,
-            min_bid_increment_bps: p.min_bid_increment_bps,
-            partial_fill_allowed: p.partial_fill_allowed,
-            insurance_escalation_bps: p.insurance_escalation_bps,
-        }
-    }
-}
-
 /// Module configuration (governance hot-reloadable).
 #[derive(Clone, Debug, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
@@ -183,18 +101,9 @@ pub struct RiskConfig {
     pub num_bands_above_below: u32,
     pub imbalance_threshold_bps: u32,
     pub imbalance_hysteresis_bps: u32,
-    pub cascade_max_per_market_per_epoch: u32,
     pub max_scan_limit: u32,
     pub liquidation_margin_ratio_bps: u32,
-    pub prediction_margin_ratio_bps: u32,
-    pub price_move_threshold_bps: u32,
     pub partial_band_shift_enabled: bool,
-    pub var_confidence_bps: u32,
-    pub var_horizon_hours: u32,
-    pub enable_vrf_fairness: bool,
-    pub enable_proactive_liquidation_events: bool,
-    pub enable_spot_risk_integration: bool,
-    pub contagion_threshold_sat: u64,
 }
 
 impl From<proto::RiskConfig> for RiskConfig {
@@ -204,18 +113,9 @@ impl From<proto::RiskConfig> for RiskConfig {
             num_bands_above_below: p.num_bands_above_below,
             imbalance_threshold_bps: p.imbalance_threshold_bps,
             imbalance_hysteresis_bps: p.imbalance_hysteresis_bps,
-            cascade_max_per_market_per_epoch: p.cascade_max_per_market_per_epoch,
             max_scan_limit: p.max_scan_limit,
             liquidation_margin_ratio_bps: p.liquidation_margin_ratio_bps,
-            prediction_margin_ratio_bps: p.prediction_margin_ratio_bps,
-            price_move_threshold_bps: p.price_move_threshold_bps,
             partial_band_shift_enabled: p.partial_band_shift_enabled,
-            var_confidence_bps: p.var_confidence_bps,
-            var_horizon_hours: p.var_horizon_hours,
-            enable_vrf_fairness: p.enable_vrf_fairness,
-            enable_proactive_liquidation_events: p.enable_proactive_liquidation_events,
-            enable_spot_risk_integration: p.enable_spot_risk_integration,
-            contagion_threshold_sat: p.contagion_threshold_sat,
         }
     }
 }
@@ -227,18 +127,9 @@ impl From<RiskConfig> for proto::RiskConfig {
             num_bands_above_below: c.num_bands_above_below,
             imbalance_threshold_bps: c.imbalance_threshold_bps,
             imbalance_hysteresis_bps: c.imbalance_hysteresis_bps,
-            cascade_max_per_market_per_epoch: c.cascade_max_per_market_per_epoch,
             max_scan_limit: c.max_scan_limit,
             liquidation_margin_ratio_bps: c.liquidation_margin_ratio_bps,
-            prediction_margin_ratio_bps: c.prediction_margin_ratio_bps,
-            price_move_threshold_bps: c.price_move_threshold_bps,
             partial_band_shift_enabled: c.partial_band_shift_enabled,
-            var_confidence_bps: c.var_confidence_bps,
-            var_horizon_hours: c.var_horizon_hours,
-            enable_vrf_fairness: c.enable_vrf_fairness,
-            enable_proactive_liquidation_events: c.enable_proactive_liquidation_events,
-            enable_spot_risk_integration: c.enable_spot_risk_integration,
-            contagion_threshold_sat: c.contagion_threshold_sat,
         }
     }
 }
@@ -281,92 +172,89 @@ impl From<proto::HeatmapUpdatedEvent> for HeatmapUpdatedEvent {
     }
 }
 
-/// Liquidation triggered for a bucket.
+/// A liquidation auction was opened (block-clock Dutch auction).
 #[derive(Clone, Debug, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-pub struct LiquidationTriggered {
+pub struct AuctionOpened {
+    pub auction_id: u64,
     pub bucket_id: u64,
     pub market_index: u64,
-    pub candidate_bands: Vec<LiquidationPlanBand>,
+    pub position_is_long: bool,
+    pub size: u64,
+    pub start_price: u64,
+    pub floor_price: u64,
+    pub open_height: u64,
+    pub deadline_height: u64,
 }
 
-impl From<proto::LiquidationTriggered> for LiquidationTriggered {
-    fn from(p: proto::LiquidationTriggered) -> Self {
+impl From<proto::AuctionOpened> for AuctionOpened {
+    fn from(p: proto::AuctionOpened) -> Self {
         Self {
+            auction_id: p.auction_id,
             bucket_id: p.bucket_id,
             market_index: p.market_index,
-            candidate_bands: p.candidate_bands.into_iter().map(Into::into).collect(),
+            position_is_long: p.position_is_long,
+            size: p.size,
+            start_price: p.start_price,
+            floor_price: p.floor_price,
+            open_height: p.open_height,
+            deadline_height: p.deadline_height,
         }
     }
 }
 
-/// Liquidation shortfall ready for resolution.
+/// A liquidation auction was cleared by a winning bid.
 #[derive(Clone, Debug, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-pub struct LiquidationShortfallReady {
-    pub liquidation_id: u64,
+pub struct AuctionCleared {
+    pub auction_id: u64,
     pub bucket_id: u64,
     pub market_index: u64,
-    pub shortfall_sat: u64,
-    pub intended_path: ShortfallIntendedPath,
-    pub block_height: u64,
-    pub expires_at_height: u64,
-    pub auction_params: Option<AuctionParams>,
+    pub taker_bucket_id: u64,
+    pub clear_price: u64,
+    pub recovery: u64,
+    pub residual: u64,
+    pub settle_height: u64,
+    pub reward: u64,
 }
 
-impl From<proto::LiquidationShortfallReady> for LiquidationShortfallReady {
-    fn from(p: proto::LiquidationShortfallReady) -> Self {
+impl From<proto::AuctionCleared> for AuctionCleared {
+    fn from(p: proto::AuctionCleared) -> Self {
         Self {
-            liquidation_id: p.liquidation_id,
+            auction_id: p.auction_id,
             bucket_id: p.bucket_id,
             market_index: p.market_index,
-            shortfall_sat: p.shortfall_sat,
-            intended_path: ShortfallIntendedPath::from(p.intended_path),
-            block_height: p.block_height,
-            expires_at_height: p.expires_at_height,
-            auction_params: p.auction_params.map(Into::into),
+            taker_bucket_id: p.taker_bucket_id,
+            clear_price: p.clear_price,
+            recovery: p.recovery,
+            residual: p.residual,
+            settle_height: p.settle_height,
+            reward: p.reward,
         }
     }
 }
 
-/// Insurance payout requested from the insurance fund.
+/// A liquidation auction expired and was force-settled.
 #[derive(Clone, Debug, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-pub struct InsurancePayoutRequested {
-    pub request_id: u64,
-    pub amount: u64,
+pub struct AuctionExpired {
+    pub auction_id: u64,
     pub bucket_id: u64,
-    pub liquidation_id: u64,
-    pub block_height: u64,
+    pub market_index: u64,
+    pub recovery: u64,
+    pub residual: u64,
+    pub settle_height: u64,
 }
 
-impl From<proto::InsurancePayoutRequested> for InsurancePayoutRequested {
-    fn from(p: proto::InsurancePayoutRequested) -> Self {
+impl From<proto::AuctionExpired> for AuctionExpired {
+    fn from(p: proto::AuctionExpired) -> Self {
         Self {
-            request_id: p.request_id,
-            amount: p.amount,
+            auction_id: p.auction_id,
             bucket_id: p.bucket_id,
-            liquidation_id: p.liquidation_id,
-            block_height: p.block_height,
-        }
-    }
-}
-
-/// Contagion detected between buckets.
-#[derive(Clone, Debug, PartialEq, Eq)]
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-pub struct ContagionDetected {
-    pub source_bucket_id: u64,
-    pub affected_bucket_id: u64,
-    pub amount_sat: u64,
-}
-
-impl From<proto::ContagionDetected> for ContagionDetected {
-    fn from(p: proto::ContagionDetected) -> Self {
-        Self {
-            source_bucket_id: p.source_bucket_id,
-            affected_bucket_id: p.affected_bucket_id,
-            amount_sat: p.amount_sat,
+            market_index: p.market_index,
+            recovery: p.recovery,
+            residual: p.residual,
+            settle_height: p.settle_height,
         }
     }
 }
@@ -377,20 +265,15 @@ impl From<proto::ContagionDetected> for ContagionDetected {
 pub enum RiskEvent {
     OiUpdated(OiUpdated),
     HeatmapUpdated(HeatmapUpdatedEvent),
-    LiquidationTriggered(LiquidationTriggered),
     OiImbalanceAlert {
         market_index: u64,
         ratio_bps: u32,
         long_oi: String,
         short_oi: String,
     },
-    LiquidationCapped {
-        market_index: u64,
-        capped_count: u32,
-    },
-    LiquidationShortfallReady(LiquidationShortfallReady),
-    InsurancePayoutRequested(InsurancePayoutRequested),
-    ContagionDetected(ContagionDetected),
+    AuctionOpened(AuctionOpened),
+    AuctionCleared(AuctionCleared),
+    AuctionExpired(AuctionExpired),
 }
 
 impl RiskEvent {
@@ -400,20 +283,15 @@ impl RiskEvent {
         p.event.map(|e| match e {
             Event::OiUpdated(v) => Self::OiUpdated(v.into()),
             Event::HeatmapUpdated(v) => Self::HeatmapUpdated(v.into()),
-            Event::LiquidationTriggered(v) => Self::LiquidationTriggered(v.into()),
             Event::OiImbalanceAlert(v) => Self::OiImbalanceAlert {
                 market_index: v.market_index,
                 ratio_bps: v.ratio_bps,
                 long_oi: v.long_oi,
                 short_oi: v.short_oi,
             },
-            Event::LiquidationCapped(v) => Self::LiquidationCapped {
-                market_index: v.market_index,
-                capped_count: v.capped_count,
-            },
-            Event::LiquidationShortfallReady(v) => Self::LiquidationShortfallReady(v.into()),
-            Event::InsurancePayoutRequested(v) => Self::InsurancePayoutRequested(v.into()),
-            Event::ContagionDetected(v) => Self::ContagionDetected(v.into()),
+            Event::AuctionOpened(v) => Self::AuctionOpened(v.into()),
+            Event::AuctionCleared(v) => Self::AuctionCleared(v.into()),
+            Event::AuctionExpired(v) => Self::AuctionExpired(v.into()),
         })
     }
 }
@@ -423,39 +301,15 @@ mod tests {
     use super::*;
 
     #[test]
-    fn shortfall_path_roundtrip() {
-        for p in [
-            ShortfallIntendedPath::DirectToInsurance,
-            ShortfallIntendedPath::RunAuction,
-        ] {
-            let v: i32 = p.into();
-            assert_eq!(p, ShortfallIntendedPath::from(v));
-        }
-        assert_eq!(
-            ShortfallIntendedPath::Unspecified,
-            ShortfallIntendedPath::from(99)
-        );
-    }
-
-    #[test]
     fn risk_config_roundtrip() {
         let c = RiskConfig {
             band_width_bps: 100,
             num_bands_above_below: 10,
             imbalance_threshold_bps: 500,
             imbalance_hysteresis_bps: 50,
-            cascade_max_per_market_per_epoch: 3,
             max_scan_limit: 100,
             liquidation_margin_ratio_bps: 500,
-            prediction_margin_ratio_bps: 1000,
-            price_move_threshold_bps: 200,
             partial_band_shift_enabled: true,
-            var_confidence_bps: 9900,
-            var_horizon_hours: 24,
-            enable_vrf_fairness: true,
-            enable_proactive_liquidation_events: true,
-            enable_spot_risk_integration: false,
-            contagion_threshold_sat: 1_000_000,
         };
         let p: proto::RiskConfig = c.clone().into();
         let c2: RiskConfig = p.into();

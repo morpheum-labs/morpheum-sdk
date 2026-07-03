@@ -10,7 +10,7 @@ use serde::{Deserialize, Serialize};
 use morpheum_proto::google::protobuf::Any as ProtoAny;
 use morpheum_proto::risk::v1 as proto;
 
-use crate::types::RiskConfig;
+use crate::types::RiskParams;
 
 // ====================== TRANSACTION REQUESTS ======================
 
@@ -42,34 +42,48 @@ impl TriggerLiquidationRequest {
     }
 }
 
-/// Update the risk module configuration (governance).
-#[derive(Clone, Debug, PartialEq, Eq)]
+/// Update the risk module parameters (governance).
+///
+/// `MsgUpdateParams` is a full-replace write: submitting this clears every
+/// sub-config not carried in `params`. Seed `params` from the current
+/// on-chain value (see [`crate::client::RiskClient::get_params`]) rather than
+/// starting from a fresh/default [`RiskParams`], unless you intend to reset
+/// every sub-config.
+#[derive(Clone, Debug, PartialEq)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-pub struct UpdateRiskConfigRequest {
+pub struct UpdateParamsRequest {
     pub authority: String,
-    pub config: RiskConfig,
+    pub params: RiskParams,
 }
 
-impl UpdateRiskConfigRequest {
-    pub fn new(authority: impl Into<String>, config: RiskConfig) -> Self {
+impl UpdateParamsRequest {
+    pub fn new(authority: impl Into<String>, params: RiskParams) -> Self {
         Self {
             authority: authority.into(),
-            config,
+            params,
         }
     }
 
     pub fn to_any(&self) -> ProtoAny {
         let msg = proto::MsgUpdateParams {
             authority: self.authority.clone(),
-            params: Some(proto::Params {
-                config: Some(self.config.clone().into()),
-                auction_params: None,
-            }),
+            params: Some(self.params.clone().into()),
         };
         ProtoAny {
             type_url: "/risk.v1.MsgUpdateParams".into(),
             value: msg.encode_to_vec(),
         }
+    }
+}
+
+/// Query the current risk module governance parameters.
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+pub struct GetParamsRequest;
+
+impl From<GetParamsRequest> for proto::QueryParamsRequest {
+    fn from(_: GetParamsRequest) -> Self {
+        Self {}
     }
 }
 
@@ -171,6 +185,7 @@ impl From<GetMaintenanceMarginRequest> for proto::GetMaintenanceMarginRequest {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::types::RiskConfig;
 
     #[test]
     fn trigger_liquidation_to_any() {
@@ -180,22 +195,35 @@ mod tests {
     }
 
     #[test]
-    fn update_risk_config_to_any() {
-        let any = UpdateRiskConfigRequest::new(
+    fn update_params_to_any() {
+        let any = UpdateParamsRequest::new(
             "morpheum1gov",
-            RiskConfig {
-                band_width_bps: 100,
-                num_bands_above_below: 10,
-                imbalance_threshold_bps: 500,
-                imbalance_hysteresis_bps: 100,
-                max_scan_limit: 100,
-                liquidation_margin_ratio_bps: 500,
-                partial_band_shift_enabled: true,
+            RiskParams {
+                config: RiskConfig {
+                    band_width_bps: 100,
+                    num_bands_above_below: 10,
+                    imbalance_threshold_bps: 500,
+                    imbalance_hysteresis_bps: 100,
+                    max_scan_limit: 100,
+                    liquidation_margin_ratio_bps: 500,
+                    partial_band_shift_enabled: true,
+                },
+                auction_params: None,
+                spot_risk: None,
+                spot_collateral: None,
+                tiered_margin: None,
+                portfolio_var: None,
             },
         )
         .to_any();
         assert_eq!(any.type_url, "/risk.v1.MsgUpdateParams");
         assert!(!any.value.is_empty());
+    }
+
+    #[test]
+    fn get_params_request_conversion() {
+        let p: proto::QueryParamsRequest = GetParamsRequest.into();
+        assert_eq!(p, proto::QueryParamsRequest {});
     }
 
     #[test]

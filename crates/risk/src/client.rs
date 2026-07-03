@@ -9,6 +9,7 @@ use morpheum_proto::risk::v1 as proto;
 use morpheum_sdk_core::{MorpheumClient, SdkConfig, SdkError, Transport};
 
 use crate::requests;
+use crate::types::RiskParams;
 
 /// Heatmap query result.
 pub struct HeatmapResult {
@@ -88,6 +89,18 @@ impl RiskClient {
             .map_err(SdkError::Decode)?;
         Ok(p.margin)
     }
+
+    /// Gets the current risk module governance parameters. Use this to seed
+    /// [`crate::builder::UpdateParamsBuilder::from_current`] before submitting
+    /// a partial update, since `MsgUpdateParams` is a full-replace write.
+    pub async fn get_params(&self) -> Result<RiskParams, SdkError> {
+        let proto_req: proto::QueryParamsRequest = requests::GetParamsRequest.into();
+        let resp = self
+            .query("/risk.v1.Query/QueryParams", proto_req.encode_to_vec())
+            .await?;
+        let p = proto::QueryParamsResponse::decode(resp.as_slice()).map_err(SdkError::Decode)?;
+        Ok(p.params.unwrap_or_default().into())
+    }
 }
 
 #[async_trait(?Send)]
@@ -136,6 +149,31 @@ mod tests {
                         margin: "50000".into(),
                     },
                 )),
+                "/risk.v1.Query/QueryParams" => {
+                    Ok(prost::Message::encode_to_vec(&proto::QueryParamsResponse {
+                        params: Some(proto::Params {
+                            config: Some(proto::RiskConfig {
+                                band_width_bps: 100,
+                                num_bands_above_below: 10,
+                                imbalance_threshold_bps: 500,
+                                imbalance_hysteresis_bps: 100,
+                                max_scan_limit: 100,
+                                liquidation_margin_ratio_bps: 500,
+                                partial_band_shift_enabled: true,
+                            }),
+                            auction_params: Some(proto::AuctionParams {
+                                duration_blocks: 20,
+                                initial_premium_bps: 500,
+                                floor_discount_bps: 500,
+                                decay_bps_per_block: 25,
+                            }),
+                            spot_risk: None,
+                            spot_collateral: None,
+                            tiered_margin: None,
+                            portfolio_var: None,
+                        }),
+                    }))
+                }
                 _ => Err(SdkError::transport("unexpected path")),
             }
         }
@@ -171,5 +209,13 @@ mod tests {
             .await
             .unwrap();
         assert_eq!(m, "50000");
+    }
+
+    #[tokio::test]
+    async fn get_params_works() {
+        let params = make_client().get_params().await.unwrap();
+        assert_eq!(params.config.band_width_bps, 100);
+        assert!(params.auction_params.is_some());
+        assert!(params.spot_risk.is_none());
     }
 }

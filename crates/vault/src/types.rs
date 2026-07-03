@@ -119,6 +119,15 @@ pub struct Vault {
     pub apy_bps: String,
     pub vc_claim_hash: Vec<u8>,
     pub copy_count: String,
+    pub total_shares: String,
+    pub bucket_id: String,
+    pub collateral_asset_index: u32,
+    pub deployed_assets: String,
+    pub high_water_mark: String,
+    pub clmm_pool_id: String,
+    pub clmm_position_id: String,
+    pub clmm_collateral_token_index: u32,
+    pub clmm_deployed_assets: String,
 }
 
 impl From<proto::Vault> for Vault {
@@ -144,6 +153,15 @@ impl From<proto::Vault> for Vault {
             apy_bps: p.apy_bps,
             vc_claim_hash: p.vc_claim_hash,
             copy_count: p.copy_count,
+            total_shares: p.total_shares,
+            bucket_id: p.bucket_id,
+            collateral_asset_index: p.collateral_asset_index,
+            deployed_assets: p.deployed_assets,
+            high_water_mark: p.high_water_mark,
+            clmm_pool_id: p.clmm_pool_id,
+            clmm_position_id: p.clmm_position_id,
+            clmm_collateral_token_index: p.clmm_collateral_token_index,
+            clmm_deployed_assets: p.clmm_deployed_assets,
         }
     }
 }
@@ -316,6 +334,18 @@ pub struct VaultParams {
     pub max_strategy_complexity: u64,
     pub treasury_cut_bps: u64,
     pub last_updated: u64,
+    /// Default-OFF gate for the periodic deterministic collateral-conservation audit.
+    pub collateral_audit_enabled: bool,
+    /// Addresses authorized to submit `MsgAuditCollateral`.
+    pub authorized_audit_signers: Vec<String>,
+    /// Default-OFF gate for strategy execution.
+    pub enable_strategy_execution: bool,
+    /// Default-OFF gate for the withdrawal queue / scan path.
+    pub enable_withdrawal_queue: bool,
+    /// Addresses authorized to submit withdrawal-queue scan messages.
+    pub authorized_withdrawal_signers: Vec<String>,
+    /// Max withdrawals processed per `MsgProcessWithdrawals` scan.
+    pub max_withdrawals_per_scan: u64,
 }
 
 impl From<proto::Params> for VaultParams {
@@ -326,6 +356,12 @@ impl From<proto::Params> for VaultParams {
             max_strategy_complexity: p.max_strategy_complexity,
             treasury_cut_bps: p.treasury_cut_bps,
             last_updated: ts_to_u64(&p.last_updated),
+            collateral_audit_enabled: p.collateral_audit_enabled,
+            authorized_audit_signers: p.authorized_audit_signers,
+            enable_strategy_execution: p.enable_strategy_execution,
+            enable_withdrawal_queue: p.enable_withdrawal_queue,
+            authorized_withdrawal_signers: p.authorized_withdrawal_signers,
+            max_withdrawals_per_scan: p.max_withdrawals_per_scan,
         }
     }
 }
@@ -338,6 +374,12 @@ impl From<VaultParams> for proto::Params {
             max_strategy_complexity: p.max_strategy_complexity,
             treasury_cut_bps: p.treasury_cut_bps,
             last_updated: None,
+            collateral_audit_enabled: p.collateral_audit_enabled,
+            authorized_audit_signers: p.authorized_audit_signers,
+            enable_strategy_execution: p.enable_strategy_execution,
+            enable_withdrawal_queue: p.enable_withdrawal_queue,
+            authorized_withdrawal_signers: p.authorized_withdrawal_signers,
+            max_withdrawals_per_scan: p.max_withdrawals_per_scan,
         }
     }
 }
@@ -435,11 +477,23 @@ mod tests {
             apy_bps: "1200".into(),
             vc_claim_hash: vec![],
             copy_count: "5".into(),
+            total_shares: "1000".into(),
+            bucket_id: "bucket-v1".into(),
+            collateral_asset_index: 1,
+            deployed_assets: "100".into(),
+            high_water_mark: "100000000".into(),
+            clmm_pool_id: "pool-1".into(),
+            clmm_position_id: "position-1".into(),
+            clmm_collateral_token_index: 1,
+            clmm_deployed_assets: "50".into(),
         };
         let v: Vault = p.into();
         assert_eq!(v.vault_type, VaultType::Custom);
         assert_eq!(v.asset_symbol, "MORM");
         assert_eq!(v.total_assets, "1000");
+        assert_eq!(v.total_shares, "1000");
+        assert_eq!(v.bucket_id, "bucket-v1");
+        assert_eq!(v.clmm_position_id, "position-1");
     }
 
     #[test]
@@ -471,10 +525,15 @@ mod tests {
             max_strategy_complexity: 50,
             treasury_cut_bps: 500,
             last_updated: 0,
+            collateral_audit_enabled: true,
+            authorized_audit_signers: alloc::vec!["morpheum1audit".into()],
+            enable_strategy_execution: true,
+            enable_withdrawal_queue: true,
+            authorized_withdrawal_signers: alloc::vec!["morpheum1withdraw".into()],
+            max_withdrawals_per_scan: 25,
         };
         let proto_p: proto::Params = p.clone().into();
         let p2: VaultParams = proto_p.into();
-        assert_eq!(p.max_vaults_per_agent, p2.max_vaults_per_agent);
-        assert_eq!(p.treasury_cut_bps, p2.treasury_cut_bps);
+        assert_eq!(p, p2);
     }
 }

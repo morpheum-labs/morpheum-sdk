@@ -129,6 +129,7 @@ mod tests {
                 milestone_thresholds: vec![10_000, 50_000],
                 milestone_rewards: vec![500, 1_000],
                 perk_multiplier_bps: 1500,
+                economics: None,
             })
             .build()
             .unwrap();

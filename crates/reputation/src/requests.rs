@@ -76,7 +76,7 @@ impl From<proto::ForceMilestoneResponse> for ForceMilestoneResponse {
 }
 
 /// Governance request to update reputation module parameters.
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct UpdateParamsRequest {
     pub authority: String,
@@ -241,7 +241,7 @@ impl From<QueryParamsRequest> for proto::QueryParamsRequest {
 }
 
 /// Response containing the current module parameters.
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct QueryParamsResponse {
     pub params: Option<Params>,
@@ -280,6 +280,7 @@ mod tests {
                 milestone_thresholds: vec![10_000, 50_000, 100_000],
                 milestone_rewards: vec![500, 1_000, 2_000],
                 perk_multiplier_bps: 1500,
+                economics: None,
             },
         );
         let any = req.to_any();

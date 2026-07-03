@@ -211,6 +211,7 @@ mod tests {
                                 500, 1_000, 2_000, 5_000, 10_000, 20_000, 50_000, 100_000,
                             ],
                             perk_multiplier_bps: 1500,
+                            economics: None,
                         }),
                     };
                     Ok(prost::Message::encode_to_vec(&dummy))

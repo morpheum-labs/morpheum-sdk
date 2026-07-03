@@ -114,6 +114,9 @@ pub struct Bucket {
     pub created_at: u64,
     pub updated_at: u64,
     pub sequence_id: i64,
+    /// Spot collateral pledged to this bucket (WS-M unified spot+perp
+    /// collateral): token_index → u256 satoshi-format amount string.
+    pub pledged: BTreeMap<u32, String>,
 }
 
 impl From<proto::Bucket> for Bucket {
@@ -141,6 +144,7 @@ impl From<proto::Bucket> for Bucket {
             created_at: timestamp_seconds(p.created_at),
             updated_at: timestamp_seconds(p.updated_at),
             sequence_id: p.sequence_id,
+            pledged: p.pledged,
         }
     }
 }
@@ -176,6 +180,7 @@ impl From<Bucket> for proto::Bucket {
                 nanos: 0,
             }),
             sequence_id: b.sequence_id,
+            pledged: b.pledged,
         }
     }
 }
@@ -618,9 +623,11 @@ mod tests {
             created_at: 1_700_000_000,
             updated_at: 1_700_001_000,
             sequence_id: 42,
+            pledged: BTreeMap::from([(7u32, "25000000".into())]),
         };
 
         let proto_bucket: proto::Bucket = bucket.clone().into();
+        assert_eq!(proto_bucket.pledged, bucket.pledged);
         let back: Bucket = proto_bucket.into();
         assert_eq!(bucket, back);
     }

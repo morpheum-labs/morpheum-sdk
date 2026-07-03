@@ -290,7 +290,12 @@ impl From<proto::QueryMilestoneStatusResponse> for MilestoneStatus {
 ///     ..Default::default()
 /// };
 /// ```
-#[derive(Clone, Debug, PartialEq, Eq)]
+///
+/// `economics` passes through the canonical generated [`proto::ReputationEconomicsConfig`]
+/// unchanged (rather than a hand-mirrored SDK type) so the deep, map/list-heavy
+/// governance sub-message has a single source of truth and cannot re-drift from
+/// the wire format the way the scalar fields above once did.
+#[derive(Clone, Debug, PartialEq)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct Params {
     /// Base daily recovery cap as basis points of current score (e.g. 3000 = 30%).
@@ -307,6 +312,11 @@ pub struct Params {
     pub milestone_rewards: Vec<u64>,
     /// Base for dynamic perk formulas in basis points (1500 = +15%).
     pub perk_multiplier_bps: u32,
+    /// Reputation-scaled economics levers (margin surcharge, queue priority,
+    /// liquidation slashing). `None` (the proto default) means all levers are
+    /// off. Passed through as the canonical generated type; see its doc
+    /// comments in `reputation.proto` for the field-level semantics.
+    pub economics: Option<proto::ReputationEconomicsConfig>,
 }
 
 impl Default for Params {
@@ -323,6 +333,7 @@ impl Default for Params {
                 500, 1_000, 2_000, 5_000, 10_000, 20_000, 50_000, 100_000
             ],
             perk_multiplier_bps: 1500,
+            economics: None,
         }
     }
 }
@@ -337,6 +348,7 @@ impl From<proto::Params> for Params {
             milestone_thresholds: p.milestone_thresholds,
             milestone_rewards: p.milestone_rewards,
             perk_multiplier_bps: p.perk_multiplier_bps,
+            economics: p.economics,
         }
     }
 }
@@ -351,6 +363,7 @@ impl From<Params> for proto::Params {
             milestone_thresholds: p.milestone_thresholds,
             milestone_rewards: p.milestone_rewards,
             perk_multiplier_bps: p.perk_multiplier_bps,
+            economics: p.economics,
         }
     }
 }
@@ -457,8 +470,39 @@ mod tests {
             milestone_thresholds: alloc::vec![1, 2, 3],
             milestone_rewards: alloc::vec![10, 20, 30],
             perk_multiplier_bps: 2000,
+            economics: None,
         };
         let proto: proto::Params = params.clone().into();
+        let back: Params = proto.into();
+        assert_eq!(params, back);
+    }
+
+    /// Confirms `economics` passes through losslessly rather than being
+    /// dropped/defaulted, since it is not hand-mirrored into a parallel SDK type.
+    #[test]
+    fn params_roundtrip_with_economics() {
+        let economics = proto::ReputationEconomicsConfig {
+            enable_margin_surcharge: true,
+            margin_bands: alloc::vec![proto::ReputationMarginBand {
+                score_lt: 100_000,
+                surcharge_bps: 2000,
+            }],
+            max_margin_surcharge_bps: 5000,
+            enable_queue_priority: true,
+            priority_tiers: alloc::vec![proto::ReputationPriorityTier {
+                score_gte: 500_000,
+                class: 1,
+            }],
+            enable_liquidation_slashing: true,
+            liquidation_penalty_bps: 300,
+            min_liquidation_penalty: 1_000,
+        };
+        let params = Params {
+            economics: Some(economics),
+            ..Default::default()
+        };
+        let proto: proto::Params = params.clone().into();
+        assert_eq!(proto.economics, params.economics);
         let back: Params = proto.into();
         assert_eq!(params, back);
     }

@@ -134,6 +134,59 @@ impl From<RiskConfig> for proto::RiskConfig {
     }
 }
 
+/// Full governance-tunable risk module parameters (wire `Params`).
+///
+/// `config` mirrors [`RiskConfig`]. The remaining sub-configs
+/// (`auction_params`, `spot_risk`, `spot_collateral`, `tiered_margin`,
+/// `portfolio_var`) pass through the canonical generated proto types
+/// unchanged rather than being hand-mirrored: they are deep, map/list-heavy
+/// governance blobs, and a second hand-written mirror is exactly what let
+/// this crate drift out of sync with the wire format previously. Passing the
+/// generated type straight through keeps a single source of truth.
+///
+/// `MsgUpdateParams` is a **full-replace** write (see `reload_config` in the
+/// on-chain risk keeper) — omitting a sub-config here does not leave it
+/// unchanged on chain, it clears it. Always seed an update from the current
+/// on-chain value (see [`crate::client::RiskClient::get_params`] and
+/// [`crate::builder::UpdateParamsBuilder::from_current`]) rather than
+/// starting from a fresh/default value.
+#[derive(Clone, Debug, PartialEq)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+pub struct RiskParams {
+    pub config: RiskConfig,
+    pub auction_params: Option<proto::AuctionParams>,
+    pub spot_risk: Option<proto::SpotRiskConfig>,
+    pub spot_collateral: Option<proto::SpotCollateralConfig>,
+    pub tiered_margin: Option<proto::TieredMarginConfig>,
+    pub portfolio_var: Option<proto::PortfolioVarConfig>,
+}
+
+impl From<proto::Params> for RiskParams {
+    fn from(p: proto::Params) -> Self {
+        Self {
+            config: p.config.unwrap_or_default().into(),
+            auction_params: p.auction_params,
+            spot_risk: p.spot_risk,
+            spot_collateral: p.spot_collateral,
+            tiered_margin: p.tiered_margin,
+            portfolio_var: p.portfolio_var,
+        }
+    }
+}
+
+impl From<RiskParams> for proto::Params {
+    fn from(p: RiskParams) -> Self {
+        Self {
+            config: Some(p.config.into()),
+            auction_params: p.auction_params,
+            spot_risk: p.spot_risk,
+            spot_collateral: p.spot_collateral,
+            tiered_margin: p.tiered_margin,
+            portfolio_var: p.portfolio_var,
+        }
+    }
+}
+
 // ====================== STREAM EVENT TYPES ======================
 
 /// OI updated for a market.
@@ -259,6 +312,45 @@ impl From<proto::AuctionExpired> for AuctionExpired {
     }
 }
 
+/// A liquidation auction was force-cleared into the insurance-owned backstop
+/// bucket at the auction floor, with a delta-hedge swap absorbing/shedding
+/// the resulting base exposure.
+#[derive(Clone, Debug, PartialEq, Eq)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+pub struct AuctionBackstopped {
+    pub auction_id: u64,
+    pub bucket_id: u64,
+    pub market_index: u64,
+    pub taker_bucket_id: u64,
+    pub clear_price: u64,
+    pub recovery: u64,
+    pub residual: u64,
+    /// Base absorbed/shed by the delta-hedge swap (pool-native units, u128 string).
+    pub hedged_base: String,
+    /// Signed quote-leg delta from the hedge (1e8 native, i128 string): positive
+    /// when the fund sold base (long takeover), negative when it bought base
+    /// (short takeover).
+    pub quote_delta: String,
+    pub settle_height: u64,
+}
+
+impl From<proto::AuctionBackstopped> for AuctionBackstopped {
+    fn from(p: proto::AuctionBackstopped) -> Self {
+        Self {
+            auction_id: p.auction_id,
+            bucket_id: p.bucket_id,
+            market_index: p.market_index,
+            taker_bucket_id: p.taker_bucket_id,
+            clear_price: p.clear_price,
+            recovery: p.recovery,
+            residual: p.residual,
+            hedged_base: p.hedged_base,
+            quote_delta: p.quote_delta,
+            settle_height: p.settle_height,
+        }
+    }
+}
+
 /// Union of risk module streaming events.
 #[derive(Clone, Debug, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
@@ -274,6 +366,7 @@ pub enum RiskEvent {
     AuctionOpened(AuctionOpened),
     AuctionCleared(AuctionCleared),
     AuctionExpired(AuctionExpired),
+    AuctionBackstopped(AuctionBackstopped),
 }
 
 impl RiskEvent {
@@ -292,6 +385,7 @@ impl RiskEvent {
             Event::AuctionOpened(v) => Self::AuctionOpened(v.into()),
             Event::AuctionCleared(v) => Self::AuctionCleared(v.into()),
             Event::AuctionExpired(v) => Self::AuctionExpired(v.into()),
+            Event::AuctionBackstopped(v) => Self::AuctionBackstopped(v.into()),
         })
     }
 }
@@ -314,6 +408,118 @@ mod tests {
         let p: proto::RiskConfig = c.clone().into();
         let c2: RiskConfig = p.into();
         assert_eq!(c, c2);
+    }
+
+    #[test]
+    fn risk_params_roundtrip_with_none_subconfigs() {
+        let params = RiskParams {
+            config: RiskConfig {
+                band_width_bps: 100,
+                num_bands_above_below: 10,
+                imbalance_threshold_bps: 500,
+                imbalance_hysteresis_bps: 50,
+                max_scan_limit: 100,
+                liquidation_margin_ratio_bps: 500,
+                partial_band_shift_enabled: true,
+            },
+            auction_params: None,
+            spot_risk: None,
+            spot_collateral: None,
+            tiered_margin: None,
+            portfolio_var: None,
+        };
+        let p: proto::Params = params.clone().into();
+        let back: RiskParams = p.into();
+        assert_eq!(params, back);
+    }
+
+    /// Confirms the deep governance sub-configs pass through losslessly
+    /// (full struct + nested map/list) rather than being dropped/defaulted,
+    /// and that a config-only update does not implicitly clear them.
+    #[test]
+    fn risk_params_roundtrip_with_subconfigs() {
+        let mut markets = alloc::collections::BTreeMap::new();
+        markets.insert(
+            7u64,
+            proto::SpotRiskMarket {
+                pool_id: 1,
+                base_token: 2,
+                price_scale: "100000000".into(),
+            },
+        );
+        let params = RiskParams {
+            config: RiskConfig {
+                band_width_bps: 100,
+                num_bands_above_below: 10,
+                imbalance_threshold_bps: 500,
+                imbalance_hysteresis_bps: 50,
+                max_scan_limit: 100,
+                liquidation_margin_ratio_bps: 500,
+                partial_band_shift_enabled: true,
+            },
+            auction_params: Some(proto::AuctionParams {
+                duration_blocks: 20,
+                initial_premium_bps: 500,
+                floor_discount_bps: 500,
+                decay_bps_per_block: 25,
+            }),
+            spot_risk: Some(proto::SpotRiskConfig {
+                enabled: true,
+                band_bps: 200,
+                addon_cap_bps: 1000,
+                comfortable_multiple_bps: 20000,
+                markets,
+            }),
+            spot_collateral: None,
+            tiered_margin: None,
+            portfolio_var: None,
+        };
+        let p: proto::Params = params.clone().into();
+        assert_eq!(p.spot_risk, params.spot_risk);
+        let back: RiskParams = p.into();
+        assert_eq!(params, back);
+    }
+
+    #[test]
+    fn auction_backstopped_from_proto() {
+        let p = proto::AuctionBackstopped {
+            auction_id: 1,
+            bucket_id: 2,
+            market_index: 3,
+            taker_bucket_id: 4,
+            clear_price: 5,
+            recovery: 6,
+            residual: 7,
+            hedged_base: "1000".into(),
+            quote_delta: "-500".into(),
+            settle_height: 8,
+        };
+        let backstopped: AuctionBackstopped = p.clone().into();
+        assert_eq!(backstopped.auction_id, p.auction_id);
+        assert_eq!(backstopped.hedged_base, "1000");
+        assert_eq!(backstopped.quote_delta, "-500");
+    }
+
+    #[test]
+    fn risk_event_from_proto_auction_backstopped() {
+        let proto_event = proto::RiskEvent {
+            event: Some(proto::risk_event::Event::AuctionBackstopped(
+                proto::AuctionBackstopped {
+                    auction_id: 1,
+                    bucket_id: 2,
+                    market_index: 3,
+                    taker_bucket_id: 4,
+                    clear_price: 5,
+                    recovery: 6,
+                    residual: 7,
+                    hedged_base: "1000".into(),
+                    quote_delta: "-500".into(),
+                    settle_height: 8,
+                },
+            )),
+        };
+        let event = RiskEvent::from_proto(proto_event);
+        assert!(matches!(event, Some(RiskEvent::AuctionBackstopped(_))));
     }
 
     #[test]

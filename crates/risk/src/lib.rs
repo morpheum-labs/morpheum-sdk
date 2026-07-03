@@ -18,16 +18,17 @@ pub mod types;
 pub use client::{HeatmapResult, OiRatioResult, RiskClient};
 
 pub use types::{
-    AuctionCleared, AuctionExpired, AuctionOpened, BucketRiskSummary, HeatmapBand, HeatmapData,
-    HeatmapUpdatedEvent, LiquidationPlanBand, OiUpdated, RiskConfig, RiskEvent,
+    AuctionBackstopped, AuctionCleared, AuctionExpired, AuctionOpened, BucketRiskSummary,
+    HeatmapBand, HeatmapData, HeatmapUpdatedEvent, LiquidationPlanBand, OiUpdated, RiskConfig,
+    RiskEvent, RiskParams,
 };
 
 pub use requests::{
-    GetHeatmapRequest, GetMaintenanceMarginRequest, GetOiRatioRequest, TriggerLiquidationRequest,
-    UpdateRiskConfigRequest,
+    GetHeatmapRequest, GetMaintenanceMarginRequest, GetOiRatioRequest, GetParamsRequest,
+    TriggerLiquidationRequest, UpdateParamsRequest,
 };
 
-pub use builder::{TriggerLiquidationBuilder, UpdateRiskConfigBuilder};
+pub use builder::{TriggerLiquidationBuilder, UpdateParamsBuilder};
 
 pub use morpheum_sdk_core::{AccountId, ChainId, SdkError, SignedTx};
 

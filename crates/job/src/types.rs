@@ -71,6 +71,44 @@ impl JobState {
     }
 }
 
+/// Agentic Risk Standard (ARS) compensation policy: the deterministic rule
+/// that governs how a funded escrow is split when an evaluator rejects a
+/// deliverable. The `Unspecified` variant is a sentinel — on a `Job` it means
+/// "inherit the governance default"; on `JobParams` it is the safe
+/// `FullRefund` fallback.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+pub enum CompensationPolicy {
+    #[default]
+    Unspecified,
+    FullRefund,
+    EvaluationFeeRetained,
+}
+
+impl From<i32> for CompensationPolicy {
+    fn from(v: i32) -> Self {
+        match proto::CompensationPolicy::try_from(v)
+            .unwrap_or(proto::CompensationPolicy::Unspecified)
+        {
+            proto::CompensationPolicy::Unspecified => Self::Unspecified,
+            proto::CompensationPolicy::FullRefund => Self::FullRefund,
+            proto::CompensationPolicy::EvaluationFeeRetained => Self::EvaluationFeeRetained,
+        }
+    }
+}
+
+impl From<CompensationPolicy> for i32 {
+    fn from(p: CompensationPolicy) -> Self {
+        match p {
+            CompensationPolicy::Unspecified => proto::CompensationPolicy::Unspecified as i32,
+            CompensationPolicy::FullRefund => proto::CompensationPolicy::FullRefund as i32,
+            CompensationPolicy::EvaluationFeeRetained => {
+                proto::CompensationPolicy::EvaluationFeeRetained as i32
+            }
+        }
+    }
+}
+
 // ====================== STRUCTS ======================
 
 /// Revenue share configuration (basis points).
@@ -163,6 +201,14 @@ pub struct Job {
     pub blob_merkle_root: Vec<u8>,
     pub job_spec_hash: String,
     pub rejection_reason_hash: String,
+    /// ARS v1: bank-payable funder address, set on fund; refund recipient.
+    pub funder_payout_address: String,
+    /// ARS v1: bank-payable provider address, set on first deliverable.
+    pub provider_payout_address: String,
+    /// ARS v1: bank-payable evaluator address, set on attest.
+    pub evaluator_payout_address: String,
+    /// ARS v1: per-job compensation policy (Unspecified inherits governance).
+    pub compensation_policy: CompensationPolicy,
 }
 
 impl Job {
@@ -206,6 +252,10 @@ impl From<proto::Job> for Job {
             blob_merkle_root: p.blob_merkle_root,
             job_spec_hash: p.job_spec_hash,
             rejection_reason_hash: p.rejection_reason_hash,
+            funder_payout_address: p.funder_payout_address,
+            provider_payout_address: p.provider_payout_address,
+            evaluator_payout_address: p.evaluator_payout_address,
+            compensation_policy: CompensationPolicy::from(p.compensation_policy),
         }
     }
 }
@@ -229,6 +279,10 @@ impl From<Job> for proto::Job {
             blob_merkle_root: j.blob_merkle_root,
             job_spec_hash: j.job_spec_hash,
             rejection_reason_hash: j.rejection_reason_hash,
+            funder_payout_address: j.funder_payout_address,
+            provider_payout_address: j.provider_payout_address,
+            evaluator_payout_address: j.evaluator_payout_address,
+            compensation_policy: i32::from(j.compensation_policy),
         }
     }
 }
@@ -287,6 +341,10 @@ pub struct JobParams {
     pub max_active_job_per_provider: u32,
     pub default_evaluation_fee_usd: u64,
     pub declarative_job_enabled: bool,
+    /// ARS v1: governance default compensation policy.
+    pub default_compensation_policy: CompensationPolicy,
+    /// ARS v1: bank asset index all job budgets are escrowed in.
+    pub escrow_asset_index: u64,
 }
 
 impl Default for JobParams {
@@ -301,6 +359,8 @@ impl Default for JobParams {
             max_active_job_per_provider: 50,
             default_evaluation_fee_usd: 0,
             declarative_job_enabled: false,
+            default_compensation_policy: CompensationPolicy::Unspecified,
+            escrow_asset_index: 0,
         }
     }
 }
@@ -317,6 +377,8 @@ impl From<proto::Params> for JobParams {
             max_active_job_per_provider: p.max_active_job_per_provider,
             default_evaluation_fee_usd: p.default_evaluation_fee_usd,
             declarative_job_enabled: p.declarative_job_enabled,
+            default_compensation_policy: CompensationPolicy::from(p.default_compensation_policy),
+            escrow_asset_index: p.escrow_asset_index,
         }
     }
 }
@@ -333,6 +395,8 @@ impl From<JobParams> for proto::Params {
             max_active_job_per_provider: p.max_active_job_per_provider,
             default_evaluation_fee_usd: p.default_evaluation_fee_usd,
             declarative_job_enabled: p.declarative_job_enabled,
+            default_compensation_policy: i32::from(p.default_compensation_policy),
+            escrow_asset_index: p.escrow_asset_index,
         }
     }
 }
@@ -392,11 +456,26 @@ mod tests {
             blob_merkle_root: vec![9, 10],
             job_spec_hash: "spec-hash".into(),
             rejection_reason_hash: String::new(),
+            funder_payout_address: "morm1funder".into(),
+            provider_payout_address: "morm1provider".into(),
+            evaluator_payout_address: "morm1evaluator".into(),
+            compensation_policy: CompensationPolicy::EvaluationFeeRetained,
         };
 
         let proto_job: proto::Job = job.clone().into();
         let back: Job = proto_job.into();
         assert_eq!(job, back);
+    }
+
+    #[test]
+    fn compensation_policy_roundtrip() {
+        for p in [
+            CompensationPolicy::Unspecified,
+            CompensationPolicy::FullRefund,
+            CompensationPolicy::EvaluationFeeRetained,
+        ] {
+            assert_eq!(CompensationPolicy::from(i32::from(p)), p);
+        }
     }
 
     #[test]

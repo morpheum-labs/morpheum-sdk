@@ -22,7 +22,9 @@ pub mod types;
 pub use client::JobClient;
 
 /// Core domain types for jobs.
-pub use types::{Deliverable, Job, JobAttestation, JobParams, JobState, RevenueShareConfig};
+pub use types::{
+    CompensationPolicy, Deliverable, Job, JobAttestation, JobParams, JobState, RevenueShareConfig,
+};
 
 /// Request and response wrappers for transaction construction and queries.
 pub use requests::*;

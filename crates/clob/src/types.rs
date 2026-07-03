@@ -445,7 +445,7 @@ pub struct OrderBookChecksum {
 }
 
 /// CLOB module global parameters (governance-settable).
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct ClobParams {
     pub max_markets_per_shard: u64,
@@ -460,6 +460,24 @@ pub struct ClobParams {
     pub default_taker_fee_bps: u32,
     pub default_liquidation_penalty_bps: u32,
     pub default_mm_quote_protocol_cut_bps: u32,
+    /// Reputation gate (ADR-ID-001): require a minimum committed reputation score to place orders.
+    pub enable_reputation_gate: bool,
+    pub min_reputation_score: u64,
+    /// Credential gate (WS3-E, ADR-ID-001): require a valid verifiable credential to place orders.
+    pub enable_credential_gate: bool,
+    /// Governance-curated registry resolving credential `allowed_pairs_bitflags` bits to
+    /// canonical trading pairs (WS3-E-claims). Passthrough — deep, nested governance registry.
+    pub credential_pair_bits: Vec<proto::CredentialPairBit>,
+    /// zkRFQ reveal-and-settle toggle (ADR-ZK-002).
+    pub enable_rfq_settle: bool,
+    /// zkClaims credential-limits gate toggle (WS3-D); requires `enable_credential_gate`.
+    pub enable_zk_credential_gate: bool,
+    /// Deterministic GTT/DAY order-expiry sweep gate (A7).
+    pub enable_expiry_sweep: bool,
+    /// Allowlist for `MsgScanExpiredOrders` submitters; empty = permissionless.
+    pub authorized_expiry_signers: Vec<String>,
+    /// Reputation-scaled queue priority (WS-P, ADR-ID-001).
+    pub enable_reputation_priority: bool,
 }
 
 impl From<proto::Params> for ClobParams {
@@ -477,6 +495,15 @@ impl From<proto::Params> for ClobParams {
             default_taker_fee_bps: p.default_taker_fee_bps,
             default_liquidation_penalty_bps: p.default_liquidation_penalty_bps,
             default_mm_quote_protocol_cut_bps: p.default_mm_quote_protocol_cut_bps,
+            enable_reputation_gate: p.enable_reputation_gate,
+            min_reputation_score: p.min_reputation_score,
+            enable_credential_gate: p.enable_credential_gate,
+            credential_pair_bits: p.credential_pair_bits,
+            enable_rfq_settle: p.enable_rfq_settle,
+            enable_zk_credential_gate: p.enable_zk_credential_gate,
+            enable_expiry_sweep: p.enable_expiry_sweep,
+            authorized_expiry_signers: p.authorized_expiry_signers,
+            enable_reputation_priority: p.enable_reputation_priority,
         }
     }
 }
@@ -496,6 +523,15 @@ impl From<ClobParams> for proto::Params {
             default_taker_fee_bps: p.default_taker_fee_bps,
             default_liquidation_penalty_bps: p.default_liquidation_penalty_bps,
             default_mm_quote_protocol_cut_bps: p.default_mm_quote_protocol_cut_bps,
+            enable_reputation_gate: p.enable_reputation_gate,
+            min_reputation_score: p.min_reputation_score,
+            enable_credential_gate: p.enable_credential_gate,
+            credential_pair_bits: p.credential_pair_bits,
+            enable_rfq_settle: p.enable_rfq_settle,
+            enable_zk_credential_gate: p.enable_zk_credential_gate,
+            enable_expiry_sweep: p.enable_expiry_sweep,
+            authorized_expiry_signers: p.authorized_expiry_signers,
+            enable_reputation_priority: p.enable_reputation_priority,
         }
     }
 }
@@ -576,5 +612,41 @@ mod tests {
         let entry: FundingRateEntry = p.into();
         assert_eq!(entry.timestamp, 1_700_000_000);
         assert_eq!(entry.rate, "0.0001");
+    }
+
+    #[test]
+    fn clob_params_bidirectional_with_credential_pair_bits() {
+        let params = ClobParams {
+            max_markets_per_shard: 64,
+            default_strategy: "hybrid".into(),
+            hybrid_sync_interval_ms: 500,
+            atomic_snapshot_interval_ms: 5_000,
+            enable_telemetry: true,
+            telemetry_interval_ms: 1_000,
+            enable_grid_integration: false,
+            enable_simd_optimizations: true,
+            default_maker_fee_bps: 2,
+            default_taker_fee_bps: 35,
+            default_liquidation_penalty_bps: 50,
+            default_mm_quote_protocol_cut_bps: 5,
+            enable_reputation_gate: true,
+            min_reputation_score: 750,
+            enable_credential_gate: true,
+            credential_pair_bits: alloc::vec![proto::CredentialPairBit {
+                bit: 0,
+                base_asset_index: 1,
+                quote_asset_index: 2,
+                market_type: 1,
+            }],
+            enable_rfq_settle: true,
+            enable_zk_credential_gate: false,
+            enable_expiry_sweep: true,
+            authorized_expiry_signers: alloc::vec!["morpheum1keeper".into()],
+            enable_reputation_priority: true,
+        };
+        let proto_params: proto::Params = params.clone().into();
+        assert_eq!(proto_params.credential_pair_bits.len(), 1);
+        let back: ClobParams = proto_params.into();
+        assert_eq!(params, back);
     }
 }

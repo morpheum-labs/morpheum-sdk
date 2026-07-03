@@ -37,6 +37,8 @@ pub struct CreatePoolRequest {
     pub description: Option<String>,
     pub tags: Vec<String>,
     pub logo_uri: Option<String>,
+    /// Governance authority — must equal `GOV_MODULE_ADDRESS`.
+    pub authority: String,
 }
 
 impl CreatePoolRequest {
@@ -45,6 +47,7 @@ impl CreatePoolRequest {
         asset_index: u64,
         initial_liquidity: impl Into<String>,
         provider_type: u32,
+        authority: impl Into<String>,
     ) -> Self {
         Self {
             market_index,
@@ -58,6 +61,7 @@ impl CreatePoolRequest {
             description: None,
             tags: Vec::new(),
             logo_uri: None,
+            authority: authority.into(),
         }
     }
 
@@ -96,6 +100,7 @@ impl CreatePoolRequest {
             description: self.description.clone(),
             tags: self.tags.clone(),
             logo_uri: self.logo_uri.clone(),
+            authority: self.authority.clone(),
         };
         ProtoAny {
             type_url: "/liquidity.v1.CreatePoolRequest".into(),
@@ -109,32 +114,27 @@ impl CreatePoolRequest {
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct UpdatePoolParamsRequest {
     pub pool_id: String,
-    pub min_deposit: String,
-    pub max_deposit: String,
     pub updater_external_address: Option<String>,
     pub updater_chain_type: Option<i32>,
     pub display_name: Option<String>,
     pub description: Option<String>,
     pub tags: Vec<String>,
     pub logo_uri: Option<String>,
+    /// Governance authority — must equal `GOV_MODULE_ADDRESS`.
+    pub authority: String,
 }
 
 impl UpdatePoolParamsRequest {
-    pub fn new(
-        pool_id: impl Into<String>,
-        min_deposit: impl Into<String>,
-        max_deposit: impl Into<String>,
-    ) -> Self {
+    pub fn new(pool_id: impl Into<String>, authority: impl Into<String>) -> Self {
         Self {
             pool_id: pool_id.into(),
-            min_deposit: min_deposit.into(),
-            max_deposit: max_deposit.into(),
             updater_external_address: None,
             updater_chain_type: None,
             display_name: None,
             description: None,
             tags: Vec::new(),
             logo_uri: None,
+            authority: authority.into(),
         }
     }
 
@@ -158,8 +158,6 @@ impl UpdatePoolParamsRequest {
     pub fn to_any(&self) -> ProtoAny {
         let msg = proto::UpdatePoolParamsRequest {
             pool_id: self.pool_id.clone(),
-            min_deposit: self.min_deposit.clone(),
-            max_deposit: self.max_deposit.clone(),
             timestamp: None,
             updater_external_address: self.updater_external_address.clone(),
             updater_chain_type: self.updater_chain_type,
@@ -167,7 +165,7 @@ impl UpdatePoolParamsRequest {
             description: self.description.clone(),
             tags: self.tags.clone(),
             logo_uri: self.logo_uri.clone(),
-            authority: String::new(),
+            authority: self.authority.clone(),
         };
         ProtoAny {
             type_url: "/liquidity.v1.UpdatePoolParamsRequest".into(),
@@ -327,7 +325,7 @@ mod tests {
 
     #[test]
     fn create_pool_to_any() {
-        let any = CreatePoolRequest::new(1, 2, "1000", 1).to_any();
+        let any = CreatePoolRequest::new(1, 2, "1000", 1, "morpheum1gov").to_any();
         assert_eq!(any.type_url, "/liquidity.v1.CreatePoolRequest");
         assert!(!any.value.is_empty());
     }

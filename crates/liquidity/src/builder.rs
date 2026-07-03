@@ -21,6 +21,7 @@ pub struct CreatePoolBuilder {
     description: Option<String>,
     tags: Vec<String>,
     logo_uri: Option<String>,
+    authority: Option<String>,
 }
 
 impl CreatePoolBuilder {
@@ -64,6 +65,10 @@ impl CreatePoolBuilder {
         self.logo_uri = Some(v.into());
         self
     }
+    pub fn authority(mut self, v: impl Into<String>) -> Self {
+        self.authority = Some(v.into());
+        self
+    }
 
     pub fn build(self) -> Result<CreatePoolRequest, SdkError> {
         let mut req = CreatePoolRequest::new(
@@ -75,6 +80,8 @@ impl CreatePoolBuilder {
                 .ok_or_else(|| SdkError::invalid_input("initial_liquidity is required"))?,
             self.provider_type
                 .ok_or_else(|| SdkError::invalid_input("provider_type is required"))?,
+            self.authority
+                .ok_or_else(|| SdkError::invalid_input("authority is required"))?,
         );
         req.provider_config = self.provider_config;
         req.display_name = self.display_name;
@@ -91,12 +98,11 @@ impl CreatePoolBuilder {
 #[derive(Default)]
 pub struct UpdatePoolParamsBuilder {
     pool_id: Option<String>,
-    min_deposit: Option<String>,
-    max_deposit: Option<String>,
     display_name: Option<String>,
     description: Option<String>,
     tags: Vec<String>,
     logo_uri: Option<String>,
+    authority: Option<String>,
 }
 
 impl UpdatePoolParamsBuilder {
@@ -108,12 +114,8 @@ impl UpdatePoolParamsBuilder {
         self.pool_id = Some(v.into());
         self
     }
-    pub fn min_deposit(mut self, v: impl Into<String>) -> Self {
-        self.min_deposit = Some(v.into());
-        self
-    }
-    pub fn max_deposit(mut self, v: impl Into<String>) -> Self {
-        self.max_deposit = Some(v.into());
+    pub fn authority(mut self, v: impl Into<String>) -> Self {
+        self.authority = Some(v.into());
         self
     }
     pub fn display_name(mut self, v: impl Into<String>) -> Self {
@@ -137,10 +139,8 @@ impl UpdatePoolParamsBuilder {
         let mut req = UpdatePoolParamsRequest::new(
             self.pool_id
                 .ok_or_else(|| SdkError::invalid_input("pool_id is required"))?,
-            self.min_deposit
-                .ok_or_else(|| SdkError::invalid_input("min_deposit is required"))?,
-            self.max_deposit
-                .ok_or_else(|| SdkError::invalid_input("max_deposit is required"))?,
+            self.authority
+                .ok_or_else(|| SdkError::invalid_input("authority is required"))?,
         );
         req.display_name = self.display_name;
         req.description = self.description;
@@ -162,10 +162,12 @@ mod tests {
             .initial_liquidity("1000")
             .provider_type(1)
             .display_name("Main")
+            .authority("morpheum1gov")
             .build()
             .unwrap();
         assert_eq!(req.market_index, 1);
         assert_eq!(req.display_name, Some("Main".into()));
+        assert_eq!(req.authority, "morpheum1gov");
     }
 
     #[test]
@@ -177,11 +179,11 @@ mod tests {
     fn update_pool_params_builder_works() {
         let req = UpdatePoolParamsBuilder::new()
             .pool_id("pool1")
-            .min_deposit("100")
-            .max_deposit("10000")
+            .authority("morpheum1gov")
             .build()
             .unwrap();
         assert_eq!(req.pool_id, "pool1");
+        assert_eq!(req.authority, "morpheum1gov");
     }
 
     #[test]

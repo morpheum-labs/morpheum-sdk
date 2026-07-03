@@ -319,14 +319,27 @@ mod tests {
             agent_hash: "agent-abc".into(),
             intent_type: IntentType::Conditional,
             params: Some(IntentParams::Conditional(ConditionalParams {
-                condition: "price > 50000".into(),
-                action: "buy 1 BTC".into(),
+                condition: TriggerCondition {
+                    market_index: 1,
+                    cmp: Comparator::Above,
+                    trigger_price_e8: "5000000000000".into(),
+                },
+                action: OrderAction {
+                    market_index: 1,
+                    bucket_id: 1,
+                    side: Side::Buy,
+                    quantity: 100_000_000,
+                    price_e8: "5000000000000".into(),
+                    tif: Tif::Gtc,
+                },
             })),
             vc_proof_hash: "vc-hash".into(),
             expiry_timestamp: 1_700_003_600,
             priority_boost: 5,
             status: IntentStatus::Pending,
             created_at: 1_700_000_000,
+            context_data: Vec::new(),
+            blob_merkle_root: Vec::new(),
         }
     }
 

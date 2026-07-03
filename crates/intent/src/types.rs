@@ -83,6 +83,9 @@ pub enum IntentStatus {
     Cancelled = 4,
     /// Expired (past `expiry_timestamp`).
     Expired = 5,
+    /// zkRFQ: a sealed bid has been accepted and escrow locked; the RFQ awaits
+    /// the winning maker's reveal-and-settle (ADR-ZK-002 Phase 4c).
+    AwaitingReveal = 6,
 }
 
 impl IntentStatus {
@@ -94,6 +97,7 @@ impl IntentStatus {
             3 => Self::Failed,
             4 => Self::Cancelled,
             5 => Self::Expired,
+            6 => Self::AwaitingReveal,
             _ => Self::Pending,
         }
     }
@@ -111,9 +115,10 @@ impl IntentStatus {
         )
     }
 
-    /// Returns `true` if the intent is still live (pending or executing).
+    /// Returns `true` if the intent is still live (pending, executing, or
+    /// awaiting a zkRFQ reveal-and-settle).
     pub fn is_active(self) -> bool {
-        matches!(self, Self::Pending | Self::Executing)
+        matches!(self, Self::Pending | Self::Executing | Self::AwaitingReveal)
     }
 }
 
@@ -126,29 +131,257 @@ impl fmt::Display for IntentStatus {
             Self::Failed => f.write_str("FAILED"),
             Self::Cancelled => f.write_str("CANCELLED"),
             Self::Expired => f.write_str("EXPIRED"),
+            Self::AwaitingReveal => f.write_str("AWAITING_REVEAL"),
+        }
+    }
+}
+
+// ====================== EXECUTION-ENGINE ENUMS (E6, WS-G G1) ======================
+//
+// Feed the intent-execution engine's typed orders/triggers. Every field is
+// deterministic and float-free: integer indices/sizes and 1e8 fixed-point
+// prices as decimal strings, matching the CLOB `batch_execute` SSOT.
+
+/// Order side for an execution-engine order.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[repr(i32)]
+pub enum Side {
+    /// Buy (bid).
+    #[default]
+    Buy = 0,
+    /// Sell (ask).
+    Sell = 1,
+}
+
+impl Side {
+    /// Converts from the proto `i32` representation.
+    pub fn from_proto(value: i32) -> Self {
+        match value {
+            1 => Self::Sell,
+            _ => Self::Buy,
+        }
+    }
+
+    /// Converts to the proto `i32` representation.
+    pub fn to_proto(self) -> i32 {
+        self as i32
+    }
+}
+
+impl fmt::Display for Side {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Buy => f.write_str("SIDE_BUY"),
+            Self::Sell => f.write_str("SIDE_SELL"),
+        }
+    }
+}
+
+/// Time-in-force for an execution-engine order. GTC rests as a maker; IOC/FOK
+/// are marketable against a crossing limit price.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[repr(i32)]
+pub enum Tif {
+    /// Good-till-cancelled.
+    #[default]
+    Gtc = 0,
+    /// Immediate-or-cancel.
+    Ioc = 1,
+    /// Fill-or-kill.
+    Fok = 2,
+}
+
+impl Tif {
+    /// Converts from the proto `i32` representation.
+    pub fn from_proto(value: i32) -> Self {
+        match value {
+            1 => Self::Ioc,
+            2 => Self::Fok,
+            _ => Self::Gtc,
+        }
+    }
+
+    /// Converts to the proto `i32` representation.
+    pub fn to_proto(self) -> i32 {
+        self as i32
+    }
+}
+
+impl fmt::Display for Tif {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Gtc => f.write_str("TIF_GTC"),
+            Self::Ioc => f.write_str("TIF_IOC"),
+            Self::Fok => f.write_str("TIF_FOK"),
+        }
+    }
+}
+
+/// TWAP slice-size distribution. Only `Uniform` (equal slices, dust on the
+/// last) is supported on the consensus path today; the enum keeps the schema
+/// forward-compatible without a wire break.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[repr(i32)]
+pub enum SliceCurve {
+    /// Equal-sized slices (dust absorbed by the last slice).
+    #[default]
+    Uniform = 0,
+}
+
+impl SliceCurve {
+    /// Converts from the proto `i32` representation.
+    pub fn from_proto(_value: i32) -> Self {
+        Self::Uniform
+    }
+
+    /// Converts to the proto `i32` representation.
+    pub fn to_proto(self) -> i32 {
+        self as i32
+    }
+}
+
+impl fmt::Display for SliceCurve {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Uniform => f.write_str("SLICE_CURVE_UNIFORM"),
+        }
+    }
+}
+
+/// Comparator for a conditional trigger evaluated against the committed mark.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[repr(i32)]
+pub enum Comparator {
+    /// Fire when the committed mark >= `trigger_price_e8`.
+    #[default]
+    Above = 0,
+    /// Fire when the committed mark <= `trigger_price_e8`.
+    Below = 1,
+}
+
+impl Comparator {
+    /// Converts from the proto `i32` representation.
+    pub fn from_proto(value: i32) -> Self {
+        match value {
+            1 => Self::Below,
+            _ => Self::Above,
+        }
+    }
+
+    /// Converts to the proto `i32` representation.
+    pub fn to_proto(self) -> i32 {
+        self as i32
+    }
+}
+
+impl fmt::Display for Comparator {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Above => f.write_str("COMPARATOR_ABOVE"),
+            Self::Below => f.write_str("COMPARATOR_BELOW"),
+        }
+    }
+}
+
+// ====================== EXECUTION-ENGINE ORDERS/TRIGGERS ======================
+
+/// A single execution-ready CLOB order. The engine authorizes the intent
+/// owner against `bucket_id` (an agent must not spend another agent's bucket
+/// margin) before placing, then lowers this into one order placement.
+#[derive(Clone, Debug, Default, PartialEq, Eq, Hash)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+pub struct OrderAction {
+    pub market_index: u64,
+    /// Bucket the order trades against (margin + position attribution).
+    pub bucket_id: u64,
+    pub side: Side,
+    /// Order quantity (1e8 satoshi-scale).
+    pub quantity: u64,
+    /// Limit price (1e8 fixed-point) as a decimal string. Required, non-zero —
+    /// the engine posts deterministic limit orders only.
+    pub price_e8: String,
+    pub tif: Tif,
+}
+
+impl From<proto::OrderAction> for OrderAction {
+    fn from(p: proto::OrderAction) -> Self {
+        Self {
+            market_index: p.market_index,
+            bucket_id: p.bucket_id,
+            side: Side::from_proto(p.side),
+            quantity: p.quantity,
+            price_e8: p.price_e8,
+            tif: Tif::from_proto(p.tif),
+        }
+    }
+}
+
+impl From<OrderAction> for proto::OrderAction {
+    fn from(a: OrderAction) -> Self {
+        Self {
+            market_index: a.market_index,
+            bucket_id: a.bucket_id,
+            side: a.side.to_proto(),
+            quantity: a.quantity,
+            price_e8: a.price_e8,
+            tif: a.tif.to_proto(),
+        }
+    }
+}
+
+/// A conditional trigger: when the committed mark for `market_index` crosses
+/// `trigger_price_e8` per `cmp`, the intent's action fires.
+#[derive(Clone, Debug, Default, PartialEq, Eq, Hash)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+pub struct TriggerCondition {
+    pub market_index: u64,
+    pub cmp: Comparator,
+    /// Committed-mark trigger price (1e8) as a decimal string.
+    pub trigger_price_e8: String,
+}
+
+impl From<proto::TriggerCondition> for TriggerCondition {
+    fn from(p: proto::TriggerCondition) -> Self {
+        Self {
+            market_index: p.market_index,
+            cmp: Comparator::from_proto(p.cmp),
+            trigger_price_e8: p.trigger_price_e8,
+        }
+    }
+}
+
+impl From<TriggerCondition> for proto::TriggerCondition {
+    fn from(t: TriggerCondition) -> Self {
+        Self {
+            market_index: t.market_index,
+            cmp: t.cmp.to_proto(),
+            trigger_price_e8: t.trigger_price_e8,
         }
     }
 }
 
 // ====================== INTENT PARAMETER TYPES ======================
 
-/// Conditional intent parameters.
-///
-/// Execute an action when a condition is met (e.g. "price > 42000").
-#[derive(Clone, Debug, Default, PartialEq)]
+/// Conditional intent parameters: a committed-mark trigger plus the order to
+/// place when it fires.
+#[derive(Clone, Debug, Default, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct ConditionalParams {
-    /// Condition expression (e.g. `"price > 42000"` or encoded condition).
-    pub condition: String,
-    /// Action to execute when the condition is met (e.g. `"market_buy 0.5 BTC"`).
-    pub action: String,
+    /// The committed-mark trigger.
+    pub condition: TriggerCondition,
+    /// The order to place when the trigger fires.
+    pub action: OrderAction,
 }
 
 impl From<proto::ConditionalParams> for ConditionalParams {
     fn from(p: proto::ConditionalParams) -> Self {
         Self {
-            condition: p.condition,
-            action: p.action,
+            condition: p.condition.unwrap_or_default().into(),
+            action: p.action.unwrap_or_default().into(),
         }
     }
 }
@@ -156,44 +389,46 @@ impl From<proto::ConditionalParams> for ConditionalParams {
 impl From<ConditionalParams> for proto::ConditionalParams {
     fn from(c: ConditionalParams) -> Self {
         Self {
-            condition: c.condition,
-            action: c.action,
+            condition: Some(c.condition.into()),
+            action: Some(c.action.into()),
         }
     }
 }
 
 /// TWAP (Time-Weighted Average Price) intent parameters.
 ///
-/// Splits a large order into time-sliced portions to minimise market impact.
-#[derive(Clone, Debug, Default, PartialEq, Eq)]
+/// Slices `total_size` into `num_slices` equal child orders spread across
+/// `duration_ms`, each posted at `limit_price_e8` with `tif`.
+#[derive(Clone, Debug, Default, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct TwapParams {
-    /// Direction: `"buy"` or `"sell"`.
-    pub direction: String,
-    /// Total order size (in base units / satoshis).
+    pub market_index: u64,
+    pub bucket_id: u64,
+    pub side: Side,
+    /// Total order size (1e8 satoshi-scale).
     pub total_size: u64,
-    /// Duration over which to execute (milliseconds).
-    pub duration_ms: u64,
     /// Number of slices to divide the order into.
     pub num_slices: u32,
-    /// Slice curve: `"linear"`, `"front_loaded"`, `"back_loaded"`, `"adaptive"`.
-    pub slice_curve: String,
-    /// Maximum slippage tolerance in basis points.
-    pub slippage_tolerance_bps: u32,
-    /// Optional condition that triggers rebalancing between slices.
-    pub rebalance_trigger: String,
+    /// Duration over which to execute (milliseconds).
+    pub duration_ms: u64,
+    pub curve: SliceCurve,
+    pub tif: Tif,
+    /// Per-slice limit price (1e8) as a decimal string. Required, non-zero.
+    pub limit_price_e8: String,
 }
 
 impl From<proto::TwapParams> for TwapParams {
     fn from(p: proto::TwapParams) -> Self {
         Self {
-            direction: p.direction,
+            market_index: p.market_index,
+            bucket_id: p.bucket_id,
+            side: Side::from_proto(p.side),
             total_size: p.total_size,
-            duration_ms: p.duration_ms,
             num_slices: p.num_slices,
-            slice_curve: p.slice_curve,
-            slippage_tolerance_bps: p.slippage_tolerance_bps,
-            rebalance_trigger: p.rebalance_trigger,
+            duration_ms: p.duration_ms,
+            curve: SliceCurve::from_proto(p.curve),
+            tif: Tif::from_proto(p.tif),
+            limit_price_e8: p.limit_price_e8,
         }
     }
 }
@@ -201,45 +436,15 @@ impl From<proto::TwapParams> for TwapParams {
 impl From<TwapParams> for proto::TwapParams {
     fn from(t: TwapParams) -> Self {
         Self {
-            direction: t.direction,
+            market_index: t.market_index,
+            bucket_id: t.bucket_id,
+            side: t.side.to_proto(),
             total_size: t.total_size,
-            duration_ms: t.duration_ms,
             num_slices: t.num_slices,
-            slice_curve: t.slice_curve,
-            slippage_tolerance_bps: t.slippage_tolerance_bps,
-            rebalance_trigger: t.rebalance_trigger,
-        }
-    }
-}
-
-/// A single leg in a multi-leg intent.
-#[derive(Clone, Debug, Default, PartialEq, Eq)]
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-pub struct Leg {
-    /// Action to perform (e.g. `"buy"`, `"sell"`).
-    pub action: String,
-    /// Size of the leg (in base units / satoshis).
-    pub size: u64,
-    /// Trading pair (e.g. `"BTC-USDC"`).
-    pub pair: String,
-}
-
-impl From<proto::Leg> for Leg {
-    fn from(p: proto::Leg) -> Self {
-        Self {
-            action: p.action,
-            size: p.size,
-            pair: p.pair,
-        }
-    }
-}
-
-impl From<Leg> for proto::Leg {
-    fn from(l: Leg) -> Self {
-        Self {
-            action: l.action,
-            size: l.size,
-            pair: l.pair,
+            duration_ms: t.duration_ms,
+            curve: t.curve.to_proto(),
+            tif: t.tif.to_proto(),
+            limit_price_e8: t.limit_price_e8,
         }
     }
 }
@@ -247,11 +452,11 @@ impl From<Leg> for proto::Leg {
 /// Multi-leg atomic intent parameters.
 ///
 /// All legs are executed atomically (all-or-nothing) when `atomic` is `true`.
-#[derive(Clone, Debug, Default, PartialEq, Eq)]
+#[derive(Clone, Debug, Default, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct MultiLegParams {
     /// Individual legs of the intent.
-    pub legs: Vec<Leg>,
+    pub legs: Vec<OrderAction>,
     /// Whether this is an all-or-nothing atomic execution.
     pub atomic: bool,
 }
@@ -461,10 +666,18 @@ pub struct AgentIntent {
     pub status: IntentStatus,
     /// Block timestamp when the intent was created.
     pub created_at: u64,
+    /// Optional attached context data (memory snapshots, agent state,
+    /// validation proofs, model references). Routed via blob storage above
+    /// the blob threshold, in which case `blob_merkle_root` is set instead.
+    pub context_data: Vec<u8>,
+    /// Blob-backed context Merkle root (erasure-coded DAS layer). Set
+    /// automatically when `context_data` is routed through blob storage.
+    pub blob_merkle_root: Vec<u8>,
 }
 
 impl AgentIntent {
-    /// Returns `true` if the intent is still active (pending or executing).
+    /// Returns `true` if the intent is still active (pending, executing, or
+    /// awaiting a zkRFQ reveal-and-settle).
     pub fn is_active(&self) -> bool {
         self.status.is_active()
     }
@@ -492,6 +705,8 @@ impl From<proto::AgentIntent> for AgentIntent {
             priority_boost: p.priority_boost,
             status: IntentStatus::from_proto(p.status),
             created_at: p.created_at,
+            context_data: p.context_data,
+            blob_merkle_root: p.blob_merkle_root,
         }
     }
 }
@@ -508,8 +723,8 @@ impl From<AgentIntent> for proto::AgentIntent {
             priority_boost: a.priority_boost,
             status: a.status.to_proto(),
             created_at: a.created_at,
-            context_data: Vec::new(),
-            blob_merkle_root: Vec::new(),
+            context_data: a.context_data,
+            blob_merkle_root: a.blob_merkle_root,
         }
     }
 }
@@ -563,6 +778,9 @@ impl From<DecompositionTrace> for proto::DecompositionTrace {
 /// - `scheduler_tick_ms`: 500
 /// - `require_simulation`: false
 /// - `max_decomposition_steps`: 20
+/// - `rfq_enabled`: false
+/// - `enable_intent_execution`: false
+/// - `max_intents_per_scan`: 0 (module built-in default)
 #[derive(Clone, Debug, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct Params {
@@ -578,6 +796,18 @@ pub struct Params {
     pub require_simulation: bool,
     /// Maximum steps allowed in a single declarative decomposition.
     pub max_decomposition_steps: u32,
+    /// Whether the zkRFQ flow (RFQ intent type + sealed-quote messages) is
+    /// enabled (ADR-ZK-002). Default-disabled, fail-closed.
+    pub rfq_enabled: bool,
+    /// WS-G G1 — master switch for the intent-execution engine (TWAP /
+    /// conditional / multi-leg). Default-disabled, fail-closed.
+    pub enable_intent_execution: bool,
+    /// Allowlist of keepers permitted to submit the `MsgExecuteIntents`
+    /// cadence. Empty = permissionless.
+    pub authorized_execution_signers: Vec<String>,
+    /// Per-scan bound on the number of intents one `MsgExecuteIntents`
+    /// services (0 = built-in default).
+    pub max_intents_per_scan: u64,
 }
 
 impl Default for Params {
@@ -589,6 +819,10 @@ impl Default for Params {
             scheduler_tick_ms: 500,
             require_simulation: false,
             max_decomposition_steps: 20,
+            rfq_enabled: false,
+            enable_intent_execution: false,
+            authorized_execution_signers: Vec::new(),
+            max_intents_per_scan: 0,
         }
     }
 }
@@ -602,6 +836,10 @@ impl From<proto::Params> for Params {
             scheduler_tick_ms: p.scheduler_tick_ms,
             require_simulation: p.require_simulation,
             max_decomposition_steps: p.max_decomposition_steps,
+            rfq_enabled: p.rfq_enabled,
+            enable_intent_execution: p.enable_intent_execution,
+            authorized_execution_signers: p.authorized_execution_signers,
+            max_intents_per_scan: p.max_intents_per_scan,
         }
     }
 }
@@ -615,7 +853,10 @@ impl From<Params> for proto::Params {
             scheduler_tick_ms: p.scheduler_tick_ms,
             require_simulation: p.require_simulation,
             max_decomposition_steps: p.max_decomposition_steps,
-            rfq_enabled: false,
+            rfq_enabled: p.rfq_enabled,
+            enable_intent_execution: p.enable_intent_execution,
+            authorized_execution_signers: p.authorized_execution_signers,
+            max_intents_per_scan: p.max_intents_per_scan,
         }
     }
 }
@@ -647,6 +888,7 @@ mod tests {
             IntentStatus::Failed,
             IntentStatus::Cancelled,
             IntentStatus::Expired,
+            IntentStatus::AwaitingReveal,
         ] {
             assert_eq!(IntentStatus::from_proto(s.to_proto()), s);
         }
@@ -656,19 +898,61 @@ mod tests {
     fn intent_status_helpers() {
         assert!(IntentStatus::Pending.is_active());
         assert!(IntentStatus::Executing.is_active());
+        assert!(IntentStatus::AwaitingReveal.is_active());
         assert!(!IntentStatus::Completed.is_active());
         assert!(IntentStatus::Completed.is_terminal());
         assert!(IntentStatus::Failed.is_terminal());
         assert!(IntentStatus::Cancelled.is_terminal());
         assert!(IntentStatus::Expired.is_terminal());
         assert!(!IntentStatus::Pending.is_terminal());
+        assert!(!IntentStatus::AwaitingReveal.is_terminal());
+    }
+
+    #[test]
+    fn side_tif_curve_comparator_roundtrip() {
+        for s in [Side::Buy, Side::Sell] {
+            assert_eq!(Side::from_proto(s.to_proto()), s);
+        }
+        for t in [Tif::Gtc, Tif::Ioc, Tif::Fok] {
+            assert_eq!(Tif::from_proto(t.to_proto()), t);
+        }
+        assert_eq!(SliceCurve::from_proto(SliceCurve::Uniform.to_proto()), SliceCurve::Uniform);
+        for c in [Comparator::Above, Comparator::Below] {
+            assert_eq!(Comparator::from_proto(c.to_proto()), c);
+        }
+    }
+
+    #[test]
+    fn order_action_roundtrip() {
+        let action = OrderAction {
+            market_index: 7,
+            bucket_id: 42,
+            side: Side::Sell,
+            quantity: 1_000_000,
+            price_e8: "5000000000000".into(),
+            tif: Tif::Ioc,
+        };
+        let proto: proto::OrderAction = action.clone().into();
+        let back: OrderAction = proto.into();
+        assert_eq!(action, back);
     }
 
     #[test]
     fn conditional_params_roundtrip() {
         let params = ConditionalParams {
-            condition: "price > 42000".into(),
-            action: "market_buy 0.5 BTC".into(),
+            condition: TriggerCondition {
+                market_index: 7,
+                cmp: Comparator::Above,
+                trigger_price_e8: "5000000000000".into(),
+            },
+            action: OrderAction {
+                market_index: 7,
+                bucket_id: 42,
+                side: Side::Buy,
+                quantity: 500_000,
+                price_e8: "4990000000000".into(),
+                tif: Tif::Gtc,
+            },
         };
         let proto: proto::ConditionalParams = params.clone().into();
         let back: ConditionalParams = proto.into();
@@ -678,13 +962,15 @@ mod tests {
     #[test]
     fn twap_params_roundtrip() {
         let params = TwapParams {
-            direction: "buy".into(),
+            market_index: 3,
+            bucket_id: 9,
+            side: Side::Buy,
             total_size: 100_000,
-            duration_ms: 60_000,
             num_slices: 10,
-            slice_curve: "linear".into(),
-            slippage_tolerance_bps: 50,
-            rebalance_trigger: String::new(),
+            duration_ms: 60_000,
+            curve: SliceCurve::Uniform,
+            tif: Tif::Gtc,
+            limit_price_e8: "5000000000000".into(),
         };
         let proto: proto::TwapParams = params.clone().into();
         let back: TwapParams = proto.into();
@@ -695,15 +981,21 @@ mod tests {
     fn multi_leg_params_roundtrip() {
         let params = MultiLegParams {
             legs: vec![
-                Leg {
-                    action: "buy".into(),
-                    size: 1000,
-                    pair: "BTC-USDC".into(),
+                OrderAction {
+                    market_index: 1,
+                    bucket_id: 1,
+                    side: Side::Buy,
+                    quantity: 1000,
+                    price_e8: "100000000".into(),
+                    tif: Tif::Gtc,
                 },
-                Leg {
-                    action: "sell".into(),
-                    size: 500,
-                    pair: "ETH-USDC".into(),
+                OrderAction {
+                    market_index: 2,
+                    bucket_id: 1,
+                    side: Side::Sell,
+                    quantity: 500,
+                    price_e8: "200000000".into(),
+                    tif: Tif::Ioc,
                 },
             ],
             atomic: true,
@@ -733,14 +1025,27 @@ mod tests {
             agent_hash: "abc123".into(),
             intent_type: IntentType::Conditional,
             params: Some(IntentParams::Conditional(ConditionalParams {
-                condition: "price > 50000".into(),
-                action: "buy 1 BTC".into(),
+                condition: TriggerCondition {
+                    market_index: 1,
+                    cmp: Comparator::Above,
+                    trigger_price_e8: "5000000000000".into(),
+                },
+                action: OrderAction {
+                    market_index: 1,
+                    bucket_id: 1,
+                    side: Side::Buy,
+                    quantity: 100_000_000,
+                    price_e8: "5000000000000".into(),
+                    tif: Tif::Gtc,
+                },
             })),
             vc_proof_hash: "vc-hash".into(),
             expiry_timestamp: 1_700_003_600,
             priority_boost: 5,
             status: IntentStatus::Pending,
             created_at: 1_700_000_000,
+            context_data: vec![1, 2, 3],
+            blob_merkle_root: vec![4, 5, 6],
         };
         let proto: proto::AgentIntent = intent.clone().into();
         let back: AgentIntent = proto.into();
@@ -786,6 +1091,10 @@ mod tests {
         assert_eq!(params.scheduler_tick_ms, 500);
         assert!(!params.require_simulation);
         assert_eq!(params.max_decomposition_steps, 20);
+        assert!(!params.rfq_enabled);
+        assert!(!params.enable_intent_execution);
+        assert!(params.authorized_execution_signers.is_empty());
+        assert_eq!(params.max_intents_per_scan, 0);
     }
 
     #[test]
@@ -797,6 +1106,10 @@ mod tests {
             scheduler_tick_ms: 1000,
             require_simulation: true,
             max_decomposition_steps: 50,
+            rfq_enabled: true,
+            enable_intent_execution: true,
+            authorized_execution_signers: vec!["morpheum1keeper".into()],
+            max_intents_per_scan: 100,
         };
         let proto: proto::Params = params.clone().into();
         let back: Params = proto.into();

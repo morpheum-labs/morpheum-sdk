@@ -30,8 +30,9 @@ pub use builder::{CancelIntentBuilder, SubmitIntentBuilder};
 
 /// Core domain types for the intent module.
 pub use types::{
-    AgentIntent, ConditionalParams, DeclarativeParams, DecompositionTrace, IntentParams,
-    IntentStatus, IntentType, Leg, MultiLegParams, Params, RfqParams, RfqSide, TwapParams,
+    AgentIntent, Comparator, ConditionalParams, DeclarativeParams, DecompositionTrace,
+    IntentParams, IntentStatus, IntentType, MultiLegParams, OrderAction, Params, RfqParams,
+    RfqSide, Side, SliceCurve, Tif, TriggerCondition, TwapParams,
 };
 
 /// Re-export all request and response types for clean message construction.
@@ -48,9 +49,10 @@ pub use morpheum_sdk_core::{SdkConfig, SdkError};
 /// ```
 pub mod prelude {
     pub use super::{
-        AgentIntent, CancelIntentBuilder, ConditionalParams, DeclarativeParams, DecompositionTrace,
-        IntentClient, IntentParams, IntentStatus, IntentType, Leg, MultiLegParams, Params,
-        RfqParams, RfqSide, SdkConfig, SdkError, SubmitIntentBuilder, TwapParams,
+        AgentIntent, CancelIntentBuilder, Comparator, ConditionalParams, DeclarativeParams,
+        DecompositionTrace, IntentClient, IntentParams, IntentStatus, IntentType, MultiLegParams,
+        OrderAction, Params, RfqParams, RfqSide, SdkConfig, SdkError, Side, SliceCurve,
+        SubmitIntentBuilder, Tif, TriggerCondition, TwapParams,
     };
 }
 

@@ -101,6 +101,7 @@ mod tests {
             weight_kline_bps: 500,
             staleness_blocks: 10,
             strategy: "linear_perp".into(),
+            twap_window_blocks: 60,
         };
         let any = UpdateMarkConfigRequest::new("morpheum1gov", 42, cfg).to_any();
         assert_eq!(any.type_url, "/markprice.v1.MsgUpdateMarketConfig");

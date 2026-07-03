@@ -47,6 +47,12 @@ pub struct PlaceOrderRequest {
     pub display_quantity: Option<String>,
     pub reduce_only: bool,
     pub bucket_id: Option<String>,
+    /// zkClaims credential-limits proof (WS3-D). Present only when placing under a
+    /// privacy-mode credential; empty for plaintext-mode credentials.
+    pub credential_proof: alloc::vec::Vec<u8>,
+    /// GTT/DAY expiry as Unix milliseconds (A7). Required for a GTT order; a DAY order may
+    /// omit it (the chain derives placement time + 24h). 0 = unset.
+    pub expiry_timestamp: i64,
 }
 
 impl PlaceOrderRequest {
@@ -75,6 +81,8 @@ impl PlaceOrderRequest {
             display_quantity: None,
             reduce_only: false,
             bucket_id: None,
+            credential_proof: alloc::vec::Vec::new(),
+            expiry_timestamp: 0,
         }
     }
 
@@ -114,6 +122,14 @@ impl PlaceOrderRequest {
         self.bucket_id = Some(id.into());
         self
     }
+    pub fn credential_proof(mut self, proof: alloc::vec::Vec<u8>) -> Self {
+        self.credential_proof = proof;
+        self
+    }
+    pub fn expiry_timestamp(mut self, ts: i64) -> Self {
+        self.expiry_timestamp = ts;
+        self
+    }
 
     pub fn to_any(&self) -> ProtoAny {
         let msg: proto::MsgPlaceOrderRequest = self.clone().into();
@@ -144,6 +160,8 @@ impl From<PlaceOrderRequest> for proto::MsgPlaceOrderRequest {
             display_quantity: r.display_quantity.unwrap_or_default(),
             reduce_only: r.reduce_only,
             bucket_id: r.bucket_id.unwrap_or_default(),
+            credential_proof: r.credential_proof,
+            expiry_timestamp: r.expiry_timestamp,
         }
     }
 }
@@ -356,6 +374,8 @@ impl PlaceOrderRequest {
             display_quantity: self.display_quantity.unwrap_or_default(),
             reduce_only: self.reduce_only,
             bucket_id: self.bucket_id.unwrap_or_default(),
+            credential_proof: self.credential_proof,
+            expiry_timestamp: self.expiry_timestamp,
         }
     }
 }
@@ -533,7 +553,7 @@ impl From<CancelMarketMakerQuoteRequest> for proto::MsgCancelMarketMakerQuoteReq
 }
 
 /// Request to update CLOB module parameters (governance only).
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct UpdateParamsRequest {
     pub authority: String,

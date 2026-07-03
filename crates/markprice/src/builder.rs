@@ -17,6 +17,7 @@ pub struct UpdateMarkConfigBuilder {
     weight_kline_bps: Option<u32>,
     staleness_blocks: u64,
     strategy: Option<String>,
+    twap_window_blocks: u32,
 }
 
 impl UpdateMarkConfigBuilder {
@@ -52,6 +53,11 @@ impl UpdateMarkConfigBuilder {
         self.strategy = Some(v.into());
         self
     }
+    /// TWAP window (in blocks) for the mark composite. Defaults to the module's fallback (0).
+    pub fn twap_window_blocks(mut self, v: u32) -> Self {
+        self.twap_window_blocks = v;
+        self
+    }
 
     pub fn build(self) -> Result<UpdateMarkConfigRequest, SdkError> {
         let twap = self
@@ -77,6 +83,7 @@ impl UpdateMarkConfigBuilder {
             strategy: self
                 .strategy
                 .ok_or_else(|| SdkError::invalid_input("strategy is required"))?,
+            twap_window_blocks: self.twap_window_blocks,
         };
 
         Ok(UpdateMarkConfigRequest::new(
@@ -102,11 +109,13 @@ mod tests {
             .weight_oracle_index_bps(1500)
             .weight_kline_bps(500)
             .strategy("linear_perp")
+            .twap_window_blocks(60)
             .build()
             .unwrap();
         assert_eq!(req.authority, "morpheum1gov");
         assert_eq!(req.market_index, 42);
         assert_eq!(req.config.weight_twap_bps, 8000);
+        assert_eq!(req.config.twap_window_blocks, 60);
     }
 
     #[test]

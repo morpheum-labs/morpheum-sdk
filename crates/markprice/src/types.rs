@@ -79,6 +79,8 @@ pub struct MarkConfig {
     pub weight_kline_bps: u32,
     pub staleness_blocks: u64,
     pub strategy: String,
+    /// TWAP window (in blocks) for the mark composite (0 = module default of 60 / 1m).
+    pub twap_window_blocks: u32,
 }
 
 impl From<proto::MarkConfig> for MarkConfig {
@@ -89,6 +91,7 @@ impl From<proto::MarkConfig> for MarkConfig {
             weight_kline_bps: p.weight_kline_bps,
             staleness_blocks: p.staleness_blocks,
             strategy: p.strategy,
+            twap_window_blocks: p.twap_window_blocks,
         }
     }
 }
@@ -101,6 +104,7 @@ impl From<MarkConfig> for proto::MarkConfig {
             weight_kline_bps: c.weight_kline_bps,
             staleness_blocks: c.staleness_blocks,
             strategy: c.strategy,
+            twap_window_blocks: c.twap_window_blocks,
         }
     }
 }
@@ -208,6 +212,7 @@ mod tests {
             weight_kline_bps: 500,
             staleness_blocks: 10,
             strategy: "linear_perp".into(),
+            twap_window_blocks: 60,
         };
         let proto_cfg: proto::MarkConfig = cfg.clone().into();
         let back: MarkConfig = proto_cfg.into();

@@ -28,8 +28,19 @@ use crate::types::{
 ///     .agent_hash("abc123def456")
 ///     .intent_type(IntentType::Conditional)
 ///     .conditional(ConditionalParams {
-///         condition: "price > 50000".into(),
-///         action: "market_buy 1 BTC".into(),
+///         condition: TriggerCondition {
+///             market_index: 1,
+///             cmp: Comparator::Above,
+///             trigger_price_e8: "5000000000000".into(),
+///         },
+///         action: OrderAction {
+///             market_index: 1,
+///             bucket_id: 1,
+///             side: Side::Buy,
+///             quantity: 100_000_000,
+///             price_e8: "5000000000000".into(),
+///             tif: Tif::Gtc,
+///         },
 ///     })
 ///     .vc_proof_hash("vc-proof-hash")
 ///     .expiry_timestamp(1_700_003_600)
@@ -147,6 +158,8 @@ impl SubmitIntentBuilder {
             priority_boost: self.priority_boost.unwrap_or(0),
             status: IntentStatus::Pending,
             created_at: 0, // Set by the runtime
+            context_data: Vec::new(),
+            blob_merkle_root: Vec::new(),
         };
 
         Ok(SubmitIntentRequest::new(intent, agent_signature))
@@ -215,7 +228,7 @@ impl CancelIntentBuilder {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::types::Leg;
+    use crate::types::{Comparator, OrderAction, Side, SliceCurve, Tif, TriggerCondition};
     use alloc::vec;
 
     #[test]
@@ -223,8 +236,19 @@ mod tests {
         let request = SubmitIntentBuilder::new()
             .agent_hash("agent-abc")
             .conditional(ConditionalParams {
-                condition: "price > 50000".into(),
-                action: "buy 1 BTC".into(),
+                condition: TriggerCondition {
+                    market_index: 1,
+                    cmp: Comparator::Above,
+                    trigger_price_e8: "5000000000000".into(),
+                },
+                action: OrderAction {
+                    market_index: 1,
+                    bucket_id: 1,
+                    side: Side::Buy,
+                    quantity: 100_000_000,
+                    price_e8: "5000000000000".into(),
+                    tif: Tif::Gtc,
+                },
             })
             .vc_proof_hash("vc-hash")
             .expiry_timestamp(1_700_003_600)
@@ -248,13 +272,15 @@ mod tests {
         let request = SubmitIntentBuilder::new()
             .agent_hash("agent-xyz")
             .twap(TwapParams {
-                direction: "buy".into(),
+                market_index: 3,
+                bucket_id: 9,
+                side: Side::Buy,
                 total_size: 100_000,
-                duration_ms: 60_000,
                 num_slices: 10,
-                slice_curve: "linear".into(),
-                slippage_tolerance_bps: 50,
-                rebalance_trigger: String::new(),
+                duration_ms: 60_000,
+                curve: SliceCurve::Uniform,
+                tif: Tif::Gtc,
+                limit_price_e8: "5000000000000".into(),
             })
             .agent_signature(vec![2u8; 64])
             .build()
@@ -269,15 +295,21 @@ mod tests {
             .agent_hash("agent-ml")
             .multi_leg(MultiLegParams {
                 legs: vec![
-                    Leg {
-                        action: "buy".into(),
-                        size: 1000,
-                        pair: "BTC-USDC".into(),
+                    OrderAction {
+                        market_index: 1,
+                        bucket_id: 1,
+                        side: Side::Buy,
+                        quantity: 1000,
+                        price_e8: "100000000".into(),
+                        tif: Tif::Gtc,
                     },
-                    Leg {
-                        action: "sell".into(),
-                        size: 500,
-                        pair: "ETH-USDC".into(),
+                    OrderAction {
+                        market_index: 2,
+                        bucket_id: 1,
+                        side: Side::Sell,
+                        quantity: 500,
+                        price_e8: "200000000".into(),
+                        tif: Tif::Ioc,
                     },
                 ],
                 atomic: true,
@@ -331,8 +363,19 @@ mod tests {
         let request = SubmitIntentBuilder::new()
             .agent_hash("agent-abc")
             .conditional(ConditionalParams {
-                condition: "test".into(),
-                action: "test".into(),
+                condition: TriggerCondition {
+                    market_index: 1,
+                    cmp: Comparator::Above,
+                    trigger_price_e8: "5000000000000".into(),
+                },
+                action: OrderAction {
+                    market_index: 1,
+                    bucket_id: 1,
+                    side: Side::Buy,
+                    quantity: 1,
+                    price_e8: "1".into(),
+                    tif: Tif::Gtc,
+                },
             })
             .agent_signature(vec![1u8; 64])
             .build()

@@ -33,6 +33,8 @@ pub struct PlaceOrderBuilder {
     hidden: bool,
     reduce_only: bool,
     bucket_id: Option<String>,
+    credential_proof: alloc::vec::Vec<u8>,
+    expiry_timestamp: i64,
 }
 
 impl PlaceOrderBuilder {
@@ -100,6 +102,14 @@ impl PlaceOrderBuilder {
         self.bucket_id = Some(id.into());
         self
     }
+    pub fn credential_proof(mut self, proof: alloc::vec::Vec<u8>) -> Self {
+        self.credential_proof = proof;
+        self
+    }
+    pub fn expiry_timestamp(mut self, ts: i64) -> Self {
+        self.expiry_timestamp = ts;
+        self
+    }
 
     pub fn build(self) -> Result<PlaceOrderRequest, SdkError> {
         let address = self
@@ -149,6 +159,12 @@ impl PlaceOrderBuilder {
         }
         if let Some(v) = self.bucket_id {
             req = req.bucket_id(v);
+        }
+        if !self.credential_proof.is_empty() {
+            req = req.credential_proof(self.credential_proof);
+        }
+        if self.expiry_timestamp != 0 {
+            req = req.expiry_timestamp(self.expiry_timestamp);
         }
         Ok(req)
     }
@@ -435,6 +451,23 @@ mod tests {
         assert_eq!(req.address, "morpheum1abc");
         assert_eq!(req.market_index, 42);
         assert_eq!(req.side, Side::Buy);
+    }
+
+    #[test]
+    fn place_order_builder_with_credential_proof_and_expiry() {
+        let req = PlaceOrderBuilder::new()
+            .address("morpheum1abc")
+            .market_index(42)
+            .price("50000")
+            .quantity("1000")
+            .side(Side::Buy)
+            .order_type(OrderType::Limit)
+            .credential_proof(alloc::vec![1, 2, 3])
+            .expiry_timestamp(1_700_003_600_000)
+            .build()
+            .unwrap();
+        assert_eq!(req.credential_proof, alloc::vec![1, 2, 3]);
+        assert_eq!(req.expiry_timestamp, 1_700_003_600_000);
     }
 
     #[test]

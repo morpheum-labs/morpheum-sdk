@@ -163,8 +163,21 @@ mod tests {
                             params: Some(
                                 morpheum_proto::intent::v1::agent_intent::Params::Conditional(
                                     morpheum_proto::intent::v1::ConditionalParams {
-                                        condition: "price > 50000".into(),
-                                        action: "buy 1 BTC".into(),
+                                        condition: Some(
+                                            morpheum_proto::intent::v1::TriggerCondition {
+                                                market_index: 1,
+                                                cmp: 0, // Above
+                                                trigger_price_e8: "5000000000000".into(),
+                                            },
+                                        ),
+                                        action: Some(morpheum_proto::intent::v1::OrderAction {
+                                            market_index: 1,
+                                            bucket_id: 1,
+                                            side: 0, // Buy
+                                            quantity: 100_000_000,
+                                            price_e8: "5000000000000".into(),
+                                            tif: 0, // Gtc
+                                        }),
                                     },
                                 ),
                             ),
@@ -204,6 +217,9 @@ mod tests {
                             require_simulation: false,
                             max_decomposition_steps: 20,
                             rfq_enabled: false,
+                            enable_intent_execution: false,
+                            authorized_execution_signers: alloc::vec::Vec::new(),
+                            max_intents_per_scan: 0,
                         }),
                     };
                     Ok(prost::Message::encode_to_vec(&dummy))

@@ -298,6 +298,10 @@ pub struct JobAttestation {
     pub attested_at: u64,
     pub detailed_report: Vec<u8>,
     pub detailed_report_blob_merkle_root: Vec<u8>,
+    /// ARS v2: agreement commitment the verdict was rendered against.
+    pub agreement_hash: String,
+    /// ARS v2: deliverable Persistent Memory root that was judged.
+    pub deliverable_root: String,
 }
 
 impl From<proto::JobAttestation> for JobAttestation {
@@ -310,6 +314,8 @@ impl From<proto::JobAttestation> for JobAttestation {
             attested_at: p.attested_at,
             detailed_report: p.detailed_report,
             detailed_report_blob_merkle_root: p.detailed_report_blob_merkle_root,
+            agreement_hash: p.agreement_hash,
+            deliverable_root: p.deliverable_root,
         }
     }
 }
@@ -324,6 +330,8 @@ impl From<JobAttestation> for proto::JobAttestation {
             attested_at: a.attested_at,
             detailed_report: a.detailed_report,
             detailed_report_blob_merkle_root: a.detailed_report_blob_merkle_root,
+            agreement_hash: a.agreement_hash,
+            deliverable_root: a.deliverable_root,
         }
     }
 }
@@ -345,6 +353,10 @@ pub struct JobParams {
     pub default_compensation_policy: CompensationPolicy,
     /// ARS v1: bank asset index all job budgets are escrowed in.
     pub escrow_asset_index: u64,
+    /// ARS v2: require every new job to carry a valid agreement commitment.
+    pub require_agreement: bool,
+    /// ARS v2: require the acting agent to hold a valid VC on privileged actions.
+    pub require_vc_credential: bool,
 }
 
 impl Default for JobParams {
@@ -361,6 +373,8 @@ impl Default for JobParams {
             declarative_job_enabled: false,
             default_compensation_policy: CompensationPolicy::Unspecified,
             escrow_asset_index: 0,
+            require_agreement: false,
+            require_vc_credential: false,
         }
     }
 }
@@ -379,6 +393,8 @@ impl From<proto::Params> for JobParams {
             declarative_job_enabled: p.declarative_job_enabled,
             default_compensation_policy: CompensationPolicy::from(p.default_compensation_policy),
             escrow_asset_index: p.escrow_asset_index,
+            require_agreement: p.require_agreement,
+            require_vc_credential: p.require_vc_credential,
         }
     }
 }
@@ -397,6 +413,8 @@ impl From<JobParams> for proto::Params {
             declarative_job_enabled: p.declarative_job_enabled,
             default_compensation_policy: i32::from(p.default_compensation_policy),
             escrow_asset_index: p.escrow_asset_index,
+            require_agreement: p.require_agreement,
+            require_vc_credential: p.require_vc_credential,
         }
     }
 }
@@ -496,6 +514,8 @@ mod tests {
             attested_at: 1_700_050_000,
             detailed_report: vec![11, 12],
             detailed_report_blob_merkle_root: vec![13, 14],
+            agreement_hash: "spec-hash".into(),
+            deliverable_root: "mem-root".into(),
         };
 
         let proto_att: proto::JobAttestation = att.clone().into();

@@ -192,6 +192,7 @@ pub struct AttestBuilder {
     job_id: Option<String>,
     completed: Option<bool>,
     reason_hash: Option<String>,
+    agreement_hash: Option<String>,
 }
 
 impl AttestBuilder {
@@ -214,6 +215,13 @@ impl AttestBuilder {
         self
     }
 
+    /// ARS v2: the agreement commitment the evaluator judged against. Must
+    /// equal the job's stored `job_spec_hash` (leave unset for specless jobs).
+    pub fn agreement_hash(mut self, hash: impl Into<String>) -> Self {
+        self.agreement_hash = Some(hash.into());
+        self
+    }
+
     pub fn build(self) -> Result<AttestRequest, SdkError> {
         let job_id = self
             .job_id
@@ -226,6 +234,9 @@ impl AttestBuilder {
         let mut req = AttestRequest::new(job_id, completed);
         if let Some(hash) = self.reason_hash {
             req = req.with_reason_hash(hash);
+        }
+        if let Some(hash) = self.agreement_hash {
+            req = req.with_agreement_hash(hash);
         }
         Ok(req)
     }

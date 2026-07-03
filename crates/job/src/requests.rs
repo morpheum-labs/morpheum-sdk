@@ -122,6 +122,9 @@ pub struct AttestRequest {
     pub job_id: String,
     pub completed: bool,
     pub reason_hash: String,
+    /// ARS v2: the agreement commitment (`Job.job_spec_hash`) the evaluator
+    /// judged against. Must equal the stored spec (empty for specless jobs).
+    pub agreement_hash: String,
 }
 
 impl AttestRequest {
@@ -130,11 +133,17 @@ impl AttestRequest {
             job_id: job_id.into(),
             completed,
             reason_hash: String::new(),
+            agreement_hash: String::new(),
         }
     }
 
     pub fn with_reason_hash(mut self, hash: impl Into<String>) -> Self {
         self.reason_hash = hash.into();
+        self
+    }
+
+    pub fn with_agreement_hash(mut self, hash: impl Into<String>) -> Self {
+        self.agreement_hash = hash.into();
         self
     }
 
@@ -153,6 +162,7 @@ impl From<AttestRequest> for proto::MsgAttest {
             job_id: req.job_id,
             completed: req.completed,
             reason_hash: req.reason_hash,
+            agreement_hash: req.agreement_hash,
         }
     }
 }

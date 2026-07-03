@@ -198,8 +198,6 @@ pub struct MintRequest {
     pub amount: String,
     pub permissions: Vec<String>,
     pub module_account: String,
-    /// Caller identity (contract address) for mint authority validation.
-    pub authority: String,
 }
 
 impl MintRequest {
@@ -214,7 +212,6 @@ impl MintRequest {
             amount: amount.into(),
             permissions: Vec::new(),
             module_account: String::new(),
-            authority: String::new(),
         }
     }
 
@@ -236,7 +233,6 @@ impl From<MintRequest> for proto::MsgMintRequest {
             timestamp: None,
             permissions: req.permissions,
             module_account: req.module_account,
-            authority: req.authority,
         }
     }
 }

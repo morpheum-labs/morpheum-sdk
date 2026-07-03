@@ -26,7 +26,6 @@ pub struct VcIssueBuilder {
     subject: Option<AccountId>,
     claims: Option<VcClaims>,
     expiry_timestamp: Option<u64>,
-    issuer_signature: Option<Vec<u8>>,
     claims_commitment: Vec<u8>,
 }
 
@@ -62,12 +61,6 @@ impl VcIssueBuilder {
     /// Sets a custom expiry timestamp (0 = use module default from Params).
     pub fn expiry(mut self, timestamp: u64) -> Self {
         self.expiry_timestamp = Some(timestamp);
-        self
-    }
-
-    /// Sets the issuer's signature (required for issuance).
-    pub fn issuer_signature(mut self, signature: Vec<u8>) -> Self {
-        self.issuer_signature = Some(signature);
         self
     }
 
@@ -139,11 +132,7 @@ impl VcIssueBuilder {
             .claims
             .ok_or_else(|| SdkError::invalid_input("claims are required for VC issuance"))?;
 
-        let issuer_signature = self.issuer_signature.ok_or_else(|| {
-            SdkError::invalid_input("issuer_signature is required for VC issuance")
-        })?;
-
-        let mut req = IssueVcRequest::new(issuer, subject, claims, issuer_signature);
+        let mut req = IssueVcRequest::new(issuer, subject, claims);
 
         if let Some(expiry) = self.expiry_timestamp {
             req = req.with_expiry(expiry);
@@ -161,8 +150,6 @@ impl VcIssueBuilder {
 #[derive(Default)]
 pub struct VcRevokeBuilder {
     vc_id: Option<String>,
-    issuer: Option<AccountId>,
-    issuer_signature: Option<Vec<u8>>,
     reason: Option<String>,
 }
 
@@ -176,19 +163,6 @@ impl VcRevokeBuilder {
         self
     }
 
-    /// Sets the issuer address.
-    ///
-    /// Accepts any type that converts into `AccountId`.
-    pub fn issuer(mut self, issuer: impl Into<AccountId>) -> Self {
-        self.issuer = Some(issuer.into());
-        self
-    }
-
-    pub fn issuer_signature(mut self, signature: Vec<u8>) -> Self {
-        self.issuer_signature = Some(signature);
-        self
-    }
-
     pub fn reason(mut self, reason: impl Into<String>) -> Self {
         self.reason = Some(reason.into());
         self
@@ -199,18 +173,8 @@ impl VcRevokeBuilder {
             .vc_id
             .ok_or_else(|| SdkError::invalid_input("vc_id is required for revocation"))?;
 
-        let issuer = self
-            .issuer
-            .ok_or_else(|| SdkError::invalid_input("issuer is required for revocation"))?;
-
-        let issuer_signature = self.issuer_signature.ok_or_else(|| {
-            SdkError::invalid_input("issuer_signature is required for revocation")
-        })?;
-
         Ok(RevokeVcRequest {
             vc_id,
-            issuer,
-            issuer_signature,
             reason: self.reason,
         })
     }
@@ -220,7 +184,6 @@ impl VcRevokeBuilder {
 #[derive(Default)]
 pub struct VcSelfRevokeBuilder {
     vc_id: Option<String>,
-    agent_signature: Option<Vec<u8>>,
     reason: Option<String>,
 }
 
@@ -234,11 +197,6 @@ impl VcSelfRevokeBuilder {
         self
     }
 
-    pub fn agent_signature(mut self, signature: Vec<u8>) -> Self {
-        self.agent_signature = Some(signature);
-        self
-    }
-
     pub fn reason(mut self, reason: impl Into<String>) -> Self {
         self.reason = Some(reason.into());
         self
@@ -249,13 +207,8 @@ impl VcSelfRevokeBuilder {
             .vc_id
             .ok_or_else(|| SdkError::invalid_input("vc_id is required for self-revocation"))?;
 
-        let agent_signature = self.agent_signature.ok_or_else(|| {
-            SdkError::invalid_input("agent_signature is required for self-revocation")
-        })?;
-
         Ok(SelfRevokeVcRequest {
             vc_id,
-            agent_signature,
             reason: self.reason,
         })
     }
@@ -267,20 +220,16 @@ impl VcSelfRevokeBuilder {
 /// ```rust,ignore
 /// let request = UpdateClaimsBuilder::new()
 ///     .vc_id("vc_test_001")
-///     .issuer(signer.account_id())
 ///     .new_claims(VcClaims {
 ///         max_daily_usd: 200_000,
 ///         ..Default::default()
 ///     })
-///     .issuer_signature(sig_bytes)
 ///     .build()?;
 /// ```
 #[derive(Default)]
 pub struct UpdateClaimsBuilder {
     vc_id: Option<String>,
-    issuer: Option<AccountId>,
     new_claims: Option<VcClaims>,
-    issuer_signature: Option<Vec<u8>>,
     claims_commitment: Vec<u8>,
 }
 
@@ -294,23 +243,9 @@ impl UpdateClaimsBuilder {
         self
     }
 
-    /// Sets the issuer address.
-    ///
-    /// Accepts any type that converts into `AccountId`.
-    pub fn issuer(mut self, issuer: impl Into<AccountId>) -> Self {
-        self.issuer = Some(issuer.into());
-        self
-    }
-
     /// Sets the new claims to replace the existing ones.
     pub fn new_claims(mut self, claims: VcClaims) -> Self {
         self.new_claims = Some(claims);
-        self
-    }
-
-    /// Sets the issuer's signature authorizing the update.
-    pub fn issuer_signature(mut self, signature: Vec<u8>) -> Self {
-        self.issuer_signature = Some(signature);
         self
     }
 
@@ -363,19 +298,11 @@ impl UpdateClaimsBuilder {
             .vc_id
             .ok_or_else(|| SdkError::invalid_input("vc_id is required for claims update"))?;
 
-        let issuer = self
-            .issuer
-            .ok_or_else(|| SdkError::invalid_input("issuer is required for claims update"))?;
-
         let new_claims = self
             .new_claims
             .ok_or_else(|| SdkError::invalid_input("new_claims are required for claims update"))?;
 
-        let issuer_signature = self.issuer_signature.ok_or_else(|| {
-            SdkError::invalid_input("issuer_signature is required for claims update")
-        })?;
-
-        let mut req = UpdateClaimsRequest::new(vc_id, issuer, new_claims, issuer_signature);
+        let mut req = UpdateClaimsRequest::new(vc_id, new_claims);
 
         if !self.claims_commitment.is_empty() {
             req = req.with_claims_commitment(self.claims_commitment);
@@ -443,7 +370,6 @@ mod tests {
             .subject(subject.clone())
             .claims(claims)
             .expiry(1_800_000_000)
-            .issuer_signature(vec![0u8; 64])
             .build()
             .unwrap();
 
@@ -460,11 +386,8 @@ mod tests {
 
     #[test]
     fn vc_revoke_builder_works() {
-        let issuer = AccountId::new([1u8; 32]);
         let request = VcRevokeBuilder::new()
             .vc_id("vc_test_001")
-            .issuer(issuer)
-            .issuer_signature(vec![0u8; 64])
             .reason("Test revocation")
             .build()
             .unwrap();
@@ -475,15 +398,12 @@ mod tests {
 
     #[test]
     fn update_claims_builder_works() {
-        let issuer = AccountId::new([1u8; 32]);
         let request = UpdateClaimsBuilder::new()
             .vc_id("vc_test_002")
-            .issuer(issuer)
             .new_claims(VcClaims {
                 max_daily_usd: 200_000,
                 ..Default::default()
             })
-            .issuer_signature(vec![0u8; 64])
             .build()
             .unwrap();
 
@@ -507,7 +427,6 @@ mod tests {
             .subject(subject)
             .claims(VcClaims::default())
             .claims_commitment(vec![7u8; 32])
-            .issuer_signature(vec![0u8; 64])
             .build()
             .unwrap();
 
@@ -531,7 +450,6 @@ mod tests {
             })
             .privacy_limits(500_000, 100_000, 50, 0b0011, &blinding)
             .unwrap()
-            .issuer_signature(vec![0u8; 64])
             .build()
             .unwrap();
 

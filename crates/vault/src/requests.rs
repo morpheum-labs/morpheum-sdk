@@ -1,7 +1,6 @@
 //! Request wrappers for the vault module.
 
 use alloc::string::String;
-use alloc::vec::Vec;
 
 use prost::Message as _;
 
@@ -19,39 +18,33 @@ use crate::types::{VaultParams, VaultStatus, VaultType};
 #[derive(Clone, Debug, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct CreateVaultRequest {
-    pub creator_address: String,
     pub vault_type: VaultType,
     pub name: String,
     pub description: String,
     pub asset_index: u64,
     pub initial_assets: String,
     pub strategy_goal: String,
-    pub creator_signature: Vec<u8>,
 }
 
 impl CreateVaultRequest {
     pub fn new(
-        creator_address: impl Into<String>,
         vault_type: VaultType,
         name: impl Into<String>,
         asset_index: u64,
         initial_assets: impl Into<String>,
     ) -> Self {
         Self {
-            creator_address: creator_address.into(),
             vault_type,
             name: name.into(),
             description: String::new(),
             asset_index,
             initial_assets: initial_assets.into(),
             strategy_goal: String::new(),
-            creator_signature: Vec::new(),
         }
     }
 
     pub fn to_any(&self) -> ProtoAny {
         let msg = proto::MsgCreateVault {
-            creator_address: self.creator_address.clone(),
             r#type: i32::from(self.vault_type),
             name: self.name.clone(),
             description: self.description.clone(),
@@ -61,7 +54,6 @@ impl CreateVaultRequest {
             }),
             initial_assets: self.initial_assets.clone(),
             strategy_goal: self.strategy_goal.clone(),
-            creator_signature: self.creator_signature.clone(),
             timestamp: None,
             creator_external_address: None,
             creator_chain_type: None,
@@ -81,7 +73,6 @@ pub struct UpdateVaultParamsRequest {
     pub min_stake: String,
     pub max_stake: String,
     pub new_description: String,
-    pub updater_signature: Vec<u8>,
 }
 
 impl UpdateVaultParamsRequest {
@@ -91,7 +82,6 @@ impl UpdateVaultParamsRequest {
             min_stake: String::new(),
             max_stake: String::new(),
             new_description: String::new(),
-            updater_signature: Vec::new(),
         }
     }
 
@@ -101,7 +91,6 @@ impl UpdateVaultParamsRequest {
             min_stake: self.min_stake.clone(),
             max_stake: self.max_stake.clone(),
             new_description: self.new_description.clone(),
-            updater_signature: self.updater_signature.clone(),
             timestamp: None,
             updater_external_address: None,
             updater_chain_type: None,
@@ -119,7 +108,6 @@ impl UpdateVaultParamsRequest {
 pub struct ExecuteStrategyRequest {
     pub vault_id: String,
     pub strategy_params: String,
-    pub executor_signature: Vec<u8>,
 }
 
 impl ExecuteStrategyRequest {
@@ -127,7 +115,6 @@ impl ExecuteStrategyRequest {
         Self {
             vault_id: vault_id.into(),
             strategy_params: strategy_params.into(),
-            executor_signature: Vec::new(),
         }
     }
 
@@ -135,7 +122,6 @@ impl ExecuteStrategyRequest {
         let msg = proto::MsgExecuteStrategy {
             vault_id: self.vault_id.clone(),
             strategy_params: self.strategy_params.clone(),
-            executor_signature: self.executor_signature.clone(),
             timestamp: None,
         };
         ProtoAny {
@@ -151,7 +137,6 @@ impl ExecuteStrategyRequest {
 pub struct PauseVaultRequest {
     pub vault_id: String,
     pub reason: String,
-    pub pauser_signature: Vec<u8>,
 }
 
 impl PauseVaultRequest {
@@ -159,7 +144,6 @@ impl PauseVaultRequest {
         Self {
             vault_id: vault_id.into(),
             reason: reason.into(),
-            pauser_signature: Vec::new(),
         }
     }
 
@@ -167,7 +151,6 @@ impl PauseVaultRequest {
         let msg = proto::MsgPauseVault {
             vault_id: self.vault_id.clone(),
             reason: self.reason.clone(),
-            pauser_signature: self.pauser_signature.clone(),
             timestamp: None,
         };
         ProtoAny {
@@ -182,21 +165,18 @@ impl PauseVaultRequest {
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct ResumeVaultRequest {
     pub vault_id: String,
-    pub resumer_signature: Vec<u8>,
 }
 
 impl ResumeVaultRequest {
     pub fn new(vault_id: impl Into<String>) -> Self {
         Self {
             vault_id: vault_id.into(),
-            resumer_signature: Vec::new(),
         }
     }
 
     pub fn to_any(&self) -> ProtoAny {
         let msg = proto::MsgResumeVault {
             vault_id: self.vault_id.clone(),
-            resumer_signature: self.resumer_signature.clone(),
             timestamp: None,
         };
         ProtoAny {
@@ -214,7 +194,6 @@ pub struct DepositToVaultRequest {
     pub vault_id: String,
     pub asset_index: u64,
     pub amount: String,
-    pub depositor_signature: Vec<u8>,
 }
 
 impl DepositToVaultRequest {
@@ -229,7 +208,6 @@ impl DepositToVaultRequest {
             vault_id: vault_id.into(),
             asset_index,
             amount: amount.into(),
-            depositor_signature: Vec::new(),
         }
     }
 
@@ -242,7 +220,6 @@ impl DepositToVaultRequest {
                 ..Default::default()
             }),
             amount: self.amount.clone(),
-            depositor_signature: self.depositor_signature.clone(),
             timestamp: None,
             external_address: None,
             chain_type: None,
@@ -262,7 +239,6 @@ pub struct WithdrawFromVaultRequest {
     pub vault_id: String,
     pub asset_index: u64,
     pub shares: String,
-    pub withdrawer_signature: Vec<u8>,
 }
 
 impl WithdrawFromVaultRequest {
@@ -277,7 +253,6 @@ impl WithdrawFromVaultRequest {
             vault_id: vault_id.into(),
             asset_index,
             shares: shares.into(),
-            withdrawer_signature: Vec::new(),
         }
     }
 
@@ -290,7 +265,6 @@ impl WithdrawFromVaultRequest {
                 ..Default::default()
             }),
             shares: self.shares.clone(),
-            withdrawer_signature: self.withdrawer_signature.clone(),
             timestamp: None,
             external_address: None,
         };
@@ -307,7 +281,6 @@ impl WithdrawFromVaultRequest {
 pub struct ClaimYieldRequest {
     pub address: String,
     pub vault_id: String,
-    pub claimer_signature: Vec<u8>,
 }
 
 impl ClaimYieldRequest {
@@ -315,7 +288,6 @@ impl ClaimYieldRequest {
         Self {
             address: address.into(),
             vault_id: vault_id.into(),
-            claimer_signature: Vec::new(),
         }
     }
 
@@ -323,7 +295,6 @@ impl ClaimYieldRequest {
         let msg = proto::MsgClaimYield {
             address: self.address.clone(),
             vault_id: self.vault_id.clone(),
-            claimer_signature: self.claimer_signature.clone(),
             timestamp: None,
             external_address: None,
         };
@@ -628,8 +599,8 @@ mod tests {
 
     #[test]
     fn create_vault_to_any() {
-        let any = CreateVaultRequest::new("morph1user", VaultType::Custom, "My Vault", 1, "1000")
-            .to_any();
+        let any =
+            CreateVaultRequest::new(VaultType::Custom, "My Vault", 1, "1000").to_any();
         assert_eq!(any.type_url, "/vault.v1.MsgCreateVault");
         assert!(!any.value.is_empty());
     }

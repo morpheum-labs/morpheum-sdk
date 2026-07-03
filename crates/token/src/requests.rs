@@ -24,7 +24,6 @@ pub struct CreateTokenRequest {
     pub symbol: String,
     pub decimals: u32,
     pub initial_supply: String,
-    pub creator_address: String,
     pub metadata: BTreeMap<String, String>,
     pub agent_creator_did: Option<String>,
     pub programmable: Option<ProgrammableLogicConfig>,
@@ -41,14 +40,12 @@ impl CreateTokenRequest {
         symbol: impl Into<String>,
         decimals: u32,
         initial_supply: impl Into<String>,
-        creator_address: impl Into<String>,
     ) -> Self {
         Self {
             name: name.into(),
             symbol: symbol.into(),
             decimals,
             initial_supply: initial_supply.into(),
-            creator_address: creator_address.into(),
             metadata: BTreeMap::new(),
             agent_creator_did: None,
             programmable: None,
@@ -66,7 +63,6 @@ impl CreateTokenRequest {
             symbol: self.symbol.clone(),
             decimals: self.decimals,
             initial_supply: self.initial_supply.clone(),
-            creator_address: self.creator_address.clone(),
             metadata: self.metadata.clone().into_iter().collect(),
             agent_creator_did: self.agent_creator_did.clone(),
             programmable: self.programmable.clone().map(Into::into),
@@ -89,15 +85,13 @@ impl CreateTokenRequest {
 pub struct SetTradableRequest {
     pub asset_index: u64,
     pub tradable: bool,
-    pub signer_address: String,
 }
 
 impl SetTradableRequest {
-    pub fn new(asset_index: u64, tradable: bool, signer_address: impl Into<String>) -> Self {
+    pub fn new(asset_index: u64, tradable: bool) -> Self {
         Self {
             asset_index,
             tradable,
-            signer_address: signer_address.into(),
         }
     }
 
@@ -105,7 +99,6 @@ impl SetTradableRequest {
         let msg = proto::SetTradableRequest {
             asset_index: self.asset_index,
             tradable: self.tradable,
-            signer_address: self.signer_address.clone(),
         };
         ProtoAny {
             type_url: "/token.v1.SetTradableRequest".into(),
@@ -119,7 +112,6 @@ impl SetTradableRequest {
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct UpdateMetadataRequest {
     pub asset_index: u64,
-    pub signer_address: String,
     pub name: Option<String>,
     pub symbol: Option<String>,
     pub icon: Option<String>,
@@ -130,10 +122,9 @@ pub struct UpdateMetadataRequest {
 }
 
 impl UpdateMetadataRequest {
-    pub fn new(asset_index: u64, signer_address: impl Into<String>) -> Self {
+    pub fn new(asset_index: u64) -> Self {
         Self {
             asset_index,
-            signer_address: signer_address.into(),
             name: None,
             symbol: None,
             icon: None,
@@ -147,7 +138,6 @@ impl UpdateMetadataRequest {
     pub fn to_any(&self) -> ProtoAny {
         let msg = proto::UpdateMetadataRequest {
             asset_index: self.asset_index,
-            signer_address: self.signer_address.clone(),
             name: self.name.clone(),
             symbol: self.symbol.clone(),
             icon: self.icon.clone(),
@@ -169,15 +159,13 @@ impl UpdateMetadataRequest {
 pub struct DisableHookRequest {
     pub asset_index: u64,
     pub hook_point: HookPoint,
-    pub signer_address: String,
 }
 
 impl DisableHookRequest {
-    pub fn new(asset_index: u64, hook_point: HookPoint, signer_address: impl Into<String>) -> Self {
+    pub fn new(asset_index: u64, hook_point: HookPoint) -> Self {
         Self {
             asset_index,
             hook_point,
-            signer_address: signer_address.into(),
         }
     }
 
@@ -185,7 +173,6 @@ impl DisableHookRequest {
         let msg = proto::DisableHookRequest {
             asset_index: self.asset_index,
             hook_point: i32::from(self.hook_point),
-            signer_address: self.signer_address.clone(),
         };
         ProtoAny {
             type_url: "/token.v1.DisableHookRequest".into(),
@@ -203,7 +190,6 @@ pub struct SetOriginMetadataRequest {
     pub origin_address: String,
     pub bridge_protocol: String,
     pub is_wrapped: bool,
-    pub signer_address: String,
 }
 
 impl SetOriginMetadataRequest {
@@ -213,7 +199,6 @@ impl SetOriginMetadataRequest {
         origin_address: impl Into<String>,
         bridge_protocol: impl Into<String>,
         is_wrapped: bool,
-        signer_address: impl Into<String>,
     ) -> Self {
         Self {
             asset_index,
@@ -221,7 +206,6 @@ impl SetOriginMetadataRequest {
             origin_address: origin_address.into(),
             bridge_protocol: bridge_protocol.into(),
             is_wrapped,
-            signer_address: signer_address.into(),
         }
     }
 
@@ -232,7 +216,6 @@ impl SetOriginMetadataRequest {
             origin_address: self.origin_address.clone(),
             bridge_protocol: self.bridge_protocol.clone(),
             is_wrapped: self.is_wrapped,
-            signer_address: self.signer_address.clone(),
         };
         ProtoAny {
             type_url: "/token.v1.SetOriginMetadataRequest".into(),
@@ -366,27 +349,27 @@ mod tests {
 
     #[test]
     fn create_token_to_any() {
-        let any = CreateTokenRequest::new("Test Token", "TST", 18, "1000000", "morph1xyz").to_any();
+        let any = CreateTokenRequest::new("Test Token", "TST", 18, "1000000").to_any();
         assert_eq!(any.type_url, "/token.v1.CreateTokenRequest");
         assert!(!any.value.is_empty());
     }
 
     #[test]
     fn set_tradable_to_any() {
-        let any = SetTradableRequest::new(1, true, "morph1xyz").to_any();
+        let any = SetTradableRequest::new(1, true).to_any();
         assert_eq!(any.type_url, "/token.v1.SetTradableRequest");
     }
 
     #[test]
     fn disable_hook_to_any() {
-        let any = DisableHookRequest::new(1, HookPoint::OnMint, "morph1gov").to_any();
+        let any = DisableHookRequest::new(1, HookPoint::OnMint).to_any();
         assert_eq!(any.type_url, "/token.v1.DisableHookRequest");
     }
 
     #[test]
     fn set_origin_metadata_to_any() {
-        let any = SetOriginMetadataRequest::new(1, "ethereum", "0xabc", "cctp", true, "morph1gov")
-            .to_any();
+        let any =
+            SetOriginMetadataRequest::new(1, "ethereum", "0xabc", "cctp", true).to_any();
         assert_eq!(any.type_url, "/token.v1.SetOriginMetadataRequest");
     }
 

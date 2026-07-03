@@ -252,8 +252,6 @@ pub struct Bid {
     pub amount_usd: u64,
     /// Timestamp when the bid was placed.
     pub timestamp: u64,
-    /// Bidder's signature.
-    pub bidder_signature: Vec<u8>,
 }
 
 impl From<proto::Bid> for Bid {
@@ -264,7 +262,6 @@ impl From<proto::Bid> for Bid {
             bidder_agent_hash: p.bidder_agent_hash,
             amount_usd: p.amount_usd,
             timestamp: p.timestamp,
-            bidder_signature: p.bidder_signature,
         }
     }
 }
@@ -277,7 +274,6 @@ impl From<Bid> for proto::Bid {
             bidder_agent_hash: b.bidder_agent_hash,
             amount_usd: b.amount_usd,
             timestamp: b.timestamp,
-            bidder_signature: b.bidder_signature,
         }
     }
 }
@@ -469,7 +465,6 @@ impl From<Params> for proto::Params {
 mod tests {
     use super::*;
     use alloc::string::ToString;
-    use alloc::vec;
 
     #[test]
     fn listing_type_roundtrip() {
@@ -592,7 +587,6 @@ mod tests {
             bidder_agent_hash: "bidder-abc".into(),
             amount_usd: 450_000,
             timestamp: 1_700_001_000,
-            bidder_signature: vec![0u8; 64],
         };
         let proto: proto::Bid = bid.clone().into();
         let back: Bid = proto.into();

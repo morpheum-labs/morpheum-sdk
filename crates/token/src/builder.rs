@@ -20,7 +20,6 @@ pub struct CreateTokenBuilder {
     symbol: Option<String>,
     decimals: u32,
     initial_supply: Option<String>,
-    creator_address: Option<String>,
     metadata: BTreeMap<String, String>,
     agent_creator_did: Option<String>,
     programmable: Option<ProgrammableLogicConfig>,
@@ -53,10 +52,6 @@ impl CreateTokenBuilder {
     }
     pub fn initial_supply(mut self, v: impl Into<String>) -> Self {
         self.initial_supply = Some(v.into());
-        self
-    }
-    pub fn creator_address(mut self, v: impl Into<String>) -> Self {
-        self.creator_address = Some(v.into());
         self
     }
     pub fn metadata(mut self, v: BTreeMap<String, String>) -> Self {
@@ -102,8 +97,6 @@ impl CreateTokenBuilder {
             self.decimals,
             self.initial_supply
                 .ok_or_else(|| SdkError::invalid_input("initial_supply is required"))?,
-            self.creator_address
-                .ok_or_else(|| SdkError::invalid_input("creator_address is required"))?,
         );
         req.metadata = self.metadata;
         req.agent_creator_did = self.agent_creator_did;
@@ -123,7 +116,6 @@ impl CreateTokenBuilder {
 pub struct SetTradableBuilder {
     asset_index: Option<u64>,
     tradable: bool,
-    signer_address: Option<String>,
 }
 
 impl SetTradableBuilder {
@@ -139,18 +131,12 @@ impl SetTradableBuilder {
         self.tradable = v;
         self
     }
-    pub fn signer_address(mut self, v: impl Into<String>) -> Self {
-        self.signer_address = Some(v.into());
-        self
-    }
 
     pub fn build(self) -> Result<SetTradableRequest, SdkError> {
         Ok(SetTradableRequest::new(
             self.asset_index
                 .ok_or_else(|| SdkError::invalid_input("asset_index is required"))?,
             self.tradable,
-            self.signer_address
-                .ok_or_else(|| SdkError::invalid_input("signer_address is required"))?,
         ))
     }
 }
@@ -159,7 +145,6 @@ impl SetTradableBuilder {
 
 pub struct UpdateMetadataBuilder {
     asset_index: Option<u64>,
-    signer_address: Option<String>,
     name: Option<String>,
     symbol: Option<String>,
     icon: Option<String>,
@@ -173,7 +158,6 @@ impl UpdateMetadataBuilder {
     pub fn new() -> Self {
         Self {
             asset_index: None,
-            signer_address: None,
             name: None,
             symbol: None,
             icon: None,
@@ -186,10 +170,6 @@ impl UpdateMetadataBuilder {
 
     pub fn asset_index(mut self, v: u64) -> Self {
         self.asset_index = Some(v);
-        self
-    }
-    pub fn signer_address(mut self, v: impl Into<String>) -> Self {
-        self.signer_address = Some(v.into());
         self
     }
     pub fn name(mut self, v: impl Into<String>) -> Self {
@@ -225,8 +205,6 @@ impl UpdateMetadataBuilder {
         let mut req = UpdateMetadataRequest::new(
             self.asset_index
                 .ok_or_else(|| SdkError::invalid_input("asset_index is required"))?,
-            self.signer_address
-                .ok_or_else(|| SdkError::invalid_input("signer_address is required"))?,
         );
         req.name = self.name;
         req.symbol = self.symbol;
@@ -251,7 +229,6 @@ impl Default for UpdateMetadataBuilder {
 pub struct DisableHookBuilder {
     asset_index: Option<u64>,
     hook_point: HookPoint,
-    signer_address: Option<String>,
 }
 
 impl DisableHookBuilder {
@@ -267,10 +244,6 @@ impl DisableHookBuilder {
         self.hook_point = v;
         self
     }
-    pub fn signer_address(mut self, v: impl Into<String>) -> Self {
-        self.signer_address = Some(v.into());
-        self
-    }
 
     pub fn build(self) -> Result<DisableHookRequest, SdkError> {
         if self.hook_point == HookPoint::Unspecified {
@@ -280,8 +253,6 @@ impl DisableHookBuilder {
             self.asset_index
                 .ok_or_else(|| SdkError::invalid_input("asset_index is required"))?,
             self.hook_point,
-            self.signer_address
-                .ok_or_else(|| SdkError::invalid_input("signer_address is required"))?,
         ))
     }
 }
@@ -295,7 +266,6 @@ pub struct SetOriginMetadataBuilder {
     origin_address: Option<String>,
     bridge_protocol: Option<String>,
     is_wrapped: bool,
-    signer_address: Option<String>,
 }
 
 impl SetOriginMetadataBuilder {
@@ -323,10 +293,6 @@ impl SetOriginMetadataBuilder {
         self.is_wrapped = v;
         self
     }
-    pub fn signer_address(mut self, v: impl Into<String>) -> Self {
-        self.signer_address = Some(v.into());
-        self
-    }
 
     pub fn build(self) -> Result<SetOriginMetadataRequest, SdkError> {
         Ok(SetOriginMetadataRequest::new(
@@ -339,8 +305,6 @@ impl SetOriginMetadataBuilder {
             self.bridge_protocol
                 .ok_or_else(|| SdkError::invalid_input("bridge_protocol is required"))?,
             self.is_wrapped,
-            self.signer_address
-                .ok_or_else(|| SdkError::invalid_input("signer_address is required"))?,
         ))
     }
 }
@@ -355,7 +319,6 @@ mod tests {
             .name("Test")
             .symbol("TST")
             .initial_supply("1000000")
-            .creator_address("morph1xyz")
             .tradable(true)
             .add_metadata("icon", "https://example.com/icon.png")
             .build()
@@ -377,7 +340,6 @@ mod tests {
             .symbol("USDC")
             .decimals(6)
             .initial_supply("0")
-            .creator_address("morph1bridge")
             .origin(
                 "ethereum",
                 "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
@@ -395,7 +357,6 @@ mod tests {
         let req = SetTradableBuilder::new()
             .asset_index(1)
             .tradable(true)
-            .signer_address("morph1xyz")
             .build()
             .unwrap();
         assert!(req.tradable);
@@ -405,7 +366,6 @@ mod tests {
     fn update_metadata_builder_works() {
         let req = UpdateMetadataBuilder::new()
             .asset_index(1)
-            .signer_address("morph1xyz")
             .name("New Name")
             .icon("https://new-icon.png")
             .build()
@@ -415,10 +375,7 @@ mod tests {
 
     #[test]
     fn disable_hook_requires_specified_point() {
-        let result = DisableHookBuilder::new()
-            .asset_index(1)
-            .signer_address("morph1gov")
-            .build();
+        let result = DisableHookBuilder::new().asset_index(1).build();
         assert!(result.is_err());
     }
 
@@ -427,7 +384,6 @@ mod tests {
         let req = DisableHookBuilder::new()
             .asset_index(1)
             .hook_point(HookPoint::OnMint)
-            .signer_address("morph1gov")
             .build()
             .unwrap();
         assert_eq!(req.hook_point, HookPoint::OnMint);
@@ -441,7 +397,6 @@ mod tests {
             .origin_address("0xabc")
             .bridge_protocol("cctp")
             .is_wrapped(true)
-            .signer_address("morph1gov")
             .build()
             .unwrap();
         assert!(req.is_wrapped);

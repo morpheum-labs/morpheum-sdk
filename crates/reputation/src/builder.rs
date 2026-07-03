@@ -7,7 +7,6 @@
 //! with `TxBuilder`.
 
 use alloc::string::String;
-use alloc::vec::Vec;
 
 use morpheum_sdk_core::SdkError;
 
@@ -21,14 +20,12 @@ use crate::types::Params;
 /// let request = ForceMilestoneBuilder::new()
 ///     .agent_hash("abc123def456")
 ///     .milestone_level(5)
-///     .gov_signature(sig_bytes)
 ///     .build()?;
 /// ```
 #[derive(Default)]
 pub struct ForceMilestoneBuilder {
     agent_hash: Option<String>,
     milestone_level: Option<u32>,
-    gov_signature: Option<Vec<u8>>,
 }
 
 impl ForceMilestoneBuilder {
@@ -49,12 +46,6 @@ impl ForceMilestoneBuilder {
         self
     }
 
-    /// Sets the governance signature authorising this operation.
-    pub fn gov_signature(mut self, sig: Vec<u8>) -> Self {
-        self.gov_signature = Some(sig);
-        self
-    }
-
     /// Builds the force-milestone request, performing validation.
     pub fn build(self) -> Result<ForceMilestoneRequest, SdkError> {
         let agent_hash = self
@@ -65,15 +56,7 @@ impl ForceMilestoneBuilder {
             SdkError::invalid_input("milestone_level is required for force milestone")
         })?;
 
-        let gov_signature = self.gov_signature.ok_or_else(|| {
-            SdkError::invalid_input("gov_signature is required for force milestone")
-        })?;
-
-        Ok(ForceMilestoneRequest::new(
-            agent_hash,
-            milestone_level,
-            gov_signature,
-        ))
+        Ok(ForceMilestoneRequest::new(agent_hash, milestone_level))
     }
 }
 
@@ -121,7 +104,6 @@ mod tests {
         let request = ForceMilestoneBuilder::new()
             .agent_hash("test-agent")
             .milestone_level(5)
-            .gov_signature(vec![9u8; 64])
             .build()
             .unwrap();
 

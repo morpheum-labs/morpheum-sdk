@@ -28,21 +28,14 @@ pub struct ForceMilestoneRequest {
     pub agent_hash: String,
     /// Milestone level to force (0-indexed).
     pub milestone_level: u32,
-    /// Governance signature authorising this operation.
-    pub gov_signature: Vec<u8>,
 }
 
 impl ForceMilestoneRequest {
     /// Creates a new force-milestone request.
-    pub fn new(
-        agent_hash: impl Into<String>,
-        milestone_level: u32,
-        gov_signature: Vec<u8>,
-    ) -> Self {
+    pub fn new(agent_hash: impl Into<String>, milestone_level: u32) -> Self {
         Self {
             agent_hash: agent_hash.into(),
             milestone_level,
-            gov_signature,
         }
     }
 
@@ -61,7 +54,6 @@ impl From<ForceMilestoneRequest> for proto::MsgForceMilestone {
         Self {
             agent_hash: req.agent_hash,
             milestone_level: req.milestone_level,
-            gov_signature: req.gov_signature,
         }
     }
 }
@@ -271,7 +263,7 @@ mod tests {
 
     #[test]
     fn force_milestone_request_to_any() {
-        let req = ForceMilestoneRequest::new("agent789", 3, vec![9u8; 64]);
+        let req = ForceMilestoneRequest::new("agent789", 3);
         let any = req.to_any();
         assert_eq!(any.type_url, "/reputation.v1.MsgForceMilestone");
     }

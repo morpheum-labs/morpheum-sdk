@@ -1,7 +1,6 @@
 //! Fluent builders for the vault module.
 
 use alloc::string::String;
-use alloc::vec::Vec;
 
 use morpheum_sdk_core::SdkError;
 
@@ -15,34 +14,26 @@ use crate::types::{VaultParams, VaultType};
 // ====================== CREATE VAULT ======================
 
 pub struct CreateVaultBuilder {
-    creator_address: Option<String>,
     vault_type: VaultType,
     name: Option<String>,
     description: String,
     asset_index: Option<u64>,
     initial_assets: Option<String>,
     strategy_goal: String,
-    creator_signature: Vec<u8>,
 }
 
 impl CreateVaultBuilder {
     pub fn new() -> Self {
         Self {
-            creator_address: None,
             vault_type: VaultType::Unspecified,
             name: None,
             description: String::new(),
             asset_index: None,
             initial_assets: None,
             strategy_goal: String::new(),
-            creator_signature: Vec::new(),
         }
     }
 
-    pub fn creator_address(mut self, v: impl Into<String>) -> Self {
-        self.creator_address = Some(v.into());
-        self
-    }
     pub fn vault_type(mut self, v: VaultType) -> Self {
         self.vault_type = v;
         self
@@ -67,18 +58,12 @@ impl CreateVaultBuilder {
         self.strategy_goal = v.into();
         self
     }
-    pub fn creator_signature(mut self, v: Vec<u8>) -> Self {
-        self.creator_signature = v;
-        self
-    }
 
     pub fn build(self) -> Result<CreateVaultRequest, SdkError> {
         if self.vault_type == VaultType::Unspecified {
             return Err(SdkError::invalid_input("vault_type must be specified"));
         }
         let mut req = CreateVaultRequest::new(
-            self.creator_address
-                .ok_or_else(|| SdkError::invalid_input("creator_address is required"))?,
             self.vault_type,
             self.name
                 .ok_or_else(|| SdkError::invalid_input("name is required"))?,
@@ -89,7 +74,6 @@ impl CreateVaultBuilder {
         );
         req.description = self.description;
         req.strategy_goal = self.strategy_goal;
-        req.creator_signature = self.creator_signature;
         Ok(req)
     }
 }
@@ -107,7 +91,6 @@ pub struct UpdateVaultParamsBuilder {
     min_stake: String,
     max_stake: String,
     new_description: String,
-    updater_signature: Vec<u8>,
 }
 
 impl UpdateVaultParamsBuilder {
@@ -117,7 +100,6 @@ impl UpdateVaultParamsBuilder {
             min_stake: String::new(),
             max_stake: String::new(),
             new_description: String::new(),
-            updater_signature: Vec::new(),
         }
     }
 
@@ -137,10 +119,6 @@ impl UpdateVaultParamsBuilder {
         self.new_description = v.into();
         self
     }
-    pub fn updater_signature(mut self, v: Vec<u8>) -> Self {
-        self.updater_signature = v;
-        self
-    }
 
     pub fn build(self) -> Result<UpdateVaultParamsRequest, SdkError> {
         let mut req = UpdateVaultParamsRequest::new(
@@ -150,7 +128,6 @@ impl UpdateVaultParamsBuilder {
         req.min_stake = self.min_stake;
         req.max_stake = self.max_stake;
         req.new_description = self.new_description;
-        req.updater_signature = self.updater_signature;
         Ok(req)
     }
 }
@@ -166,7 +143,6 @@ impl Default for UpdateVaultParamsBuilder {
 pub struct ExecuteStrategyBuilder {
     vault_id: Option<String>,
     strategy_params: Option<String>,
-    executor_signature: Vec<u8>,
 }
 
 impl ExecuteStrategyBuilder {
@@ -174,7 +150,6 @@ impl ExecuteStrategyBuilder {
         Self {
             vault_id: None,
             strategy_params: None,
-            executor_signature: Vec::new(),
         }
     }
 
@@ -186,19 +161,14 @@ impl ExecuteStrategyBuilder {
         self.strategy_params = Some(v.into());
         self
     }
-    pub fn executor_signature(mut self, v: Vec<u8>) -> Self {
-        self.executor_signature = v;
-        self
-    }
 
     pub fn build(self) -> Result<ExecuteStrategyRequest, SdkError> {
-        let mut req = ExecuteStrategyRequest::new(
+        let req = ExecuteStrategyRequest::new(
             self.vault_id
                 .ok_or_else(|| SdkError::invalid_input("vault_id is required"))?,
             self.strategy_params
                 .ok_or_else(|| SdkError::invalid_input("strategy_params is required"))?,
         );
-        req.executor_signature = self.executor_signature;
         Ok(req)
     }
 }
@@ -214,7 +184,6 @@ impl Default for ExecuteStrategyBuilder {
 pub struct PauseVaultBuilder {
     vault_id: Option<String>,
     reason: Option<String>,
-    pauser_signature: Vec<u8>,
 }
 
 impl PauseVaultBuilder {
@@ -222,7 +191,6 @@ impl PauseVaultBuilder {
         Self {
             vault_id: None,
             reason: None,
-            pauser_signature: Vec::new(),
         }
     }
 
@@ -234,19 +202,14 @@ impl PauseVaultBuilder {
         self.reason = Some(v.into());
         self
     }
-    pub fn pauser_signature(mut self, v: Vec<u8>) -> Self {
-        self.pauser_signature = v;
-        self
-    }
 
     pub fn build(self) -> Result<PauseVaultRequest, SdkError> {
-        let mut req = PauseVaultRequest::new(
+        let req = PauseVaultRequest::new(
             self.vault_id
                 .ok_or_else(|| SdkError::invalid_input("vault_id is required"))?,
             self.reason
                 .ok_or_else(|| SdkError::invalid_input("reason is required"))?,
         );
-        req.pauser_signature = self.pauser_signature;
         Ok(req)
     }
 }
@@ -259,32 +222,23 @@ impl Default for PauseVaultBuilder {
 
 pub struct ResumeVaultBuilder {
     vault_id: Option<String>,
-    resumer_signature: Vec<u8>,
 }
 
 impl ResumeVaultBuilder {
     pub fn new() -> Self {
-        Self {
-            vault_id: None,
-            resumer_signature: Vec::new(),
-        }
+        Self { vault_id: None }
     }
 
     pub fn vault_id(mut self, v: impl Into<String>) -> Self {
         self.vault_id = Some(v.into());
         self
     }
-    pub fn resumer_signature(mut self, v: Vec<u8>) -> Self {
-        self.resumer_signature = v;
-        self
-    }
 
     pub fn build(self) -> Result<ResumeVaultRequest, SdkError> {
-        let mut req = ResumeVaultRequest::new(
+        let req = ResumeVaultRequest::new(
             self.vault_id
                 .ok_or_else(|| SdkError::invalid_input("vault_id is required"))?,
         );
-        req.resumer_signature = self.resumer_signature;
         Ok(req)
     }
 }
@@ -302,7 +256,6 @@ pub struct DepositToVaultBuilder {
     vault_id: Option<String>,
     asset_index: Option<u64>,
     amount: Option<String>,
-    depositor_signature: Vec<u8>,
 }
 
 impl DepositToVaultBuilder {
@@ -312,7 +265,6 @@ impl DepositToVaultBuilder {
             vault_id: None,
             asset_index: None,
             amount: None,
-            depositor_signature: Vec::new(),
         }
     }
 
@@ -332,13 +284,9 @@ impl DepositToVaultBuilder {
         self.amount = Some(v.into());
         self
     }
-    pub fn depositor_signature(mut self, v: Vec<u8>) -> Self {
-        self.depositor_signature = v;
-        self
-    }
 
     pub fn build(self) -> Result<DepositToVaultRequest, SdkError> {
-        let mut req = DepositToVaultRequest::new(
+        let req = DepositToVaultRequest::new(
             self.address
                 .ok_or_else(|| SdkError::invalid_input("address is required"))?,
             self.vault_id
@@ -348,7 +296,6 @@ impl DepositToVaultBuilder {
             self.amount
                 .ok_or_else(|| SdkError::invalid_input("amount is required"))?,
         );
-        req.depositor_signature = self.depositor_signature;
         Ok(req)
     }
 }
@@ -364,7 +311,6 @@ pub struct WithdrawFromVaultBuilder {
     vault_id: Option<String>,
     asset_index: Option<u64>,
     shares: Option<String>,
-    withdrawer_signature: Vec<u8>,
 }
 
 impl WithdrawFromVaultBuilder {
@@ -374,7 +320,6 @@ impl WithdrawFromVaultBuilder {
             vault_id: None,
             asset_index: None,
             shares: None,
-            withdrawer_signature: Vec::new(),
         }
     }
 
@@ -394,13 +339,9 @@ impl WithdrawFromVaultBuilder {
         self.shares = Some(v.into());
         self
     }
-    pub fn withdrawer_signature(mut self, v: Vec<u8>) -> Self {
-        self.withdrawer_signature = v;
-        self
-    }
 
     pub fn build(self) -> Result<WithdrawFromVaultRequest, SdkError> {
-        let mut req = WithdrawFromVaultRequest::new(
+        let req = WithdrawFromVaultRequest::new(
             self.address
                 .ok_or_else(|| SdkError::invalid_input("address is required"))?,
             self.vault_id
@@ -410,7 +351,6 @@ impl WithdrawFromVaultBuilder {
             self.shares
                 .ok_or_else(|| SdkError::invalid_input("shares is required"))?,
         );
-        req.withdrawer_signature = self.withdrawer_signature;
         Ok(req)
     }
 }
@@ -424,7 +364,6 @@ impl Default for WithdrawFromVaultBuilder {
 pub struct ClaimYieldBuilder {
     address: Option<String>,
     vault_id: Option<String>,
-    claimer_signature: Vec<u8>,
 }
 
 impl ClaimYieldBuilder {
@@ -432,7 +371,6 @@ impl ClaimYieldBuilder {
         Self {
             address: None,
             vault_id: None,
-            claimer_signature: Vec::new(),
         }
     }
 
@@ -444,19 +382,14 @@ impl ClaimYieldBuilder {
         self.vault_id = Some(v.into());
         self
     }
-    pub fn claimer_signature(mut self, v: Vec<u8>) -> Self {
-        self.claimer_signature = v;
-        self
-    }
 
     pub fn build(self) -> Result<ClaimYieldRequest, SdkError> {
-        let mut req = ClaimYieldRequest::new(
+        let req = ClaimYieldRequest::new(
             self.address
                 .ok_or_else(|| SdkError::invalid_input("address is required"))?,
             self.vault_id
                 .ok_or_else(|| SdkError::invalid_input("vault_id is required"))?,
         );
-        req.claimer_signature = self.claimer_signature;
         Ok(req)
     }
 }
@@ -514,7 +447,6 @@ mod tests {
     #[test]
     fn create_vault_builder_works() {
         let req = CreateVaultBuilder::new()
-            .creator_address("morph1user")
             .vault_type(VaultType::Custom)
             .name("My Vault")
             .asset_index(1)
@@ -529,7 +461,6 @@ mod tests {
     #[test]
     fn create_vault_requires_type() {
         assert!(CreateVaultBuilder::new()
-            .creator_address("morph1user")
             .name("V")
             .asset_index(1)
             .initial_assets("1000")

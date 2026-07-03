@@ -26,17 +26,12 @@ use crate::types::{AgentListing, Bid, ListingStatus};
 pub struct ListAgentRequest {
     /// The listing details.
     pub listing: AgentListing,
-    /// Seller's signature authorising this listing.
-    pub seller_signature: Vec<u8>,
 }
 
 impl ListAgentRequest {
     /// Creates a new list-agent request.
-    pub fn new(listing: AgentListing, seller_signature: Vec<u8>) -> Self {
-        Self {
-            listing,
-            seller_signature,
-        }
+    pub fn new(listing: AgentListing) -> Self {
+        Self { listing }
     }
 
     /// Converts this request into a protobuf `Any` ready for `TxBuilder::add_message`.
@@ -53,7 +48,6 @@ impl From<ListAgentRequest> for proto::MsgListAgent {
     fn from(req: ListAgentRequest) -> Self {
         Self {
             listing: Some(req.listing.into()),
-            seller_signature: req.seller_signature,
         }
     }
 }
@@ -88,17 +82,14 @@ pub struct PlaceBidRequest {
     pub listing_id: String,
     /// Bid amount in USD (scaled).
     pub amount_usd: u64,
-    /// Bidder's signature.
-    pub bidder_signature: Vec<u8>,
 }
 
 impl PlaceBidRequest {
     /// Creates a new place-bid request.
-    pub fn new(listing_id: impl Into<String>, amount_usd: u64, bidder_signature: Vec<u8>) -> Self {
+    pub fn new(listing_id: impl Into<String>, amount_usd: u64) -> Self {
         Self {
             listing_id: listing_id.into(),
             amount_usd,
-            bidder_signature,
         }
     }
 
@@ -117,7 +108,6 @@ impl From<PlaceBidRequest> for proto::MsgPlaceBid {
         Self {
             listing_id: req.listing_id,
             amount_usd: req.amount_usd,
-            bidder_signature: req.bidder_signature,
         }
     }
 }
@@ -152,21 +142,14 @@ pub struct AcceptBidRequest {
     pub listing_id: String,
     /// Bid identifier to accept.
     pub bid_id: String,
-    /// Seller's signature authorising acceptance.
-    pub seller_signature: Vec<u8>,
 }
 
 impl AcceptBidRequest {
     /// Creates a new accept-bid request.
-    pub fn new(
-        listing_id: impl Into<String>,
-        bid_id: impl Into<String>,
-        seller_signature: Vec<u8>,
-    ) -> Self {
+    pub fn new(listing_id: impl Into<String>, bid_id: impl Into<String>) -> Self {
         Self {
             listing_id: listing_id.into(),
             bid_id: bid_id.into(),
-            seller_signature,
         }
     }
 
@@ -185,7 +168,6 @@ impl From<AcceptBidRequest> for proto::MsgAcceptBid {
         Self {
             listing_id: req.listing_id,
             bid_id: req.bid_id,
-            seller_signature: req.seller_signature,
         }
     }
 }
@@ -222,8 +204,6 @@ pub struct RequestEvaluationRequest {
     pub evaluator_agent_hash: String,
     /// Evaluation fee in USD (scaled).
     pub fee_usd: u64,
-    /// Requester's signature.
-    pub requester_signature: Vec<u8>,
 }
 
 impl RequestEvaluationRequest {
@@ -232,13 +212,11 @@ impl RequestEvaluationRequest {
         agent_hash: impl Into<String>,
         evaluator_agent_hash: impl Into<String>,
         fee_usd: u64,
-        requester_signature: Vec<u8>,
     ) -> Self {
         Self {
             agent_hash: agent_hash.into(),
             evaluator_agent_hash: evaluator_agent_hash.into(),
             fee_usd,
-            requester_signature,
         }
     }
 
@@ -258,7 +236,6 @@ impl From<RequestEvaluationRequest> for proto::MsgRequestEvaluation {
             agent_hash: req.agent_hash,
             evaluator_agent_hash: req.evaluator_agent_hash,
             fee_usd: req.fee_usd,
-            requester_signature: req.requester_signature,
         }
     }
 }
@@ -551,7 +528,7 @@ mod tests {
 
     #[test]
     fn list_agent_request_to_any() {
-        let req = ListAgentRequest::new(sample_listing(), vec![0u8; 64]);
+        let req = ListAgentRequest::new(sample_listing());
         let any = req.to_any();
         assert_eq!(any.type_url, "/marketplace.v1.MsgListAgent");
         assert!(!any.value.is_empty());
@@ -559,7 +536,7 @@ mod tests {
 
     #[test]
     fn place_bid_request_to_any() {
-        let req = PlaceBidRequest::new("listing-001", 450_000, vec![0u8; 64]);
+        let req = PlaceBidRequest::new("listing-001", 450_000);
         let any = req.to_any();
         assert_eq!(any.type_url, "/marketplace.v1.MsgPlaceBid");
         assert!(!any.value.is_empty());
@@ -567,7 +544,7 @@ mod tests {
 
     #[test]
     fn accept_bid_request_to_any() {
-        let req = AcceptBidRequest::new("listing-001", "bid-001", vec![0u8; 64]);
+        let req = AcceptBidRequest::new("listing-001", "bid-001");
         let any = req.to_any();
         assert_eq!(any.type_url, "/marketplace.v1.MsgAcceptBid");
         assert!(!any.value.is_empty());
@@ -575,7 +552,7 @@ mod tests {
 
     #[test]
     fn request_evaluation_to_any() {
-        let req = RequestEvaluationRequest::new("agent-abc", "evaluator-xyz", 200, vec![0u8; 64]);
+        let req = RequestEvaluationRequest::new("agent-abc", "evaluator-xyz", 200);
         let any = req.to_any();
         assert_eq!(any.type_url, "/marketplace.v1.MsgRequestEvaluation");
         assert!(!any.value.is_empty());

@@ -22,8 +22,8 @@ use crate::types::{AgentDirectoryProfile, DirectoryFilter, VisibilityLevel};
 
 /// Request to update an agent's directory profile.
 ///
-/// The `owner_signature` must be signed by the agent's owner or a delegated VC
-/// to authorise the profile change.
+/// Authorization binds to the executor-authenticated transaction signer
+/// (owner or delegated VC); no signature is carried on the message.
 #[derive(Clone, Debug, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct UpdateProfileRequest {
@@ -35,23 +35,16 @@ pub struct UpdateProfileRequest {
     pub description: String,
     /// Comma-separated tags for discovery.
     pub tags: String,
-    /// Owner or delegated VC signature.
-    pub owner_signature: Vec<u8>,
 }
 
 impl UpdateProfileRequest {
     /// Creates a new update-profile request with required fields.
-    pub fn new(
-        agent_hash: impl Into<String>,
-        display_name: impl Into<String>,
-        owner_signature: Vec<u8>,
-    ) -> Self {
+    pub fn new(agent_hash: impl Into<String>, display_name: impl Into<String>) -> Self {
         Self {
             agent_hash: agent_hash.into(),
             display_name: display_name.into(),
             description: String::new(),
             tags: String::new(),
-            owner_signature,
         }
     }
 
@@ -84,7 +77,6 @@ impl From<UpdateProfileRequest> for proto::MsgUpdateProfile {
             display_name: req.display_name,
             description: req.description,
             tags: req.tags,
-            owner_signature: req.owner_signature,
         }
     }
 }
@@ -116,21 +108,14 @@ pub struct UpdateVisibilityRequest {
     pub agent_hash: String,
     /// New visibility level.
     pub new_visibility: VisibilityLevel,
-    /// Owner or delegated VC signature.
-    pub owner_signature: Vec<u8>,
 }
 
 impl UpdateVisibilityRequest {
     /// Creates a new update-visibility request.
-    pub fn new(
-        agent_hash: impl Into<String>,
-        new_visibility: VisibilityLevel,
-        owner_signature: Vec<u8>,
-    ) -> Self {
+    pub fn new(agent_hash: impl Into<String>, new_visibility: VisibilityLevel) -> Self {
         Self {
             agent_hash: agent_hash.into(),
             new_visibility,
-            owner_signature,
         }
     }
 
@@ -149,7 +134,6 @@ impl From<UpdateVisibilityRequest> for proto::MsgUpdateVisibility {
         Self {
             agent_hash: req.agent_hash,
             new_visibility: req.new_visibility.to_proto(),
-            owner_signature: req.owner_signature,
         }
     }
 }
@@ -302,7 +286,7 @@ mod tests {
 
     #[test]
     fn update_profile_request_to_any() {
-        let req = UpdateProfileRequest::new("agent-abc", "AlphaBot", vec![0u8; 64])
+        let req = UpdateProfileRequest::new("agent-abc", "AlphaBot")
             .with_description("High-frequency trading agent")
             .with_tags("hft,btc,eth");
 
@@ -313,8 +297,7 @@ mod tests {
 
     #[test]
     fn update_visibility_request_to_any() {
-        let req =
-            UpdateVisibilityRequest::new("agent-abc", VisibilityLevel::OwnerOnly, vec![0u8; 64]);
+        let req = UpdateVisibilityRequest::new("agent-abc", VisibilityLevel::OwnerOnly);
 
         let any = req.to_any();
         assert_eq!(any.type_url, "/directory.v1.MsgUpdateVisibility");

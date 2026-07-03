@@ -23,15 +23,11 @@ use crate::types::{Deliverable, Job, JobState};
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct CreateJobRequest {
     pub job: Job,
-    pub client_signature: Vec<u8>,
 }
 
 impl CreateJobRequest {
-    pub fn new(job: Job, client_signature: Vec<u8>) -> Self {
-        Self {
-            job,
-            client_signature,
-        }
+    pub fn new(job: Job) -> Self {
+        Self { job }
     }
 
     pub fn to_any(&self) -> ProtoAny {
@@ -47,7 +43,6 @@ impl From<CreateJobRequest> for proto::MsgCreateJob {
     fn from(req: CreateJobRequest) -> Self {
         Self {
             job: Some(req.job.into()),
-            client_signature: req.client_signature,
         }
     }
 }
@@ -58,15 +53,13 @@ impl From<CreateJobRequest> for proto::MsgCreateJob {
 pub struct FundJobRequest {
     pub job_id: String,
     pub amount_usd: u64,
-    pub client_signature: Vec<u8>,
 }
 
 impl FundJobRequest {
-    pub fn new(job_id: impl Into<String>, amount_usd: u64, client_signature: Vec<u8>) -> Self {
+    pub fn new(job_id: impl Into<String>, amount_usd: u64) -> Self {
         Self {
             job_id: job_id.into(),
             amount_usd,
-            client_signature,
         }
     }
 
@@ -84,7 +77,6 @@ impl From<FundJobRequest> for proto::MsgFundJob {
         Self {
             job_id: req.job_id,
             amount_usd: req.amount_usd,
-            client_signature: req.client_signature,
         }
     }
 }
@@ -95,19 +87,13 @@ impl From<FundJobRequest> for proto::MsgFundJob {
 pub struct SubmitDeliverableRequest {
     pub job_id: String,
     pub deliverable: Deliverable,
-    pub provider_signature: Vec<u8>,
 }
 
 impl SubmitDeliverableRequest {
-    pub fn new(
-        job_id: impl Into<String>,
-        deliverable: Deliverable,
-        provider_signature: Vec<u8>,
-    ) -> Self {
+    pub fn new(job_id: impl Into<String>, deliverable: Deliverable) -> Self {
         Self {
             job_id: job_id.into(),
             deliverable,
-            provider_signature,
         }
     }
 
@@ -125,7 +111,6 @@ impl From<SubmitDeliverableRequest> for proto::MsgSubmitDeliverable {
         Self {
             job_id: req.job_id,
             deliverable: Some(req.deliverable.into()),
-            provider_signature: req.provider_signature,
         }
     }
 }
@@ -137,16 +122,14 @@ pub struct AttestRequest {
     pub job_id: String,
     pub completed: bool,
     pub reason_hash: String,
-    pub evaluator_signature: Vec<u8>,
 }
 
 impl AttestRequest {
-    pub fn new(job_id: impl Into<String>, completed: bool, evaluator_signature: Vec<u8>) -> Self {
+    pub fn new(job_id: impl Into<String>, completed: bool) -> Self {
         Self {
             job_id: job_id.into(),
             completed,
             reason_hash: String::new(),
-            evaluator_signature,
         }
     }
 
@@ -170,7 +153,6 @@ impl From<AttestRequest> for proto::MsgAttest {
             job_id: req.job_id,
             completed: req.completed,
             reason_hash: req.reason_hash,
-            evaluator_signature: req.evaluator_signature,
         }
     }
 }
@@ -180,14 +162,12 @@ impl From<AttestRequest> for proto::MsgAttest {
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct ClaimRefundRequest {
     pub job_id: String,
-    pub caller_signature: Vec<u8>,
 }
 
 impl ClaimRefundRequest {
-    pub fn new(job_id: impl Into<String>, caller_signature: Vec<u8>) -> Self {
+    pub fn new(job_id: impl Into<String>) -> Self {
         Self {
             job_id: job_id.into(),
-            caller_signature,
         }
     }
 
@@ -204,7 +184,6 @@ impl From<ClaimRefundRequest> for proto::MsgClaimRefund {
     fn from(req: ClaimRefundRequest) -> Self {
         Self {
             job_id: req.job_id,
-            caller_signature: req.caller_signature,
         }
     }
 }
@@ -215,19 +194,16 @@ impl From<ClaimRefundRequest> for proto::MsgClaimRefund {
 pub struct SetProviderRequest {
     pub job_id: String,
     pub new_provider_agent_hash: String,
-    pub client_signature: Vec<u8>,
 }
 
 impl SetProviderRequest {
     pub fn new(
         job_id: impl Into<String>,
         new_provider_agent_hash: impl Into<String>,
-        client_signature: Vec<u8>,
     ) -> Self {
         Self {
             job_id: job_id.into(),
             new_provider_agent_hash: new_provider_agent_hash.into(),
-            client_signature,
         }
     }
 
@@ -245,7 +221,6 @@ impl From<SetProviderRequest> for proto::MsgSetProvider {
         Self {
             job_id: req.job_id,
             new_provider_agent_hash: req.new_provider_agent_hash,
-            client_signature: req.client_signature,
         }
     }
 }
@@ -255,14 +230,12 @@ impl From<SetProviderRequest> for proto::MsgSetProvider {
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct CancelJobRequest {
     pub job_id: String,
-    pub signer_signature: Vec<u8>,
 }
 
 impl CancelJobRequest {
-    pub fn new(job_id: impl Into<String>, signer_signature: Vec<u8>) -> Self {
+    pub fn new(job_id: impl Into<String>) -> Self {
         Self {
             job_id: job_id.into(),
-            signer_signature,
         }
     }
 
@@ -279,7 +252,6 @@ impl From<CancelJobRequest> for proto::MsgCancelJob {
     fn from(req: CancelJobRequest) -> Self {
         Self {
             job_id: req.job_id,
-            signer_signature: req.signer_signature,
         }
     }
 }
@@ -513,11 +485,10 @@ pub struct JobListResponse {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use alloc::vec;
 
     #[test]
     fn create_job_request_to_any() {
-        let req = CreateJobRequest::new(Job::default(), vec![1, 2, 3]);
+        let req = CreateJobRequest::new(Job::default());
         let any = req.to_any();
         assert_eq!(any.type_url, "/job.v1.MsgCreateJob");
         assert!(!any.value.is_empty());
@@ -525,14 +496,14 @@ mod tests {
 
     #[test]
     fn fund_job_request_to_any() {
-        let req = FundJobRequest::new("job-1", 500, vec![4, 5, 6]);
+        let req = FundJobRequest::new("job-1", 500);
         let any = req.to_any();
         assert_eq!(any.type_url, "/job.v1.MsgFundJob");
     }
 
     #[test]
     fn attest_request_with_reason() {
-        let req = AttestRequest::new("job-1", true, vec![7, 8]).with_reason_hash("reason-abc");
+        let req = AttestRequest::new("job-1", true).with_reason_hash("reason-abc");
         assert_eq!(req.reason_hash, "reason-abc");
         let any = req.to_any();
         assert_eq!(any.type_url, "/job.v1.MsgAttest");
@@ -540,7 +511,7 @@ mod tests {
 
     #[test]
     fn cancel_job_request_to_any() {
-        let req = CancelJobRequest::new("job-1", vec![9, 10]);
+        let req = CancelJobRequest::new("job-1");
         let any = req.to_any();
         assert_eq!(any.type_url, "/job.v1.MsgCancelJob");
     }

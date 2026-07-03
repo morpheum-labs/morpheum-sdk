@@ -18,7 +18,6 @@ use crate::types::BucketType;
 /// Fluent builder for creating a new margin bucket.
 #[derive(Default)]
 pub struct CreateBucketBuilder {
-    address: Option<String>,
     bucket_id: Option<String>,
     bucket_type: Option<BucketType>,
     collateral_asset_index: Option<u64>,
@@ -28,11 +27,6 @@ pub struct CreateBucketBuilder {
 impl CreateBucketBuilder {
     pub fn new() -> Self {
         Self::default()
-    }
-
-    pub fn address(mut self, address: impl Into<String>) -> Self {
-        self.address = Some(address.into());
-        self
     }
 
     pub fn bucket_id(mut self, id: impl Into<String>) -> Self {
@@ -56,9 +50,6 @@ impl CreateBucketBuilder {
     }
 
     pub fn build(self) -> Result<CreateBucketRequest, SdkError> {
-        let address = self
-            .address
-            .ok_or_else(|| SdkError::invalid_input("address is required to create a bucket"))?;
         let bucket_id = self
             .bucket_id
             .ok_or_else(|| SdkError::invalid_input("bucket_id is required"))?;
@@ -73,7 +64,6 @@ impl CreateBucketBuilder {
             .ok_or_else(|| SdkError::invalid_input("initial_margin is required"))?;
 
         Ok(CreateBucketRequest::new(
-            address,
             bucket_id,
             bucket_type,
             collateral_asset_index,
@@ -87,7 +77,6 @@ impl CreateBucketBuilder {
 /// Fluent builder for transferring margin between buckets.
 #[derive(Default)]
 pub struct TransferBetweenBucketsBuilder {
-    address: Option<String>,
     source_bucket_id: Option<String>,
     target_bucket_id: Option<String>,
     amount: Option<String>,
@@ -97,11 +86,6 @@ pub struct TransferBetweenBucketsBuilder {
 impl TransferBetweenBucketsBuilder {
     pub fn new() -> Self {
         Self::default()
-    }
-
-    pub fn address(mut self, address: impl Into<String>) -> Self {
-        self.address = Some(address.into());
-        self
     }
 
     pub fn source_bucket_id(mut self, id: impl Into<String>) -> Self {
@@ -125,9 +109,6 @@ impl TransferBetweenBucketsBuilder {
     }
 
     pub fn build(self) -> Result<TransferBetweenBucketsRequest, SdkError> {
-        let address = self
-            .address
-            .ok_or_else(|| SdkError::invalid_input("address is required"))?;
         let source = self
             .source_bucket_id
             .ok_or_else(|| SdkError::invalid_input("source_bucket_id is required"))?;
@@ -138,7 +119,7 @@ impl TransferBetweenBucketsBuilder {
             .amount
             .ok_or_else(|| SdkError::invalid_input("amount is required"))?;
 
-        let mut req = TransferBetweenBucketsRequest::new(address, source, target, amount);
+        let mut req = TransferBetweenBucketsRequest::new(source, target, amount);
         if let Some(r) = self.reason {
             req = req.reason(r);
         }
@@ -151,8 +132,6 @@ impl TransferBetweenBucketsBuilder {
 /// Fluent builder for withdrawing funds from a bucket to the bank module.
 #[derive(Default)]
 pub struct TransferToBankBuilder {
-    address: Option<String>,
-    from_address: Option<String>,
     bucket_id: Option<String>,
     asset_index: Option<u64>,
     amount: Option<String>,
@@ -161,16 +140,6 @@ pub struct TransferToBankBuilder {
 impl TransferToBankBuilder {
     pub fn new() -> Self {
         Self::default()
-    }
-
-    pub fn address(mut self, address: impl Into<String>) -> Self {
-        self.address = Some(address.into());
-        self
-    }
-
-    pub fn from_address(mut self, from: impl Into<String>) -> Self {
-        self.from_address = Some(from.into());
-        self
     }
 
     pub fn bucket_id(mut self, id: impl Into<String>) -> Self {
@@ -189,12 +158,6 @@ impl TransferToBankBuilder {
     }
 
     pub fn build(self) -> Result<TransferToBankRequest, SdkError> {
-        let address = self
-            .address
-            .ok_or_else(|| SdkError::invalid_input("address is required"))?;
-        let from_address = self
-            .from_address
-            .ok_or_else(|| SdkError::invalid_input("from_address is required"))?;
         let bucket_id = self
             .bucket_id
             .ok_or_else(|| SdkError::invalid_input("bucket_id is required"))?;
@@ -205,13 +168,7 @@ impl TransferToBankBuilder {
             .amount
             .ok_or_else(|| SdkError::invalid_input("amount is required"))?;
 
-        Ok(TransferToBankRequest::new(
-            address,
-            from_address,
-            bucket_id,
-            asset_index,
-            amount,
-        ))
+        Ok(TransferToBankRequest::new(bucket_id, asset_index, amount))
     }
 }
 
@@ -220,7 +177,6 @@ impl TransferToBankBuilder {
 /// Fluent builder for closing an empty bucket.
 #[derive(Default)]
 pub struct CloseBucketBuilder {
-    address: Option<String>,
     bucket_id: Option<String>,
 }
 
@@ -229,25 +185,17 @@ impl CloseBucketBuilder {
         Self::default()
     }
 
-    pub fn address(mut self, address: impl Into<String>) -> Self {
-        self.address = Some(address.into());
-        self
-    }
-
     pub fn bucket_id(mut self, id: impl Into<String>) -> Self {
         self.bucket_id = Some(id.into());
         self
     }
 
     pub fn build(self) -> Result<CloseBucketRequest, SdkError> {
-        let address = self
-            .address
-            .ok_or_else(|| SdkError::invalid_input("address is required to close a bucket"))?;
         let bucket_id = self
             .bucket_id
             .ok_or_else(|| SdkError::invalid_input("bucket_id is required"))?;
 
-        Ok(CloseBucketRequest::new(address, bucket_id))
+        Ok(CloseBucketRequest::new(bucket_id))
     }
 }
 
@@ -258,7 +206,6 @@ mod tests {
     #[test]
     fn create_bucket_builder_full_flow() {
         let req = CreateBucketBuilder::new()
-            .address("morpheum1abc")
             .bucket_id("bucket-1")
             .bucket_type(BucketType::Cross)
             .collateral_asset_index(4)
@@ -266,7 +213,6 @@ mod tests {
             .build()
             .unwrap();
 
-        assert_eq!(req.address, "morpheum1abc");
         assert_eq!(req.bucket_id, "bucket-1");
         assert_eq!(req.bucket_type, BucketType::Cross);
         assert_eq!(req.collateral_asset_index, 4);
@@ -281,7 +227,6 @@ mod tests {
     #[test]
     fn transfer_between_buckets_builder_works() {
         let req = TransferBetweenBucketsBuilder::new()
-            .address("morpheum1abc")
             .source_bucket_id("bucket-1")
             .target_bucket_id("bucket-2")
             .amount("50000000000")
@@ -296,8 +241,6 @@ mod tests {
     #[test]
     fn transfer_to_bank_builder_works() {
         let req = TransferToBankBuilder::new()
-            .address("morpheum1abc")
-            .from_address("morpheum1abc")
             .bucket_id("bucket-1")
             .asset_index(4)
             .amount("10000000000")
@@ -311,7 +254,6 @@ mod tests {
     #[test]
     fn close_bucket_builder_works() {
         let req = CloseBucketBuilder::new()
-            .address("morpheum1abc")
             .bucket_id("bucket-1")
             .build()
             .unwrap();

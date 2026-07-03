@@ -6,7 +6,6 @@
 //! request type from `requests.rs` for seamless integration with `TxBuilder`.
 
 use alloc::string::String;
-use alloc::vec::Vec;
 
 use morpheum_sdk_core::SdkError;
 
@@ -22,7 +21,6 @@ use crate::types::VisibilityLevel;
 ///     .display_name("AlphaBot")
 ///     .description("High-frequency trading agent")
 ///     .tags("hft,btc,eth")
-///     .owner_signature(sig_bytes)
 ///     .build()?;
 ///
 /// let any = request.to_any();
@@ -33,7 +31,6 @@ pub struct UpdateProfileBuilder {
     display_name: Option<String>,
     description: Option<String>,
     tags: Option<String>,
-    owner_signature: Option<Vec<u8>>,
 }
 
 impl UpdateProfileBuilder {
@@ -66,12 +63,6 @@ impl UpdateProfileBuilder {
         self
     }
 
-    /// Sets the owner signature authorising this update.
-    pub fn owner_signature(mut self, sig: Vec<u8>) -> Self {
-        self.owner_signature = Some(sig);
-        self
-    }
-
     /// Builds the update-profile request, performing validation.
     pub fn build(self) -> Result<UpdateProfileRequest, SdkError> {
         let agent_hash = self
@@ -82,11 +73,7 @@ impl UpdateProfileBuilder {
             .display_name
             .ok_or_else(|| SdkError::invalid_input("display_name is required for UpdateProfile"))?;
 
-        let owner_signature = self.owner_signature.ok_or_else(|| {
-            SdkError::invalid_input("owner_signature is required for UpdateProfile")
-        })?;
-
-        let mut req = UpdateProfileRequest::new(agent_hash, display_name, owner_signature);
+        let mut req = UpdateProfileRequest::new(agent_hash, display_name);
 
         if let Some(description) = self.description {
             req = req.with_description(description);
@@ -107,14 +94,12 @@ impl UpdateProfileBuilder {
 /// let request = UpdateVisibilityBuilder::new()
 ///     .agent_hash("agent-abc")
 ///     .new_visibility(VisibilityLevel::OwnerOnly)
-///     .owner_signature(sig_bytes)
 ///     .build()?;
 /// ```
 #[derive(Default)]
 pub struct UpdateVisibilityBuilder {
     agent_hash: Option<String>,
     new_visibility: Option<VisibilityLevel>,
-    owner_signature: Option<Vec<u8>>,
 }
 
 impl UpdateVisibilityBuilder {
@@ -135,12 +120,6 @@ impl UpdateVisibilityBuilder {
         self
     }
 
-    /// Sets the owner signature authorising this update.
-    pub fn owner_signature(mut self, sig: Vec<u8>) -> Self {
-        self.owner_signature = Some(sig);
-        self
-    }
-
     /// Builds the update-visibility request, performing validation.
     pub fn build(self) -> Result<UpdateVisibilityRequest, SdkError> {
         let agent_hash = self.agent_hash.ok_or_else(|| {
@@ -151,22 +130,13 @@ impl UpdateVisibilityBuilder {
             SdkError::invalid_input("new_visibility is required for UpdateVisibility")
         })?;
 
-        let owner_signature = self.owner_signature.ok_or_else(|| {
-            SdkError::invalid_input("owner_signature is required for UpdateVisibility")
-        })?;
-
-        Ok(UpdateVisibilityRequest::new(
-            agent_hash,
-            new_visibility,
-            owner_signature,
-        ))
+        Ok(UpdateVisibilityRequest::new(agent_hash, new_visibility))
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use alloc::vec;
 
     #[test]
     fn update_profile_builder_full_flow() {
@@ -175,7 +145,6 @@ mod tests {
             .display_name("AlphaBot")
             .description("High-frequency trading agent")
             .tags("hft,btc,eth")
-            .owner_signature(vec![0u8; 64])
             .build()
             .unwrap();
 
@@ -190,7 +159,6 @@ mod tests {
         let request = UpdateProfileBuilder::new()
             .agent_hash("agent-abc")
             .display_name("Bot")
-            .owner_signature(vec![0u8; 64])
             .build()
             .unwrap();
 
@@ -206,17 +174,7 @@ mod tests {
         assert!(result.is_err());
 
         // Missing display_name
-        let result = UpdateProfileBuilder::new()
-            .agent_hash("agent-abc")
-            .owner_signature(vec![0u8; 64])
-            .build();
-        assert!(result.is_err());
-
-        // Missing owner_signature
-        let result = UpdateProfileBuilder::new()
-            .agent_hash("agent-abc")
-            .display_name("Bot")
-            .build();
+        let result = UpdateProfileBuilder::new().agent_hash("agent-abc").build();
         assert!(result.is_err());
     }
 
@@ -225,7 +183,6 @@ mod tests {
         let request = UpdateVisibilityBuilder::new()
             .agent_hash("agent-abc")
             .new_visibility(VisibilityLevel::EvaluatorOnly)
-            .owner_signature(vec![0u8; 64])
             .build()
             .unwrap();
 
@@ -242,14 +199,6 @@ mod tests {
         // Missing new_visibility
         let result = UpdateVisibilityBuilder::new()
             .agent_hash("agent-abc")
-            .owner_signature(vec![0u8; 64])
-            .build();
-        assert!(result.is_err());
-
-        // Missing owner_signature
-        let result = UpdateVisibilityBuilder::new()
-            .agent_hash("agent-abc")
-            .new_visibility(VisibilityLevel::OwnerOnly)
             .build();
         assert!(result.is_err());
     }

@@ -24,7 +24,6 @@
 //!     .listing_type(ListingType::FullOwnership)
 //!     .price_usd(1_000_000)
 //!     .metadata_hash("meta-hash")
-//!     .seller_signature(sig_bytes)
 //!     .build()?;
 //!
 //! let any = request.to_any();

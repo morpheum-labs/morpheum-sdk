@@ -21,7 +21,6 @@ use crate::types::BucketType;
 #[derive(Clone, Debug, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct CreateBucketRequest {
-    pub address: String,
     pub bucket_id: String,
     pub bucket_type: BucketType,
     pub collateral_asset_index: u64,
@@ -30,14 +29,12 @@ pub struct CreateBucketRequest {
 
 impl CreateBucketRequest {
     pub fn new(
-        address: impl Into<String>,
         bucket_id: impl Into<String>,
         bucket_type: BucketType,
         collateral_asset_index: u64,
         initial_margin: impl Into<String>,
     ) -> Self {
         Self {
-            address: address.into(),
             bucket_id: bucket_id.into(),
             bucket_type,
             collateral_asset_index,
@@ -57,7 +54,6 @@ impl CreateBucketRequest {
 impl From<CreateBucketRequest> for proto::MsgCreateBucketRequest {
     fn from(req: CreateBucketRequest) -> Self {
         Self {
-            address: req.address,
             bucket_id: req.bucket_id,
             bucket_type: i32::from(req.bucket_type),
             collateral_asset_index: req.collateral_asset_index,
@@ -71,7 +67,6 @@ impl From<CreateBucketRequest> for proto::MsgCreateBucketRequest {
 #[derive(Clone, Debug, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct TransferBetweenBucketsRequest {
-    pub address: String,
     pub source_bucket_id: String,
     pub target_bucket_id: String,
     pub amount: String,
@@ -80,13 +75,11 @@ pub struct TransferBetweenBucketsRequest {
 
 impl TransferBetweenBucketsRequest {
     pub fn new(
-        address: impl Into<String>,
         source_bucket_id: impl Into<String>,
         target_bucket_id: impl Into<String>,
         amount: impl Into<String>,
     ) -> Self {
         Self {
-            address: address.into(),
             source_bucket_id: source_bucket_id.into(),
             target_bucket_id: target_bucket_id.into(),
             amount: amount.into(),
@@ -111,7 +104,6 @@ impl TransferBetweenBucketsRequest {
 impl From<TransferBetweenBucketsRequest> for proto::MsgTransferBetweenBucketsRequest {
     fn from(req: TransferBetweenBucketsRequest) -> Self {
         Self {
-            address: req.address,
             source_bucket_id: req.source_bucket_id,
             target_bucket_id: req.target_bucket_id,
             amount: req.amount,
@@ -125,8 +117,6 @@ impl From<TransferBetweenBucketsRequest> for proto::MsgTransferBetweenBucketsReq
 #[derive(Clone, Debug, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct TransferToBankRequest {
-    pub address: String,
-    pub from_address: String,
     pub bucket_id: String,
     pub asset_index: u64,
     pub amount: String,
@@ -134,15 +124,11 @@ pub struct TransferToBankRequest {
 
 impl TransferToBankRequest {
     pub fn new(
-        address: impl Into<String>,
-        from_address: impl Into<String>,
         bucket_id: impl Into<String>,
         asset_index: u64,
         amount: impl Into<String>,
     ) -> Self {
         Self {
-            address: address.into(),
-            from_address: from_address.into(),
             bucket_id: bucket_id.into(),
             asset_index,
             amount: amount.into(),
@@ -161,8 +147,6 @@ impl TransferToBankRequest {
 impl From<TransferToBankRequest> for proto::MsgTransferToBankRequest {
     fn from(req: TransferToBankRequest) -> Self {
         Self {
-            address: req.address,
-            from_address: req.from_address,
             bucket_id: req.bucket_id,
             asset_index: req.asset_index,
             amount: req.amount,
@@ -175,14 +159,12 @@ impl From<TransferToBankRequest> for proto::MsgTransferToBankRequest {
 #[derive(Clone, Debug, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct CloseBucketRequest {
-    pub address: String,
     pub bucket_id: String,
 }
 
 impl CloseBucketRequest {
-    pub fn new(address: impl Into<String>, bucket_id: impl Into<String>) -> Self {
+    pub fn new(bucket_id: impl Into<String>) -> Self {
         Self {
-            address: address.into(),
             bucket_id: bucket_id.into(),
         }
     }
@@ -199,7 +181,6 @@ impl CloseBucketRequest {
 impl From<CloseBucketRequest> for proto::MsgCloseBucketRequest {
     fn from(req: CloseBucketRequest) -> Self {
         Self {
-            address: req.address,
             bucket_id: req.bucket_id,
             timestamp: None,
         }
@@ -553,13 +534,7 @@ mod tests {
 
     #[test]
     fn create_bucket_request_to_any() {
-        let req = CreateBucketRequest::new(
-            "morpheum1abc",
-            "bucket-1",
-            BucketType::Cross,
-            4,
-            "100000000000",
-        );
+        let req = CreateBucketRequest::new("bucket-1", BucketType::Cross, 4, "100000000000");
         let any = req.to_any();
         assert_eq!(any.type_url, "/bucket.v1.MsgCreateBucketRequest");
         assert!(!any.value.is_empty());
@@ -567,20 +542,15 @@ mod tests {
 
     #[test]
     fn transfer_between_buckets_to_any() {
-        let req = TransferBetweenBucketsRequest::new(
-            "morpheum1abc",
-            "bucket-1",
-            "bucket-2",
-            "50000000000",
-        )
-        .reason("rebalance");
+        let req = TransferBetweenBucketsRequest::new("bucket-1", "bucket-2", "50000000000")
+            .reason("rebalance");
         let any = req.to_any();
         assert_eq!(any.type_url, "/bucket.v1.MsgTransferBetweenBucketsRequest");
     }
 
     #[test]
     fn close_bucket_request_to_any() {
-        let req = CloseBucketRequest::new("morpheum1abc", "bucket-1");
+        let req = CloseBucketRequest::new("bucket-1");
         let any = req.to_any();
         assert_eq!(any.type_url, "/bucket.v1.MsgCloseBucketRequest");
     }

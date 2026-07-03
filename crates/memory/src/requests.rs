@@ -22,8 +22,8 @@ use crate::types::{MemoryEntry, MemoryEntryType, MemoryRoot};
 
 /// Request to store a new memory entry.
 ///
-/// The `owner_signature` must be signed by the agent's owner or a delegated VC
-/// to authorise the write.
+/// Authorization binds to the executor-authenticated transaction signer
+/// (owner or delegated VC); no signature is carried on the message.
 #[derive(Clone, Debug, PartialEq)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct StoreEntryRequest {
@@ -37,8 +37,6 @@ pub struct StoreEntryRequest {
     pub entry_type: MemoryEntryType,
     /// Expiry timestamp (0 = never expires).
     pub expires_at: u64,
-    /// Owner or delegated VC signature.
-    pub owner_signature: Vec<u8>,
 }
 
 impl StoreEntryRequest {
@@ -48,7 +46,6 @@ impl StoreEntryRequest {
         key: impl Into<String>,
         value: Vec<u8>,
         entry_type: MemoryEntryType,
-        owner_signature: Vec<u8>,
     ) -> Self {
         Self {
             agent_hash: agent_hash.into(),
@@ -56,7 +53,6 @@ impl StoreEntryRequest {
             value,
             entry_type,
             expires_at: 0,
-            owner_signature,
         }
     }
 
@@ -84,7 +80,6 @@ impl From<StoreEntryRequest> for proto::MsgStoreEntry {
             value: req.value,
             entry_type: req.entry_type.to_proto(),
             expires_at: req.expires_at,
-            owner_signature: req.owner_signature,
         }
     }
 }
@@ -120,8 +115,6 @@ pub struct UpdateEntryRequest {
     pub new_value: Vec<u8>,
     /// New expiry timestamp (0 = never expires).
     pub new_expires_at: u64,
-    /// Owner or delegated VC signature.
-    pub owner_signature: Vec<u8>,
 }
 
 impl UpdateEntryRequest {
@@ -130,14 +123,12 @@ impl UpdateEntryRequest {
         agent_hash: impl Into<String>,
         key: impl Into<String>,
         new_value: Vec<u8>,
-        owner_signature: Vec<u8>,
     ) -> Self {
         Self {
             agent_hash: agent_hash.into(),
             key: key.into(),
             new_value,
             new_expires_at: 0,
-            owner_signature,
         }
     }
 
@@ -164,7 +155,6 @@ impl From<UpdateEntryRequest> for proto::MsgUpdateEntry {
             key: req.key,
             new_value: req.new_value,
             new_expires_at: req.new_expires_at,
-            owner_signature: req.owner_signature,
         }
     }
 }
@@ -194,21 +184,14 @@ pub struct DeleteEntryRequest {
     pub agent_hash: String,
     /// Key of the entry to delete.
     pub key: String,
-    /// Owner or delegated VC signature.
-    pub owner_signature: Vec<u8>,
 }
 
 impl DeleteEntryRequest {
     /// Creates a new delete-entry request.
-    pub fn new(
-        agent_hash: impl Into<String>,
-        key: impl Into<String>,
-        owner_signature: Vec<u8>,
-    ) -> Self {
+    pub fn new(agent_hash: impl Into<String>, key: impl Into<String>) -> Self {
         Self {
             agent_hash: agent_hash.into(),
             key: key.into(),
-            owner_signature,
         }
     }
 
@@ -227,7 +210,6 @@ impl From<DeleteEntryRequest> for proto::MsgDeleteEntry {
         Self {
             agent_hash: req.agent_hash,
             key: req.key,
-            owner_signature: req.owner_signature,
         }
     }
 }
@@ -418,7 +400,6 @@ mod tests {
             "strategy/v1",
             vec![1, 2, 3],
             MemoryEntryType::Semantic,
-            vec![0u8; 64],
         )
         .with_expires_at(1_700_003_600);
 
@@ -429,7 +410,7 @@ mod tests {
 
     #[test]
     fn update_entry_request_to_any() {
-        let req = UpdateEntryRequest::new("agent-abc", "strategy/v1", vec![4, 5, 6], vec![0u8; 64])
+        let req = UpdateEntryRequest::new("agent-abc", "strategy/v1", vec![4, 5, 6])
             .with_new_expires_at(1_700_010_000);
 
         let any = req.to_any();
@@ -439,7 +420,7 @@ mod tests {
 
     #[test]
     fn delete_entry_request_to_any() {
-        let req = DeleteEntryRequest::new("agent-abc", "strategy/v1", vec![0u8; 64]);
+        let req = DeleteEntryRequest::new("agent-abc", "strategy/v1");
         let any = req.to_any();
         assert_eq!(any.type_url, "/memory.v1.MsgDeleteEntry");
         assert!(!any.value.is_empty());

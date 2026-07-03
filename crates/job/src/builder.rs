@@ -28,7 +28,6 @@ pub struct CreateJobBuilder {
     revenue_share_config: Option<RevenueShareConfig>,
     job_spec_hash: Option<String>,
     metadata_payload: Option<Vec<u8>>,
-    client_signature: Option<Vec<u8>>,
 }
 
 impl CreateJobBuilder {
@@ -86,11 +85,6 @@ impl CreateJobBuilder {
         self
     }
 
-    pub fn client_signature(mut self, sig: Vec<u8>) -> Self {
-        self.client_signature = Some(sig);
-        self
-    }
-
     pub fn build(self) -> Result<CreateJobRequest, SdkError> {
         let client_agent_hash = self.client_agent_hash.ok_or_else(|| {
             SdkError::invalid_input("client_agent_hash is required for job creation")
@@ -103,10 +97,6 @@ impl CreateJobBuilder {
         let budget_usd = self
             .budget_usd
             .ok_or_else(|| SdkError::invalid_input("budget_usd is required for job creation"))?;
-
-        let client_signature = self.client_signature.ok_or_else(|| {
-            SdkError::invalid_input("client_signature is required for job creation")
-        })?;
 
         let job = Job {
             client_agent_hash,
@@ -122,7 +112,7 @@ impl CreateJobBuilder {
             ..Job::default()
         };
 
-        Ok(CreateJobRequest::new(job, client_signature))
+        Ok(CreateJobRequest::new(job))
     }
 }
 
@@ -131,7 +121,6 @@ impl CreateJobBuilder {
 pub struct FundJobBuilder {
     job_id: Option<String>,
     amount_usd: Option<u64>,
-    client_signature: Option<Vec<u8>>,
 }
 
 impl FundJobBuilder {
@@ -149,11 +138,6 @@ impl FundJobBuilder {
         self
     }
 
-    pub fn client_signature(mut self, sig: Vec<u8>) -> Self {
-        self.client_signature = Some(sig);
-        self
-    }
-
     pub fn build(self) -> Result<FundJobRequest, SdkError> {
         let job_id = self
             .job_id
@@ -163,11 +147,7 @@ impl FundJobBuilder {
             .amount_usd
             .ok_or_else(|| SdkError::invalid_input("amount_usd is required for funding"))?;
 
-        let client_signature = self
-            .client_signature
-            .ok_or_else(|| SdkError::invalid_input("client_signature is required for funding"))?;
-
-        Ok(FundJobRequest::new(job_id, amount_usd, client_signature))
+        Ok(FundJobRequest::new(job_id, amount_usd))
     }
 }
 
@@ -176,7 +156,6 @@ impl FundJobBuilder {
 pub struct SubmitDeliverableBuilder {
     job_id: Option<String>,
     deliverable: Option<Deliverable>,
-    provider_signature: Option<Vec<u8>>,
 }
 
 impl SubmitDeliverableBuilder {
@@ -194,11 +173,6 @@ impl SubmitDeliverableBuilder {
         self
     }
 
-    pub fn provider_signature(mut self, sig: Vec<u8>) -> Self {
-        self.provider_signature = Some(sig);
-        self
-    }
-
     pub fn build(self) -> Result<SubmitDeliverableRequest, SdkError> {
         let job_id = self.job_id.ok_or_else(|| {
             SdkError::invalid_input("job_id is required for deliverable submission")
@@ -208,15 +182,7 @@ impl SubmitDeliverableBuilder {
             .deliverable
             .ok_or_else(|| SdkError::invalid_input("deliverable is required for submission"))?;
 
-        let provider_signature = self.provider_signature.ok_or_else(|| {
-            SdkError::invalid_input("provider_signature is required for submission")
-        })?;
-
-        Ok(SubmitDeliverableRequest::new(
-            job_id,
-            deliverable,
-            provider_signature,
-        ))
+        Ok(SubmitDeliverableRequest::new(job_id, deliverable))
     }
 }
 
@@ -226,7 +192,6 @@ pub struct AttestBuilder {
     job_id: Option<String>,
     completed: Option<bool>,
     reason_hash: Option<String>,
-    evaluator_signature: Option<Vec<u8>>,
 }
 
 impl AttestBuilder {
@@ -249,11 +214,6 @@ impl AttestBuilder {
         self
     }
 
-    pub fn evaluator_signature(mut self, sig: Vec<u8>) -> Self {
-        self.evaluator_signature = Some(sig);
-        self
-    }
-
     pub fn build(self) -> Result<AttestRequest, SdkError> {
         let job_id = self
             .job_id
@@ -263,11 +223,7 @@ impl AttestBuilder {
             .completed
             .ok_or_else(|| SdkError::invalid_input("completed flag is required for attestation"))?;
 
-        let evaluator_signature = self.evaluator_signature.ok_or_else(|| {
-            SdkError::invalid_input("evaluator_signature is required for attestation")
-        })?;
-
-        let mut req = AttestRequest::new(job_id, completed, evaluator_signature);
+        let mut req = AttestRequest::new(job_id, completed);
         if let Some(hash) = self.reason_hash {
             req = req.with_reason_hash(hash);
         }
@@ -279,7 +235,6 @@ impl AttestBuilder {
 #[derive(Default)]
 pub struct ClaimRefundBuilder {
     job_id: Option<String>,
-    caller_signature: Option<Vec<u8>>,
 }
 
 impl ClaimRefundBuilder {
@@ -292,21 +247,12 @@ impl ClaimRefundBuilder {
         self
     }
 
-    pub fn caller_signature(mut self, sig: Vec<u8>) -> Self {
-        self.caller_signature = Some(sig);
-        self
-    }
-
     pub fn build(self) -> Result<ClaimRefundRequest, SdkError> {
         let job_id = self
             .job_id
             .ok_or_else(|| SdkError::invalid_input("job_id is required for refund claim"))?;
 
-        let caller_signature = self.caller_signature.ok_or_else(|| {
-            SdkError::invalid_input("caller_signature is required for refund claim")
-        })?;
-
-        Ok(ClaimRefundRequest::new(job_id, caller_signature))
+        Ok(ClaimRefundRequest::new(job_id))
     }
 }
 
@@ -315,7 +261,6 @@ impl ClaimRefundBuilder {
 pub struct SetProviderBuilder {
     job_id: Option<String>,
     new_provider_agent_hash: Option<String>,
-    client_signature: Option<Vec<u8>>,
 }
 
 impl SetProviderBuilder {
@@ -333,11 +278,6 @@ impl SetProviderBuilder {
         self
     }
 
-    pub fn client_signature(mut self, sig: Vec<u8>) -> Self {
-        self.client_signature = Some(sig);
-        self
-    }
-
     pub fn build(self) -> Result<SetProviderRequest, SdkError> {
         let job_id = self
             .job_id
@@ -347,15 +287,7 @@ impl SetProviderBuilder {
             .new_provider_agent_hash
             .ok_or_else(|| SdkError::invalid_input("new_provider_agent_hash is required"))?;
 
-        let client_signature = self.client_signature.ok_or_else(|| {
-            SdkError::invalid_input("client_signature is required for setting provider")
-        })?;
-
-        Ok(SetProviderRequest::new(
-            job_id,
-            new_provider_agent_hash,
-            client_signature,
-        ))
+        Ok(SetProviderRequest::new(job_id, new_provider_agent_hash))
     }
 }
 
@@ -363,7 +295,6 @@ impl SetProviderBuilder {
 #[derive(Default)]
 pub struct CancelJobBuilder {
     job_id: Option<String>,
-    signer_signature: Option<Vec<u8>>,
 }
 
 impl CancelJobBuilder {
@@ -376,28 +307,18 @@ impl CancelJobBuilder {
         self
     }
 
-    pub fn signer_signature(mut self, sig: Vec<u8>) -> Self {
-        self.signer_signature = Some(sig);
-        self
-    }
-
     pub fn build(self) -> Result<CancelJobRequest, SdkError> {
         let job_id = self
             .job_id
             .ok_or_else(|| SdkError::invalid_input("job_id is required for cancellation"))?;
 
-        let signer_signature = self.signer_signature.ok_or_else(|| {
-            SdkError::invalid_input("signer_signature is required for cancellation")
-        })?;
-
-        Ok(CancelJobRequest::new(job_id, signer_signature))
+        Ok(CancelJobRequest::new(job_id))
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use alloc::vec;
 
     #[test]
     fn create_job_builder_full_flow() {
@@ -409,7 +330,6 @@ mod tests {
             .provider_agent_hash("provider-xyz")
             .hook_address("hook-addr")
             .job_spec_hash("spec-hash")
-            .client_signature(vec![1, 2, 3])
             .build()
             .unwrap();
 
@@ -429,7 +349,6 @@ mod tests {
         let req = FundJobBuilder::new()
             .job_id("job-1")
             .amount_usd(500)
-            .client_signature(vec![4, 5])
             .build()
             .unwrap();
 
@@ -443,7 +362,6 @@ mod tests {
             .job_id("job-1")
             .completed(true)
             .reason_hash("reason-abc")
-            .evaluator_signature(vec![6, 7])
             .build()
             .unwrap();
 
@@ -461,7 +379,6 @@ mod tests {
     fn cancel_job_builder_works() {
         let req = CancelJobBuilder::new()
             .job_id("job-1")
-            .signer_signature(vec![8, 9])
             .build()
             .unwrap();
 

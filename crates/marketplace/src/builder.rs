@@ -7,7 +7,6 @@
 //! integration with `TxBuilder`.
 
 use alloc::string::String;
-use alloc::vec::Vec;
 
 use morpheum_sdk_core::SdkError;
 
@@ -27,7 +26,6 @@ use crate::types::{AgentListing, ListingType, RevenueShareConfig};
 ///     .price_usd(1_000_000)
 ///     .revenue_share_config(RevenueShareConfig { ... })
 ///     .metadata_hash("meta-hash")
-///     .seller_signature(sig_bytes)
 ///     .build()?;
 ///
 /// let any = request.to_any();
@@ -42,7 +40,6 @@ pub struct ListAgentBuilder {
     duration_seconds: u64,
     metadata_hash: Option<String>,
     expires_at: u64,
-    seller_signature: Option<Vec<u8>>,
 }
 
 impl ListAgentBuilder {
@@ -99,12 +96,6 @@ impl ListAgentBuilder {
         self
     }
 
-    /// Sets the seller's signature.
-    pub fn seller_signature(mut self, sig: Vec<u8>) -> Self {
-        self.seller_signature = Some(sig);
-        self
-    }
-
     /// Builds the list-agent request, performing validation.
     ///
     /// # Errors
@@ -155,10 +146,6 @@ impl ListAgentBuilder {
             .metadata_hash
             .ok_or_else(|| SdkError::invalid_input("metadata_hash is required for ListAgent"))?;
 
-        let seller_signature = self
-            .seller_signature
-            .ok_or_else(|| SdkError::invalid_input("seller_signature is required for ListAgent"))?;
-
         let listing = AgentListing {
             listing_id: String::new(), // server-assigned
             agent_hash,
@@ -173,7 +160,7 @@ impl ListAgentBuilder {
             expires_at: self.expires_at,
         };
 
-        Ok(ListAgentRequest::new(listing, seller_signature))
+        Ok(ListAgentRequest::new(listing))
     }
 }
 
@@ -184,14 +171,12 @@ impl ListAgentBuilder {
 /// let request = PlaceBidBuilder::new()
 ///     .listing_id("listing-001")
 ///     .amount_usd(450_000)
-///     .bidder_signature(sig_bytes)
 ///     .build()?;
 /// ```
 #[derive(Default)]
 pub struct PlaceBidBuilder {
     listing_id: Option<String>,
     amount_usd: Option<u64>,
-    bidder_signature: Option<Vec<u8>>,
 }
 
 impl PlaceBidBuilder {
@@ -209,12 +194,6 @@ impl PlaceBidBuilder {
     /// Sets the bid amount in USD (scaled).
     pub fn amount_usd(mut self, amount: u64) -> Self {
         self.amount_usd = Some(amount);
-        self
-    }
-
-    /// Sets the bidder's signature.
-    pub fn bidder_signature(mut self, sig: Vec<u8>) -> Self {
-        self.bidder_signature = Some(sig);
         self
     }
 
@@ -238,15 +217,7 @@ impl PlaceBidBuilder {
             ));
         }
 
-        let bidder_signature = self
-            .bidder_signature
-            .ok_or_else(|| SdkError::invalid_input("bidder_signature is required for PlaceBid"))?;
-
-        Ok(PlaceBidRequest::new(
-            listing_id,
-            amount_usd,
-            bidder_signature,
-        ))
+        Ok(PlaceBidRequest::new(listing_id, amount_usd))
     }
 }
 
@@ -257,14 +228,12 @@ impl PlaceBidBuilder {
 /// let request = AcceptBidBuilder::new()
 ///     .listing_id("listing-001")
 ///     .bid_id("bid-001")
-///     .seller_signature(sig_bytes)
 ///     .build()?;
 /// ```
 #[derive(Default)]
 pub struct AcceptBidBuilder {
     listing_id: Option<String>,
     bid_id: Option<String>,
-    seller_signature: Option<Vec<u8>>,
 }
 
 impl AcceptBidBuilder {
@@ -285,12 +254,6 @@ impl AcceptBidBuilder {
         self
     }
 
-    /// Sets the seller's signature authorising acceptance.
-    pub fn seller_signature(mut self, sig: Vec<u8>) -> Self {
-        self.seller_signature = Some(sig);
-        self
-    }
-
     /// Builds the accept-bid request, performing validation.
     ///
     /// # Errors
@@ -305,11 +268,7 @@ impl AcceptBidBuilder {
             .bid_id
             .ok_or_else(|| SdkError::invalid_input("bid_id is required for AcceptBid"))?;
 
-        let seller_signature = self
-            .seller_signature
-            .ok_or_else(|| SdkError::invalid_input("seller_signature is required for AcceptBid"))?;
-
-        Ok(AcceptBidRequest::new(listing_id, bid_id, seller_signature))
+        Ok(AcceptBidRequest::new(listing_id, bid_id))
     }
 }
 
@@ -321,7 +280,6 @@ impl AcceptBidBuilder {
 ///     .agent_hash("agent-abc")
 ///     .evaluator_agent_hash("evaluator-xyz")
 ///     .fee_usd(200)
-///     .requester_signature(sig_bytes)
 ///     .build()?;
 /// ```
 #[derive(Default)]
@@ -329,7 +287,6 @@ pub struct RequestEvaluationBuilder {
     agent_hash: Option<String>,
     evaluator_agent_hash: Option<String>,
     fee_usd: Option<u64>,
-    requester_signature: Option<Vec<u8>>,
 }
 
 impl RequestEvaluationBuilder {
@@ -356,12 +313,6 @@ impl RequestEvaluationBuilder {
         self
     }
 
-    /// Sets the requester's signature.
-    pub fn requester_signature(mut self, sig: Vec<u8>) -> Self {
-        self.requester_signature = Some(sig);
-        self
-    }
-
     /// Builds the request-evaluation request, performing validation.
     ///
     /// # Errors
@@ -380,15 +331,10 @@ impl RequestEvaluationBuilder {
             .fee_usd
             .ok_or_else(|| SdkError::invalid_input("fee_usd is required for RequestEvaluation"))?;
 
-        let requester_signature = self.requester_signature.ok_or_else(|| {
-            SdkError::invalid_input("requester_signature is required for RequestEvaluation")
-        })?;
-
         Ok(RequestEvaluationRequest::new(
             agent_hash,
             evaluator_agent_hash,
             fee_usd,
-            requester_signature,
         ))
     }
 }
@@ -396,7 +342,6 @@ impl RequestEvaluationBuilder {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use alloc::vec;
 
     fn sample_revenue_share() -> RevenueShareConfig {
         RevenueShareConfig {
@@ -417,7 +362,6 @@ mod tests {
             .revenue_share_config(sample_revenue_share())
             .metadata_hash("meta-hash")
             .expires_at(1_702_592_000)
-            .seller_signature(vec![0u8; 64])
             .build()
             .unwrap();
 
@@ -437,7 +381,6 @@ mod tests {
             .listing_type(ListingType::FullOwnership)
             .price_usd(100)
             .metadata_hash("hash")
-            .seller_signature(vec![0u8; 64])
             .build()
             .is_err());
     }
@@ -450,7 +393,6 @@ mod tests {
             .listing_type(ListingType::FullOwnership)
             .price_usd(0)
             .metadata_hash("hash")
-            .seller_signature(vec![0u8; 64])
             .build();
         assert!(result.is_err());
     }
@@ -470,7 +412,6 @@ mod tests {
             .price_usd(100)
             .revenue_share_config(bad_config)
             .metadata_hash("hash")
-            .seller_signature(vec![0u8; 64])
             .build();
         assert!(result.is_err());
     }
@@ -483,7 +424,6 @@ mod tests {
             .listing_type(ListingType::Rental)
             .price_usd(100)
             .metadata_hash("hash")
-            .seller_signature(vec![0u8; 64])
             .build();
         assert!(result.is_err());
 
@@ -495,7 +435,6 @@ mod tests {
             .price_usd(100)
             .duration_seconds(2_592_000)
             .metadata_hash("hash")
-            .seller_signature(vec![0u8; 64])
             .build();
         assert!(result.is_ok());
     }
@@ -505,7 +444,6 @@ mod tests {
         let req = PlaceBidBuilder::new()
             .listing_id("listing-001")
             .amount_usd(450_000)
-            .bidder_signature(vec![0u8; 64])
             .build()
             .unwrap();
 
@@ -518,7 +456,6 @@ mod tests {
         let result = PlaceBidBuilder::new()
             .listing_id("listing-001")
             .amount_usd(0)
-            .bidder_signature(vec![0u8; 64])
             .build();
         assert!(result.is_err());
     }
@@ -527,10 +464,9 @@ mod tests {
     fn place_bid_builder_validation() {
         assert!(PlaceBidBuilder::new().build().is_err());
 
-        // Missing bidder_signature
+        // Missing amount_usd
         assert!(PlaceBidBuilder::new()
             .listing_id("listing-001")
-            .amount_usd(100)
             .build()
             .is_err());
     }
@@ -540,7 +476,6 @@ mod tests {
         let req = AcceptBidBuilder::new()
             .listing_id("listing-001")
             .bid_id("bid-001")
-            .seller_signature(vec![0u8; 64])
             .build()
             .unwrap();
 
@@ -552,16 +487,11 @@ mod tests {
     fn accept_bid_builder_validation() {
         assert!(AcceptBidBuilder::new().build().is_err());
 
+        // Missing bid_id
         assert!(AcceptBidBuilder::new()
             .listing_id("listing-001")
             .build()
             .is_err());
-
-        assert!(AcceptBidBuilder::new()
-            .listing_id("listing-001")
-            .bid_id("bid-001")
-            .build()
-            .is_err()); // missing seller_signature
     }
 
     #[test]
@@ -570,7 +500,6 @@ mod tests {
             .agent_hash("agent-abc")
             .evaluator_agent_hash("evaluator-xyz")
             .fee_usd(200)
-            .requester_signature(vec![0u8; 64])
             .build()
             .unwrap();
 
@@ -583,11 +512,11 @@ mod tests {
     fn request_evaluation_builder_validation() {
         assert!(RequestEvaluationBuilder::new().build().is_err());
 
+        // Missing fee_usd
         assert!(RequestEvaluationBuilder::new()
             .agent_hash("agent-abc")
             .evaluator_agent_hash("evaluator-xyz")
-            .fee_usd(200)
             .build()
-            .is_err()); // missing signature
+            .is_err());
     }
 }

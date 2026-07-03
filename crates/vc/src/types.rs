@@ -139,6 +139,9 @@ impl From<VcClaims> for proto::VcClaims {
             max_slippage_bps: c.max_slippage_bps,
             max_position_usd: c.max_position_usd,
             custom_constraints: c.custom_constraints.unwrap_or_default(),
+            // WS-V owner-delegation scopes are not surfaced by this builder; a
+            // self-issued VC delegates nothing (0 == no delegated scopes).
+            delegated_scopes_bitflags: 0,
         }
     }
 }
@@ -148,7 +151,6 @@ impl From<VcClaims> for proto::VcClaims {
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct Vp {
     pub vc: Vc,
-    pub agent_signature: Vec<u8>,
     pub presentation_timestamp: u64,
 }
 
@@ -156,7 +158,6 @@ impl From<proto::Vp> for Vp {
     fn from(p: proto::Vp) -> Self {
         Self {
             vc: p.vc.map(Vc::from).unwrap_or_default(),
-            agent_signature: p.agent_signature,
             presentation_timestamp: p.presentation_timestamp,
         }
     }
@@ -166,7 +167,6 @@ impl From<Vp> for proto::Vp {
     fn from(v: Vp) -> Self {
         Self {
             vc: Some(v.vc.into()),
-            agent_signature: v.agent_signature,
             presentation_timestamp: v.presentation_timestamp,
         }
     }

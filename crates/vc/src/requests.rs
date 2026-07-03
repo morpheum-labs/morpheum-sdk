@@ -29,7 +29,6 @@ pub struct IssueVcRequest {
     pub subject: AccountId,
     pub claims: VcClaims,
     pub expiry_timestamp: u64, // 0 = use module default
-    pub issuer_signature: Vec<u8>,
     /// zkClaims commitment binding the hidden owner-issued limits (WS3-D).
     /// Empty for a plaintext credential (the default); a 32-byte Pedersen
     /// commitment for a privacy-mode credential, in which case the numeric
@@ -47,14 +46,12 @@ impl IssueVcRequest {
         issuer: impl Into<AccountId>,
         subject: impl Into<AccountId>,
         claims: VcClaims,
-        issuer_signature: Vec<u8>,
     ) -> Self {
         Self {
             issuer: issuer.into(),
             subject: subject.into(),
             claims,
             expiry_timestamp: 0,
-            issuer_signature,
             claims_commitment: Vec::new(),
         }
     }
@@ -89,7 +86,6 @@ impl From<IssueVcRequest> for proto::MsgIssue {
             subject_agent_hash: req.subject.to_string(),
             claims: Some(req.claims.into()),
             expiry_timestamp: req.expiry_timestamp,
-            issuer_signature: req.issuer_signature,
             claims_commitment: req.claims_commitment,
         }
     }
@@ -100,21 +96,13 @@ impl From<IssueVcRequest> for proto::MsgIssue {
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct RevokeVcRequest {
     pub vc_id: String,
-    pub issuer: AccountId,
-    pub issuer_signature: Vec<u8>,
     pub reason: Option<String>,
 }
 
 impl RevokeVcRequest {
-    pub fn new(
-        vc_id: impl Into<String>,
-        issuer: impl Into<AccountId>,
-        issuer_signature: Vec<u8>,
-    ) -> Self {
+    pub fn new(vc_id: impl Into<String>) -> Self {
         Self {
             vc_id: vc_id.into(),
-            issuer: issuer.into(),
-            issuer_signature,
             reason: None,
         }
     }
@@ -137,8 +125,6 @@ impl From<RevokeVcRequest> for proto::MsgRevoke {
     fn from(req: RevokeVcRequest) -> Self {
         Self {
             vc_id: req.vc_id,
-            issuer_agent_hash: req.issuer.to_string(),
-            issuer_signature: req.issuer_signature,
             reason: req.reason.unwrap_or_default(),
         }
     }
@@ -152,15 +138,13 @@ impl From<RevokeVcRequest> for proto::MsgRevoke {
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct SelfRevokeVcRequest {
     pub vc_id: String,
-    pub agent_signature: Vec<u8>,
     pub reason: Option<String>,
 }
 
 impl SelfRevokeVcRequest {
-    pub fn new(vc_id: impl Into<String>, agent_signature: Vec<u8>) -> Self {
+    pub fn new(vc_id: impl Into<String>) -> Self {
         Self {
             vc_id: vc_id.into(),
-            agent_signature,
             reason: None,
         }
     }
@@ -183,7 +167,6 @@ impl From<SelfRevokeVcRequest> for proto::MsgSelfRevoke {
     fn from(req: SelfRevokeVcRequest) -> Self {
         Self {
             vc_id: req.vc_id,
-            agent_signature: req.agent_signature,
             reason: req.reason.unwrap_or_default(),
         }
     }
@@ -194,9 +177,7 @@ impl From<SelfRevokeVcRequest> for proto::MsgSelfRevoke {
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct UpdateClaimsRequest {
     pub vc_id: String,
-    pub issuer: AccountId,
     pub new_claims: VcClaims,
-    pub issuer_signature: Vec<u8>,
     /// zkClaims commitment for the updated claims (WS3-D). Empty keeps/rotates
     /// the credential into plaintext mode; a 32-byte commitment (with zeroed
     /// numeric `new_claims`) rotates it into privacy mode.
@@ -204,17 +185,10 @@ pub struct UpdateClaimsRequest {
 }
 
 impl UpdateClaimsRequest {
-    pub fn new(
-        vc_id: impl Into<String>,
-        issuer: impl Into<AccountId>,
-        new_claims: VcClaims,
-        issuer_signature: Vec<u8>,
-    ) -> Self {
+    pub fn new(vc_id: impl Into<String>, new_claims: VcClaims) -> Self {
         Self {
             vc_id: vc_id.into(),
-            issuer: issuer.into(),
             new_claims,
-            issuer_signature,
             claims_commitment: Vec::new(),
         }
     }
@@ -238,9 +212,7 @@ impl From<UpdateClaimsRequest> for proto::MsgUpdateClaims {
     fn from(req: UpdateClaimsRequest) -> Self {
         Self {
             vc_id: req.vc_id,
-            issuer_agent_hash: req.issuer.to_string(),
             new_claims: Some(req.new_claims.into()),
-            issuer_signature: req.issuer_signature,
             claims_commitment: req.claims_commitment,
         }
     }
@@ -454,7 +426,6 @@ impl From<QueryParamsRequest> for proto::QueryParamsRequest {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use alloc::vec;
     use morpheum_sdk_core::AccountId;
 
     #[test]
@@ -469,8 +440,7 @@ mod tests {
             custom_constraints: None,
         };
 
-        let req =
-            IssueVcRequest::new(issuer, subject, claims, vec![0u8; 64]).with_expiry(1_800_000_000);
+        let req = IssueVcRequest::new(issuer, subject, claims).with_expiry(1_800_000_000);
 
         let any = req.to_any();
         assert_eq!(any.type_url, "/vc.v1.MsgIssue");
@@ -479,8 +449,7 @@ mod tests {
 
     #[test]
     fn conversions_work() {
-        let req = RevokeVcRequest::new("vc_123", AccountId::new([1u8; 32]), vec![0u8; 64])
-            .with_reason("Test revocation");
+        let req = RevokeVcRequest::new("vc_123").with_reason("Test revocation");
 
         let proto: proto::MsgRevoke = req.into();
         assert_eq!(proto.reason, "Test revocation");

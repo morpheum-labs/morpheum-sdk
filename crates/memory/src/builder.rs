@@ -23,7 +23,6 @@ use crate::types::MemoryEntryType;
 ///     .value(serialized_bytes)
 ///     .entry_type(MemoryEntryType::Semantic)
 ///     .expires_at(1_700_003_600)
-///     .owner_signature(sig_bytes)
 ///     .build()?;
 ///
 /// let any = request.to_any();
@@ -35,7 +34,6 @@ pub struct StoreEntryBuilder {
     value: Option<Vec<u8>>,
     entry_type: Option<MemoryEntryType>,
     expires_at: Option<u64>,
-    owner_signature: Option<Vec<u8>>,
 }
 
 impl StoreEntryBuilder {
@@ -74,12 +72,6 @@ impl StoreEntryBuilder {
         self
     }
 
-    /// Sets the owner signature authorising this store.
-    pub fn owner_signature(mut self, sig: Vec<u8>) -> Self {
-        self.owner_signature = Some(sig);
-        self
-    }
-
     /// Builds the store request, performing validation.
     pub fn build(self) -> Result<StoreEntryRequest, SdkError> {
         let agent_hash = self
@@ -98,11 +90,7 @@ impl StoreEntryBuilder {
             .entry_type
             .ok_or_else(|| SdkError::invalid_input("entry_type is required for StoreEntry"))?;
 
-        let owner_signature = self
-            .owner_signature
-            .ok_or_else(|| SdkError::invalid_input("owner_signature is required for StoreEntry"))?;
-
-        let mut req = StoreEntryRequest::new(agent_hash, key, value, entry_type, owner_signature);
+        let mut req = StoreEntryRequest::new(agent_hash, key, value, entry_type);
 
         if let Some(expires_at) = self.expires_at {
             req = req.with_expires_at(expires_at);
@@ -121,7 +109,6 @@ impl StoreEntryBuilder {
 ///     .key("strategy/v1")
 ///     .new_value(updated_bytes)
 ///     .new_expires_at(1_700_010_000)
-///     .owner_signature(sig_bytes)
 ///     .build()?;
 /// ```
 #[derive(Default)]
@@ -130,7 +117,6 @@ pub struct UpdateEntryBuilder {
     key: Option<String>,
     new_value: Option<Vec<u8>>,
     new_expires_at: Option<u64>,
-    owner_signature: Option<Vec<u8>>,
 }
 
 impl UpdateEntryBuilder {
@@ -163,12 +149,6 @@ impl UpdateEntryBuilder {
         self
     }
 
-    /// Sets the owner signature authorising this update.
-    pub fn owner_signature(mut self, sig: Vec<u8>) -> Self {
-        self.owner_signature = Some(sig);
-        self
-    }
-
     /// Builds the update request, performing validation.
     pub fn build(self) -> Result<UpdateEntryRequest, SdkError> {
         let agent_hash = self
@@ -183,11 +163,7 @@ impl UpdateEntryBuilder {
             .new_value
             .ok_or_else(|| SdkError::invalid_input("new_value is required for UpdateEntry"))?;
 
-        let owner_signature = self.owner_signature.ok_or_else(|| {
-            SdkError::invalid_input("owner_signature is required for UpdateEntry")
-        })?;
-
-        let mut req = UpdateEntryRequest::new(agent_hash, key, new_value, owner_signature);
+        let mut req = UpdateEntryRequest::new(agent_hash, key, new_value);
 
         if let Some(expires_at) = self.new_expires_at {
             req = req.with_new_expires_at(expires_at);
@@ -204,14 +180,12 @@ impl UpdateEntryBuilder {
 /// let request = DeleteEntryBuilder::new()
 ///     .agent_hash("agent-abc")
 ///     .key("strategy/v1")
-///     .owner_signature(sig_bytes)
 ///     .build()?;
 /// ```
 #[derive(Default)]
 pub struct DeleteEntryBuilder {
     agent_hash: Option<String>,
     key: Option<String>,
-    owner_signature: Option<Vec<u8>>,
 }
 
 impl DeleteEntryBuilder {
@@ -232,12 +206,6 @@ impl DeleteEntryBuilder {
         self
     }
 
-    /// Sets the owner signature authorising this deletion.
-    pub fn owner_signature(mut self, sig: Vec<u8>) -> Self {
-        self.owner_signature = Some(sig);
-        self
-    }
-
     /// Builds the delete request, performing validation.
     pub fn build(self) -> Result<DeleteEntryRequest, SdkError> {
         let agent_hash = self
@@ -248,11 +216,7 @@ impl DeleteEntryBuilder {
             .key
             .ok_or_else(|| SdkError::invalid_input("key is required for DeleteEntry"))?;
 
-        let owner_signature = self.owner_signature.ok_or_else(|| {
-            SdkError::invalid_input("owner_signature is required for DeleteEntry")
-        })?;
-
-        Ok(DeleteEntryRequest::new(agent_hash, key, owner_signature))
+        Ok(DeleteEntryRequest::new(agent_hash, key))
     }
 }
 
@@ -269,7 +233,6 @@ mod tests {
             .value(vec![1, 2, 3])
             .entry_type(MemoryEntryType::Semantic)
             .expires_at(1_700_003_600)
-            .owner_signature(vec![0u8; 64])
             .build()
             .unwrap();
 
@@ -286,7 +249,6 @@ mod tests {
             .key("test")
             .value(vec![1])
             .entry_type(MemoryEntryType::Episodic)
-            .owner_signature(vec![0u8; 64])
             .build()
             .unwrap();
 
@@ -305,7 +267,6 @@ mod tests {
             .agent_hash("agent-abc")
             .key("test")
             .entry_type(MemoryEntryType::Episodic)
-            .owner_signature(vec![0u8; 64])
             .build();
         assert!(result.is_err());
 
@@ -314,7 +275,6 @@ mod tests {
             .agent_hash("agent-abc")
             .key("test")
             .value(vec![1])
-            .owner_signature(vec![0u8; 64])
             .build();
         assert!(result.is_err());
     }
@@ -326,7 +286,6 @@ mod tests {
             .key("strategy/v1")
             .new_value(vec![4, 5, 6])
             .new_expires_at(1_700_010_000)
-            .owner_signature(vec![0u8; 64])
             .build()
             .unwrap();
 
@@ -342,7 +301,6 @@ mod tests {
             .agent_hash("agent-abc")
             .key("test")
             .new_value(vec![1])
-            .owner_signature(vec![0u8; 64])
             .build()
             .unwrap();
 
@@ -366,7 +324,6 @@ mod tests {
         let request = DeleteEntryBuilder::new()
             .agent_hash("agent-abc")
             .key("strategy/v1")
-            .owner_signature(vec![0u8; 64])
             .build()
             .unwrap();
 
@@ -380,12 +337,6 @@ mod tests {
         assert!(result.is_err());
 
         let result = DeleteEntryBuilder::new().agent_hash("agent-abc").build();
-        assert!(result.is_err());
-
-        let result = DeleteEntryBuilder::new()
-            .agent_hash("agent-abc")
-            .key("test")
-            .build();
         assert!(result.is_err());
     }
 }

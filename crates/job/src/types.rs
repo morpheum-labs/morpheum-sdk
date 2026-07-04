@@ -381,7 +381,7 @@ pub struct JobParams {
     /// fee track to the treasury on settlement; zero preserves v3 behavior.
     pub evaluation_fee_treasury_cut_bps: u32,
     /// ARS v6: coverage premium rate (bps, [0, 10_000]) charged on a job's
-    /// `coverage_amount_usd`; zero disables the self-funded coverage vault.
+    /// `coverage_amount_usd`; zero disables the self-funded coverage reserve.
     pub default_coverage_premium_rate_bps: u32,
     /// ARS v6: governance cap on a single job's `coverage_amount_usd` (zero =
     /// unbounded).

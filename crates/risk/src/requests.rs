@@ -213,6 +213,7 @@ mod tests {
                 spot_collateral: None,
                 tiered_margin: None,
                 portfolio_var: None,
+                clmm_collateral: None,
             },
         )
         .to_any();

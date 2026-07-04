@@ -57,6 +57,7 @@ pub struct UpdateParamsBuilder {
     spot_collateral: Option<morpheum_proto::risk::v1::SpotCollateralConfig>,
     tiered_margin: Option<morpheum_proto::risk::v1::TieredMarginConfig>,
     portfolio_var: Option<morpheum_proto::risk::v1::PortfolioVarConfig>,
+    clmm_collateral: Option<morpheum_proto::risk::v1::ClmmCollateralConfig>,
 }
 
 impl UpdateParamsBuilder {
@@ -74,6 +75,7 @@ impl UpdateParamsBuilder {
         self.spot_collateral = params.spot_collateral;
         self.tiered_margin = params.tiered_margin;
         self.portfolio_var = params.portfolio_var;
+        self.clmm_collateral = params.clmm_collateral;
         self
     }
 
@@ -105,6 +107,13 @@ impl UpdateParamsBuilder {
         self.portfolio_var = Some(v);
         self
     }
+    pub fn clmm_collateral(
+        mut self,
+        v: morpheum_proto::risk::v1::ClmmCollateralConfig,
+    ) -> Self {
+        self.clmm_collateral = Some(v);
+        self
+    }
 
     pub fn build(self) -> Result<UpdateParamsRequest, SdkError> {
         let authority = self
@@ -122,6 +131,7 @@ impl UpdateParamsBuilder {
                 spot_collateral: self.spot_collateral,
                 tiered_margin: self.tiered_margin,
                 portfolio_var: self.portfolio_var,
+                clmm_collateral: self.clmm_collateral,
             },
         ))
     }
@@ -195,6 +205,7 @@ mod tests {
             spot_collateral: None,
             tiered_margin: None,
             portfolio_var: None,
+            clmm_collateral: None,
         };
         let req = UpdateParamsBuilder::new()
             .from_current(current.clone())

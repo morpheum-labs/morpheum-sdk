@@ -117,6 +117,9 @@ pub struct Bucket {
     /// Spot collateral pledged to this bucket (WS-M unified spot+perp
     /// collateral): token_index → u256 satoshi-format amount string.
     pub pledged: BTreeMap<u32, String>,
+    /// CLMM LP positions pledged to this bucket (WS-Y CLMM-LP-position
+    /// collateral): position_id → pool_id.
+    pub pledged_positions: BTreeMap<u64, u64>,
 }
 
 impl From<proto::Bucket> for Bucket {
@@ -145,6 +148,7 @@ impl From<proto::Bucket> for Bucket {
             updated_at: timestamp_seconds(p.updated_at),
             sequence_id: p.sequence_id,
             pledged: p.pledged,
+            pledged_positions: p.pledged_positions,
         }
     }
 }
@@ -181,6 +185,7 @@ impl From<Bucket> for proto::Bucket {
             }),
             sequence_id: b.sequence_id,
             pledged: b.pledged,
+            pledged_positions: b.pledged_positions,
         }
     }
 }
@@ -624,6 +629,7 @@ mod tests {
             updated_at: 1_700_001_000,
             sequence_id: 42,
             pledged: BTreeMap::from([(7u32, "25000000".into())]),
+            pledged_positions: BTreeMap::from([(11u64, 3u64)]),
         };
 
         let proto_bucket: proto::Bucket = bucket.clone().into();

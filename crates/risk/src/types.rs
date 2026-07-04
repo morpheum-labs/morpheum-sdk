@@ -159,6 +159,7 @@ pub struct RiskParams {
     pub spot_collateral: Option<proto::SpotCollateralConfig>,
     pub tiered_margin: Option<proto::TieredMarginConfig>,
     pub portfolio_var: Option<proto::PortfolioVarConfig>,
+    pub clmm_collateral: Option<proto::ClmmCollateralConfig>,
 }
 
 impl From<proto::Params> for RiskParams {
@@ -170,6 +171,7 @@ impl From<proto::Params> for RiskParams {
             spot_collateral: p.spot_collateral,
             tiered_margin: p.tiered_margin,
             portfolio_var: p.portfolio_var,
+            clmm_collateral: p.clmm_collateral,
         }
     }
 }
@@ -183,6 +185,7 @@ impl From<RiskParams> for proto::Params {
             spot_collateral: p.spot_collateral,
             tiered_margin: p.tiered_margin,
             portfolio_var: p.portfolio_var,
+            clmm_collateral: p.clmm_collateral,
         }
     }
 }
@@ -427,6 +430,7 @@ mod tests {
             spot_collateral: None,
             tiered_margin: None,
             portfolio_var: None,
+            clmm_collateral: None,
         };
         let p: proto::Params = params.clone().into();
         let back: RiskParams = p.into();
@@ -473,9 +477,25 @@ mod tests {
             spot_collateral: None,
             tiered_margin: None,
             portfolio_var: None,
+            clmm_collateral: Some(proto::ClmmCollateralConfig {
+                enabled: true,
+                pools: {
+                    let mut pools = alloc::collections::BTreeMap::new();
+                    pools.insert(
+                        9u64,
+                        proto::ClmmCollateralPool {
+                            base_price_market_index: 7,
+                            quote_token_index: 2,
+                            collateral_factor_bps: 8_000,
+                        },
+                    );
+                    pools
+                },
+            }),
         };
         let p: proto::Params = params.clone().into();
         assert_eq!(p.spot_risk, params.spot_risk);
+        assert_eq!(p.clmm_collateral, params.clmm_collateral);
         let back: RiskParams = p.into();
         assert_eq!(params, back);
     }

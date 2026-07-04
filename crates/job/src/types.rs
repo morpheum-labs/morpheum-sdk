@@ -362,6 +362,9 @@ pub struct JobParams {
     pub require_agreement: bool,
     /// ARS v2: require the acting agent to hold a valid VC on privileged actions.
     pub require_vc_credential: bool,
+    /// ARS v4: protocol take-rate (bps, [0, 10_000]) skimmed from the evaluation
+    /// fee track to the treasury on settlement; zero preserves v3 behavior.
+    pub evaluation_fee_treasury_cut_bps: u32,
 }
 
 impl Default for JobParams {
@@ -380,6 +383,7 @@ impl Default for JobParams {
             escrow_asset_index: 0,
             require_agreement: false,
             require_vc_credential: false,
+            evaluation_fee_treasury_cut_bps: 0,
         }
     }
 }
@@ -400,6 +404,7 @@ impl From<proto::Params> for JobParams {
             escrow_asset_index: p.escrow_asset_index,
             require_agreement: p.require_agreement,
             require_vc_credential: p.require_vc_credential,
+            evaluation_fee_treasury_cut_bps: p.evaluation_fee_treasury_cut_bps,
         }
     }
 }
@@ -420,6 +425,7 @@ impl From<JobParams> for proto::Params {
             escrow_asset_index: p.escrow_asset_index,
             require_agreement: p.require_agreement,
             require_vc_credential: p.require_vc_credential,
+            evaluation_fee_treasury_cut_bps: p.evaluation_fee_treasury_cut_bps,
         }
     }
 }
@@ -504,7 +510,10 @@ mod tests {
 
     #[test]
     fn job_params_roundtrip() {
-        let params = JobParams::default();
+        let params = JobParams {
+            evaluation_fee_treasury_cut_bps: 250,
+            ..JobParams::default()
+        };
         let proto_params: proto::Params = params.clone().into();
         let back: JobParams = proto_params.into();
         assert_eq!(params, back);

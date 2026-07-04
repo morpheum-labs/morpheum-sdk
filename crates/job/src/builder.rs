@@ -13,7 +13,7 @@ use crate::requests::{
     AttestRequest, CancelJobRequest, ClaimRefundRequest, CreateJobRequest, FundJobRequest,
     SetProviderRequest, SubmitDeliverableRequest,
 };
-use crate::types::{Deliverable, Job, RevenueShareConfig};
+use crate::types::{CompensationPolicy, Deliverable, Job, RevenueShareConfig};
 
 /// Fluent builder for creating a new job.
 #[derive(Default)]
@@ -29,6 +29,8 @@ pub struct CreateJobBuilder {
     job_spec_hash: Option<String>,
     metadata_payload: Option<Vec<u8>>,
     evaluation_fee_usd: Option<u64>,
+    compensation_policy: Option<CompensationPolicy>,
+    coverage_amount_usd: Option<u64>,
 }
 
 impl CreateJobBuilder {
@@ -93,6 +95,22 @@ impl CreateJobBuilder {
         self
     }
 
+    /// ARS v1/v6: the per-job compensation policy. Leave unset to inherit the
+    /// governance default; set to `CoverageReimbursed` alongside
+    /// [`Self::coverage_amount_usd`] to buy self-funded rejection coverage.
+    pub fn compensation_policy(mut self, policy: CompensationPolicy) -> Self {
+        self.compensation_policy = Some(policy);
+        self
+    }
+
+    /// ARS v6: the coverage claim paid to the client on a `CoverageReimbursed`
+    /// rejection. Requires the governance coverage rate to be enabled; the
+    /// premium is resolved at creation and escrowed on top of the budget + fee.
+    pub fn coverage_amount_usd(mut self, coverage: u64) -> Self {
+        self.coverage_amount_usd = Some(coverage);
+        self
+    }
+
     pub fn build(self) -> Result<CreateJobRequest, SdkError> {
         let client_agent_hash = self.client_agent_hash.ok_or_else(|| {
             SdkError::invalid_input("client_agent_hash is required for job creation")
@@ -118,6 +136,8 @@ impl CreateJobBuilder {
             job_spec_hash: self.job_spec_hash.unwrap_or_default(),
             metadata_payload: self.metadata_payload.unwrap_or_default(),
             evaluation_fee_usd: self.evaluation_fee_usd.unwrap_or_default(),
+            compensation_policy: self.compensation_policy.unwrap_or_default(),
+            coverage_amount_usd: self.coverage_amount_usd.unwrap_or_default(),
             ..Job::default()
         };
 

@@ -83,6 +83,7 @@ pub enum CompensationPolicy {
     Unspecified,
     FullRefund,
     EvaluationFeeRetained,
+    CoverageReimbursed,
 }
 
 impl From<i32> for CompensationPolicy {
@@ -93,6 +94,7 @@ impl From<i32> for CompensationPolicy {
             proto::CompensationPolicy::Unspecified => Self::Unspecified,
             proto::CompensationPolicy::FullRefund => Self::FullRefund,
             proto::CompensationPolicy::EvaluationFeeRetained => Self::EvaluationFeeRetained,
+            proto::CompensationPolicy::CoverageReimbursed => Self::CoverageReimbursed,
         }
     }
 }
@@ -104,6 +106,9 @@ impl From<CompensationPolicy> for i32 {
             CompensationPolicy::FullRefund => proto::CompensationPolicy::FullRefund as i32,
             CompensationPolicy::EvaluationFeeRetained => {
                 proto::CompensationPolicy::EvaluationFeeRetained as i32
+            }
+            CompensationPolicy::CoverageReimbursed => {
+                proto::CompensationPolicy::CoverageReimbursed as i32
             }
         }
     }
@@ -212,6 +217,12 @@ pub struct Job {
     /// ARS v3: evaluation-fee track escrowed on top of `budget_usd`; resolved
     /// once at creation (job value, else governance default) then immutable.
     pub evaluation_fee_usd: u64,
+    /// ARS v6: coverage claim paid to the client on a `CoverageReimbursed`
+    /// rejection; zero disables coverage.
+    pub coverage_amount_usd: u64,
+    /// ARS v6: coverage premium escrowed on top of the principal + fee tracks;
+    /// resolved once at creation then immutable.
+    pub coverage_premium_usd: u64,
 }
 
 impl Job {
@@ -260,6 +271,8 @@ impl From<proto::Job> for Job {
             evaluator_payout_address: p.evaluator_payout_address,
             compensation_policy: CompensationPolicy::from(p.compensation_policy),
             evaluation_fee_usd: p.evaluation_fee_usd,
+            coverage_amount_usd: p.coverage_amount_usd,
+            coverage_premium_usd: p.coverage_premium_usd,
         }
     }
 }
@@ -288,6 +301,8 @@ impl From<Job> for proto::Job {
             evaluator_payout_address: j.evaluator_payout_address,
             compensation_policy: i32::from(j.compensation_policy),
             evaluation_fee_usd: j.evaluation_fee_usd,
+            coverage_amount_usd: j.coverage_amount_usd,
+            coverage_premium_usd: j.coverage_premium_usd,
         }
     }
 }
@@ -365,6 +380,12 @@ pub struct JobParams {
     /// ARS v4: protocol take-rate (bps, [0, 10_000]) skimmed from the evaluation
     /// fee track to the treasury on settlement; zero preserves v3 behavior.
     pub evaluation_fee_treasury_cut_bps: u32,
+    /// ARS v6: coverage premium rate (bps, [0, 10_000]) charged on a job's
+    /// `coverage_amount_usd`; zero disables the self-funded coverage vault.
+    pub default_coverage_premium_rate_bps: u32,
+    /// ARS v6: governance cap on a single job's `coverage_amount_usd` (zero =
+    /// unbounded).
+    pub max_coverage_amount_usd: u64,
 }
 
 impl Default for JobParams {
@@ -384,6 +405,8 @@ impl Default for JobParams {
             require_agreement: false,
             require_vc_credential: false,
             evaluation_fee_treasury_cut_bps: 0,
+            default_coverage_premium_rate_bps: 0,
+            max_coverage_amount_usd: 0,
         }
     }
 }
@@ -405,6 +428,8 @@ impl From<proto::Params> for JobParams {
             require_agreement: p.require_agreement,
             require_vc_credential: p.require_vc_credential,
             evaluation_fee_treasury_cut_bps: p.evaluation_fee_treasury_cut_bps,
+            default_coverage_premium_rate_bps: p.default_coverage_premium_rate_bps,
+            max_coverage_amount_usd: p.max_coverage_amount_usd,
         }
     }
 }
@@ -426,6 +451,8 @@ impl From<JobParams> for proto::Params {
             require_agreement: p.require_agreement,
             require_vc_credential: p.require_vc_credential,
             evaluation_fee_treasury_cut_bps: p.evaluation_fee_treasury_cut_bps,
+            default_coverage_premium_rate_bps: p.default_coverage_premium_rate_bps,
+            max_coverage_amount_usd: p.max_coverage_amount_usd,
         }
     }
 }
@@ -490,6 +517,8 @@ mod tests {
             evaluator_payout_address: "morm1evaluator".into(),
             compensation_policy: CompensationPolicy::EvaluationFeeRetained,
             evaluation_fee_usd: 50,
+            coverage_amount_usd: 500,
+            coverage_premium_usd: 25,
         };
 
         let proto_job: proto::Job = job.clone().into();
@@ -503,6 +532,7 @@ mod tests {
             CompensationPolicy::Unspecified,
             CompensationPolicy::FullRefund,
             CompensationPolicy::EvaluationFeeRetained,
+            CompensationPolicy::CoverageReimbursed,
         ] {
             assert_eq!(CompensationPolicy::from(i32::from(p)), p);
         }
@@ -512,6 +542,8 @@ mod tests {
     fn job_params_roundtrip() {
         let params = JobParams {
             evaluation_fee_treasury_cut_bps: 250,
+            default_coverage_premium_rate_bps: 500,
+            max_coverage_amount_usd: 1_000_000,
             ..JobParams::default()
         };
         let proto_params: proto::Params = params.clone().into();

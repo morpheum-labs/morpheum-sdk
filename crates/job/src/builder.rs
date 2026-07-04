@@ -28,6 +28,7 @@ pub struct CreateJobBuilder {
     revenue_share_config: Option<RevenueShareConfig>,
     job_spec_hash: Option<String>,
     metadata_payload: Option<Vec<u8>>,
+    evaluation_fee_usd: Option<u64>,
 }
 
 impl CreateJobBuilder {
@@ -85,6 +86,13 @@ impl CreateJobBuilder {
         self
     }
 
+    /// ARS v3: request an evaluation-fee track escrowed on top of the budget.
+    /// Zero (the default) inherits the governance `default_evaluation_fee_usd`.
+    pub fn evaluation_fee_usd(mut self, fee: u64) -> Self {
+        self.evaluation_fee_usd = Some(fee);
+        self
+    }
+
     pub fn build(self) -> Result<CreateJobRequest, SdkError> {
         let client_agent_hash = self.client_agent_hash.ok_or_else(|| {
             SdkError::invalid_input("client_agent_hash is required for job creation")
@@ -109,6 +117,7 @@ impl CreateJobBuilder {
             revenue_share_config: self.revenue_share_config,
             job_spec_hash: self.job_spec_hash.unwrap_or_default(),
             metadata_payload: self.metadata_payload.unwrap_or_default(),
+            evaluation_fee_usd: self.evaluation_fee_usd.unwrap_or_default(),
             ..Job::default()
         };
 

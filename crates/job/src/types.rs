@@ -209,6 +209,9 @@ pub struct Job {
     pub evaluator_payout_address: String,
     /// ARS v1: per-job compensation policy (Unspecified inherits governance).
     pub compensation_policy: CompensationPolicy,
+    /// ARS v3: evaluation-fee track escrowed on top of `budget_usd`; resolved
+    /// once at creation (job value, else governance default) then immutable.
+    pub evaluation_fee_usd: u64,
 }
 
 impl Job {
@@ -256,6 +259,7 @@ impl From<proto::Job> for Job {
             provider_payout_address: p.provider_payout_address,
             evaluator_payout_address: p.evaluator_payout_address,
             compensation_policy: CompensationPolicy::from(p.compensation_policy),
+            evaluation_fee_usd: p.evaluation_fee_usd,
         }
     }
 }
@@ -283,6 +287,7 @@ impl From<Job> for proto::Job {
             provider_payout_address: j.provider_payout_address,
             evaluator_payout_address: j.evaluator_payout_address,
             compensation_policy: i32::from(j.compensation_policy),
+            evaluation_fee_usd: j.evaluation_fee_usd,
         }
     }
 }
@@ -478,6 +483,7 @@ mod tests {
             provider_payout_address: "morm1provider".into(),
             evaluator_payout_address: "morm1evaluator".into(),
             compensation_policy: CompensationPolicy::EvaluationFeeRetained,
+            evaluation_fee_usd: 50,
         };
 
         let proto_job: proto::Job = job.clone().into();

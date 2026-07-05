@@ -808,6 +808,12 @@ pub struct Params {
     /// Per-scan bound on the number of intents one `MsgExecuteIntents`
     /// services (0 = built-in default).
     pub max_intents_per_scan: u64,
+    /// WS-AI — whether the zkRFQ reputation admission gate is armed.
+    /// Default-disabled, fail-closed.
+    pub enable_rfq_reputation_gate: bool,
+    /// WS-AI — minimum committed reputation score a market maker must hold to
+    /// quote/settle a zkRFQ when the gate is armed (ignored when disarmed).
+    pub min_reputation_to_quote: u64,
 }
 
 impl Default for Params {
@@ -823,6 +829,8 @@ impl Default for Params {
             enable_intent_execution: false,
             authorized_execution_signers: Vec::new(),
             max_intents_per_scan: 0,
+            enable_rfq_reputation_gate: false,
+            min_reputation_to_quote: 0,
         }
     }
 }
@@ -840,6 +848,8 @@ impl From<proto::Params> for Params {
             enable_intent_execution: p.enable_intent_execution,
             authorized_execution_signers: p.authorized_execution_signers,
             max_intents_per_scan: p.max_intents_per_scan,
+            enable_rfq_reputation_gate: p.enable_rfq_reputation_gate,
+            min_reputation_to_quote: p.min_reputation_to_quote,
         }
     }
 }
@@ -857,6 +867,8 @@ impl From<Params> for proto::Params {
             enable_intent_execution: p.enable_intent_execution,
             authorized_execution_signers: p.authorized_execution_signers,
             max_intents_per_scan: p.max_intents_per_scan,
+            enable_rfq_reputation_gate: p.enable_rfq_reputation_gate,
+            min_reputation_to_quote: p.min_reputation_to_quote,
         }
     }
 }
@@ -1110,6 +1122,8 @@ mod tests {
             enable_intent_execution: true,
             authorized_execution_signers: vec!["morpheum1keeper".into()],
             max_intents_per_scan: 100,
+            enable_rfq_reputation_gate: true,
+            min_reputation_to_quote: 750,
         };
         let proto: proto::Params = params.clone().into();
         let back: Params = proto.into();

@@ -220,6 +220,8 @@ mod tests {
                             enable_intent_execution: false,
                             authorized_execution_signers: alloc::vec::Vec::new(),
                             max_intents_per_scan: 0,
+                            enable_rfq_reputation_gate: false,
+                            min_reputation_to_quote: 0,
                         }),
                     };
                     Ok(prost::Message::encode_to_vec(&dummy))

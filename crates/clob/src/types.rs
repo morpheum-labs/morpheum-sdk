@@ -478,6 +478,12 @@ pub struct ClobParams {
     pub authorized_expiry_signers: Vec<String>,
     /// Reputation-scaled queue priority (WS-P, ADR-ID-001).
     pub enable_reputation_priority: bool,
+    /// Identity capability gate (E5): require the signer's agent to hold the
+    /// `TRADE` capability to place orders.
+    pub enable_trade_capability_gate: bool,
+    /// Identity lifecycle-status gate (E5): require the signer's agent to be in
+    /// `AgentStatus::Active` to place orders.
+    pub enable_agent_status_gate: bool,
 }
 
 impl From<proto::Params> for ClobParams {
@@ -504,6 +510,8 @@ impl From<proto::Params> for ClobParams {
             enable_expiry_sweep: p.enable_expiry_sweep,
             authorized_expiry_signers: p.authorized_expiry_signers,
             enable_reputation_priority: p.enable_reputation_priority,
+            enable_trade_capability_gate: p.enable_trade_capability_gate,
+            enable_agent_status_gate: p.enable_agent_status_gate,
         }
     }
 }
@@ -532,6 +540,8 @@ impl From<ClobParams> for proto::Params {
             enable_expiry_sweep: p.enable_expiry_sweep,
             authorized_expiry_signers: p.authorized_expiry_signers,
             enable_reputation_priority: p.enable_reputation_priority,
+            enable_trade_capability_gate: p.enable_trade_capability_gate,
+            enable_agent_status_gate: p.enable_agent_status_gate,
         }
     }
 }
@@ -643,6 +653,8 @@ mod tests {
             enable_expiry_sweep: true,
             authorized_expiry_signers: alloc::vec!["morpheum1keeper".into()],
             enable_reputation_priority: true,
+            enable_trade_capability_gate: true,
+            enable_agent_status_gate: true,
         };
         let proto_params: proto::Params = params.clone().into();
         assert_eq!(proto_params.credential_pair_bits.len(), 1);

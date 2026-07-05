@@ -130,6 +130,7 @@ mod tests {
                 milestone_rewards: vec![500, 1_000],
                 perk_multiplier_bps: 1500,
                 economics: None,
+                authorized_recovery_signers: vec![],
             })
             .build()
             .unwrap();

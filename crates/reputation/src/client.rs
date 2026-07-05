@@ -167,6 +167,7 @@ mod tests {
                             recovery_velocity: 200,
                             perk_bitflags: 0b0000_0011,
                             luxury_perks_throttled: false,
+                            recovery_window_start: 1_699_900_000,
                         }),
                         found: true,
                     };
@@ -212,6 +213,7 @@ mod tests {
                             ],
                             perk_multiplier_bps: 1500,
                             economics: None,
+                            authorized_recovery_signers: Vec::new(),
                         }),
                     };
                     Ok(prost::Message::encode_to_vec(&dummy))

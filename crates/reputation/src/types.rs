@@ -38,12 +38,14 @@ pub struct ReputationScore {
     pub milestone_bitflags: u32,
     /// Whether the agent has achieved permanent Immortal status.
     pub is_immortal: bool,
-    /// Points gained in the last 24-hour window.
+    /// Points gained in the current 24-hour recovery window.
     pub recovery_velocity: u32,
     /// Cumulative permanent perks (bitmask).
     pub perk_bitflags: u32,
     /// Whether non-floor Immortal perks are temporarily suspended.
     pub luxury_perks_throttled: bool,
+    /// WS-AG: Unix-seconds start of the current rolling 24h recovery window.
+    pub recovery_window_start: u64,
 }
 
 impl ReputationScore {
@@ -75,6 +77,7 @@ impl From<proto::ReputationScore> for ReputationScore {
             recovery_velocity: p.recovery_velocity,
             perk_bitflags: p.perk_bitflags,
             luxury_perks_throttled: p.luxury_perks_throttled,
+            recovery_window_start: p.recovery_window_start,
         }
     }
 }
@@ -91,6 +94,7 @@ impl From<ReputationScore> for proto::ReputationScore {
             recovery_velocity: r.recovery_velocity,
             perk_bitflags: r.perk_bitflags,
             luxury_perks_throttled: r.luxury_perks_throttled,
+            recovery_window_start: r.recovery_window_start,
         }
     }
 }
@@ -317,6 +321,9 @@ pub struct Params {
     /// off. Passed through as the canonical generated type; see its doc
     /// comments in `reputation.proto` for the field-level semantics.
     pub economics: Option<proto::ReputationEconomicsConfig>,
+    /// WS-AG: addresses authorized to submit the `MsgScanReputationRecovery`
+    /// sweep. Empty ⇒ no keeper may drive the recovery sweep (fail-closed).
+    pub authorized_recovery_signers: Vec<String>,
 }
 
 impl Default for Params {
@@ -334,6 +341,7 @@ impl Default for Params {
             ],
             perk_multiplier_bps: 1500,
             economics: None,
+            authorized_recovery_signers: Vec::new(),
         }
     }
 }
@@ -349,6 +357,7 @@ impl From<proto::Params> for Params {
             milestone_rewards: p.milestone_rewards,
             perk_multiplier_bps: p.perk_multiplier_bps,
             economics: p.economics,
+            authorized_recovery_signers: p.authorized_recovery_signers,
         }
     }
 }
@@ -364,6 +373,7 @@ impl From<Params> for proto::Params {
             milestone_rewards: p.milestone_rewards,
             perk_multiplier_bps: p.perk_multiplier_bps,
             economics: p.economics,
+            authorized_recovery_signers: p.authorized_recovery_signers,
         }
     }
 }
@@ -384,6 +394,7 @@ mod tests {
             recovery_velocity: 500,
             perk_bitflags: 0b0000_0011,
             luxury_perks_throttled: false,
+            recovery_window_start: 1_699_950_000,
         };
 
         let proto: proto::ReputationScore = score.clone().into();
@@ -471,6 +482,7 @@ mod tests {
             milestone_rewards: alloc::vec![10, 20, 30],
             perk_multiplier_bps: 2000,
             economics: None,
+            authorized_recovery_signers: alloc::vec!["morpheum1keeper".into()],
         };
         let proto: proto::Params = params.clone().into();
         let back: Params = proto.into();
@@ -496,6 +508,7 @@ mod tests {
             enable_liquidation_slashing: true,
             liquidation_penalty_bps: 300,
             min_liquidation_penalty: 1_000,
+            ..Default::default()
         };
         let params = Params {
             economics: Some(economics),

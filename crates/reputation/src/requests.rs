@@ -281,6 +281,7 @@ mod tests {
                 milestone_rewards: vec![500, 1_000, 2_000],
                 perk_multiplier_bps: 1500,
                 economics: None,
+                authorized_recovery_signers: Vec::new(),
             },
         );
         let any = req.to_any();

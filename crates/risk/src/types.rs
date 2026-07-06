@@ -487,6 +487,8 @@ mod tests {
                             base_price_market_index: 7,
                             quote_token_index: 2,
                             collateral_factor_bps: 8_000,
+                            quote_swap_pool_id: 0,
+                            quote_price_market_index: 0,
                         },
                     );
                     pools

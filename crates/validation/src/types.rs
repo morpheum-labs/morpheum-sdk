@@ -202,6 +202,14 @@ pub struct Params {
     pub require_verifier_signature: bool,
     /// Default proof expiry in seconds (0 = no expiry).
     pub default_proof_expiry_seconds: u64,
+    /// WS-AL: master switch for the verifier reputation gate (default-OFF).
+    pub enable_verifier_reputation_gate: bool,
+    /// WS-AL: minimum committed reputation the verifier must hold when the gate
+    /// is enabled (`0..=1_000_000`).
+    pub min_verifier_reputation: u64,
+    /// WS-AL: governance allowlist of authorized verifier agent hashes
+    /// (empty = no restriction).
+    pub authorized_verifiers: Vec<String>,
 }
 
 impl Default for Params {
@@ -211,6 +219,9 @@ impl Default for Params {
             max_proofs_per_agent: 0,
             require_verifier_signature: true,
             default_proof_expiry_seconds: 0,
+            enable_verifier_reputation_gate: false,
+            min_verifier_reputation: 0,
+            authorized_verifiers: Vec::new(),
         }
     }
 }
@@ -222,6 +233,9 @@ impl From<proto::Params> for Params {
             max_proofs_per_agent: p.max_proofs_per_agent,
             require_verifier_signature: p.require_verifier_signature,
             default_proof_expiry_seconds: p.default_proof_expiry_seconds,
+            enable_verifier_reputation_gate: p.enable_verifier_reputation_gate,
+            min_verifier_reputation: p.min_verifier_reputation,
+            authorized_verifiers: p.authorized_verifiers,
         }
     }
 }
@@ -233,6 +247,9 @@ impl From<Params> for proto::Params {
             max_proofs_per_agent: p.max_proofs_per_agent,
             require_verifier_signature: p.require_verifier_signature,
             default_proof_expiry_seconds: p.default_proof_expiry_seconds,
+            enable_verifier_reputation_gate: p.enable_verifier_reputation_gate,
+            min_verifier_reputation: p.min_verifier_reputation,
+            authorized_verifiers: p.authorized_verifiers,
         }
     }
 }
@@ -352,6 +369,9 @@ mod tests {
         assert_eq!(params.max_proofs_per_agent, 0);
         assert!(params.require_verifier_signature);
         assert_eq!(params.default_proof_expiry_seconds, 0);
+        assert!(!params.enable_verifier_reputation_gate);
+        assert_eq!(params.min_verifier_reputation, 0);
+        assert!(params.authorized_verifiers.is_empty());
     }
 
     #[test]
@@ -361,6 +381,9 @@ mod tests {
             max_proofs_per_agent: 50,
             require_verifier_signature: false,
             default_proof_expiry_seconds: 86400,
+            enable_verifier_reputation_gate: true,
+            min_verifier_reputation: 250_000,
+            authorized_verifiers: alloc::vec![String::from("verifier-a"), String::from("verifier-b")],
         };
         let proto: proto::Params = params.clone().into();
         let back: Params = proto.into();

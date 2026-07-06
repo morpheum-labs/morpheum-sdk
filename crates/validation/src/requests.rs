@@ -464,6 +464,9 @@ mod tests {
                 max_proofs_per_agent: 50,
                 require_verifier_signature: false,
                 default_proof_expiry_seconds: 86400,
+                enable_verifier_reputation_gate: true,
+                min_verifier_reputation: 300_000,
+                authorized_verifiers: vec![String::from("verifier-a")],
             }),
         };
         let res: QueryParamsResponse = proto_res.into();
@@ -472,5 +475,8 @@ mod tests {
         assert_eq!(p.max_proofs_per_agent, 50);
         assert!(!p.require_verifier_signature);
         assert_eq!(p.default_proof_expiry_seconds, 86400);
+        assert!(p.enable_verifier_reputation_gate);
+        assert_eq!(p.min_verifier_reputation, 300_000);
+        assert_eq!(p.authorized_verifiers, vec![String::from("verifier-a")]);
     }
 }

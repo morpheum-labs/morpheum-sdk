@@ -193,6 +193,7 @@ mod tests {
                             max_proofs_per_agent: 50,
                             require_verifier_signature: true,
                             default_proof_expiry_seconds: 86400,
+                            ..Default::default()
                         }),
                     };
                     Ok(prost::Message::encode_to_vec(&dummy))

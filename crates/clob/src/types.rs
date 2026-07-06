@@ -484,6 +484,11 @@ pub struct ClobParams {
     /// Identity lifecycle-status gate (E5): require the signer's agent to be in
     /// `AgentStatus::Active` to place orders.
     pub enable_agent_status_gate: bool,
+    /// CLOB trading-fee insurance share (WS-AU): basis points of the collected
+    /// maker+taker fee routed to the insurance fund (remainder → treasury).
+    /// Per-market override via `MsgUpdateMarketFeeParams.insurance_share_bps`.
+    /// Default `0` (no-op).
+    pub default_clob_insurance_share_bps: u32,
 }
 
 impl From<proto::Params> for ClobParams {
@@ -512,6 +517,7 @@ impl From<proto::Params> for ClobParams {
             enable_reputation_priority: p.enable_reputation_priority,
             enable_trade_capability_gate: p.enable_trade_capability_gate,
             enable_agent_status_gate: p.enable_agent_status_gate,
+            default_clob_insurance_share_bps: p.default_clob_insurance_share_bps,
         }
     }
 }
@@ -542,6 +548,7 @@ impl From<ClobParams> for proto::Params {
             enable_reputation_priority: p.enable_reputation_priority,
             enable_trade_capability_gate: p.enable_trade_capability_gate,
             enable_agent_status_gate: p.enable_agent_status_gate,
+            default_clob_insurance_share_bps: p.default_clob_insurance_share_bps,
         }
     }
 }
@@ -655,6 +662,7 @@ mod tests {
             enable_reputation_priority: true,
             enable_trade_capability_gate: true,
             enable_agent_status_gate: true,
+            default_clob_insurance_share_bps: 1_000,
         };
         let proto_params: proto::Params = params.clone().into();
         assert_eq!(proto_params.credential_pair_bits.len(), 1);

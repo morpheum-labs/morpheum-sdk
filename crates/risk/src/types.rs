@@ -489,6 +489,8 @@ mod tests {
                             collateral_factor_bps: 8_000,
                             quote_swap_pool_id: 0,
                             quote_price_market_index: 0,
+                            basis_tolerance_bps: 0,
+                            max_basis_haircut_bps: 0,
                         },
                     );
                     pools

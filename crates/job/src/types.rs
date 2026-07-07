@@ -386,6 +386,12 @@ pub struct JobParams {
     /// ARS v6: governance cap on a single job's `coverage_amount_usd` (zero =
     /// unbounded).
     pub max_coverage_amount_usd: u64,
+    /// ARS v7 (WS-BH): master gate for reputation-weighted coverage-premium
+    /// pricing. When true, the flat v6 premium is discounted by the composite of
+    /// the client's and (if named at creation) the provider's committed
+    /// reputation, and the provider is locked on a coverage job that named one.
+    /// False (default) preserves the v6 flat-premium behavior byte-for-byte.
+    pub enable_risk_based_coverage_premium: bool,
 }
 
 impl Default for JobParams {
@@ -407,6 +413,7 @@ impl Default for JobParams {
             evaluation_fee_treasury_cut_bps: 0,
             default_coverage_premium_rate_bps: 0,
             max_coverage_amount_usd: 0,
+            enable_risk_based_coverage_premium: false,
         }
     }
 }
@@ -430,6 +437,7 @@ impl From<proto::Params> for JobParams {
             evaluation_fee_treasury_cut_bps: p.evaluation_fee_treasury_cut_bps,
             default_coverage_premium_rate_bps: p.default_coverage_premium_rate_bps,
             max_coverage_amount_usd: p.max_coverage_amount_usd,
+            enable_risk_based_coverage_premium: p.enable_risk_based_coverage_premium,
         }
     }
 }
@@ -453,6 +461,7 @@ impl From<JobParams> for proto::Params {
             evaluation_fee_treasury_cut_bps: p.evaluation_fee_treasury_cut_bps,
             default_coverage_premium_rate_bps: p.default_coverage_premium_rate_bps,
             max_coverage_amount_usd: p.max_coverage_amount_usd,
+            enable_risk_based_coverage_premium: p.enable_risk_based_coverage_premium,
         }
     }
 }
@@ -544,6 +553,7 @@ mod tests {
             evaluation_fee_treasury_cut_bps: 250,
             default_coverage_premium_rate_bps: 500,
             max_coverage_amount_usd: 1_000_000,
+            enable_risk_based_coverage_premium: true,
             ..JobParams::default()
         };
         let proto_params: proto::Params = params.clone().into();

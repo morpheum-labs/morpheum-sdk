@@ -223,9 +223,11 @@ impl fmt::Display for Tif {
     }
 }
 
-/// TWAP slice-size distribution. Only `Uniform` (equal slices, dust on the
-/// last) is supported on the consensus path today; the enum keeps the schema
-/// forward-compatible without a wire break.
+/// TWAP slice-size distribution across the execution window. Discriminants match
+/// the consensus proto `SliceCurve` one-for-one, so `to_proto`/`from_proto` are a
+/// direct `i32` cast/lookup. All variants are deficit-aware on-chain (a partially
+/// filled slice carries its shortfall forward) and the final slice completes the
+/// remainder.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[repr(i32)]
@@ -233,12 +235,26 @@ pub enum SliceCurve {
     /// Equal-sized slices (dust absorbed by the last slice).
     #[default]
     Uniform = 0,
+    /// Larger early slices ramping down (linear weights `n, n-1, ..., 1`).
+    FrontLoaded = 1,
+    /// Larger late slices ramping up (linear weights `1, 2, ..., n`).
+    BackLoaded = 2,
+    /// Arbitrary agent-supplied per-slice volume profile — a deterministic
+    /// VWAP-tracking schedule. Requires `TwapParams::slice_weights` (one weight
+    /// `>= 1` per slice); slice `k` targets `total · Σ_{i≤k} wᵢ / Σ wᵢ`.
+    Custom = 3,
 }
 
 impl SliceCurve {
-    /// Converts from the proto `i32` representation.
-    pub fn from_proto(_value: i32) -> Self {
-        Self::Uniform
+    /// Converts from the proto `i32` representation (unknown values fail safe to
+    /// `Uniform`).
+    pub fn from_proto(value: i32) -> Self {
+        match value {
+            1 => Self::FrontLoaded,
+            2 => Self::BackLoaded,
+            3 => Self::Custom,
+            _ => Self::Uniform,
+        }
     }
 
     /// Converts to the proto `i32` representation.
@@ -251,6 +267,9 @@ impl fmt::Display for SliceCurve {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::Uniform => f.write_str("SLICE_CURVE_UNIFORM"),
+            Self::FrontLoaded => f.write_str("SLICE_CURVE_FRONT_LOADED"),
+            Self::BackLoaded => f.write_str("SLICE_CURVE_BACK_LOADED"),
+            Self::Custom => f.write_str("SLICE_CURVE_CUSTOM"),
         }
     }
 }
@@ -419,6 +438,10 @@ pub struct TwapParams {
     pub tif: Tif,
     /// Per-slice limit price (1e8) as a decimal string. Required, non-zero.
     pub limit_price_e8: String,
+    /// Custom volume-profile weights (one per slice), required and only valid when
+    /// `curve == SliceCurve::Custom` (`len == num_slices`, each `>= 1`). Empty for
+    /// every other curve. Bounds are enforced on-chain by `validate_twap_params`.
+    pub slice_weights: Vec<u32>,
 }
 
 impl From<proto::TwapParams> for TwapParams {
@@ -433,6 +456,7 @@ impl From<proto::TwapParams> for TwapParams {
             curve: SliceCurve::from_proto(p.curve),
             tif: Tif::from_proto(p.tif),
             limit_price_e8: p.limit_price_e8,
+            slice_weights: p.slice_weights,
         }
     }
 }
@@ -449,10 +473,7 @@ impl From<TwapParams> for proto::TwapParams {
             curve: t.curve.to_proto(),
             tif: t.tif.to_proto(),
             limit_price_e8: t.limit_price_e8,
-            // WS-BG custom volume-profile weights are not yet surfaced on the SDK
-            // `SliceCurve` (still `Uniform`-only, as of WS-AP); default empty ⇒ the
-            // non-custom curves, byte-identical. Full SDK parity is a follow-on.
-            slice_weights: Vec::new(),
+            slice_weights: t.slice_weights,
         }
     }
 }
@@ -1003,10 +1024,14 @@ mod tests {
         for t in [Tif::Gtc, Tif::Ioc, Tif::Fok] {
             assert_eq!(Tif::from_proto(t.to_proto()), t);
         }
-        assert_eq!(
-            SliceCurve::from_proto(SliceCurve::Uniform.to_proto()),
-            SliceCurve::Uniform
-        );
+        for c in [
+            SliceCurve::Uniform,
+            SliceCurve::FrontLoaded,
+            SliceCurve::BackLoaded,
+            SliceCurve::Custom,
+        ] {
+            assert_eq!(SliceCurve::from_proto(c.to_proto()), c);
+        }
         for c in [Comparator::Above, Comparator::Below] {
             assert_eq!(Comparator::from_proto(c.to_proto()), c);
         }
@@ -1061,9 +1086,50 @@ mod tests {
             curve: SliceCurve::Uniform,
             tif: Tif::Gtc,
             limit_price_e8: "5000000000000".into(),
+            slice_weights: Vec::new(),
         };
         let proto: proto::TwapParams = params.clone().into();
         let back: TwapParams = proto.into();
+        assert_eq!(params, back);
+    }
+
+    #[test]
+    fn twap_params_custom_curve_roundtrip() {
+        let params = TwapParams {
+            market_index: 3,
+            bucket_id: 9,
+            side: Side::Sell,
+            total_size: 100_000,
+            num_slices: 4,
+            duration_ms: 60_000,
+            curve: SliceCurve::Custom,
+            tif: Tif::Ioc,
+            limit_price_e8: "5000000000000".into(),
+            slice_weights: vec![1, 2, 3, 4],
+        };
+        let proto: proto::TwapParams = params.clone().into();
+        assert_eq!(proto.curve, SliceCurve::Custom.to_proto());
+        assert_eq!(proto.slice_weights, vec![1, 2, 3, 4]);
+        let back: TwapParams = proto.into();
+        assert_eq!(params, back);
+    }
+
+    #[test]
+    fn pov_params_roundtrip() {
+        let params = PovParams {
+            market_index: 5,
+            bucket_id: 11,
+            side: Side::Buy,
+            total_size: 250_000,
+            participation_rate_bps: 2_000,
+            duration_ms: 120_000,
+            min_slice_size: 100,
+            max_slice_size: 10_000,
+            tif: Tif::Ioc,
+            limit_price_e8: "4990000000000".into(),
+        };
+        let proto: proto::PovParams = params.clone().into();
+        let back: PovParams = proto.into();
         assert_eq!(params, back);
     }
 

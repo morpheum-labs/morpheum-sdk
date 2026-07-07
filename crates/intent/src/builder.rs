@@ -13,14 +13,13 @@ use morpheum_sdk_core::SdkError;
 use crate::requests::{CancelIntentRequest, SubmitIntentRequest};
 use crate::types::{
     AgentIntent, ConditionalParams, DeclarativeParams, IntentParams, IntentStatus, IntentType,
-    MultiLegParams, TwapParams,
+    MultiLegParams, PovParams, TwapParams,
 };
 
 /// Fluent builder for constructing and submitting an agent intent.
 ///
-/// Supports all four intent types. Use the type-specific parameter setter
-/// (`conditional()`, `twap()`, `multi_leg()`, or `declarative()`) to configure
-/// the intent's execution logic.
+/// Use the type-specific parameter setter (`conditional()`, `twap()`, `pov()`,
+/// `multi_leg()`, or `declarative()`) to configure the intent's execution logic.
 ///
 /// # Example
 /// ```rust,ignore
@@ -92,6 +91,13 @@ impl SubmitIntentBuilder {
         self
     }
 
+    /// Sets POV (volume-participation) parameters.
+    pub fn pov(mut self, params: PovParams) -> Self {
+        self.intent_type = Some(IntentType::Pov);
+        self.params = Some(IntentParams::Pov(params));
+        self
+    }
+
     /// Sets multi-leg parameters.
     pub fn multi_leg(mut self, params: MultiLegParams) -> Self {
         self.intent_type = Some(IntentType::MultiLeg);
@@ -141,7 +147,7 @@ impl SubmitIntentBuilder {
         })?;
 
         let params = self.params.ok_or_else(|| {
-            SdkError::invalid_input("params are required for intent submission (use conditional(), twap(), multi_leg(), or declarative())")
+            SdkError::invalid_input("params are required for intent submission (use conditional(), twap(), pov(), multi_leg(), or declarative())")
         })?;
 
         let agent_signature = self.agent_signature.ok_or_else(|| {
@@ -281,12 +287,68 @@ mod tests {
                 curve: SliceCurve::Uniform,
                 tif: Tif::Gtc,
                 limit_price_e8: "5000000000000".into(),
+                slice_weights: vec![],
             })
             .agent_signature(vec![2u8; 64])
             .build()
             .unwrap();
 
         assert_eq!(request.intent.intent_type, IntentType::Twap);
+    }
+
+    #[test]
+    fn submit_twap_custom_curve_builder() {
+        let request = SubmitIntentBuilder::new()
+            .agent_hash("agent-custom")
+            .twap(TwapParams {
+                market_index: 3,
+                bucket_id: 9,
+                side: Side::Buy,
+                total_size: 100_000,
+                num_slices: 4,
+                duration_ms: 60_000,
+                curve: SliceCurve::Custom,
+                tif: Tif::Ioc,
+                limit_price_e8: "5000000000000".into(),
+                slice_weights: vec![1, 2, 3, 4],
+            })
+            .agent_signature(vec![2u8; 64])
+            .build()
+            .unwrap();
+
+        assert_eq!(request.intent.intent_type, IntentType::Twap);
+        assert!(matches!(
+            request.intent.params,
+            Some(IntentParams::Twap(ref p))
+                if p.curve == SliceCurve::Custom && p.slice_weights == vec![1, 2, 3, 4]
+        ));
+    }
+
+    #[test]
+    fn submit_pov_builder() {
+        let request = SubmitIntentBuilder::new()
+            .agent_hash("agent-pov")
+            .pov(PovParams {
+                market_index: 3,
+                bucket_id: 9,
+                side: Side::Buy,
+                total_size: 100_000,
+                participation_rate_bps: 2_000,
+                duration_ms: 60_000,
+                min_slice_size: 0,
+                max_slice_size: 0,
+                tif: Tif::Ioc,
+                limit_price_e8: "5000000000000".into(),
+            })
+            .agent_signature(vec![2u8; 64])
+            .build()
+            .unwrap();
+
+        assert_eq!(request.intent.intent_type, IntentType::Pov);
+        assert!(matches!(
+            request.intent.params,
+            Some(IntentParams::Pov(ref p)) if p.participation_rate_bps == 2_000
+        ));
     }
 
     #[test]

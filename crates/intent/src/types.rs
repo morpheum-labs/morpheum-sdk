@@ -31,6 +31,8 @@ pub enum IntentType {
     Declarative = 3,
     /// RFQ: sealed-bid request-for-quote auction (zkRFQ, ADR-ZK-002).
     Rfq = 4,
+    /// POV: volume-participation execution (WS-BF).
+    Pov = 5,
 }
 
 impl IntentType {
@@ -41,6 +43,7 @@ impl IntentType {
             2 => Self::MultiLeg,
             3 => Self::Declarative,
             4 => Self::Rfq,
+            5 => Self::Pov,
             _ => Self::Conditional,
         }
     }
@@ -59,6 +62,7 @@ impl fmt::Display for IntentType {
             Self::MultiLeg => f.write_str("MULTI_LEG"),
             Self::Declarative => f.write_str("DECLARATIVE"),
             Self::Rfq => f.write_str("RFQ"),
+            Self::Pov => f.write_str("POV"),
         }
     }
 }
@@ -445,6 +449,72 @@ impl From<TwapParams> for proto::TwapParams {
             curve: t.curve.to_proto(),
             tif: t.tif.to_proto(),
             limit_price_e8: t.limit_price_e8,
+            // WS-BG custom volume-profile weights are not yet surfaced on the SDK
+            // `SliceCurve` (still `Uniform`-only, as of WS-AP); default empty ⇒ the
+            // non-custom curves, byte-identical. Full SDK parity is a follow-on.
+            slice_weights: Vec::new(),
+        }
+    }
+}
+
+/// POV (Percentage-of-Volume) / volume-participation intent parameters (WS-BF).
+///
+/// Each cadence tick sizes the child order to a target participation of the
+/// market volume realized since arming, reading the CLOB committed traded-volume
+/// SSOT. Prices are 1e8 fixed-point decimal strings; every other field is an
+/// integer index/size.
+#[derive(Clone, Debug, Default, PartialEq, Eq, Hash)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+pub struct PovParams {
+    pub market_index: u64,
+    pub bucket_id: u64,
+    pub side: Side,
+    /// Total order size to execute (1e8 satoshi-scale).
+    pub total_size: u64,
+    /// Target participation of realized market volume, in basis points
+    /// (`1..=10000`).
+    pub participation_rate_bps: u32,
+    /// Execution window (milliseconds); the remainder is closed by expiry.
+    pub duration_ms: u64,
+    /// Minimum child-order size (1e8); a below-floor tick is skipped. `0` ⇒ none.
+    pub min_slice_size: u64,
+    /// Maximum child-order size (1e8), bounding a single tick. `0` ⇒ unbounded.
+    pub max_slice_size: u64,
+    pub tif: Tif,
+    /// Per-slice limit price (1e8) as a decimal string. Required, non-zero.
+    pub limit_price_e8: String,
+}
+
+impl From<proto::PovParams> for PovParams {
+    fn from(p: proto::PovParams) -> Self {
+        Self {
+            market_index: p.market_index,
+            bucket_id: p.bucket_id,
+            side: Side::from_proto(p.side),
+            total_size: p.total_size,
+            participation_rate_bps: p.participation_rate_bps,
+            duration_ms: p.duration_ms,
+            min_slice_size: p.min_slice_size,
+            max_slice_size: p.max_slice_size,
+            tif: Tif::from_proto(p.tif),
+            limit_price_e8: p.limit_price_e8,
+        }
+    }
+}
+
+impl From<PovParams> for proto::PovParams {
+    fn from(p: PovParams) -> Self {
+        Self {
+            market_index: p.market_index,
+            bucket_id: p.bucket_id,
+            side: p.side.to_proto(),
+            total_size: p.total_size,
+            participation_rate_bps: p.participation_rate_bps,
+            duration_ms: p.duration_ms,
+            min_slice_size: p.min_slice_size,
+            max_slice_size: p.max_slice_size,
+            tif: p.tif.to_proto(),
+            limit_price_e8: p.limit_price_e8,
         }
     }
 }
@@ -607,6 +677,8 @@ pub enum IntentParams {
     Conditional(ConditionalParams),
     /// TWAP: time-sliced execution.
     Twap(TwapParams),
+    /// POV: volume-participation execution.
+    Pov(PovParams),
     /// Multi-leg: atomic correlated actions.
     MultiLeg(MultiLegParams),
     /// Declarative: high-level goal decomposition.
@@ -620,6 +692,7 @@ impl From<proto::agent_intent::Params> for IntentParams {
         match p {
             proto::agent_intent::Params::Conditional(c) => Self::Conditional(c.into()),
             proto::agent_intent::Params::Twap(t) => Self::Twap(t.into()),
+            proto::agent_intent::Params::Pov(p) => Self::Pov(p.into()),
             proto::agent_intent::Params::MultiLeg(m) => Self::MultiLeg(m.into()),
             proto::agent_intent::Params::Declarative(d) => Self::Declarative(d.into()),
             proto::agent_intent::Params::Rfq(r) => Self::Rfq(r.into()),
@@ -632,6 +705,7 @@ impl From<IntentParams> for proto::agent_intent::Params {
         match p {
             IntentParams::Conditional(c) => Self::Conditional(c.into()),
             IntentParams::Twap(t) => Self::Twap(t.into()),
+            IntentParams::Pov(p) => Self::Pov(p.into()),
             IntentParams::MultiLeg(m) => Self::MultiLeg(m.into()),
             IntentParams::Declarative(d) => Self::Declarative(d.into()),
             IntentParams::Rfq(r) => Self::Rfq(r.into()),
@@ -886,6 +960,7 @@ mod tests {
             IntentType::MultiLeg,
             IntentType::Declarative,
             IntentType::Rfq,
+            IntentType::Pov,
         ] {
             assert_eq!(IntentType::from_proto(t.to_proto()), t);
         }
@@ -928,7 +1003,10 @@ mod tests {
         for t in [Tif::Gtc, Tif::Ioc, Tif::Fok] {
             assert_eq!(Tif::from_proto(t.to_proto()), t);
         }
-        assert_eq!(SliceCurve::from_proto(SliceCurve::Uniform.to_proto()), SliceCurve::Uniform);
+        assert_eq!(
+            SliceCurve::from_proto(SliceCurve::Uniform.to_proto()),
+            SliceCurve::Uniform
+        );
         for c in [Comparator::Above, Comparator::Below] {
             assert_eq!(Comparator::from_proto(c.to_proto()), c);
         }

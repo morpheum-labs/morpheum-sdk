@@ -235,6 +235,42 @@ impl From<SetProviderRequest> for proto::MsgSetProvider {
     }
 }
 
+/// ARS v8 (WS-BI): request to post provider collateral for a job. `amount_usd`
+/// must equal the job's `provider_stake_required_usd` (front-run-safe); the
+/// provider's own funds are moved into the segregated stake pool.
+#[derive(Clone, Debug, PartialEq, Eq)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+pub struct StakeProviderRequest {
+    pub job_id: String,
+    pub amount_usd: u64,
+}
+
+impl StakeProviderRequest {
+    pub fn new(job_id: impl Into<String>, amount_usd: u64) -> Self {
+        Self {
+            job_id: job_id.into(),
+            amount_usd,
+        }
+    }
+
+    pub fn to_any(&self) -> ProtoAny {
+        let msg: proto::MsgStakeProvider = self.clone().into();
+        ProtoAny {
+            type_url: "/job.v1.MsgStakeProvider".into(),
+            value: msg.encode_to_vec(),
+        }
+    }
+}
+
+impl From<StakeProviderRequest> for proto::MsgStakeProvider {
+    fn from(req: StakeProviderRequest) -> Self {
+        Self {
+            job_id: req.job_id,
+            amount_usd: req.amount_usd,
+        }
+    }
+}
+
 /// Request to cancel a job.
 #[derive(Clone, Debug, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
@@ -524,6 +560,18 @@ mod tests {
         let req = CancelJobRequest::new("job-1");
         let any = req.to_any();
         assert_eq!(any.type_url, "/job.v1.MsgCancelJob");
+    }
+
+    #[test]
+    fn stake_provider_request_to_any() {
+        let req = StakeProviderRequest::new("job-1", 2_000);
+        assert_eq!(req.amount_usd, 2_000);
+        let any = req.to_any();
+        assert_eq!(any.type_url, "/job.v1.MsgStakeProvider");
+        assert!(!any.value.is_empty());
+        let msg: proto::MsgStakeProvider = req.into();
+        assert_eq!(msg.job_id, "job-1");
+        assert_eq!(msg.amount_usd, 2_000);
     }
 
     #[test]

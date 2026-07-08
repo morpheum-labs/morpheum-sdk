@@ -223,6 +223,14 @@ pub struct Job {
     /// ARS v6: coverage premium escrowed on top of the principal + fee tracks;
     /// resolved once at creation then immutable.
     pub coverage_premium_usd: u64,
+    /// ARS v8 (WS-BI): provider collateral this job requires; resolved once at
+    /// creation (job value, else governance default, capped) when staking is
+    /// enabled, then immutable. Zero disables staking (byte-identical to v7).
+    pub provider_stake_required_usd: u64,
+    /// ARS v8 (WS-BI): provider collateral actually locked in the segregated
+    /// stake pool: zero until `MsgStakeProvider`, then equal to
+    /// `provider_stake_required_usd`, zeroed again on slash/release at settlement.
+    pub provider_stake_locked_usd: u64,
 }
 
 impl Job {
@@ -273,6 +281,8 @@ impl From<proto::Job> for Job {
             evaluation_fee_usd: p.evaluation_fee_usd,
             coverage_amount_usd: p.coverage_amount_usd,
             coverage_premium_usd: p.coverage_premium_usd,
+            provider_stake_required_usd: p.provider_stake_required_usd,
+            provider_stake_locked_usd: p.provider_stake_locked_usd,
         }
     }
 }
@@ -303,6 +313,8 @@ impl From<Job> for proto::Job {
             evaluation_fee_usd: j.evaluation_fee_usd,
             coverage_amount_usd: j.coverage_amount_usd,
             coverage_premium_usd: j.coverage_premium_usd,
+            provider_stake_required_usd: j.provider_stake_required_usd,
+            provider_stake_locked_usd: j.provider_stake_locked_usd,
         }
     }
 }
@@ -392,6 +404,21 @@ pub struct JobParams {
     /// reputation, and the provider is locked on a coverage job that named one.
     /// False (default) preserves the v6 flat-premium behavior byte-for-byte.
     pub enable_risk_based_coverage_premium: bool,
+    /// ARS v8 (WS-BI): master gate for provider staking. When true, a job may
+    /// require provider collateral (posted via `MsgStakeProvider`), submission is
+    /// gated on it, and a rejection slashes a bounded penalty to the client +
+    /// treasury. False (default) preserves the v7 behavior byte-for-byte.
+    pub enable_provider_stake: bool,
+    /// ARS v8: governance default provider stake stamped onto a job when unset.
+    pub default_provider_stake_usd: u64,
+    /// ARS v8: governance cap on a job's provider stake (zero = unbounded).
+    pub max_provider_stake_usd: u64,
+    /// ARS v8: provider slash rate (bps, [0, 10_000]) applied to the locked
+    /// stake on a rejection; zero slashes nothing (staking inert).
+    pub provider_penalty_bps: u32,
+    /// ARS v8: treasury cut (bps, [0, 10_000]) of the slashed penalty; the
+    /// remainder compensates the client. Zero sends the whole penalty to client.
+    pub provider_penalty_treasury_cut_bps: u32,
 }
 
 impl Default for JobParams {
@@ -414,6 +441,11 @@ impl Default for JobParams {
             default_coverage_premium_rate_bps: 0,
             max_coverage_amount_usd: 0,
             enable_risk_based_coverage_premium: false,
+            enable_provider_stake: false,
+            default_provider_stake_usd: 0,
+            max_provider_stake_usd: 0,
+            provider_penalty_bps: 0,
+            provider_penalty_treasury_cut_bps: 0,
         }
     }
 }
@@ -438,6 +470,11 @@ impl From<proto::Params> for JobParams {
             default_coverage_premium_rate_bps: p.default_coverage_premium_rate_bps,
             max_coverage_amount_usd: p.max_coverage_amount_usd,
             enable_risk_based_coverage_premium: p.enable_risk_based_coverage_premium,
+            enable_provider_stake: p.enable_provider_stake,
+            default_provider_stake_usd: p.default_provider_stake_usd,
+            max_provider_stake_usd: p.max_provider_stake_usd,
+            provider_penalty_bps: p.provider_penalty_bps,
+            provider_penalty_treasury_cut_bps: p.provider_penalty_treasury_cut_bps,
         }
     }
 }
@@ -462,6 +499,11 @@ impl From<JobParams> for proto::Params {
             default_coverage_premium_rate_bps: p.default_coverage_premium_rate_bps,
             max_coverage_amount_usd: p.max_coverage_amount_usd,
             enable_risk_based_coverage_premium: p.enable_risk_based_coverage_premium,
+            enable_provider_stake: p.enable_provider_stake,
+            default_provider_stake_usd: p.default_provider_stake_usd,
+            max_provider_stake_usd: p.max_provider_stake_usd,
+            provider_penalty_bps: p.provider_penalty_bps,
+            provider_penalty_treasury_cut_bps: p.provider_penalty_treasury_cut_bps,
         }
     }
 }
@@ -528,6 +570,8 @@ mod tests {
             evaluation_fee_usd: 50,
             coverage_amount_usd: 500,
             coverage_premium_usd: 25,
+            provider_stake_required_usd: 2_000,
+            provider_stake_locked_usd: 2_000,
         };
 
         let proto_job: proto::Job = job.clone().into();
@@ -554,6 +598,11 @@ mod tests {
             default_coverage_premium_rate_bps: 500,
             max_coverage_amount_usd: 1_000_000,
             enable_risk_based_coverage_premium: true,
+            enable_provider_stake: true,
+            default_provider_stake_usd: 2_000,
+            max_provider_stake_usd: 1_000_000,
+            provider_penalty_bps: 3_000,
+            provider_penalty_treasury_cut_bps: 1_500,
             ..JobParams::default()
         };
         let proto_params: proto::Params = params.clone().into();

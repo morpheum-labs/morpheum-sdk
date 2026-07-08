@@ -32,7 +32,7 @@ pub use requests::*;
 /// Fluent builders for job lifecycle operations.
 pub use builder::{
     AttestBuilder, CancelJobBuilder, ClaimRefundBuilder, CreateJobBuilder, FundJobBuilder,
-    SetProviderBuilder, SubmitDeliverableBuilder,
+    SetProviderBuilder, StakeProviderBuilder, SubmitDeliverableBuilder,
 };
 
 // Re-export core SDK types commonly used with job flows.

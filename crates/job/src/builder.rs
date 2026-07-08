@@ -11,7 +11,7 @@ use morpheum_sdk_core::SdkError;
 
 use crate::requests::{
     AttestRequest, CancelJobRequest, ClaimRefundRequest, CreateJobRequest, FundJobRequest,
-    SetProviderRequest, SubmitDeliverableRequest,
+    SetProviderRequest, StakeProviderRequest, SubmitDeliverableRequest,
 };
 use crate::types::{CompensationPolicy, Deliverable, Job, RevenueShareConfig};
 
@@ -328,6 +328,41 @@ impl SetProviderBuilder {
             .ok_or_else(|| SdkError::invalid_input("new_provider_agent_hash is required"))?;
 
         Ok(SetProviderRequest::new(job_id, new_provider_agent_hash))
+    }
+}
+
+/// Fluent builder for posting provider collateral (ARS v8 / WS-BI).
+#[derive(Default)]
+pub struct StakeProviderBuilder {
+    job_id: Option<String>,
+    amount_usd: Option<u64>,
+}
+
+impl StakeProviderBuilder {
+    pub fn new() -> Self {
+        Self::default()
+    }
+
+    pub fn job_id(mut self, id: impl Into<String>) -> Self {
+        self.job_id = Some(id.into());
+        self
+    }
+
+    pub fn amount_usd(mut self, amount: u64) -> Self {
+        self.amount_usd = Some(amount);
+        self
+    }
+
+    pub fn build(self) -> Result<StakeProviderRequest, SdkError> {
+        let job_id = self
+            .job_id
+            .ok_or_else(|| SdkError::invalid_input("job_id is required for staking provider"))?;
+
+        let amount_usd = self
+            .amount_usd
+            .ok_or_else(|| SdkError::invalid_input("amount_usd is required for staking provider"))?;
+
+        Ok(StakeProviderRequest::new(job_id, amount_usd))
     }
 }
 

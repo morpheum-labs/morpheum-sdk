@@ -358,9 +358,9 @@ impl StakeProviderBuilder {
             .job_id
             .ok_or_else(|| SdkError::invalid_input("job_id is required for staking provider"))?;
 
-        let amount_usd = self
-            .amount_usd
-            .ok_or_else(|| SdkError::invalid_input("amount_usd is required for staking provider"))?;
+        let amount_usd = self.amount_usd.ok_or_else(|| {
+            SdkError::invalid_input("amount_usd is required for staking provider")
+        })?;
 
         Ok(StakeProviderRequest::new(job_id, amount_usd))
     }
@@ -452,10 +452,7 @@ mod tests {
 
     #[test]
     fn cancel_job_builder_works() {
-        let req = CancelJobBuilder::new()
-            .job_id("job-1")
-            .build()
-            .unwrap();
+        let req = CancelJobBuilder::new().job_id("job-1").build().unwrap();
 
         assert_eq!(req.job_id, "job-1");
     }

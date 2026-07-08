@@ -192,9 +192,7 @@ impl ClaimRefundRequest {
 
 impl From<ClaimRefundRequest> for proto::MsgClaimRefund {
     fn from(req: ClaimRefundRequest) -> Self {
-        Self {
-            job_id: req.job_id,
-        }
+        Self { job_id: req.job_id }
     }
 }
 
@@ -207,10 +205,7 @@ pub struct SetProviderRequest {
 }
 
 impl SetProviderRequest {
-    pub fn new(
-        job_id: impl Into<String>,
-        new_provider_agent_hash: impl Into<String>,
-    ) -> Self {
+    pub fn new(job_id: impl Into<String>, new_provider_agent_hash: impl Into<String>) -> Self {
         Self {
             job_id: job_id.into(),
             new_provider_agent_hash: new_provider_agent_hash.into(),
@@ -296,9 +291,7 @@ impl CancelJobRequest {
 
 impl From<CancelJobRequest> for proto::MsgCancelJob {
     fn from(req: CancelJobRequest) -> Self {
-        Self {
-            job_id: req.job_id,
-        }
+        Self { job_id: req.job_id }
     }
 }
 

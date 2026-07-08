@@ -418,7 +418,13 @@ pub struct JobParams {
     pub provider_penalty_bps: u32,
     /// ARS v8: treasury cut (bps, [0, 10_000]) of the slashed penalty; the
     /// remainder compensates the client. Zero sends the whole penalty to client.
+    /// Shared by the v8 rejection slash and the v9 non-delivery-expiry slash.
     pub provider_penalty_treasury_cut_bps: u32,
+    /// ARS v9 (WS-BJ): provider slash rate (bps, [0, 10_000]) applied to the
+    /// locked stake when a staked job expires while still Funded (committed but
+    /// never delivered). Split via `provider_penalty_treasury_cut_bps`. Zero
+    /// (default) releases the full stake on every expiry, byte-identical to v8.
+    pub provider_nondelivery_penalty_bps: u32,
 }
 
 impl Default for JobParams {
@@ -446,6 +452,7 @@ impl Default for JobParams {
             max_provider_stake_usd: 0,
             provider_penalty_bps: 0,
             provider_penalty_treasury_cut_bps: 0,
+            provider_nondelivery_penalty_bps: 0,
         }
     }
 }
@@ -475,6 +482,7 @@ impl From<proto::Params> for JobParams {
             max_provider_stake_usd: p.max_provider_stake_usd,
             provider_penalty_bps: p.provider_penalty_bps,
             provider_penalty_treasury_cut_bps: p.provider_penalty_treasury_cut_bps,
+            provider_nondelivery_penalty_bps: p.provider_nondelivery_penalty_bps,
         }
     }
 }
@@ -504,6 +512,7 @@ impl From<JobParams> for proto::Params {
             max_provider_stake_usd: p.max_provider_stake_usd,
             provider_penalty_bps: p.provider_penalty_bps,
             provider_penalty_treasury_cut_bps: p.provider_penalty_treasury_cut_bps,
+            provider_nondelivery_penalty_bps: p.provider_nondelivery_penalty_bps,
         }
     }
 }
@@ -603,6 +612,7 @@ mod tests {
             max_provider_stake_usd: 1_000_000,
             provider_penalty_bps: 3_000,
             provider_penalty_treasury_cut_bps: 1_500,
+            provider_nondelivery_penalty_bps: 2_000,
             ..JobParams::default()
         };
         let proto_params: proto::Params = params.clone().into();

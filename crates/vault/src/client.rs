@@ -265,6 +265,9 @@ mod tests {
                             clmm_collateral_token_index: 0,
                             clmm_deployed_assets: "0".into(),
                             strategy_type: 0,
+                            leader_payout_address: "a1".into(),
+                            performance_fee_bps: 500,
+                            management_fee_bps: 0,
                         }),
                         error_message: "".into(),
                     }))

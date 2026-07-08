@@ -128,6 +128,15 @@ pub struct Vault {
     pub clmm_position_id: String,
     pub clmm_collateral_token_index: u32,
     pub clmm_deployed_assets: String,
+    /// VB2 (spec §7 / §12) — persisted fee model. The leader (creator / agent
+    /// manager) performance-fee payout recipient; the crystallized fee is split
+    /// to this address plus the treasury and the insurance/MLP reserve.
+    pub leader_payout_address: String,
+    /// Performance-fee rate (bps of profit above the high-water mark). "0" ⇒
+    /// inherit the live `treasury_cut_bps` (pre-VB2 vaults).
+    pub performance_fee_bps: u32,
+    /// Management-fee rate (bps of AUM); locked at 0 for the Standard preset.
+    pub management_fee_bps: u32,
 }
 
 impl From<proto::Vault> for Vault {
@@ -162,6 +171,9 @@ impl From<proto::Vault> for Vault {
             clmm_position_id: p.clmm_position_id,
             clmm_collateral_token_index: p.clmm_collateral_token_index,
             clmm_deployed_assets: p.clmm_deployed_assets,
+            leader_payout_address: p.leader_payout_address,
+            performance_fee_bps: p.performance_fee_bps,
+            management_fee_bps: p.management_fee_bps,
         }
     }
 }
@@ -353,6 +365,12 @@ pub struct VaultParams {
     /// Default-OFF gate for per-depositor high-water marks (spec §7 / G9). While
     /// false the performance fee crystallizes against the vault-global mark.
     pub per_depositor_hwm_enabled: bool,
+    /// VB2 (spec §7 / G9) — internal performance-fee split: the leader payout
+    /// share (bps). The treasury receives the remainder (`10000 − leader −
+    /// reserve`); 0 ⇒ treasury takes the full fee (byte-identical pre-VB2).
+    pub perf_fee_leader_bps: u32,
+    /// The insurance/MLP-reserve share of the performance fee (bps).
+    pub perf_fee_reserve_bps: u32,
 }
 
 impl From<proto::Params> for VaultParams {
@@ -370,6 +388,8 @@ impl From<proto::Params> for VaultParams {
             authorized_withdrawal_signers: p.authorized_withdrawal_signers,
             max_withdrawals_per_scan: p.max_withdrawals_per_scan,
             per_depositor_hwm_enabled: p.per_depositor_hwm_enabled,
+            perf_fee_leader_bps: p.perf_fee_leader_bps,
+            perf_fee_reserve_bps: p.perf_fee_reserve_bps,
         }
     }
 }
@@ -389,6 +409,8 @@ impl From<VaultParams> for proto::Params {
             authorized_withdrawal_signers: p.authorized_withdrawal_signers,
             max_withdrawals_per_scan: p.max_withdrawals_per_scan,
             per_depositor_hwm_enabled: p.per_depositor_hwm_enabled,
+            perf_fee_leader_bps: p.perf_fee_leader_bps,
+            perf_fee_reserve_bps: p.perf_fee_reserve_bps,
         }
     }
 }
@@ -496,6 +518,9 @@ mod tests {
             clmm_collateral_token_index: 1,
             clmm_deployed_assets: "50".into(),
             strategy_type: 0,
+            leader_payout_address: "a1".into(),
+            performance_fee_bps: 500,
+            management_fee_bps: 0,
         };
         let v: Vault = p.into();
         assert_eq!(v.vault_type, VaultType::Custom);
@@ -504,6 +529,8 @@ mod tests {
         assert_eq!(v.total_shares, "1000");
         assert_eq!(v.bucket_id, "bucket-v1");
         assert_eq!(v.clmm_position_id, "position-1");
+        assert_eq!(v.leader_payout_address, "a1");
+        assert_eq!(v.performance_fee_bps, 500);
     }
 
     #[test]
@@ -542,6 +569,8 @@ mod tests {
             authorized_withdrawal_signers: alloc::vec!["morpheum1withdraw".into()],
             max_withdrawals_per_scan: 25,
             per_depositor_hwm_enabled: true,
+            perf_fee_leader_bps: 7_000,
+            perf_fee_reserve_bps: 1_000,
         };
         let proto_p: proto::Params = p.clone().into();
         let p2: VaultParams = proto_p.into();

@@ -264,6 +264,7 @@ mod tests {
                             clmm_position_id: "".into(),
                             clmm_collateral_token_index: 0,
                             clmm_deployed_assets: "0".into(),
+                            strategy_type: 0,
                         }),
                         error_message: "".into(),
                     }))

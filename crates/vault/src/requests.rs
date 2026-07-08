@@ -57,6 +57,9 @@ impl CreateVaultRequest {
             timestamp: None,
             creator_external_address: None,
             creator_chain_type: None,
+            // Left UNSPECIFIED; the vault module coalesces it to the
+            // MARKET_MAKING default at create (spec §12).
+            strategy_type: 0,
         };
         ProtoAny {
             type_url: "/vault.v1.MsgCreateVault".into(),

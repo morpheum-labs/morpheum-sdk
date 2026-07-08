@@ -486,6 +486,7 @@ mod tests {
             clmm_position_id: "position-1".into(),
             clmm_collateral_token_index: 1,
             clmm_deployed_assets: "50".into(),
+            strategy_type: 0,
         };
         let v: Vault = p.into();
         assert_eq!(v.vault_type, VaultType::Custom);

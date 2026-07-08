@@ -213,6 +213,9 @@ pub struct Stake {
     pub pending_yield: String,
     pub stake_time: u64,
     pub last_claim_time: u64,
+    /// VB1 (spec §7 / G9) — the depositor's per-position high-water mark (e8
+    /// fixed-point share price). "0" ⇒ par.
+    pub high_water_mark: String,
 }
 
 impl From<proto::Stake> for Stake {
@@ -229,6 +232,7 @@ impl From<proto::Stake> for Stake {
             pending_yield: p.pending_yield,
             stake_time: ts_to_u64(&p.stake_time),
             last_claim_time: ts_to_u64(&p.last_claim_time),
+            high_water_mark: p.high_water_mark,
         }
     }
 }
@@ -346,6 +350,9 @@ pub struct VaultParams {
     pub authorized_withdrawal_signers: Vec<String>,
     /// Max withdrawals processed per `MsgProcessWithdrawals` scan.
     pub max_withdrawals_per_scan: u64,
+    /// Default-OFF gate for per-depositor high-water marks (spec §7 / G9). While
+    /// false the performance fee crystallizes against the vault-global mark.
+    pub per_depositor_hwm_enabled: bool,
 }
 
 impl From<proto::Params> for VaultParams {
@@ -362,6 +369,7 @@ impl From<proto::Params> for VaultParams {
             enable_withdrawal_queue: p.enable_withdrawal_queue,
             authorized_withdrawal_signers: p.authorized_withdrawal_signers,
             max_withdrawals_per_scan: p.max_withdrawals_per_scan,
+            per_depositor_hwm_enabled: p.per_depositor_hwm_enabled,
         }
     }
 }
@@ -380,6 +388,7 @@ impl From<VaultParams> for proto::Params {
             enable_withdrawal_queue: p.enable_withdrawal_queue,
             authorized_withdrawal_signers: p.authorized_withdrawal_signers,
             max_withdrawals_per_scan: p.max_withdrawals_per_scan,
+            per_depositor_hwm_enabled: p.per_depositor_hwm_enabled,
         }
     }
 }
@@ -532,6 +541,7 @@ mod tests {
             enable_withdrawal_queue: true,
             authorized_withdrawal_signers: alloc::vec!["morpheum1withdraw".into()],
             max_withdrawals_per_scan: 25,
+            per_depositor_hwm_enabled: true,
         };
         let proto_p: proto::Params = p.clone().into();
         let p2: VaultParams = proto_p.into();

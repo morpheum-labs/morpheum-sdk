@@ -289,6 +289,7 @@ mod tests {
                             pending_yield: "10".into(),
                             stake_time: None,
                             last_claim_time: None,
+                            high_water_mark: "0".into(),
                         }),
                         error_message: "".into(),
                     },

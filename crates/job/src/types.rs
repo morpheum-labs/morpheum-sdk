@@ -231,6 +231,20 @@ pub struct Job {
     /// stake pool: zero until `MsgStakeProvider`, then equal to
     /// `provider_stake_required_usd`, zeroed again on slash/release at settlement.
     pub provider_stake_locked_usd: u64,
+    /// ARS v10 (WS-BK): identity of the named underwriter backing this covered
+    /// job's claim, stamped on `MsgUnderwriteJob`. Empty until an underwriter
+    /// opts in (the job then stays on the v6 mutualized reserve).
+    pub underwriter_agent_hash: String,
+    /// ARS v10 (WS-BK): bank-payable underwriter address, bound on the first
+    /// `MsgUnderwriteJob`. Earns the coverage premium (net of any treasury cut)
+    /// and receives the released remainder of its capital at settlement.
+    pub underwriter_payout_address: String,
+    /// ARS v10 (WS-BK): underwriter capital actually locked in the segregated
+    /// underwriter pool: zero until `MsgUnderwriteJob` (then equal to
+    /// `coverage_amount_usd`), zeroed again when settled or released. Non-zero
+    /// means the job is underwritten (premium earned by the underwriter, claim
+    /// paid from this capital instead of the mutualized reserve).
+    pub underwriter_locked_usd: u64,
 }
 
 impl Job {
@@ -283,6 +297,9 @@ impl From<proto::Job> for Job {
             coverage_premium_usd: p.coverage_premium_usd,
             provider_stake_required_usd: p.provider_stake_required_usd,
             provider_stake_locked_usd: p.provider_stake_locked_usd,
+            underwriter_agent_hash: p.underwriter_agent_hash,
+            underwriter_payout_address: p.underwriter_payout_address,
+            underwriter_locked_usd: p.underwriter_locked_usd,
         }
     }
 }
@@ -315,6 +332,9 @@ impl From<Job> for proto::Job {
             coverage_premium_usd: j.coverage_premium_usd,
             provider_stake_required_usd: j.provider_stake_required_usd,
             provider_stake_locked_usd: j.provider_stake_locked_usd,
+            underwriter_agent_hash: j.underwriter_agent_hash,
+            underwriter_payout_address: j.underwriter_payout_address,
+            underwriter_locked_usd: j.underwriter_locked_usd,
         }
     }
 }
@@ -425,6 +445,16 @@ pub struct JobParams {
     /// never delivered). Split via `provider_penalty_treasury_cut_bps`. Zero
     /// (default) releases the full stake on every expiry, byte-identical to v8.
     pub provider_nondelivery_penalty_bps: u32,
+    /// ARS v10 (WS-BK): master gate for named-underwriter coverage. When true, a
+    /// covered job may be backed by an underwriter via `MsgUnderwriteJob`; such a
+    /// job routes its premium to the underwriter and pays claims from underwriter
+    /// capital instead of the mutualized reserve. False (default) rejects
+    /// `MsgUnderwriteJob`, keeping v9 behavior byte-for-byte.
+    pub enable_underwriter: bool,
+    /// ARS v10 (WS-BK): treasury cut (bps, [0, 10_000]) of the coverage premium
+    /// an underwriter earns on evaluation; the underwriter keeps the remainder.
+    /// Zero (default) sends the whole premium to the underwriter.
+    pub underwriter_premium_treasury_cut_bps: u32,
 }
 
 impl Default for JobParams {
@@ -453,6 +483,8 @@ impl Default for JobParams {
             provider_penalty_bps: 0,
             provider_penalty_treasury_cut_bps: 0,
             provider_nondelivery_penalty_bps: 0,
+            enable_underwriter: false,
+            underwriter_premium_treasury_cut_bps: 0,
         }
     }
 }
@@ -483,6 +515,8 @@ impl From<proto::Params> for JobParams {
             provider_penalty_bps: p.provider_penalty_bps,
             provider_penalty_treasury_cut_bps: p.provider_penalty_treasury_cut_bps,
             provider_nondelivery_penalty_bps: p.provider_nondelivery_penalty_bps,
+            enable_underwriter: p.enable_underwriter,
+            underwriter_premium_treasury_cut_bps: p.underwriter_premium_treasury_cut_bps,
         }
     }
 }
@@ -513,6 +547,8 @@ impl From<JobParams> for proto::Params {
             provider_penalty_bps: p.provider_penalty_bps,
             provider_penalty_treasury_cut_bps: p.provider_penalty_treasury_cut_bps,
             provider_nondelivery_penalty_bps: p.provider_nondelivery_penalty_bps,
+            enable_underwriter: p.enable_underwriter,
+            underwriter_premium_treasury_cut_bps: p.underwriter_premium_treasury_cut_bps,
         }
     }
 }
@@ -581,6 +617,9 @@ mod tests {
             coverage_premium_usd: 25,
             provider_stake_required_usd: 2_000,
             provider_stake_locked_usd: 2_000,
+            underwriter_agent_hash: "underwriter-42".into(),
+            underwriter_payout_address: "morm1underwriter".into(),
+            underwriter_locked_usd: 500,
         };
 
         let proto_job: proto::Job = job.clone().into();
@@ -613,6 +652,8 @@ mod tests {
             provider_penalty_bps: 3_000,
             provider_penalty_treasury_cut_bps: 1_500,
             provider_nondelivery_penalty_bps: 2_000,
+            enable_underwriter: true,
+            underwriter_premium_treasury_cut_bps: 1_000,
             ..JobParams::default()
         };
         let proto_params: proto::Params = params.clone().into();

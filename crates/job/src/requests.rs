@@ -266,6 +266,42 @@ impl From<StakeProviderRequest> for proto::MsgStakeProvider {
     }
 }
 
+/// ARS v10 (WS-BK): request to back a covered job with underwriter capital.
+/// `capital_usd` must equal the job's `coverage_amount_usd` (front-run-safe);
+/// the underwriter's own funds are moved into the segregated underwriter pool.
+#[derive(Clone, Debug, PartialEq, Eq)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+pub struct UnderwriteJobRequest {
+    pub job_id: String,
+    pub capital_usd: u64,
+}
+
+impl UnderwriteJobRequest {
+    pub fn new(job_id: impl Into<String>, capital_usd: u64) -> Self {
+        Self {
+            job_id: job_id.into(),
+            capital_usd,
+        }
+    }
+
+    pub fn to_any(&self) -> ProtoAny {
+        let msg: proto::MsgUnderwriteJob = self.clone().into();
+        ProtoAny {
+            type_url: "/job.v1.MsgUnderwriteJob".into(),
+            value: msg.encode_to_vec(),
+        }
+    }
+}
+
+impl From<UnderwriteJobRequest> for proto::MsgUnderwriteJob {
+    fn from(req: UnderwriteJobRequest) -> Self {
+        Self {
+            job_id: req.job_id,
+            capital_usd: req.capital_usd,
+        }
+    }
+}
+
 /// Request to cancel a job.
 #[derive(Clone, Debug, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
@@ -565,6 +601,18 @@ mod tests {
         let msg: proto::MsgStakeProvider = req.into();
         assert_eq!(msg.job_id, "job-1");
         assert_eq!(msg.amount_usd, 2_000);
+    }
+
+    #[test]
+    fn underwrite_job_request_to_any() {
+        let req = UnderwriteJobRequest::new("job-1", 500);
+        assert_eq!(req.capital_usd, 500);
+        let any = req.to_any();
+        assert_eq!(any.type_url, "/job.v1.MsgUnderwriteJob");
+        assert!(!any.value.is_empty());
+        let msg: proto::MsgUnderwriteJob = req.into();
+        assert_eq!(msg.job_id, "job-1");
+        assert_eq!(msg.capital_usd, 500);
     }
 
     #[test]

@@ -11,7 +11,7 @@ use morpheum_sdk_core::SdkError;
 
 use crate::requests::{
     AttestRequest, CancelJobRequest, ClaimRefundRequest, CreateJobRequest, FundJobRequest,
-    SetProviderRequest, StakeProviderRequest, SubmitDeliverableRequest,
+    SetProviderRequest, StakeProviderRequest, SubmitDeliverableRequest, UnderwriteJobRequest,
 };
 use crate::types::{CompensationPolicy, Deliverable, Job, RevenueShareConfig};
 
@@ -363,6 +363,41 @@ impl StakeProviderBuilder {
         })?;
 
         Ok(StakeProviderRequest::new(job_id, amount_usd))
+    }
+}
+
+/// Fluent builder for posting underwriter capital (ARS v10 / WS-BK).
+#[derive(Default)]
+pub struct UnderwriteJobBuilder {
+    job_id: Option<String>,
+    capital_usd: Option<u64>,
+}
+
+impl UnderwriteJobBuilder {
+    pub fn new() -> Self {
+        Self::default()
+    }
+
+    pub fn job_id(mut self, id: impl Into<String>) -> Self {
+        self.job_id = Some(id.into());
+        self
+    }
+
+    pub fn capital_usd(mut self, amount: u64) -> Self {
+        self.capital_usd = Some(amount);
+        self
+    }
+
+    pub fn build(self) -> Result<UnderwriteJobRequest, SdkError> {
+        let job_id = self
+            .job_id
+            .ok_or_else(|| SdkError::invalid_input("job_id is required for underwriting"))?;
+
+        let capital_usd = self
+            .capital_usd
+            .ok_or_else(|| SdkError::invalid_input("capital_usd is required for underwriting"))?;
+
+        Ok(UnderwriteJobRequest::new(job_id, capital_usd))
     }
 }
 

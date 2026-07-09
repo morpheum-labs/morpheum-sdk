@@ -159,6 +159,10 @@ pub struct Vault {
     /// VB7 (spec §5) — buffer-floor auto-allocation policy. Empty / zero
     /// targets ⇒ disarmed (deployment stays fully manual).
     pub allocation_policy: AllocationPolicy,
+    /// D5 (spec §1) — creator's agent identity (`tx_meta.agent_hash`). The
+    /// delegation target for `DELEGATION_SCOPE_VAULT`. Empty ⇒ delegation
+    /// disabled (byte-identical to pre-D5).
+    pub owner_agent_hash: String,
 }
 
 /// VB6 (spec P7 / §2) — per-vault operating constraints.
@@ -320,6 +324,7 @@ impl From<proto::Vault> for Vault {
                 .allocation_policy
                 .map(AllocationPolicy::from)
                 .unwrap_or_default(),
+            owner_agent_hash: p.owner_agent_hash,
         }
     }
 }
@@ -756,6 +761,7 @@ mod tests {
             soft_closed: false,
             mandate: None,
             allocation_policy: None,
+            owner_agent_hash: "agent-hash-1".into(),
         };
         let v: Vault = p.into();
         assert_eq!(v.vault_type, VaultType::Custom);
@@ -773,6 +779,7 @@ mod tests {
         assert_eq!(v.mandate.max_leverage, 0);
         assert_eq!(v.allocation_policy.cash_buffer_floor_bps, 0);
         assert!(v.allocation_policy.targets.is_empty());
+        assert_eq!(v.owner_agent_hash, "agent-hash-1");
     }
 
     #[test]

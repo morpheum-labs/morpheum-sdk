@@ -273,6 +273,7 @@ mod tests {
                             soft_closed: false,
                             mandate: None,
                             allocation_policy: None,
+                            owner_agent_hash: "".into(),
                         }),
                         error_message: "".into(),
                     }))

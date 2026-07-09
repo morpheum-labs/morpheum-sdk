@@ -453,6 +453,10 @@ pub struct VaultHealth {
     pub pnl_24h: String,
     pub risk_score: String,
     pub timestamp: u64,
+    /// VA4 — 30d PnL in USD (e8 string, signed). Distinct from `pnl_24h`.
+    pub pnl_30d_usd: String,
+    /// VA4 — Capacity-TVL snapshot in USD (e8 string) at last score refresh.
+    pub tvl_usd: String,
 }
 
 impl From<proto::VaultHealth> for VaultHealth {
@@ -464,6 +468,8 @@ impl From<proto::VaultHealth> for VaultHealth {
             pnl_24h: p.pnl_24h,
             risk_score: p.risk_score,
             timestamp: ts_to_u64(&p.timestamp),
+            pnl_30d_usd: p.pnl_30d_usd,
+            tvl_usd: p.tvl_usd,
         }
     }
 }
@@ -546,6 +552,13 @@ pub struct VaultParams {
     /// VA3 — per-tier SpotToken illiquidity haircut in bps. Index =
     /// `SpotAssetTier.tier` ordinal. Empty ⇒ no spot haircut.
     pub spot_haircut_bps_by_tier: Vec<u32>,
+    /// VA4 — default-OFF gate for the analyst-score refresh cadence.
+    pub enable_analyst_scoring: bool,
+    /// Addresses authorized to submit `MsgRefreshVaultScore`. Empty = permissionless.
+    pub authorized_score_signers: Vec<String>,
+    /// VA4 — share-price sampling epoch length in blocks. Required (> 0) when
+    /// `enable_analyst_scoring` is true.
+    pub score_sample_interval_blocks: u64,
 }
 
 impl From<proto::Params> for VaultParams {
@@ -575,6 +588,9 @@ impl From<proto::Params> for VaultParams {
             perp_haircut_bps: p.perp_haircut_bps,
             clmm_haircut_bps: p.clmm_haircut_bps,
             spot_haircut_bps_by_tier: p.spot_haircut_bps_by_tier,
+            enable_analyst_scoring: p.enable_analyst_scoring,
+            authorized_score_signers: p.authorized_score_signers,
+            score_sample_interval_blocks: p.score_sample_interval_blocks,
         }
     }
 }
@@ -606,6 +622,9 @@ impl From<VaultParams> for proto::Params {
             perp_haircut_bps: p.perp_haircut_bps,
             clmm_haircut_bps: p.clmm_haircut_bps,
             spot_haircut_bps_by_tier: p.spot_haircut_bps_by_tier,
+            enable_analyst_scoring: p.enable_analyst_scoring,
+            authorized_score_signers: p.authorized_score_signers,
+            score_sample_interval_blocks: p.score_sample_interval_blocks,
         }
     }
 }
@@ -752,6 +771,8 @@ mod tests {
                     pnl_24h: "50".into(),
                     risk_score: "300".into(),
                     timestamp: None,
+                    pnl_30d_usd: "100".into(),
+                    tvl_usd: "1000".into(),
                 },
             )),
             timestamp: None,
@@ -788,6 +809,9 @@ mod tests {
             perp_haircut_bps: 100,
             clmm_haircut_bps: 250,
             spot_haircut_bps_by_tier: alloc::vec![50, 150],
+            enable_analyst_scoring: true,
+            authorized_score_signers: alloc::vec!["morpheum1score".into()],
+            score_sample_interval_blocks: 100,
         };
         let proto_p: proto::Params = p.clone().into();
         let p2: VaultParams = proto_p.into();

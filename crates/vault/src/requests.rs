@@ -326,6 +326,34 @@ impl ClaimYieldRequest {
     }
 }
 
+/// VA4 — refresh one vault's analyst score (keeper cadence).
+#[derive(Clone, Debug, PartialEq, Eq)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+pub struct RefreshVaultScoreRequest {
+    pub keeper: String,
+    pub vault_id: String,
+}
+
+impl RefreshVaultScoreRequest {
+    pub fn new(keeper: impl Into<String>, vault_id: impl Into<String>) -> Self {
+        Self {
+            keeper: keeper.into(),
+            vault_id: vault_id.into(),
+        }
+    }
+
+    pub fn to_any(&self) -> ProtoAny {
+        let msg = proto::MsgRefreshVaultScore {
+            keeper: self.keeper.clone(),
+            vault_id: self.vault_id.clone(),
+        };
+        ProtoAny {
+            type_url: "/vault.v1.MsgRefreshVaultScore".into(),
+            value: msg.encode_to_vec(),
+        }
+    }
+}
+
 /// Update global vault module parameters (governance-only).
 #[derive(Clone, Debug, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]

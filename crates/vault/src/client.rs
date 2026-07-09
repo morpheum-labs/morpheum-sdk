@@ -313,6 +313,8 @@ mod tests {
                             pnl_24h: "50".into(),
                             risk_score: "300".into(),
                             timestamp: None,
+                            pnl_30d_usd: "100".into(),
+                            tvl_usd: "1000".into(),
                         }),
                     },
                 )),

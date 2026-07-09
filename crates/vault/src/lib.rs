@@ -27,8 +27,8 @@ pub use requests::{
     ClaimYieldRequest, CreateVaultRequest, DepositToVaultRequest, ExecuteStrategyRequest,
     GetIlMetricsRequest, GetStrategyHistoryRequest, GetTopVaultsRequest, GetUserStakeRequest,
     GetVaultHealthRequest, GetVaultRequest, GetVaultsByAgentRequest, GetVaultsByTypeRequest,
-    ListUserStakesRequest, ListVaultsRequest, PauseVaultRequest, ResumeVaultRequest,
-    UpdateParamsRequest, UpdateVaultParamsRequest, WithdrawFromVaultRequest,
+    ListUserStakesRequest, ListVaultsRequest, PauseVaultRequest, RefreshVaultScoreRequest,
+    ResumeVaultRequest, UpdateParamsRequest, UpdateVaultParamsRequest, WithdrawFromVaultRequest,
 };
 
 pub use builder::{

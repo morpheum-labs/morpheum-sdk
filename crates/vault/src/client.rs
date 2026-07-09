@@ -269,6 +269,8 @@ mod tests {
                             performance_fee_bps: 500,
                             management_fee_bps: 0,
                             leader_custody_address: "a1".into(),
+                            deposit_capacity_native: "0".into(),
+                            soft_closed: false,
                         }),
                         error_message: "".into(),
                     }))

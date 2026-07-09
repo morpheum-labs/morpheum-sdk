@@ -76,6 +76,11 @@ pub struct UpdateVaultParamsRequest {
     pub min_stake: String,
     pub max_stake: String,
     pub new_description: String,
+    /// VB5 (spec §14 G4) — hard deposit capacity. `None` ⇒ leave unchanged;
+    /// `Some("0")` clears the cap (uncapped).
+    pub deposit_capacity_native: Option<String>,
+    /// VB5 (spec §14 G4) — manager soft-close toggle. `None` ⇒ leave unchanged.
+    pub soft_closed: Option<bool>,
 }
 
 impl UpdateVaultParamsRequest {
@@ -85,6 +90,8 @@ impl UpdateVaultParamsRequest {
             min_stake: String::new(),
             max_stake: String::new(),
             new_description: String::new(),
+            deposit_capacity_native: None,
+            soft_closed: None,
         }
     }
 
@@ -97,6 +104,8 @@ impl UpdateVaultParamsRequest {
             timestamp: None,
             updater_external_address: None,
             updater_chain_type: None,
+            deposit_capacity_native: self.deposit_capacity_native.clone(),
+            soft_closed: self.soft_closed,
         };
         ProtoAny {
             type_url: "/vault.v1.MsgUpdateVaultParams".into(),
@@ -637,5 +646,22 @@ mod tests {
             .into();
         assert_eq!(p.sort_by, "apy");
         assert_eq!(p.type_filter, Some(1));
+    }
+
+    #[test]
+    fn update_vault_params_capacity_roundtrip() {
+        let any = UpdateVaultParamsRequest {
+            vault_id: "v1".into(),
+            min_stake: String::new(),
+            max_stake: String::new(),
+            new_description: String::new(),
+            deposit_capacity_native: Some("5000".into()),
+            soft_closed: Some(true),
+        }
+        .to_any();
+        assert_eq!(any.type_url, "/vault.v1.MsgUpdateVaultParams");
+        let msg = proto::MsgUpdateVaultParams::decode(any.value.as_slice()).unwrap();
+        assert_eq!(msg.deposit_capacity_native.as_deref(), Some("5000"));
+        assert_eq!(msg.soft_closed, Some(true));
     }
 }

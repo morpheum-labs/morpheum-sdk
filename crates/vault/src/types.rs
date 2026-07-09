@@ -142,6 +142,12 @@ pub struct Vault {
     /// skin-in-the-game clamp / soft-close (distinct from `agent_id` and
     /// `leader_payout_address`). Empty ⇒ the skin gate is inert for the vault.
     pub leader_custody_address: String,
+    /// VB5 (spec §14 G4) — hard deposit capacity cap in base-asset native units.
+    /// "0" / empty ⇒ uncapped.
+    pub deposit_capacity_native: String,
+    /// VB5 (spec §14 G4) — manager soft-close: while true, new deposits are
+    /// rejected; existing depositors may stay and redeem.
+    pub soft_closed: bool,
 }
 
 impl From<proto::Vault> for Vault {
@@ -180,6 +186,8 @@ impl From<proto::Vault> for Vault {
             performance_fee_bps: p.performance_fee_bps,
             management_fee_bps: p.management_fee_bps,
             leader_custody_address: p.leader_custody_address,
+            deposit_capacity_native: p.deposit_capacity_native,
+            soft_closed: p.soft_closed,
         }
     }
 }
@@ -554,6 +562,8 @@ mod tests {
             performance_fee_bps: 500,
             management_fee_bps: 0,
             leader_custody_address: "a1".into(),
+            deposit_capacity_native: "0".into(),
+            soft_closed: false,
         };
         let v: Vault = p.into();
         assert_eq!(v.vault_type, VaultType::Custom);
@@ -565,6 +575,8 @@ mod tests {
         assert_eq!(v.leader_payout_address, "a1");
         assert_eq!(v.performance_fee_bps, 500);
         assert_eq!(v.leader_custody_address, "a1");
+        assert_eq!(v.deposit_capacity_native, "0");
+        assert!(!v.soft_closed);
     }
 
     #[test]

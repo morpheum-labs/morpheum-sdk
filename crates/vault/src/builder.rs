@@ -91,6 +91,8 @@ pub struct UpdateVaultParamsBuilder {
     min_stake: String,
     max_stake: String,
     new_description: String,
+    deposit_capacity_native: Option<String>,
+    soft_closed: Option<bool>,
 }
 
 impl UpdateVaultParamsBuilder {
@@ -100,6 +102,8 @@ impl UpdateVaultParamsBuilder {
             min_stake: String::new(),
             max_stake: String::new(),
             new_description: String::new(),
+            deposit_capacity_native: None,
+            soft_closed: None,
         }
     }
 
@@ -119,6 +123,17 @@ impl UpdateVaultParamsBuilder {
         self.new_description = v.into();
         self
     }
+    /// VB5 — set the hard deposit capacity (base-asset native). Pass `"0"` to
+    /// clear (uncapped).
+    pub fn deposit_capacity(mut self, v: impl Into<String>) -> Self {
+        self.deposit_capacity_native = Some(v.into());
+        self
+    }
+    /// VB5 — toggle the manager soft-close (true stops new deposits).
+    pub fn soft_closed(mut self, v: bool) -> Self {
+        self.soft_closed = Some(v);
+        self
+    }
 
     pub fn build(self) -> Result<UpdateVaultParamsRequest, SdkError> {
         let mut req = UpdateVaultParamsRequest::new(
@@ -128,6 +143,8 @@ impl UpdateVaultParamsBuilder {
         req.min_stake = self.min_stake;
         req.max_stake = self.max_stake;
         req.new_description = self.new_description;
+        req.deposit_capacity_native = self.deposit_capacity_native;
+        req.soft_closed = self.soft_closed;
         Ok(req)
     }
 }
@@ -526,5 +543,25 @@ mod tests {
     #[test]
     fn update_module_params_validation() {
         assert!(UpdateModuleParamsBuilder::new().build().is_err());
+    }
+
+    #[test]
+    fn update_vault_params_builder_capacity_fields() {
+        let req = UpdateVaultParamsBuilder::new()
+            .vault_id("v1")
+            .deposit_capacity("5000")
+            .soft_closed(true)
+            .build()
+            .unwrap();
+        assert_eq!(req.deposit_capacity_native.as_deref(), Some("5000"));
+        assert_eq!(req.soft_closed, Some(true));
+        // Absent setters leave the optionals unset (leave-unchanged semantics).
+        let plain = UpdateVaultParamsBuilder::new()
+            .vault_id("v1")
+            .new_description("x")
+            .build()
+            .unwrap();
+        assert!(plain.deposit_capacity_native.is_none());
+        assert!(plain.soft_closed.is_none());
     }
 }

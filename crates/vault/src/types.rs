@@ -152,6 +152,9 @@ pub struct Vault {
     /// markets; `max_leverage = 0` ⇒ unbounded. Once armed, updates are
     /// tightening-only.
     pub mandate: VaultMandate,
+    /// VB7 (spec §5) — buffer-floor auto-allocation policy. Empty / zero
+    /// targets ⇒ disarmed (deployment stays fully manual).
+    pub allocation_policy: AllocationPolicy,
 }
 
 /// VB6 (spec P7 / §2) — per-vault operating constraints.
@@ -162,6 +165,88 @@ pub struct VaultMandate {
     pub allowed_markets: Vec<u64>,
     /// Maximum leverage the vault may configure per market. 0 ⇒ unbounded.
     pub max_leverage: u32,
+}
+
+/// VB7 (spec §5) — destination tier for a target weight.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+pub enum AllocationKind {
+    #[default]
+    Unspecified,
+    Bucket,
+}
+
+impl From<i32> for AllocationKind {
+    fn from(v: i32) -> Self {
+        match v {
+            1 => Self::Bucket,
+            _ => Self::Unspecified,
+        }
+    }
+}
+
+impl From<AllocationKind> for i32 {
+    fn from(v: AllocationKind) -> Self {
+        match v {
+            AllocationKind::Unspecified => 0,
+            AllocationKind::Bucket => 1,
+        }
+    }
+}
+
+/// VB7 (spec §5) — one destination's target weight as a fraction of NAV.
+#[derive(Clone, Debug, PartialEq, Eq)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+pub struct AllocationTarget {
+    pub kind: AllocationKind,
+    pub target_weight_bps: u32,
+}
+
+impl From<proto::AllocationTarget> for AllocationTarget {
+    fn from(p: proto::AllocationTarget) -> Self {
+        Self {
+            kind: AllocationKind::from(p.kind),
+            target_weight_bps: p.target_weight_bps,
+        }
+    }
+}
+
+impl From<AllocationTarget> for proto::AllocationTarget {
+    fn from(t: AllocationTarget) -> Self {
+        Self {
+            kind: i32::from(t.kind),
+            target_weight_bps: t.target_weight_bps,
+        }
+    }
+}
+
+/// VB7 (spec §5) — per-vault buffer-floor auto-allocation policy.
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+pub struct AllocationPolicy {
+    pub cash_buffer_floor_bps: u32,
+    pub deployment_ceiling_bps: u32,
+    pub targets: Vec<AllocationTarget>,
+}
+
+impl From<proto::AllocationPolicy> for AllocationPolicy {
+    fn from(p: proto::AllocationPolicy) -> Self {
+        Self {
+            cash_buffer_floor_bps: p.cash_buffer_floor_bps,
+            deployment_ceiling_bps: p.deployment_ceiling_bps,
+            targets: p.targets.into_iter().map(AllocationTarget::from).collect(),
+        }
+    }
+}
+
+impl From<AllocationPolicy> for proto::AllocationPolicy {
+    fn from(p: AllocationPolicy) -> Self {
+        Self {
+            cash_buffer_floor_bps: p.cash_buffer_floor_bps,
+            deployment_ceiling_bps: p.deployment_ceiling_bps,
+            targets: p.targets.into_iter().map(Into::into).collect(),
+        }
+    }
 }
 
 impl From<proto::VaultMandate> for VaultMandate {
@@ -221,6 +306,10 @@ impl From<proto::Vault> for Vault {
             deposit_capacity_native: p.deposit_capacity_native,
             soft_closed: p.soft_closed,
             mandate: p.mandate.map(VaultMandate::from).unwrap_or_default(),
+            allocation_policy: p
+                .allocation_policy
+                .map(AllocationPolicy::from)
+                .unwrap_or_default(),
         }
     }
 }
@@ -436,6 +525,11 @@ pub struct VaultParams {
     /// queued redemption is serviceable only after `requested_at + this`. 0 ⇒
     /// instantly serviceable.
     pub redemption_notice_secs: u64,
+    /// VB7 (spec §5) — default-OFF gate for the buffer-floor auto-allocation
+    /// cadence (`MsgAllocateBuffer`).
+    pub enable_auto_allocation: bool,
+    /// Addresses authorized to submit `MsgAllocateBuffer`. Empty = permissionless.
+    pub authorized_allocation_signers: Vec<String>,
 }
 
 impl From<proto::Params> for VaultParams {
@@ -459,6 +553,8 @@ impl From<proto::Params> for VaultParams {
             vault_creation_fee_sat: p.vault_creation_fee_sat,
             lockup_secs: p.lockup_secs,
             redemption_notice_secs: p.redemption_notice_secs,
+            enable_auto_allocation: p.enable_auto_allocation,
+            authorized_allocation_signers: p.authorized_allocation_signers,
         }
     }
 }
@@ -484,6 +580,8 @@ impl From<VaultParams> for proto::Params {
             vault_creation_fee_sat: p.vault_creation_fee_sat,
             lockup_secs: p.lockup_secs,
             redemption_notice_secs: p.redemption_notice_secs,
+            enable_auto_allocation: p.enable_auto_allocation,
+            authorized_allocation_signers: p.authorized_allocation_signers,
         }
     }
 }
@@ -598,6 +696,7 @@ mod tests {
             deposit_capacity_native: "0".into(),
             soft_closed: false,
             mandate: None,
+            allocation_policy: None,
         };
         let v: Vault = p.into();
         assert_eq!(v.vault_type, VaultType::Custom);
@@ -613,6 +712,8 @@ mod tests {
         assert!(!v.soft_closed);
         assert!(v.mandate.allowed_markets.is_empty());
         assert_eq!(v.mandate.max_leverage, 0);
+        assert_eq!(v.allocation_policy.cash_buffer_floor_bps, 0);
+        assert!(v.allocation_policy.targets.is_empty());
     }
 
     #[test]
@@ -657,6 +758,8 @@ mod tests {
             vault_creation_fee_sat: 1_000_000,
             lockup_secs: 86_400,
             redemption_notice_secs: 43_200,
+            enable_auto_allocation: true,
+            authorized_allocation_signers: alloc::vec!["morpheum1alloc".into()],
         };
         let proto_p: proto::Params = p.clone().into();
         let p2: VaultParams = proto_p.into();

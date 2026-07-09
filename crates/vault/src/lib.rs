@@ -18,8 +18,9 @@ pub mod types;
 pub use client::{StakeListPage, StrategyHistoryPage, VaultClient, VaultListPage};
 
 pub use types::{
-    IlMetrics, RevenueShareConfig, Stake, StrategyExecution, Vault, VaultHealth, VaultMandate,
-    VaultParams, VaultRecord, VaultStatus, VaultStreamEvent, VaultType, VaultUpdateEvent,
+    AllocationKind, AllocationPolicy, AllocationTarget, IlMetrics, RevenueShareConfig, Stake,
+    StrategyExecution, Vault, VaultHealth, VaultMandate, VaultParams, VaultRecord, VaultStatus,
+    VaultStreamEvent, VaultType, VaultUpdateEvent,
 };
 
 pub use requests::{

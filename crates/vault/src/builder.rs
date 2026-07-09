@@ -94,6 +94,7 @@ pub struct UpdateVaultParamsBuilder {
     deposit_capacity_native: Option<String>,
     soft_closed: Option<bool>,
     mandate: Option<crate::types::VaultMandate>,
+    allocation_policy: Option<crate::types::AllocationPolicy>,
 }
 
 impl UpdateVaultParamsBuilder {
@@ -106,6 +107,7 @@ impl UpdateVaultParamsBuilder {
             deposit_capacity_native: None,
             soft_closed: None,
             mandate: None,
+            allocation_policy: None,
         }
     }
 
@@ -141,6 +143,11 @@ impl UpdateVaultParamsBuilder {
         self.mandate = Some(v);
         self
     }
+    /// VB7 — replace-as-unit allocation policy.
+    pub fn allocation_policy(mut self, v: crate::types::AllocationPolicy) -> Self {
+        self.allocation_policy = Some(v);
+        self
+    }
 
     pub fn build(self) -> Result<UpdateVaultParamsRequest, SdkError> {
         let mut req = UpdateVaultParamsRequest::new(
@@ -153,6 +160,7 @@ impl UpdateVaultParamsBuilder {
         req.deposit_capacity_native = self.deposit_capacity_native;
         req.soft_closed = self.soft_closed;
         req.mandate = self.mandate;
+        req.allocation_policy = self.allocation_policy;
         Ok(req)
     }
 }

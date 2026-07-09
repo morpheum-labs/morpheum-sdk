@@ -84,6 +84,8 @@ pub struct UpdateVaultParamsRequest {
     /// VB6 (spec P7 / §2) — replace-as-unit mandate. `None` ⇒ leave unchanged;
     /// `Some(...)` must be a tightening of the current mandate.
     pub mandate: Option<crate::types::VaultMandate>,
+    /// VB7 (spec §5) — replace-as-unit allocation policy. `None` ⇒ leave unchanged.
+    pub allocation_policy: Option<crate::types::AllocationPolicy>,
 }
 
 impl UpdateVaultParamsRequest {
@@ -96,6 +98,7 @@ impl UpdateVaultParamsRequest {
             deposit_capacity_native: None,
             soft_closed: None,
             mandate: None,
+            allocation_policy: None,
         }
     }
 
@@ -111,6 +114,7 @@ impl UpdateVaultParamsRequest {
             deposit_capacity_native: self.deposit_capacity_native.clone(),
             soft_closed: self.soft_closed,
             mandate: self.mandate.clone().map(Into::into),
+            allocation_policy: self.allocation_policy.clone().map(Into::into),
         };
         ProtoAny {
             type_url: "/vault.v1.MsgUpdateVaultParams".into(),
@@ -663,6 +667,7 @@ mod tests {
             deposit_capacity_native: Some("5000".into()),
             soft_closed: Some(true),
             mandate: None,
+            allocation_policy: None,
         }
         .to_any();
         assert_eq!(any.type_url, "/vault.v1.MsgUpdateVaultParams");
@@ -685,6 +690,7 @@ mod tests {
                 allowed_markets: vec![1, 2],
                 max_leverage: 5,
             }),
+            allocation_policy: None,
         }
         .to_any();
         assert_eq!(any.type_url, "/vault.v1.MsgUpdateVaultParams");
@@ -692,5 +698,36 @@ mod tests {
         let m = msg.mandate.expect("mandate present");
         assert_eq!(m.allowed_markets, vec![1, 2]);
         assert_eq!(m.max_leverage, 5);
+    }
+
+    #[test]
+    fn update_vault_params_allocation_roundtrip() {
+        use crate::types::{AllocationKind, AllocationPolicy, AllocationTarget};
+        let any = UpdateVaultParamsRequest {
+            vault_id: "v1".into(),
+            min_stake: String::new(),
+            max_stake: String::new(),
+            new_description: String::new(),
+            deposit_capacity_native: None,
+            soft_closed: None,
+            mandate: None,
+            allocation_policy: Some(AllocationPolicy {
+                cash_buffer_floor_bps: 2_000,
+                deployment_ceiling_bps: 7_000,
+                targets: vec![AllocationTarget {
+                    kind: AllocationKind::Bucket,
+                    target_weight_bps: 5_000,
+                }],
+            }),
+        }
+        .to_any();
+        assert_eq!(any.type_url, "/vault.v1.MsgUpdateVaultParams");
+        let msg = proto::MsgUpdateVaultParams::decode(any.value.as_slice()).unwrap();
+        let p = msg.allocation_policy.expect("allocation_policy present");
+        assert_eq!(p.cash_buffer_floor_bps, 2_000);
+        assert_eq!(p.deployment_ceiling_bps, 7_000);
+        assert_eq!(p.targets.len(), 1);
+        assert_eq!(p.targets[0].target_weight_bps, 5_000);
+        assert_eq!(p.targets[0].kind, 1);
     }
 }

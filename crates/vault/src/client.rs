@@ -272,6 +272,7 @@ mod tests {
                             deposit_capacity_native: "0".into(),
                             soft_closed: false,
                             mandate: None,
+                            allocation_policy: None,
                         }),
                         error_message: "".into(),
                     }))

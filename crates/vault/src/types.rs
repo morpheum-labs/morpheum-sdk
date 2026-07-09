@@ -137,6 +137,11 @@ pub struct Vault {
     pub performance_fee_bps: u32,
     /// Management-fee rate (bps of AUM); locked at 0 for the Standard preset.
     pub management_fee_bps: u32,
+    /// VB3 (spec §8 / G3) — the leader's custody / stake-key address, captured at
+    /// create. The key under which the leader's first-loss `Stake` accrues for the
+    /// skin-in-the-game clamp / soft-close (distinct from `agent_id` and
+    /// `leader_payout_address`). Empty ⇒ the skin gate is inert for the vault.
+    pub leader_custody_address: String,
 }
 
 impl From<proto::Vault> for Vault {
@@ -174,6 +179,7 @@ impl From<proto::Vault> for Vault {
             leader_payout_address: p.leader_payout_address,
             performance_fee_bps: p.performance_fee_bps,
             management_fee_bps: p.management_fee_bps,
+            leader_custody_address: p.leader_custody_address,
         }
     }
 }
@@ -371,6 +377,13 @@ pub struct VaultParams {
     pub perf_fee_leader_bps: u32,
     /// The insurance/MLP-reserve share of the performance fee (bps).
     pub perf_fee_reserve_bps: u32,
+    /// VB3 (spec §8 / G3) — leader skin-in-the-game floor (bps of the vault the
+    /// leader must retain as first-loss capital). 0 ⇒ the withdrawal clamp +
+    /// deposit soft-close are no-ops (byte-identical pre-VB3).
+    pub min_leader_skin_bps: u32,
+    /// VB3 (spec §8 / G3) — anti-spam vault creation fee in MORM sat, swept to
+    /// the treasury at create. 0 ⇒ no fee.
+    pub vault_creation_fee_sat: u64,
 }
 
 impl From<proto::Params> for VaultParams {
@@ -390,6 +403,8 @@ impl From<proto::Params> for VaultParams {
             per_depositor_hwm_enabled: p.per_depositor_hwm_enabled,
             perf_fee_leader_bps: p.perf_fee_leader_bps,
             perf_fee_reserve_bps: p.perf_fee_reserve_bps,
+            min_leader_skin_bps: p.min_leader_skin_bps,
+            vault_creation_fee_sat: p.vault_creation_fee_sat,
         }
     }
 }
@@ -411,6 +426,8 @@ impl From<VaultParams> for proto::Params {
             per_depositor_hwm_enabled: p.per_depositor_hwm_enabled,
             perf_fee_leader_bps: p.perf_fee_leader_bps,
             perf_fee_reserve_bps: p.perf_fee_reserve_bps,
+            min_leader_skin_bps: p.min_leader_skin_bps,
+            vault_creation_fee_sat: p.vault_creation_fee_sat,
         }
     }
 }
@@ -521,6 +538,7 @@ mod tests {
             leader_payout_address: "a1".into(),
             performance_fee_bps: 500,
             management_fee_bps: 0,
+            leader_custody_address: "a1".into(),
         };
         let v: Vault = p.into();
         assert_eq!(v.vault_type, VaultType::Custom);
@@ -531,6 +549,7 @@ mod tests {
         assert_eq!(v.clmm_position_id, "position-1");
         assert_eq!(v.leader_payout_address, "a1");
         assert_eq!(v.performance_fee_bps, 500);
+        assert_eq!(v.leader_custody_address, "a1");
     }
 
     #[test]
@@ -571,6 +590,8 @@ mod tests {
             per_depositor_hwm_enabled: true,
             perf_fee_leader_bps: 7_000,
             perf_fee_reserve_bps: 1_000,
+            min_leader_skin_bps: 500,
+            vault_creation_fee_sat: 1_000_000,
         };
         let proto_p: proto::Params = p.clone().into();
         let p2: VaultParams = proto_p.into();

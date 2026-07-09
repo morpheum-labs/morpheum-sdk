@@ -268,6 +268,7 @@ mod tests {
                             leader_payout_address: "a1".into(),
                             performance_fee_bps: 500,
                             management_fee_bps: 0,
+                            leader_custody_address: "a1".into(),
                         }),
                         error_message: "".into(),
                     }))

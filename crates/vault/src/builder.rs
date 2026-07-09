@@ -93,6 +93,7 @@ pub struct UpdateVaultParamsBuilder {
     new_description: String,
     deposit_capacity_native: Option<String>,
     soft_closed: Option<bool>,
+    mandate: Option<crate::types::VaultMandate>,
 }
 
 impl UpdateVaultParamsBuilder {
@@ -104,6 +105,7 @@ impl UpdateVaultParamsBuilder {
             new_description: String::new(),
             deposit_capacity_native: None,
             soft_closed: None,
+            mandate: None,
         }
     }
 
@@ -134,6 +136,11 @@ impl UpdateVaultParamsBuilder {
         self.soft_closed = Some(v);
         self
     }
+    /// VB6 — replace-as-unit mandate (must be a tightening of the current one).
+    pub fn mandate(mut self, v: crate::types::VaultMandate) -> Self {
+        self.mandate = Some(v);
+        self
+    }
 
     pub fn build(self) -> Result<UpdateVaultParamsRequest, SdkError> {
         let mut req = UpdateVaultParamsRequest::new(
@@ -145,6 +152,7 @@ impl UpdateVaultParamsBuilder {
         req.new_description = self.new_description;
         req.deposit_capacity_native = self.deposit_capacity_native;
         req.soft_closed = self.soft_closed;
+        req.mandate = self.mandate;
         Ok(req)
     }
 }
@@ -563,5 +571,22 @@ mod tests {
             .unwrap();
         assert!(plain.deposit_capacity_native.is_none());
         assert!(plain.soft_closed.is_none());
+        assert!(plain.mandate.is_none());
+    }
+
+    #[test]
+    fn update_vault_params_builder_mandate() {
+        use crate::types::VaultMandate;
+        let req = UpdateVaultParamsBuilder::new()
+            .vault_id("v1")
+            .mandate(VaultMandate {
+                allowed_markets: vec![7, 9],
+                max_leverage: 3,
+            })
+            .build()
+            .unwrap();
+        let m = req.mandate.expect("mandate set");
+        assert_eq!(m.allowed_markets, vec![7, 9]);
+        assert_eq!(m.max_leverage, 3);
     }
 }

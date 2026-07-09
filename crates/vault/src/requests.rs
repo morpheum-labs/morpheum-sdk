@@ -81,6 +81,9 @@ pub struct UpdateVaultParamsRequest {
     pub deposit_capacity_native: Option<String>,
     /// VB5 (spec §14 G4) — manager soft-close toggle. `None` ⇒ leave unchanged.
     pub soft_closed: Option<bool>,
+    /// VB6 (spec P7 / §2) — replace-as-unit mandate. `None` ⇒ leave unchanged;
+    /// `Some(...)` must be a tightening of the current mandate.
+    pub mandate: Option<crate::types::VaultMandate>,
 }
 
 impl UpdateVaultParamsRequest {
@@ -92,6 +95,7 @@ impl UpdateVaultParamsRequest {
             new_description: String::new(),
             deposit_capacity_native: None,
             soft_closed: None,
+            mandate: None,
         }
     }
 
@@ -106,6 +110,7 @@ impl UpdateVaultParamsRequest {
             updater_chain_type: None,
             deposit_capacity_native: self.deposit_capacity_native.clone(),
             soft_closed: self.soft_closed,
+            mandate: self.mandate.clone().map(Into::into),
         };
         ProtoAny {
             type_url: "/vault.v1.MsgUpdateVaultParams".into(),
@@ -657,11 +662,35 @@ mod tests {
             new_description: String::new(),
             deposit_capacity_native: Some("5000".into()),
             soft_closed: Some(true),
+            mandate: None,
         }
         .to_any();
         assert_eq!(any.type_url, "/vault.v1.MsgUpdateVaultParams");
         let msg = proto::MsgUpdateVaultParams::decode(any.value.as_slice()).unwrap();
         assert_eq!(msg.deposit_capacity_native.as_deref(), Some("5000"));
         assert_eq!(msg.soft_closed, Some(true));
+    }
+
+    #[test]
+    fn update_vault_params_mandate_roundtrip() {
+        use crate::types::VaultMandate;
+        let any = UpdateVaultParamsRequest {
+            vault_id: "v1".into(),
+            min_stake: String::new(),
+            max_stake: String::new(),
+            new_description: String::new(),
+            deposit_capacity_native: None,
+            soft_closed: None,
+            mandate: Some(VaultMandate {
+                allowed_markets: vec![1, 2],
+                max_leverage: 5,
+            }),
+        }
+        .to_any();
+        assert_eq!(any.type_url, "/vault.v1.MsgUpdateVaultParams");
+        let msg = proto::MsgUpdateVaultParams::decode(any.value.as_slice()).unwrap();
+        let m = msg.mandate.expect("mandate present");
+        assert_eq!(m.allowed_markets, vec![1, 2]);
+        assert_eq!(m.max_leverage, 5);
     }
 }

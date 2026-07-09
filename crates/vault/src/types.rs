@@ -148,6 +148,38 @@ pub struct Vault {
     /// VB5 (spec §14 G4) — manager soft-close: while true, new deposits are
     /// rejected; existing depositors may stay and redeem.
     pub soft_closed: bool,
+    /// VB6 (spec P7 / §2) — operating mandate. Empty `allowed_markets` ⇒ all
+    /// markets; `max_leverage = 0` ⇒ unbounded. Once armed, updates are
+    /// tightening-only.
+    pub mandate: VaultMandate,
+}
+
+/// VB6 (spec P7 / §2) — per-vault operating constraints.
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+pub struct VaultMandate {
+    /// Markets the vault may open / add exposure on. Empty ⇒ unconstrained.
+    pub allowed_markets: Vec<u64>,
+    /// Maximum leverage the vault may configure per market. 0 ⇒ unbounded.
+    pub max_leverage: u32,
+}
+
+impl From<proto::VaultMandate> for VaultMandate {
+    fn from(p: proto::VaultMandate) -> Self {
+        Self {
+            allowed_markets: p.allowed_markets,
+            max_leverage: p.max_leverage,
+        }
+    }
+}
+
+impl From<VaultMandate> for proto::VaultMandate {
+    fn from(m: VaultMandate) -> Self {
+        Self {
+            allowed_markets: m.allowed_markets,
+            max_leverage: m.max_leverage,
+        }
+    }
 }
 
 impl From<proto::Vault> for Vault {
@@ -188,6 +220,7 @@ impl From<proto::Vault> for Vault {
             leader_custody_address: p.leader_custody_address,
             deposit_capacity_native: p.deposit_capacity_native,
             soft_closed: p.soft_closed,
+            mandate: p.mandate.map(VaultMandate::from).unwrap_or_default(),
         }
     }
 }
@@ -564,6 +597,7 @@ mod tests {
             leader_custody_address: "a1".into(),
             deposit_capacity_native: "0".into(),
             soft_closed: false,
+            mandate: None,
         };
         let v: Vault = p.into();
         assert_eq!(v.vault_type, VaultType::Custom);
@@ -577,6 +611,8 @@ mod tests {
         assert_eq!(v.leader_custody_address, "a1");
         assert_eq!(v.deposit_capacity_native, "0");
         assert!(!v.soft_closed);
+        assert!(v.mandate.allowed_markets.is_empty());
+        assert_eq!(v.mandate.max_leverage, 0);
     }
 
     #[test]

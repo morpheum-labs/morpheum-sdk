@@ -271,6 +271,7 @@ mod tests {
                             leader_custody_address: "a1".into(),
                             deposit_capacity_native: "0".into(),
                             soft_closed: false,
+                            mandate: None,
                         }),
                         error_message: "".into(),
                     }))

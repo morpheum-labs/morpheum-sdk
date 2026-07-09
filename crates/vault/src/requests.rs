@@ -354,6 +354,85 @@ impl RefreshVaultScoreRequest {
     }
 }
 
+/// VA5 — governance-only creation of a `VaultType::Protocol` MLP vault.
+#[derive(Clone, Debug, PartialEq, Eq)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+pub struct CreateProtocolVaultRequest {
+    pub authority: String,
+    pub name: String,
+    pub description: String,
+    pub asset_index: u64,
+    pub protocol_leader: String,
+    pub strategy_goal: String,
+    pub strategy_type: i32,
+}
+
+impl CreateProtocolVaultRequest {
+    pub fn new(
+        authority: impl Into<String>,
+        name: impl Into<String>,
+        asset_index: u64,
+        protocol_leader: impl Into<String>,
+    ) -> Self {
+        Self {
+            authority: authority.into(),
+            name: name.into(),
+            description: String::new(),
+            asset_index,
+            protocol_leader: protocol_leader.into(),
+            strategy_goal: String::new(),
+            strategy_type: 0,
+        }
+    }
+
+    pub fn to_any(&self) -> ProtoAny {
+        let msg = proto::MsgCreateProtocolVault {
+            authority: self.authority.clone(),
+            name: self.name.clone(),
+            description: self.description.clone(),
+            asset: Some(morpheum_proto::primitives::v1::Asset {
+                asset_index: self.asset_index,
+                ..Default::default()
+            }),
+            protocol_leader: self.protocol_leader.clone(),
+            strategy_goal: self.strategy_goal.clone(),
+            strategy_type: self.strategy_type,
+        };
+        ProtoAny {
+            type_url: "/vault.v1.MsgCreateProtocolVault".into(),
+            value: msg.encode_to_vec(),
+        }
+    }
+}
+
+/// VA5 — governance recovery: Liquidating → Active.
+#[derive(Clone, Debug, PartialEq, Eq)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+pub struct ClearVaultLiquidationRequest {
+    pub authority: String,
+    pub vault_id: String,
+}
+
+impl ClearVaultLiquidationRequest {
+    pub fn new(authority: impl Into<String>, vault_id: impl Into<String>) -> Self {
+        Self {
+            authority: authority.into(),
+            vault_id: vault_id.into(),
+        }
+    }
+
+    pub fn to_any(&self) -> ProtoAny {
+        let msg = proto::MsgClearVaultLiquidation {
+            authority: self.authority.clone(),
+            vault_id: self.vault_id.clone(),
+        };
+        ProtoAny {
+            type_url: "/vault.v1.MsgClearVaultLiquidation".into(),
+            value: msg.encode_to_vec(),
+        }
+    }
+}
+
 /// Update global vault module parameters (governance-only).
 #[derive(Clone, Debug, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]

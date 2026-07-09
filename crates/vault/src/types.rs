@@ -22,6 +22,8 @@ pub enum VaultType {
     Unspecified,
     Custom,
     Yield,
+    /// VA5 — protocol-owned MLP house liquidity + liquidation backstop.
+    Protocol,
 }
 
 impl From<i32> for VaultType {
@@ -29,6 +31,7 @@ impl From<i32> for VaultType {
         match v {
             1 => Self::Custom,
             2 => Self::Yield,
+            3 => Self::Protocol,
             _ => Self::Unspecified,
         }
     }
@@ -40,6 +43,7 @@ impl From<VaultType> for i32 {
             VaultType::Unspecified => 0,
             VaultType::Custom => 1,
             VaultType::Yield => 2,
+            VaultType::Protocol => 3,
         }
     }
 }
@@ -559,6 +563,8 @@ pub struct VaultParams {
     /// VA4 — share-price sampling epoch length in blocks. Required (> 0) when
     /// `enable_analyst_scoring` is true.
     pub score_sample_interval_blocks: u64,
+    /// VA5 — designated MLP protocol vault id. Empty ⇒ no MLP registered.
+    pub mlp_backstop_vault_id: String,
 }
 
 impl From<proto::Params> for VaultParams {
@@ -591,6 +597,7 @@ impl From<proto::Params> for VaultParams {
             enable_analyst_scoring: p.enable_analyst_scoring,
             authorized_score_signers: p.authorized_score_signers,
             score_sample_interval_blocks: p.score_sample_interval_blocks,
+            mlp_backstop_vault_id: p.mlp_backstop_vault_id,
         }
     }
 }
@@ -625,6 +632,7 @@ impl From<VaultParams> for proto::Params {
             enable_analyst_scoring: p.enable_analyst_scoring,
             authorized_score_signers: p.authorized_score_signers,
             score_sample_interval_blocks: p.score_sample_interval_blocks,
+            mlp_backstop_vault_id: p.mlp_backstop_vault_id,
         }
     }
 }
@@ -678,7 +686,7 @@ mod tests {
 
     #[test]
     fn vault_type_roundtrip() {
-        for t in [VaultType::Custom, VaultType::Yield] {
+        for t in [VaultType::Custom, VaultType::Yield, VaultType::Protocol] {
             assert_eq!(t, VaultType::from(i32::from(t)));
         }
         assert_eq!(VaultType::Unspecified, VaultType::from(99));
@@ -812,6 +820,7 @@ mod tests {
             enable_analyst_scoring: true,
             authorized_score_signers: alloc::vec!["morpheum1score".into()],
             score_sample_interval_blocks: 100,
+            mlp_backstop_vault_id: "mlp-v1".into(),
         };
         let proto_p: proto::Params = p.clone().into();
         let p2: VaultParams = proto_p.into();

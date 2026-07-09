@@ -565,6 +565,10 @@ pub struct VaultParams {
     pub score_sample_interval_blocks: u64,
     /// VA5 — designated MLP protocol vault id. Empty ⇒ no MLP registered.
     pub mlp_backstop_vault_id: String,
+    /// VA1 — default-OFF gate: deposits require a valid VC for the depositor.
+    pub require_deposit_credential: bool,
+    /// VA1 — default-OFF gate: deposits require the depositor identity Active.
+    pub require_depositor_active: bool,
 }
 
 impl From<proto::Params> for VaultParams {
@@ -598,6 +602,8 @@ impl From<proto::Params> for VaultParams {
             authorized_score_signers: p.authorized_score_signers,
             score_sample_interval_blocks: p.score_sample_interval_blocks,
             mlp_backstop_vault_id: p.mlp_backstop_vault_id,
+            require_deposit_credential: p.require_deposit_credential,
+            require_depositor_active: p.require_depositor_active,
         }
     }
 }
@@ -633,6 +639,8 @@ impl From<VaultParams> for proto::Params {
             authorized_score_signers: p.authorized_score_signers,
             score_sample_interval_blocks: p.score_sample_interval_blocks,
             mlp_backstop_vault_id: p.mlp_backstop_vault_id,
+            require_deposit_credential: p.require_deposit_credential,
+            require_depositor_active: p.require_depositor_active,
         }
     }
 }
@@ -821,6 +829,8 @@ mod tests {
             authorized_score_signers: alloc::vec!["morpheum1score".into()],
             score_sample_interval_blocks: 100,
             mlp_backstop_vault_id: "mlp-v1".into(),
+            require_deposit_credential: true,
+            require_depositor_active: true,
         };
         let proto_p: proto::Params = p.clone().into();
         let p2: VaultParams = proto_p.into();

@@ -234,6 +234,9 @@ pub struct Stake {
     /// VB1 (spec §7 / G9) — the depositor's per-position high-water mark (e8
     /// fixed-point share price). "0" ⇒ par.
     pub high_water_mark: String,
+    /// VB4 (spec §6 / §14 G1) — the per-deposit minimum-hold unlock time (unix
+    /// secs); shares are redeemable once `now >= unlock_at`. 0 ⇒ no lock.
+    pub unlock_at: u64,
 }
 
 impl From<proto::Stake> for Stake {
@@ -251,6 +254,7 @@ impl From<proto::Stake> for Stake {
             stake_time: ts_to_u64(&p.stake_time),
             last_claim_time: ts_to_u64(&p.last_claim_time),
             high_water_mark: p.high_water_mark,
+            unlock_at: ts_to_u64(&p.unlock_at),
         }
     }
 }
@@ -384,6 +388,13 @@ pub struct VaultParams {
     /// VB3 (spec §8 / G3) — anti-spam vault creation fee in MORM sat, swept to
     /// the treasury at create. 0 ⇒ no fee.
     pub vault_creation_fee_sat: u64,
+    /// VB4 (spec §6 / §14 G1) — per-deposit minimum-hold lock in seconds, baked
+    /// into each new deposit's unlock time. 0 ⇒ no lock (instant-redeemable).
+    pub lockup_secs: u64,
+    /// VB4 (spec §6 / §14 G1) — redemption notice/queue window in seconds; a
+    /// queued redemption is serviceable only after `requested_at + this`. 0 ⇒
+    /// instantly serviceable.
+    pub redemption_notice_secs: u64,
 }
 
 impl From<proto::Params> for VaultParams {
@@ -405,6 +416,8 @@ impl From<proto::Params> for VaultParams {
             perf_fee_reserve_bps: p.perf_fee_reserve_bps,
             min_leader_skin_bps: p.min_leader_skin_bps,
             vault_creation_fee_sat: p.vault_creation_fee_sat,
+            lockup_secs: p.lockup_secs,
+            redemption_notice_secs: p.redemption_notice_secs,
         }
     }
 }
@@ -428,6 +441,8 @@ impl From<VaultParams> for proto::Params {
             perf_fee_reserve_bps: p.perf_fee_reserve_bps,
             min_leader_skin_bps: p.min_leader_skin_bps,
             vault_creation_fee_sat: p.vault_creation_fee_sat,
+            lockup_secs: p.lockup_secs,
+            redemption_notice_secs: p.redemption_notice_secs,
         }
     }
 }
@@ -592,6 +607,8 @@ mod tests {
             perf_fee_reserve_bps: 1_000,
             min_leader_skin_bps: 500,
             vault_creation_fee_sat: 1_000_000,
+            lockup_secs: 86_400,
+            redemption_notice_secs: 43_200,
         };
         let proto_p: proto::Params = p.clone().into();
         let p2: VaultParams = proto_p.into();

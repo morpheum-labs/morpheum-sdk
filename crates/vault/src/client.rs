@@ -294,6 +294,7 @@ mod tests {
                             stake_time: None,
                             last_claim_time: None,
                             high_water_mark: "0".into(),
+                            unlock_at: None,
                         }),
                         error_message: "".into(),
                     },

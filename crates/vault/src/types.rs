@@ -530,6 +530,13 @@ pub struct VaultParams {
     pub enable_auto_allocation: bool,
     /// Addresses authorized to submit `MsgAllocateBuffer`. Empty = permissionless.
     pub authorized_allocation_signers: Vec<String>,
+    /// VB8 (spec §14 / G5) — max age (ms) of a committed mark before NAV
+    /// rejects it. 0 ⇒ staleness check off.
+    pub max_mark_staleness_ms: u64,
+    /// VB8 — Perp (bucket) illiquidity haircut in bps. 0 ⇒ no haircut.
+    pub perp_haircut_bps: u32,
+    /// VB8 — CLMM illiquidity haircut in bps. 0 ⇒ no haircut.
+    pub clmm_haircut_bps: u32,
 }
 
 impl From<proto::Params> for VaultParams {
@@ -555,6 +562,9 @@ impl From<proto::Params> for VaultParams {
             redemption_notice_secs: p.redemption_notice_secs,
             enable_auto_allocation: p.enable_auto_allocation,
             authorized_allocation_signers: p.authorized_allocation_signers,
+            max_mark_staleness_ms: p.max_mark_staleness_ms,
+            perp_haircut_bps: p.perp_haircut_bps,
+            clmm_haircut_bps: p.clmm_haircut_bps,
         }
     }
 }
@@ -582,6 +592,9 @@ impl From<VaultParams> for proto::Params {
             redemption_notice_secs: p.redemption_notice_secs,
             enable_auto_allocation: p.enable_auto_allocation,
             authorized_allocation_signers: p.authorized_allocation_signers,
+            max_mark_staleness_ms: p.max_mark_staleness_ms,
+            perp_haircut_bps: p.perp_haircut_bps,
+            clmm_haircut_bps: p.clmm_haircut_bps,
         }
     }
 }
@@ -760,6 +773,9 @@ mod tests {
             redemption_notice_secs: 43_200,
             enable_auto_allocation: true,
             authorized_allocation_signers: alloc::vec!["morpheum1alloc".into()],
+            max_mark_staleness_ms: 5_000,
+            perp_haircut_bps: 100,
+            clmm_haircut_bps: 250,
         };
         let proto_p: proto::Params = p.clone().into();
         let p2: VaultParams = proto_p.into();

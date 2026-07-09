@@ -588,13 +588,14 @@ mod tests {
         let req = UpdateVaultParamsBuilder::new()
             .vault_id("v1")
             .mandate(VaultMandate {
-                allowed_markets: vec![7, 9],
+                allowed_markets: alloc::vec![7, 9],
                 max_leverage: 3,
+                allowed_assets: alloc::vec![],
             })
             .build()
             .unwrap();
         let m = req.mandate.expect("mandate set");
-        assert_eq!(m.allowed_markets, vec![7, 9]);
+        assert_eq!(m.allowed_markets, alloc::vec![7, 9]);
         assert_eq!(m.max_leverage, 3);
     }
 }

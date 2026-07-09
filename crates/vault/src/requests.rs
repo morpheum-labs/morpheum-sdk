@@ -687,8 +687,9 @@ mod tests {
             deposit_capacity_native: None,
             soft_closed: None,
             mandate: Some(VaultMandate {
-                allowed_markets: vec![1, 2],
+                allowed_markets: alloc::vec![1, 2],
                 max_leverage: 5,
+                allowed_assets: alloc::vec![],
             }),
             allocation_policy: None,
         }
@@ -696,7 +697,7 @@ mod tests {
         assert_eq!(any.type_url, "/vault.v1.MsgUpdateVaultParams");
         let msg = proto::MsgUpdateVaultParams::decode(any.value.as_slice()).unwrap();
         let m = msg.mandate.expect("mandate present");
-        assert_eq!(m.allowed_markets, vec![1, 2]);
+        assert_eq!(m.allowed_markets, alloc::vec![1, 2]);
         assert_eq!(m.max_leverage, 5);
     }
 
@@ -714,7 +715,7 @@ mod tests {
             allocation_policy: Some(AllocationPolicy {
                 cash_buffer_floor_bps: 2_000,
                 deployment_ceiling_bps: 7_000,
-                targets: vec![AllocationTarget {
+                targets: alloc::vec![AllocationTarget {
                     kind: AllocationKind::Bucket,
                     target_weight_bps: 5_000,
                 }],

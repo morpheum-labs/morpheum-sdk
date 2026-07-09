@@ -165,6 +165,10 @@ pub struct VaultMandate {
     pub allowed_markets: Vec<u64>,
     /// Maximum leverage the vault may configure per market. 0 ⇒ unbounded.
     pub max_leverage: u32,
+    /// VA3 — assets the vault may hold as SpotToken NAV legs. Empty ⇒ no
+    /// SpotToken holdings (byte-identical to `{cash, bucket, clmm}`). Opposite
+    /// of `allowed_markets`.
+    pub allowed_assets: Vec<u64>,
 }
 
 /// VB7 (spec §5) — destination tier for a target weight.
@@ -254,6 +258,7 @@ impl From<proto::VaultMandate> for VaultMandate {
         Self {
             allowed_markets: p.allowed_markets,
             max_leverage: p.max_leverage,
+            allowed_assets: p.allowed_assets,
         }
     }
 }
@@ -263,6 +268,7 @@ impl From<VaultMandate> for proto::VaultMandate {
         Self {
             allowed_markets: m.allowed_markets,
             max_leverage: m.max_leverage,
+            allowed_assets: m.allowed_assets,
         }
     }
 }
@@ -537,6 +543,9 @@ pub struct VaultParams {
     pub perp_haircut_bps: u32,
     /// VB8 — CLMM illiquidity haircut in bps. 0 ⇒ no haircut.
     pub clmm_haircut_bps: u32,
+    /// VA3 — per-tier SpotToken illiquidity haircut in bps. Index =
+    /// `SpotAssetTier.tier` ordinal. Empty ⇒ no spot haircut.
+    pub spot_haircut_bps_by_tier: Vec<u32>,
 }
 
 impl From<proto::Params> for VaultParams {
@@ -565,6 +574,7 @@ impl From<proto::Params> for VaultParams {
             max_mark_staleness_ms: p.max_mark_staleness_ms,
             perp_haircut_bps: p.perp_haircut_bps,
             clmm_haircut_bps: p.clmm_haircut_bps,
+            spot_haircut_bps_by_tier: p.spot_haircut_bps_by_tier,
         }
     }
 }
@@ -595,6 +605,7 @@ impl From<VaultParams> for proto::Params {
             max_mark_staleness_ms: p.max_mark_staleness_ms,
             perp_haircut_bps: p.perp_haircut_bps,
             clmm_haircut_bps: p.clmm_haircut_bps,
+            spot_haircut_bps_by_tier: p.spot_haircut_bps_by_tier,
         }
     }
 }
@@ -776,6 +787,7 @@ mod tests {
             max_mark_staleness_ms: 5_000,
             perp_haircut_bps: 100,
             clmm_haircut_bps: 250,
+            spot_haircut_bps_by_tier: alloc::vec![50, 150],
         };
         let proto_p: proto::Params = p.clone().into();
         let p2: VaultParams = proto_p.into();

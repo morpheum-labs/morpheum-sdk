@@ -167,6 +167,11 @@ pub struct Vault {
     /// crystallization ran (`epoch = height / fee_crystallization_interval_blocks`).
     /// Seeded 0 at create; inert while the cadence is disarmed.
     pub last_fee_crystallization_epoch: u64,
+    /// D8 (spec §3) — the vault's owned margin buckets (SSOT). A vault may own N
+    /// buckets (Cross and/or Isolated). Empty until the first deploy; the scalar
+    /// `bucket_id` / `collateral_asset_index` / `deployed_assets` above are the
+    /// derived mirror (primary bucket + total cost basis).
+    pub buckets: Vec<VaultBucket>,
 }
 
 /// VB6 (spec P7 / §2) — per-vault operating constraints.
@@ -285,6 +290,73 @@ impl From<VaultMandate> for proto::VaultMandate {
     }
 }
 
+/// D8 (spec §3) — margin isolation mode of an owned bucket.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+pub enum BucketMode {
+    /// Treated as Cross.
+    #[default]
+    Unspecified,
+    /// Shared margin across the bucket's markets.
+    Cross,
+    /// Isolated margin (one position per bucket).
+    Isolated,
+}
+
+impl From<i32> for BucketMode {
+    fn from(v: i32) -> Self {
+        match proto::BucketMode::try_from(v).unwrap_or(proto::BucketMode::Unspecified) {
+            proto::BucketMode::Unspecified => Self::Unspecified,
+            proto::BucketMode::Cross => Self::Cross,
+            proto::BucketMode::Isolated => Self::Isolated,
+        }
+    }
+}
+
+impl From<BucketMode> for i32 {
+    fn from(m: BucketMode) -> Self {
+        match m {
+            BucketMode::Unspecified => 0,
+            BucketMode::Cross => 1,
+            BucketMode::Isolated => 2,
+        }
+    }
+}
+
+/// D8 (spec §3) — one owned margin bucket with its own principal cost basis and
+/// isolation mode.
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+pub struct VaultBucket {
+    pub bucket_id: String,
+    pub collateral_asset_index: u32,
+    /// string(uint256) — this bucket's principal cost basis.
+    pub deployed_assets: String,
+    pub mode: BucketMode,
+}
+
+impl From<proto::VaultBucket> for VaultBucket {
+    fn from(p: proto::VaultBucket) -> Self {
+        Self {
+            bucket_id: p.bucket_id,
+            collateral_asset_index: p.collateral_asset_index,
+            deployed_assets: p.deployed_assets,
+            mode: BucketMode::from(p.mode),
+        }
+    }
+}
+
+impl From<VaultBucket> for proto::VaultBucket {
+    fn from(b: VaultBucket) -> Self {
+        Self {
+            bucket_id: b.bucket_id,
+            collateral_asset_index: b.collateral_asset_index,
+            deployed_assets: b.deployed_assets,
+            mode: i32::from(b.mode),
+        }
+    }
+}
+
 impl From<proto::Vault> for Vault {
     fn from(p: proto::Vault) -> Self {
         let (asset_index, asset_symbol) = extract_asset(&p.asset);
@@ -330,6 +402,7 @@ impl From<proto::Vault> for Vault {
                 .unwrap_or_default(),
             owner_agent_hash: p.owner_agent_hash,
             last_fee_crystallization_epoch: p.last_fee_crystallization_epoch,
+            buckets: p.buckets.into_iter().map(VaultBucket::from).collect(),
         }
     }
 }
@@ -734,6 +807,26 @@ mod tests {
     }
 
     #[test]
+    fn bucket_mode_roundtrip() {
+        for m in [BucketMode::Cross, BucketMode::Isolated, BucketMode::Unspecified] {
+            assert_eq!(m, BucketMode::from(i32::from(m)));
+        }
+        assert_eq!(BucketMode::Unspecified, BucketMode::from(99));
+    }
+
+    #[test]
+    fn vault_bucket_roundtrip() {
+        let b = VaultBucket {
+            bucket_id: "bkt-1".into(),
+            collateral_asset_index: 3,
+            deployed_assets: "1234".into(),
+            mode: BucketMode::Isolated,
+        };
+        let p: proto::VaultBucket = b.clone().into();
+        assert_eq!(VaultBucket::from(p), b);
+    }
+
+    #[test]
     fn vault_status_roundtrip() {
         for s in [
             VaultStatus::Active,
@@ -791,9 +884,28 @@ mod tests {
             allocation_policy: None,
             owner_agent_hash: "agent-hash-1".into(),
             last_fee_crystallization_epoch: 7,
+            buckets: vec![
+                proto::VaultBucket {
+                    bucket_id: "bucket-v1".into(),
+                    collateral_asset_index: 1,
+                    deployed_assets: "60".into(),
+                    mode: 1,
+                },
+                proto::VaultBucket {
+                    bucket_id: "bucket-v2".into(),
+                    collateral_asset_index: 1,
+                    deployed_assets: "40".into(),
+                    mode: 2,
+                },
+            ],
         };
         let v: Vault = p.into();
         assert_eq!(v.vault_type, VaultType::Custom);
+        assert_eq!(v.buckets.len(), 2);
+        assert_eq!(v.buckets[0].bucket_id, "bucket-v1");
+        assert_eq!(v.buckets[0].mode, BucketMode::Cross);
+        assert_eq!(v.buckets[1].bucket_id, "bucket-v2");
+        assert_eq!(v.buckets[1].mode, BucketMode::Isolated);
         assert_eq!(v.asset_symbol, "MORM");
         assert_eq!(v.total_assets, "1000");
         assert_eq!(v.total_shares, "1000");

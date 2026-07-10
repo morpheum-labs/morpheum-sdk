@@ -275,6 +275,7 @@ mod tests {
                             allocation_policy: None,
                             owner_agent_hash: "".into(),
                             last_fee_crystallization_epoch: 0,
+                            buckets: vec![],
                         }),
                         error_message: "".into(),
                     }))

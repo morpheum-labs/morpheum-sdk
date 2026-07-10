@@ -129,6 +129,9 @@ impl UpdateVaultParamsRequest {
 pub struct ExecuteStrategyRequest {
     pub vault_id: String,
     pub strategy_params: String,
+    /// D8 (spec §3) — target owned bucket. Empty ⇒ the vault's sole bucket
+    /// (rejected when the vault owns more than one — specify explicitly).
+    pub bucket_id: String,
 }
 
 impl ExecuteStrategyRequest {
@@ -136,7 +139,14 @@ impl ExecuteStrategyRequest {
         Self {
             vault_id: vault_id.into(),
             strategy_params: strategy_params.into(),
+            bucket_id: String::new(),
         }
+    }
+
+    /// D8 — target a specific owned bucket.
+    pub fn with_bucket(mut self, bucket_id: impl Into<String>) -> Self {
+        self.bucket_id = bucket_id.into();
+        self
     }
 
     pub fn to_any(&self) -> ProtoAny {
@@ -144,9 +154,140 @@ impl ExecuteStrategyRequest {
             vault_id: self.vault_id.clone(),
             strategy_params: self.strategy_params.clone(),
             timestamp: None,
+            bucket_id: self.bucket_id.clone(),
         };
         ProtoAny {
             type_url: "/vault.v1.MsgExecuteStrategy".into(),
+            value: msg.encode_to_vec(),
+        }
+    }
+}
+
+/// D8 (spec §3) — deploy idle principal into an owned margin bucket. Empty
+/// `bucket_id` with `provision_new = false` targets the sole bucket (or
+/// provisions the first). `provision_new = true` always provisions a NEW bucket
+/// of `new_bucket_mode`.
+#[derive(Clone, Debug, PartialEq, Eq)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+pub struct DeployToBucketRequest {
+    pub vault_id: String,
+    pub amount: String,
+    pub bucket_id: String,
+    pub provision_new: bool,
+    pub new_bucket_mode: crate::types::BucketMode,
+}
+
+impl DeployToBucketRequest {
+    pub fn new(vault_id: impl Into<String>, amount: impl Into<String>) -> Self {
+        Self {
+            vault_id: vault_id.into(),
+            amount: amount.into(),
+            bucket_id: String::new(),
+            provision_new: false,
+            new_bucket_mode: crate::types::BucketMode::Unspecified,
+        }
+    }
+
+    /// Target an existing owned bucket by id.
+    pub fn with_bucket(mut self, bucket_id: impl Into<String>) -> Self {
+        self.bucket_id = bucket_id.into();
+        self
+    }
+
+    /// Provision a NEW owned bucket of `mode` and fund it.
+    pub fn provision(mut self, mode: crate::types::BucketMode) -> Self {
+        self.provision_new = true;
+        self.new_bucket_mode = mode;
+        self
+    }
+
+    pub fn to_any(&self) -> ProtoAny {
+        let msg = proto::MsgDeployToBucket {
+            vault_id: self.vault_id.clone(),
+            amount: self.amount.clone(),
+            bucket_id: self.bucket_id.clone(),
+            provision_new: self.provision_new,
+            new_bucket_mode: i32::from(self.new_bucket_mode),
+        };
+        ProtoAny {
+            type_url: "/vault.v1.MsgDeployToBucket".into(),
+            value: msg.encode_to_vec(),
+        }
+    }
+}
+
+/// D8 (spec §3) — pull margin back from an owned bucket into idle principal.
+/// Empty `bucket_id` targets the sole bucket (rejected when ambiguous).
+#[derive(Clone, Debug, PartialEq, Eq)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+pub struct UndeployFromBucketRequest {
+    pub vault_id: String,
+    pub amount: String,
+    pub bucket_id: String,
+}
+
+impl UndeployFromBucketRequest {
+    pub fn new(vault_id: impl Into<String>, amount: impl Into<String>) -> Self {
+        Self {
+            vault_id: vault_id.into(),
+            amount: amount.into(),
+            bucket_id: String::new(),
+        }
+    }
+
+    pub fn with_bucket(mut self, bucket_id: impl Into<String>) -> Self {
+        self.bucket_id = bucket_id.into();
+        self
+    }
+
+    pub fn to_any(&self) -> ProtoAny {
+        let msg = proto::MsgUndeployFromBucket {
+            vault_id: self.vault_id.clone(),
+            amount: self.amount.clone(),
+            bucket_id: self.bucket_id.clone(),
+        };
+        ProtoAny {
+            type_url: "/vault.v1.MsgUndeployFromBucket".into(),
+            value: msg.encode_to_vec(),
+        }
+    }
+}
+
+/// D8 (spec §3) — set per-(bucket, market) leverage on an owned bucket. Empty
+/// `bucket_id` targets the sole bucket (rejected when ambiguous).
+#[derive(Clone, Debug, PartialEq, Eq)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+pub struct SetVaultLeverageRequest {
+    pub vault_id: String,
+    pub market_index: u64,
+    pub leverage: u32,
+    pub bucket_id: String,
+}
+
+impl SetVaultLeverageRequest {
+    pub fn new(vault_id: impl Into<String>, market_index: u64, leverage: u32) -> Self {
+        Self {
+            vault_id: vault_id.into(),
+            market_index,
+            leverage,
+            bucket_id: String::new(),
+        }
+    }
+
+    pub fn with_bucket(mut self, bucket_id: impl Into<String>) -> Self {
+        self.bucket_id = bucket_id.into();
+        self
+    }
+
+    pub fn to_any(&self) -> ProtoAny {
+        let msg = proto::MsgSetVaultLeverage {
+            vault_id: self.vault_id.clone(),
+            market_index: self.market_index,
+            leverage: self.leverage,
+            bucket_id: self.bucket_id.clone(),
+        };
+        ProtoAny {
+            type_url: "/vault.v1.MsgSetVaultLeverage".into(),
             value: msg.encode_to_vec(),
         }
     }

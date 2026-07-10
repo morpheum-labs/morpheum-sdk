@@ -18,24 +18,25 @@ pub mod types;
 pub use client::{StakeListPage, StrategyHistoryPage, VaultClient, VaultListPage};
 
 pub use types::{
-    AllocationKind, AllocationPolicy, AllocationTarget, IlMetrics, RevenueShareConfig, Stake,
-    StrategyExecution, Vault, VaultHealth, VaultMandate, VaultParams, VaultRecord, VaultStatus,
-    VaultStreamEvent, VaultType, VaultUpdateEvent,
+    AllocationKind, AllocationPolicy, AllocationTarget, BucketMode, IlMetrics, RevenueShareConfig,
+    Stake, StrategyExecution, Vault, VaultBucket, VaultHealth, VaultMandate, VaultParams,
+    VaultRecord, VaultStatus, VaultStreamEvent, VaultType, VaultUpdateEvent,
 };
 
 pub use requests::{
     ClaimYieldRequest, ClearVaultLiquidationRequest, CreateProtocolVaultRequest,
-    CreateVaultRequest, DepositToVaultRequest, ExecuteStrategyRequest, GetIlMetricsRequest,
-    GetStrategyHistoryRequest, GetTopVaultsRequest, GetUserStakeRequest, GetVaultHealthRequest,
-    GetVaultRequest, GetVaultsByAgentRequest, GetVaultsByTypeRequest, ListUserStakesRequest,
-    ListVaultsRequest, PauseVaultRequest, RefreshVaultScoreRequest, CrystallizeFeeRequest,
-    ResumeVaultRequest,
+    CreateVaultRequest, CrystallizeFeeRequest, DeployToBucketRequest, DepositToVaultRequest,
+    ExecuteStrategyRequest, GetIlMetricsRequest, GetStrategyHistoryRequest, GetTopVaultsRequest,
+    GetUserStakeRequest, GetVaultHealthRequest, GetVaultRequest, GetVaultsByAgentRequest,
+    GetVaultsByTypeRequest, ListUserStakesRequest, ListVaultsRequest, PauseVaultRequest,
+    RefreshVaultScoreRequest, ResumeVaultRequest, SetVaultLeverageRequest, UndeployFromBucketRequest,
     UpdateParamsRequest, UpdateVaultParamsRequest, WithdrawFromVaultRequest,
 };
 
 pub use builder::{
-    ClaimYieldBuilder, CreateVaultBuilder, DepositToVaultBuilder, ExecuteStrategyBuilder,
-    PauseVaultBuilder, ResumeVaultBuilder, UpdateModuleParamsBuilder, UpdateVaultParamsBuilder,
+    ClaimYieldBuilder, CreateVaultBuilder, DeployToBucketBuilder, DepositToVaultBuilder,
+    ExecuteStrategyBuilder, PauseVaultBuilder, ResumeVaultBuilder, SetVaultLeverageBuilder,
+    UndeployFromBucketBuilder, UpdateModuleParamsBuilder, UpdateVaultParamsBuilder,
     WithdrawFromVaultBuilder,
 };
 

@@ -5,11 +5,12 @@ use alloc::string::String;
 use morpheum_sdk_core::SdkError;
 
 use crate::requests::{
-    ClaimYieldRequest, CreateVaultRequest, DepositToVaultRequest, ExecuteStrategyRequest,
-    PauseVaultRequest, ResumeVaultRequest, UpdateParamsRequest, UpdateVaultParamsRequest,
+    ClaimYieldRequest, CreateVaultRequest, DeployToBucketRequest, DepositToVaultRequest,
+    ExecuteStrategyRequest, PauseVaultRequest, ResumeVaultRequest, SetVaultLeverageRequest,
+    UndeployFromBucketRequest, UpdateParamsRequest, UpdateVaultParamsRequest,
     WithdrawFromVaultRequest,
 };
-use crate::types::{VaultParams, VaultType};
+use crate::types::{BucketMode, VaultParams, VaultType};
 
 // ====================== CREATE VAULT ======================
 
@@ -176,6 +177,7 @@ impl Default for UpdateVaultParamsBuilder {
 pub struct ExecuteStrategyBuilder {
     vault_id: Option<String>,
     strategy_params: Option<String>,
+    bucket_id: String,
 }
 
 impl ExecuteStrategyBuilder {
@@ -183,6 +185,7 @@ impl ExecuteStrategyBuilder {
         Self {
             vault_id: None,
             strategy_params: None,
+            bucket_id: String::new(),
         }
     }
 
@@ -194,6 +197,11 @@ impl ExecuteStrategyBuilder {
         self.strategy_params = Some(v.into());
         self
     }
+    /// D8 — target a specific owned bucket.
+    pub fn bucket_id(mut self, v: impl Into<String>) -> Self {
+        self.bucket_id = v.into();
+        self
+    }
 
     pub fn build(self) -> Result<ExecuteStrategyRequest, SdkError> {
         let req = ExecuteStrategyRequest::new(
@@ -201,12 +209,175 @@ impl ExecuteStrategyBuilder {
                 .ok_or_else(|| SdkError::invalid_input("vault_id is required"))?,
             self.strategy_params
                 .ok_or_else(|| SdkError::invalid_input("strategy_params is required"))?,
-        );
+        )
+        .with_bucket(self.bucket_id);
         Ok(req)
     }
 }
 
 impl Default for ExecuteStrategyBuilder {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+// ====================== DEPLOY / UNDEPLOY / LEVERAGE (D8) ======================
+
+pub struct DeployToBucketBuilder {
+    vault_id: Option<String>,
+    amount: Option<String>,
+    bucket_id: String,
+    provision_new: bool,
+    new_bucket_mode: BucketMode,
+}
+
+impl DeployToBucketBuilder {
+    pub fn new() -> Self {
+        Self {
+            vault_id: None,
+            amount: None,
+            bucket_id: String::new(),
+            provision_new: false,
+            new_bucket_mode: BucketMode::Unspecified,
+        }
+    }
+
+    pub fn vault_id(mut self, v: impl Into<String>) -> Self {
+        self.vault_id = Some(v.into());
+        self
+    }
+    pub fn amount(mut self, v: impl Into<String>) -> Self {
+        self.amount = Some(v.into());
+        self
+    }
+    /// Target an existing owned bucket by id.
+    pub fn bucket_id(mut self, v: impl Into<String>) -> Self {
+        self.bucket_id = v.into();
+        self
+    }
+    /// Provision a NEW owned bucket of `mode` and fund it.
+    pub fn provision(mut self, mode: BucketMode) -> Self {
+        self.provision_new = true;
+        self.new_bucket_mode = mode;
+        self
+    }
+
+    pub fn build(self) -> Result<DeployToBucketRequest, SdkError> {
+        let mut req = DeployToBucketRequest::new(
+            self.vault_id
+                .ok_or_else(|| SdkError::invalid_input("vault_id is required"))?,
+            self.amount
+                .ok_or_else(|| SdkError::invalid_input("amount is required"))?,
+        )
+        .with_bucket(self.bucket_id);
+        if self.provision_new {
+            req = req.provision(self.new_bucket_mode);
+        }
+        Ok(req)
+    }
+}
+
+impl Default for DeployToBucketBuilder {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+pub struct UndeployFromBucketBuilder {
+    vault_id: Option<String>,
+    amount: Option<String>,
+    bucket_id: String,
+}
+
+impl UndeployFromBucketBuilder {
+    pub fn new() -> Self {
+        Self {
+            vault_id: None,
+            amount: None,
+            bucket_id: String::new(),
+        }
+    }
+
+    pub fn vault_id(mut self, v: impl Into<String>) -> Self {
+        self.vault_id = Some(v.into());
+        self
+    }
+    pub fn amount(mut self, v: impl Into<String>) -> Self {
+        self.amount = Some(v.into());
+        self
+    }
+    pub fn bucket_id(mut self, v: impl Into<String>) -> Self {
+        self.bucket_id = v.into();
+        self
+    }
+
+    pub fn build(self) -> Result<UndeployFromBucketRequest, SdkError> {
+        let req = UndeployFromBucketRequest::new(
+            self.vault_id
+                .ok_or_else(|| SdkError::invalid_input("vault_id is required"))?,
+            self.amount
+                .ok_or_else(|| SdkError::invalid_input("amount is required"))?,
+        )
+        .with_bucket(self.bucket_id);
+        Ok(req)
+    }
+}
+
+impl Default for UndeployFromBucketBuilder {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+pub struct SetVaultLeverageBuilder {
+    vault_id: Option<String>,
+    market_index: Option<u64>,
+    leverage: Option<u32>,
+    bucket_id: String,
+}
+
+impl SetVaultLeverageBuilder {
+    pub fn new() -> Self {
+        Self {
+            vault_id: None,
+            market_index: None,
+            leverage: None,
+            bucket_id: String::new(),
+        }
+    }
+
+    pub fn vault_id(mut self, v: impl Into<String>) -> Self {
+        self.vault_id = Some(v.into());
+        self
+    }
+    pub fn market_index(mut self, v: u64) -> Self {
+        self.market_index = Some(v);
+        self
+    }
+    pub fn leverage(mut self, v: u32) -> Self {
+        self.leverage = Some(v);
+        self
+    }
+    pub fn bucket_id(mut self, v: impl Into<String>) -> Self {
+        self.bucket_id = v.into();
+        self
+    }
+
+    pub fn build(self) -> Result<SetVaultLeverageRequest, SdkError> {
+        let req = SetVaultLeverageRequest::new(
+            self.vault_id
+                .ok_or_else(|| SdkError::invalid_input("vault_id is required"))?,
+            self.market_index
+                .ok_or_else(|| SdkError::invalid_input("market_index is required"))?,
+            self.leverage
+                .ok_or_else(|| SdkError::invalid_input("leverage is required"))?,
+        )
+        .with_bucket(self.bucket_id);
+        Ok(req)
+    }
+}
+
+impl Default for SetVaultLeverageBuilder {
     fn default() -> Self {
         Self::new()
     }

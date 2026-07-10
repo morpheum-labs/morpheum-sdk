@@ -323,6 +323,99 @@ impl SetVaultLeverageRequest {
     }
 }
 
+/// VA3 producer — acquire a mandate-whitelisted spot token by swapping `amount`
+/// of idle base collateral into `asset_index` via the CLMM hybrid swap DIP. The
+/// pool must pair exactly `(base, asset_index)` and a committed spot mark must
+/// exist for the target. Gated by the default-OFF `enable_spot_acquisition` +
+/// `enable_strategy_execution` params and the vault manager signer.
+#[derive(Clone, Debug, PartialEq, Eq)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+pub struct AcquireSpotRequest {
+    pub vault_id: String,
+    pub pool_id: String,
+    pub asset_index: u32,
+    pub amount: String,
+    pub min_out: String,
+}
+
+impl AcquireSpotRequest {
+    pub fn new(
+        vault_id: impl Into<String>,
+        pool_id: impl Into<String>,
+        asset_index: u32,
+        amount: impl Into<String>,
+        min_out: impl Into<String>,
+    ) -> Self {
+        Self {
+            vault_id: vault_id.into(),
+            pool_id: pool_id.into(),
+            asset_index,
+            amount: amount.into(),
+            min_out: min_out.into(),
+        }
+    }
+
+    pub fn to_any(&self) -> ProtoAny {
+        let msg = proto::MsgAcquireSpot {
+            vault_id: self.vault_id.clone(),
+            pool_id: self.pool_id.clone(),
+            asset_index: self.asset_index,
+            amount: self.amount.clone(),
+            min_out: self.min_out.clone(),
+        };
+        ProtoAny {
+            type_url: "/vault.v1.MsgAcquireSpot".into(),
+            value: msg.encode_to_vec(),
+        }
+    }
+}
+
+/// VA3 producer — dispose a held spot token by swapping `amount` of `asset_index`
+/// back to base collateral via the CLMM hybrid swap DIP. The reduce-only exit is
+/// gated only by `enable_strategy_execution` (never by `enable_spot_acquisition`
+/// or the whitelist) so capital can always leave.
+#[derive(Clone, Debug, PartialEq, Eq)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+pub struct DisposeSpotRequest {
+    pub vault_id: String,
+    pub pool_id: String,
+    pub asset_index: u32,
+    pub amount: String,
+    pub min_out: String,
+}
+
+impl DisposeSpotRequest {
+    pub fn new(
+        vault_id: impl Into<String>,
+        pool_id: impl Into<String>,
+        asset_index: u32,
+        amount: impl Into<String>,
+        min_out: impl Into<String>,
+    ) -> Self {
+        Self {
+            vault_id: vault_id.into(),
+            pool_id: pool_id.into(),
+            asset_index,
+            amount: amount.into(),
+            min_out: min_out.into(),
+        }
+    }
+
+    pub fn to_any(&self) -> ProtoAny {
+        let msg = proto::MsgDisposeSpot {
+            vault_id: self.vault_id.clone(),
+            pool_id: self.pool_id.clone(),
+            asset_index: self.asset_index,
+            amount: self.amount.clone(),
+            min_out: self.min_out.clone(),
+        };
+        ProtoAny {
+            type_url: "/vault.v1.MsgDisposeSpot".into(),
+            value: msg.encode_to_vec(),
+        }
+    }
+}
+
 /// Pause vault operations.
 #[derive(Clone, Debug, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
@@ -942,6 +1035,31 @@ mod tests {
     fn withdraw_from_vault_to_any() {
         let any = WithdrawFromVaultRequest::new("morph1user", "v1", 1, "100").to_any();
         assert_eq!(any.type_url, "/vault.v1.MsgWithdrawFromVault");
+    }
+
+    #[test]
+    fn acquire_spot_to_any() {
+        let req = AcquireSpotRequest::new("v1", "0x1", 7, "1000", "950");
+        let any = req.to_any();
+        assert_eq!(any.type_url, "/vault.v1.MsgAcquireSpot");
+        let decoded = proto::MsgAcquireSpot::decode(any.value.as_slice()).unwrap();
+        assert_eq!(decoded.vault_id, "v1");
+        assert_eq!(decoded.pool_id, "0x1");
+        assert_eq!(decoded.asset_index, 7);
+        assert_eq!(decoded.amount, "1000");
+        assert_eq!(decoded.min_out, "950");
+    }
+
+    #[test]
+    fn dispose_spot_to_any() {
+        let req = DisposeSpotRequest::new("v1", "0x1", 7, "500", "480");
+        let any = req.to_any();
+        assert_eq!(any.type_url, "/vault.v1.MsgDisposeSpot");
+        let decoded = proto::MsgDisposeSpot::decode(any.value.as_slice()).unwrap();
+        assert_eq!(decoded.vault_id, "v1");
+        assert_eq!(decoded.asset_index, 7);
+        assert_eq!(decoded.amount, "500");
+        assert_eq!(decoded.min_out, "480");
     }
 
     #[test]

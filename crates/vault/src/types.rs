@@ -777,6 +777,10 @@ pub struct VaultParams {
     /// D6 — addresses authorized to submit `MsgSweepDeadVault`. Empty =
     /// permissionless (bounded by the default-OFF gate).
     pub authorized_dead_man_signers: Vec<String>,
+    /// VA3 producer — default-OFF gate for the manager-driven spot-acquisition
+    /// path (`MsgAcquireSpot`). The reduce-only `MsgDisposeSpot` exit is never
+    /// gated by this flag. Byte-identical to pre-VA3-producer while false.
+    pub enable_spot_acquisition: bool,
 }
 
 impl From<proto::Params> for VaultParams {
@@ -830,6 +834,7 @@ impl From<proto::Params> for VaultParams {
             dead_man_switch_secs: p.dead_man_switch_secs,
             enable_dead_man_switch: p.enable_dead_man_switch,
             authorized_dead_man_signers: p.authorized_dead_man_signers,
+            enable_spot_acquisition: p.enable_spot_acquisition,
         }
     }
 }
@@ -885,6 +890,7 @@ impl From<VaultParams> for proto::Params {
             dead_man_switch_secs: p.dead_man_switch_secs,
             enable_dead_man_switch: p.enable_dead_man_switch,
             authorized_dead_man_signers: p.authorized_dead_man_signers,
+            enable_spot_acquisition: p.enable_spot_acquisition,
         }
     }
 }
@@ -1151,6 +1157,7 @@ mod tests {
             dead_man_switch_secs: 604_800,
             enable_dead_man_switch: true,
             authorized_dead_man_signers: alloc::vec!["morpheum1deadman".into()],
+            enable_spot_acquisition: true,
         };
         let proto_p: proto::Params = p.clone().into();
         let p2: VaultParams = proto_p.into();

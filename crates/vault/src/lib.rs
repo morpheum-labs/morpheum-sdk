@@ -25,13 +25,14 @@ pub use types::{
 };
 
 pub use requests::{
-    ClaimYieldRequest, ClearVaultLiquidationRequest, CreateProtocolVaultRequest,
-    CreateVaultRequest, CrystallizeFeeRequest, DeployToBucketRequest, DepositToVaultRequest,
-    ExecuteStrategyRequest, GetIlMetricsRequest, GetStrategyHistoryRequest, GetTopVaultsRequest,
-    GetUserStakeRequest, GetVaultHealthRequest, GetVaultRequest, GetVaultsByAgentRequest,
-    GetVaultsByTypeRequest, ListUserStakesRequest, ListVaultsRequest, PauseVaultRequest,
-    RefreshVaultScoreRequest, ResumeVaultRequest, SetVaultLeverageRequest, UndeployFromBucketRequest,
-    UpdateParamsRequest, UpdateVaultParamsRequest, WithdrawFromVaultRequest,
+    AcquireSpotRequest, ClaimYieldRequest, ClearVaultLiquidationRequest,
+    CreateProtocolVaultRequest, CreateVaultRequest, CrystallizeFeeRequest, DeployToBucketRequest,
+    DepositToVaultRequest, DisposeSpotRequest, ExecuteStrategyRequest, GetIlMetricsRequest,
+    GetStrategyHistoryRequest, GetTopVaultsRequest, GetUserStakeRequest, GetVaultHealthRequest,
+    GetVaultRequest, GetVaultsByAgentRequest, GetVaultsByTypeRequest, ListUserStakesRequest,
+    ListVaultsRequest, PauseVaultRequest, RefreshVaultScoreRequest, ResumeVaultRequest,
+    SetVaultLeverageRequest, UndeployFromBucketRequest, UpdateParamsRequest,
+    UpdateVaultParamsRequest, WithdrawFromVaultRequest,
 };
 
 pub use builder::{

@@ -231,6 +231,39 @@ pub struct VaultMandate {
     /// SpotToken holdings (byte-identical to `{cash, bucket, clmm}`). Opposite
     /// of `allowed_markets`.
     pub allowed_assets: Vec<u64>,
+    /// D9 spot leg — governed CLMM exit pool per whitelisted spot asset. The
+    /// single source of truth for the base⇄asset pool used by acquisition,
+    /// manager exit default, and forced spot liquidation on redemption. One
+    /// entry per asset; each `asset_index` must be in `allowed_assets`.
+    pub spot_exit_pools: Vec<SpotExitPool>,
+}
+
+/// D9 spot leg — a governed base⇄asset CLMM exit pool binding.
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+pub struct SpotExitPool {
+    /// Whitelisted spot token (must be in `allowed_assets`, != base).
+    pub asset_index: u32,
+    /// CLMM pool pairing (base, asset_index) — 0x-hex or decimal id.
+    pub pool_id: String,
+}
+
+impl From<proto::SpotExitPool> for SpotExitPool {
+    fn from(p: proto::SpotExitPool) -> Self {
+        Self {
+            asset_index: p.asset_index,
+            pool_id: p.pool_id,
+        }
+    }
+}
+
+impl From<SpotExitPool> for proto::SpotExitPool {
+    fn from(b: SpotExitPool) -> Self {
+        Self {
+            asset_index: b.asset_index,
+            pool_id: b.pool_id,
+        }
+    }
 }
 
 /// VB7 (spec §5) — destination tier for a target weight.
@@ -321,6 +354,11 @@ impl From<proto::VaultMandate> for VaultMandate {
             allowed_markets: p.allowed_markets,
             max_leverage: p.max_leverage,
             allowed_assets: p.allowed_assets,
+            spot_exit_pools: p
+                .spot_exit_pools
+                .into_iter()
+                .map(SpotExitPool::from)
+                .collect(),
         }
     }
 }
@@ -331,6 +369,7 @@ impl From<VaultMandate> for proto::VaultMandate {
             allowed_markets: m.allowed_markets,
             max_leverage: m.max_leverage,
             allowed_assets: m.allowed_assets,
+            spot_exit_pools: m.spot_exit_pools.into_iter().map(Into::into).collect(),
         }
     }
 }
@@ -781,6 +820,14 @@ pub struct VaultParams {
     /// path (`MsgAcquireSpot`). The reduce-only `MsgDisposeSpot` exit is never
     /// gated by this flag. Byte-identical to pre-VA3-producer while false.
     pub enable_spot_acquisition: bool,
+    /// D9 spot leg — default-OFF gate for forced spot liquidation on matured
+    /// redemptions. While false, held SpotToken is reachable only via a manager
+    /// `MsgDisposeSpot`. Armed independently of the D9 perp/CLMM legs.
+    pub enable_forced_spot_unwind: bool,
+    /// D9 spot leg — max slippage (bps) the forced spot-liquidation floor
+    /// tolerates versus the committed spot mark. Required (0 < bps <= 10000)
+    /// when `enable_forced_spot_unwind`.
+    pub forced_spot_max_slippage_bps: u32,
 }
 
 impl From<proto::Params> for VaultParams {
@@ -835,6 +882,8 @@ impl From<proto::Params> for VaultParams {
             enable_dead_man_switch: p.enable_dead_man_switch,
             authorized_dead_man_signers: p.authorized_dead_man_signers,
             enable_spot_acquisition: p.enable_spot_acquisition,
+            enable_forced_spot_unwind: p.enable_forced_spot_unwind,
+            forced_spot_max_slippage_bps: p.forced_spot_max_slippage_bps,
         }
     }
 }
@@ -891,6 +940,8 @@ impl From<VaultParams> for proto::Params {
             enable_dead_man_switch: p.enable_dead_man_switch,
             authorized_dead_man_signers: p.authorized_dead_man_signers,
             enable_spot_acquisition: p.enable_spot_acquisition,
+            enable_forced_spot_unwind: p.enable_forced_spot_unwind,
+            forced_spot_max_slippage_bps: p.forced_spot_max_slippage_bps,
         }
     }
 }
@@ -1158,6 +1209,8 @@ mod tests {
             enable_dead_man_switch: true,
             authorized_dead_man_signers: alloc::vec!["morpheum1deadman".into()],
             enable_spot_acquisition: true,
+            enable_forced_spot_unwind: true,
+            forced_spot_max_slippage_bps: 250,
         };
         let proto_p: proto::Params = p.clone().into();
         let p2: VaultParams = proto_p.into();

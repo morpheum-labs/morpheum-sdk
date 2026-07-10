@@ -19,8 +19,8 @@ pub use client::{StakeListPage, StrategyHistoryPage, VaultClient, VaultListPage}
 
 pub use types::{
     AllocationKind, AllocationPolicy, AllocationTarget, BucketMode, FeePresetBound, IlMetrics,
-    RevenueShareConfig, Stake, StrategyExecution, Vault, VaultBucket, VaultFeePreset, VaultHealth,
-    VaultMandate, VaultParams, VaultRecord, VaultStatus, VaultStreamEvent, VaultType,
+    RevenueShareConfig, SpotExitPool, Stake, StrategyExecution, Vault, VaultBucket, VaultFeePreset,
+    VaultHealth, VaultMandate, VaultParams, VaultRecord, VaultStatus, VaultStreamEvent, VaultType,
     VaultUpdateEvent,
 };
 

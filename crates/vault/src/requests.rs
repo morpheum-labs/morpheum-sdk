@@ -1113,7 +1113,11 @@ mod tests {
             mandate: Some(VaultMandate {
                 allowed_markets: alloc::vec![1, 2],
                 max_leverage: 5,
-                allowed_assets: alloc::vec![],
+                allowed_assets: alloc::vec![7],
+                spot_exit_pools: alloc::vec![crate::types::SpotExitPool {
+                    asset_index: 7,
+                    pool_id: "0xabc".into(),
+                }],
             }),
             allocation_policy: None,
         }
@@ -1123,6 +1127,10 @@ mod tests {
         let m = msg.mandate.expect("mandate present");
         assert_eq!(m.allowed_markets, alloc::vec![1, 2]);
         assert_eq!(m.max_leverage, 5);
+        assert_eq!(m.allowed_assets, alloc::vec![7]);
+        assert_eq!(m.spot_exit_pools.len(), 1);
+        assert_eq!(m.spot_exit_pools[0].asset_index, 7);
+        assert_eq!(m.spot_exit_pools[0].pool_id, "0xabc");
     }
 
     #[test]

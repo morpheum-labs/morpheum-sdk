@@ -779,6 +779,7 @@ mod tests {
                 allowed_markets: alloc::vec![7, 9],
                 max_leverage: 3,
                 allowed_assets: alloc::vec![],
+                spot_exit_pools: alloc::vec![],
             })
             .build()
             .unwrap();

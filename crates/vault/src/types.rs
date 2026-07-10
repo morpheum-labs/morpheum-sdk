@@ -87,6 +87,44 @@ impl From<VaultStatus> for i32 {
     }
 }
 
+/// VB9 (spec §7 / §12 gate #4) — the fee model a vault is created under. Governs
+/// the create-time fee-validation gate; `Unspecified` is the inert value and
+/// coalesces to `Standard` when the gate is armed.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+pub enum VaultFeePreset {
+    #[default]
+    Unspecified,
+    /// 5-15% perf (default 10%), 0% management locked.
+    Standard,
+    /// 10-25% perf (default 15%), 0-1% management; eligibility-gated.
+    Premium,
+    /// Protocol-defined; `MsgCreateProtocolVault` only.
+    Protocol,
+}
+
+impl From<i32> for VaultFeePreset {
+    fn from(v: i32) -> Self {
+        match v {
+            1 => Self::Standard,
+            2 => Self::Premium,
+            3 => Self::Protocol,
+            _ => Self::Unspecified,
+        }
+    }
+}
+
+impl From<VaultFeePreset> for i32 {
+    fn from(p: VaultFeePreset) -> Self {
+        match p {
+            VaultFeePreset::Unspecified => 0,
+            VaultFeePreset::Standard => 1,
+            VaultFeePreset::Premium => 2,
+            VaultFeePreset::Protocol => 3,
+        }
+    }
+}
+
 // ====================== HELPERS ======================
 
 fn ts_to_u64(ts: &Option<morpheum_proto::google::protobuf::Timestamp>) -> u64 {
@@ -172,6 +210,9 @@ pub struct Vault {
     /// `bucket_id` / `collateral_asset_index` / `deployed_assets` above are the
     /// derived mirror (primary bucket + total cost basis).
     pub buckets: Vec<VaultBucket>,
+    /// VB9 (spec §7 / §12 gate #4) — the fee preset this vault was created under.
+    /// `Unspecified` on pre-VB9 vaults and when the preset gate is disarmed.
+    pub fee_preset: VaultFeePreset,
 }
 
 /// VB6 (spec P7 / §2) — per-vault operating constraints.
@@ -357,6 +398,43 @@ impl From<VaultBucket> for proto::VaultBucket {
     }
 }
 
+/// VB9 (spec §7) — governance-armed fee envelope for one preset. A requested
+/// performance fee must fall within `[min_perf_bps, max_perf_bps]` (`0` resolves
+/// to `default_perf_bps`) and the management fee must be `<= max_mgmt_bps`.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+pub struct FeePresetBound {
+    pub preset: VaultFeePreset,
+    pub min_perf_bps: u32,
+    pub max_perf_bps: u32,
+    pub default_perf_bps: u32,
+    pub max_mgmt_bps: u32,
+}
+
+impl From<proto::FeePresetBound> for FeePresetBound {
+    fn from(p: proto::FeePresetBound) -> Self {
+        Self {
+            preset: VaultFeePreset::from(p.preset),
+            min_perf_bps: p.min_perf_bps,
+            max_perf_bps: p.max_perf_bps,
+            default_perf_bps: p.default_perf_bps,
+            max_mgmt_bps: p.max_mgmt_bps,
+        }
+    }
+}
+
+impl From<FeePresetBound> for proto::FeePresetBound {
+    fn from(b: FeePresetBound) -> Self {
+        Self {
+            preset: i32::from(b.preset),
+            min_perf_bps: b.min_perf_bps,
+            max_perf_bps: b.max_perf_bps,
+            default_perf_bps: b.default_perf_bps,
+            max_mgmt_bps: b.max_mgmt_bps,
+        }
+    }
+}
+
 impl From<proto::Vault> for Vault {
     fn from(p: proto::Vault) -> Self {
         let (asset_index, asset_symbol) = extract_asset(&p.asset);
@@ -403,6 +481,7 @@ impl From<proto::Vault> for Vault {
             owner_agent_hash: p.owner_agent_hash,
             last_fee_crystallization_epoch: p.last_fee_crystallization_epoch,
             buckets: p.buckets.into_iter().map(VaultBucket::from).collect(),
+            fee_preset: VaultFeePreset::from(p.fee_preset),
         }
     }
 }
@@ -665,6 +744,15 @@ pub struct VaultParams {
     pub enable_forced_unwind: bool,
     /// D9 — redeemer-borne exit fee (bps of forced-native). Validated ≤ 10000.
     pub unwind_exit_fee_bps: u32,
+    /// VB9 (spec §7 / §12 gate #4) — default-OFF gate for the create-time
+    /// fee-preset validation. Disarmed ⇒ legacy fee seed (byte-identical).
+    pub enable_fee_presets: bool,
+    /// VB9 — per-preset fee envelopes. Must contain a STANDARD entry when
+    /// `enable_fee_presets` is true.
+    pub fee_preset_bounds: Vec<FeePresetBound>,
+    /// VB9 — governance allowlist of agents eligible to create a PREMIUM vault.
+    /// Strict membership: an empty list locks Premium for everyone.
+    pub authorized_premium_agents: Vec<String>,
 }
 
 impl From<proto::Params> for VaultParams {
@@ -705,6 +793,13 @@ impl From<proto::Params> for VaultParams {
             fee_crystallization_interval_blocks: p.fee_crystallization_interval_blocks,
             enable_forced_unwind: p.enable_forced_unwind,
             unwind_exit_fee_bps: p.unwind_exit_fee_bps,
+            enable_fee_presets: p.enable_fee_presets,
+            fee_preset_bounds: p
+                .fee_preset_bounds
+                .into_iter()
+                .map(FeePresetBound::from)
+                .collect(),
+            authorized_premium_agents: p.authorized_premium_agents,
         }
     }
 }
@@ -747,6 +842,13 @@ impl From<VaultParams> for proto::Params {
             fee_crystallization_interval_blocks: p.fee_crystallization_interval_blocks,
             enable_forced_unwind: p.enable_forced_unwind,
             unwind_exit_fee_bps: p.unwind_exit_fee_bps,
+            enable_fee_presets: p.enable_fee_presets,
+            fee_preset_bounds: p
+                .fee_preset_bounds
+                .into_iter()
+                .map(Into::into)
+                .collect(),
+            authorized_premium_agents: p.authorized_premium_agents,
         }
     }
 }
@@ -898,9 +1000,11 @@ mod tests {
                     mode: 2,
                 },
             ],
+            fee_preset: 2,
         };
         let v: Vault = p.into();
         assert_eq!(v.vault_type, VaultType::Custom);
+        assert_eq!(v.fee_preset, VaultFeePreset::Premium);
         assert_eq!(v.buckets.len(), 2);
         assert_eq!(v.buckets[0].bucket_id, "bucket-v1");
         assert_eq!(v.buckets[0].mode, BucketMode::Cross);
@@ -985,9 +1089,53 @@ mod tests {
             fee_crystallization_interval_blocks: 43_200,
             enable_forced_unwind: true,
             unwind_exit_fee_bps: 50,
+            enable_fee_presets: true,
+            fee_preset_bounds: alloc::vec![
+                FeePresetBound {
+                    preset: VaultFeePreset::Standard,
+                    min_perf_bps: 500,
+                    max_perf_bps: 1_500,
+                    default_perf_bps: 1_000,
+                    max_mgmt_bps: 0,
+                },
+                FeePresetBound {
+                    preset: VaultFeePreset::Premium,
+                    min_perf_bps: 1_000,
+                    max_perf_bps: 2_500,
+                    default_perf_bps: 1_500,
+                    max_mgmt_bps: 100,
+                },
+            ],
+            authorized_premium_agents: alloc::vec!["morpheum1premium".into()],
         };
         let proto_p: proto::Params = p.clone().into();
         let p2: VaultParams = proto_p.into();
         assert_eq!(p, p2);
+    }
+
+    #[test]
+    fn vault_fee_preset_roundtrip() {
+        for pre in [
+            VaultFeePreset::Standard,
+            VaultFeePreset::Premium,
+            VaultFeePreset::Protocol,
+            VaultFeePreset::Unspecified,
+        ] {
+            assert_eq!(pre, VaultFeePreset::from(i32::from(pre)));
+        }
+        assert_eq!(VaultFeePreset::Unspecified, VaultFeePreset::from(99));
+    }
+
+    #[test]
+    fn fee_preset_bound_roundtrip() {
+        let b = FeePresetBound {
+            preset: VaultFeePreset::Premium,
+            min_perf_bps: 1_000,
+            max_perf_bps: 2_500,
+            default_perf_bps: 1_500,
+            max_mgmt_bps: 100,
+        };
+        let p: proto::FeePresetBound = b.into();
+        assert_eq!(FeePresetBound::from(p), b);
     }
 }

@@ -10,7 +10,7 @@ use serde::{Deserialize, Serialize};
 use morpheum_proto::google::protobuf::Any as ProtoAny;
 use morpheum_proto::vault::v1 as proto;
 
-use crate::types::{VaultParams, VaultStatus, VaultType};
+use crate::types::{VaultFeePreset, VaultParams, VaultStatus, VaultType};
 
 // ====================== TRANSACTION REQUESTS ======================
 
@@ -24,6 +24,14 @@ pub struct CreateVaultRequest {
     pub asset_index: u64,
     pub initial_assets: String,
     pub strategy_goal: String,
+    /// VB9 (spec §7 / §12 gate #4) — requested fee preset. `Unspecified` (the
+    /// default) is inert when the preset gate is disarmed and coalesces to
+    /// `Standard` when armed.
+    pub fee_preset: VaultFeePreset,
+    /// VB9 — requested performance fee (bps). `0` resolves to the preset default.
+    pub performance_fee_bps: u32,
+    /// VB9 — requested management fee (bps). Must be within the preset ceiling.
+    pub management_fee_bps: u32,
 }
 
 impl CreateVaultRequest {
@@ -40,7 +48,24 @@ impl CreateVaultRequest {
             asset_index,
             initial_assets: initial_assets.into(),
             strategy_goal: String::new(),
+            fee_preset: VaultFeePreset::Unspecified,
+            performance_fee_bps: 0,
+            management_fee_bps: 0,
         }
+    }
+
+    /// VB9 — select the fee preset and rates (`0` performance ⇒ preset default).
+    #[must_use]
+    pub fn with_fee(
+        mut self,
+        preset: VaultFeePreset,
+        performance_fee_bps: u32,
+        management_fee_bps: u32,
+    ) -> Self {
+        self.fee_preset = preset;
+        self.performance_fee_bps = performance_fee_bps;
+        self.management_fee_bps = management_fee_bps;
+        self
     }
 
     pub fn to_any(&self) -> ProtoAny {
@@ -60,6 +85,11 @@ impl CreateVaultRequest {
             // Left UNSPECIFIED; the vault module coalesces it to the
             // MARKET_MAKING default at create (spec §12).
             strategy_type: 0,
+            // VB9 (spec §7 / §12 gate #4) — fee preset selection. Inert when the
+            // `enable_fee_presets` gate is disarmed (create uses the legacy seed).
+            fee_preset: i32::from(self.fee_preset),
+            performance_fee_bps: self.performance_fee_bps,
+            management_fee_bps: self.management_fee_bps,
         };
         ProtoAny {
             type_url: "/vault.v1.MsgCreateVault".into(),

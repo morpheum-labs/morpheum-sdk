@@ -10,7 +10,7 @@ use crate::requests::{
     UndeployFromBucketRequest, UpdateParamsRequest, UpdateVaultParamsRequest,
     WithdrawFromVaultRequest,
 };
-use crate::types::{BucketMode, VaultParams, VaultType};
+use crate::types::{BucketMode, VaultFeePreset, VaultParams, VaultType};
 
 // ====================== CREATE VAULT ======================
 
@@ -21,6 +21,9 @@ pub struct CreateVaultBuilder {
     asset_index: Option<u64>,
     initial_assets: Option<String>,
     strategy_goal: String,
+    fee_preset: VaultFeePreset,
+    performance_fee_bps: u32,
+    management_fee_bps: u32,
 }
 
 impl CreateVaultBuilder {
@@ -32,6 +35,9 @@ impl CreateVaultBuilder {
             asset_index: None,
             initial_assets: None,
             strategy_goal: String::new(),
+            fee_preset: VaultFeePreset::Unspecified,
+            performance_fee_bps: 0,
+            management_fee_bps: 0,
         }
     }
 
@@ -59,6 +65,14 @@ impl CreateVaultBuilder {
         self.strategy_goal = v.into();
         self
     }
+    /// VB9 (spec §7 / §12 gate #4) — select the fee preset and rates. `0`
+    /// performance resolves to the preset default when the gate is armed.
+    pub fn fee(mut self, preset: VaultFeePreset, performance_fee_bps: u32, management_fee_bps: u32) -> Self {
+        self.fee_preset = preset;
+        self.performance_fee_bps = performance_fee_bps;
+        self.management_fee_bps = management_fee_bps;
+        self
+    }
 
     pub fn build(self) -> Result<CreateVaultRequest, SdkError> {
         if self.vault_type == VaultType::Unspecified {
@@ -75,6 +89,9 @@ impl CreateVaultBuilder {
         );
         req.description = self.description;
         req.strategy_goal = self.strategy_goal;
+        req.fee_preset = self.fee_preset;
+        req.performance_fee_bps = self.performance_fee_bps;
+        req.management_fee_bps = self.management_fee_bps;
         Ok(req)
     }
 }

@@ -720,6 +720,12 @@ pub struct VaultParams {
     pub perp_haircut_bps: u32,
     /// VB8 — CLMM illiquidity haircut in bps. 0 ⇒ no haircut.
     pub clmm_haircut_bps: u32,
+    /// G5 CLMM leg — deadband (bps) for the CLMM NAV basis-deviation haircut.
+    /// Ignored unless `clmm_max_basis_haircut_bps > 0`.
+    pub clmm_basis_tolerance_bps: u32,
+    /// G5 CLMM leg — default-OFF cap (bps) for the CLMM NAV basis-deviation
+    /// haircut. 0 ⇒ disarmed (the CLMM leg keeps only `clmm_haircut_bps`).
+    pub clmm_max_basis_haircut_bps: u32,
     /// VA3 — per-tier SpotToken illiquidity haircut in bps. Index =
     /// `SpotAssetTier.tier` ordinal. Empty ⇒ no spot haircut.
     pub spot_haircut_bps_by_tier: Vec<u32>,
@@ -799,6 +805,8 @@ impl From<proto::Params> for VaultParams {
             max_mark_staleness_ms: p.max_mark_staleness_ms,
             perp_haircut_bps: p.perp_haircut_bps,
             clmm_haircut_bps: p.clmm_haircut_bps,
+            clmm_basis_tolerance_bps: p.clmm_basis_tolerance_bps,
+            clmm_max_basis_haircut_bps: p.clmm_max_basis_haircut_bps,
             spot_haircut_bps_by_tier: p.spot_haircut_bps_by_tier,
             enable_analyst_scoring: p.enable_analyst_scoring,
             authorized_score_signers: p.authorized_score_signers,
@@ -852,6 +860,8 @@ impl From<VaultParams> for proto::Params {
             max_mark_staleness_ms: p.max_mark_staleness_ms,
             perp_haircut_bps: p.perp_haircut_bps,
             clmm_haircut_bps: p.clmm_haircut_bps,
+            clmm_basis_tolerance_bps: p.clmm_basis_tolerance_bps,
+            clmm_max_basis_haircut_bps: p.clmm_max_basis_haircut_bps,
             spot_haircut_bps_by_tier: p.spot_haircut_bps_by_tier,
             enable_analyst_scoring: p.enable_analyst_scoring,
             authorized_score_signers: p.authorized_score_signers,
@@ -1105,6 +1115,8 @@ mod tests {
             max_mark_staleness_ms: 5_000,
             perp_haircut_bps: 100,
             clmm_haircut_bps: 250,
+            clmm_basis_tolerance_bps: 100,
+            clmm_max_basis_haircut_bps: 300,
             spot_haircut_bps_by_tier: alloc::vec![50, 150],
             enable_analyst_scoring: true,
             authorized_score_signers: alloc::vec!["morpheum1score".into()],

@@ -274,6 +274,7 @@ mod tests {
                             mandate: None,
                             allocation_policy: None,
                             owner_agent_hash: "".into(),
+                            last_fee_crystallization_epoch: 0,
                         }),
                         error_message: "".into(),
                     }))

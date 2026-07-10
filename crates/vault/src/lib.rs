@@ -28,7 +28,8 @@ pub use requests::{
     CreateVaultRequest, DepositToVaultRequest, ExecuteStrategyRequest, GetIlMetricsRequest,
     GetStrategyHistoryRequest, GetTopVaultsRequest, GetUserStakeRequest, GetVaultHealthRequest,
     GetVaultRequest, GetVaultsByAgentRequest, GetVaultsByTypeRequest, ListUserStakesRequest,
-    ListVaultsRequest, PauseVaultRequest, RefreshVaultScoreRequest, ResumeVaultRequest,
+    ListVaultsRequest, PauseVaultRequest, RefreshVaultScoreRequest, CrystallizeFeeRequest,
+    ResumeVaultRequest,
     UpdateParamsRequest, UpdateVaultParamsRequest, WithdrawFromVaultRequest,
 };
 

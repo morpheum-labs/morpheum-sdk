@@ -354,6 +354,34 @@ impl RefreshVaultScoreRequest {
     }
 }
 
+/// D10 — crystallize one vault's performance fee (keeper cadence).
+#[derive(Clone, Debug, PartialEq, Eq)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+pub struct CrystallizeFeeRequest {
+    pub keeper: String,
+    pub vault_id: String,
+}
+
+impl CrystallizeFeeRequest {
+    pub fn new(keeper: impl Into<String>, vault_id: impl Into<String>) -> Self {
+        Self {
+            keeper: keeper.into(),
+            vault_id: vault_id.into(),
+        }
+    }
+
+    pub fn to_any(&self) -> ProtoAny {
+        let msg = proto::MsgCrystallizeFee {
+            keeper: self.keeper.clone(),
+            vault_id: self.vault_id.clone(),
+        };
+        ProtoAny {
+            type_url: "/vault.v1.MsgCrystallizeFee".into(),
+            value: msg.encode_to_vec(),
+        }
+    }
+}
+
 /// VA5 — governance-only creation of a `VaultType::Protocol` MLP vault.
 #[derive(Clone, Debug, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]

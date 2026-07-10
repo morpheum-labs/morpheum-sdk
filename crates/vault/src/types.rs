@@ -163,6 +163,10 @@ pub struct Vault {
     /// delegation target for `DELEGATION_SCOPE_VAULT`. Empty ⇒ delegation
     /// disabled (byte-identical to pre-D5).
     pub owner_agent_hash: String,
+    /// D10 (spec §7 / §15 #12) — last epoch at which a periodic fee
+    /// crystallization ran (`epoch = height / fee_crystallization_interval_blocks`).
+    /// Seeded 0 at create; inert while the cadence is disarmed.
+    pub last_fee_crystallization_epoch: u64,
 }
 
 /// VB6 (spec P7 / §2) — per-vault operating constraints.
@@ -325,6 +329,7 @@ impl From<proto::Vault> for Vault {
                 .map(AllocationPolicy::from)
                 .unwrap_or_default(),
             owner_agent_hash: p.owner_agent_hash,
+            last_fee_crystallization_epoch: p.last_fee_crystallization_epoch,
         }
     }
 }
@@ -574,6 +579,15 @@ pub struct VaultParams {
     pub require_deposit_credential: bool,
     /// VA1 — default-OFF gate: deposits require the depositor identity Active.
     pub require_depositor_active: bool,
+    /// D10 — default-OFF gate for the periodic performance-fee crystallization
+    /// cadence (`MsgCrystallizeFee`). While false, fees crystallize only on
+    /// redemption (byte-identical to pre-D10).
+    pub enable_fee_crystallization: bool,
+    /// Addresses authorized to submit `MsgCrystallizeFee`. Empty = permissionless.
+    pub authorized_crystallize_signers: Vec<String>,
+    /// D10 — crystallization epoch length in blocks. Required (> 0) when
+    /// `enable_fee_crystallization` is true.
+    pub fee_crystallization_interval_blocks: u64,
 }
 
 impl From<proto::Params> for VaultParams {
@@ -609,6 +623,9 @@ impl From<proto::Params> for VaultParams {
             mlp_backstop_vault_id: p.mlp_backstop_vault_id,
             require_deposit_credential: p.require_deposit_credential,
             require_depositor_active: p.require_depositor_active,
+            enable_fee_crystallization: p.enable_fee_crystallization,
+            authorized_crystallize_signers: p.authorized_crystallize_signers,
+            fee_crystallization_interval_blocks: p.fee_crystallization_interval_blocks,
         }
     }
 }
@@ -646,6 +663,9 @@ impl From<VaultParams> for proto::Params {
             mlp_backstop_vault_id: p.mlp_backstop_vault_id,
             require_deposit_credential: p.require_deposit_credential,
             require_depositor_active: p.require_depositor_active,
+            enable_fee_crystallization: p.enable_fee_crystallization,
+            authorized_crystallize_signers: p.authorized_crystallize_signers,
+            fee_crystallization_interval_blocks: p.fee_crystallization_interval_blocks,
         }
     }
 }
@@ -762,6 +782,7 @@ mod tests {
             mandate: None,
             allocation_policy: None,
             owner_agent_hash: "agent-hash-1".into(),
+            last_fee_crystallization_epoch: 7,
         };
         let v: Vault = p.into();
         assert_eq!(v.vault_type, VaultType::Custom);
@@ -780,6 +801,7 @@ mod tests {
         assert_eq!(v.allocation_policy.cash_buffer_floor_bps, 0);
         assert!(v.allocation_policy.targets.is_empty());
         assert_eq!(v.owner_agent_hash, "agent-hash-1");
+        assert_eq!(v.last_fee_crystallization_epoch, 7);
     }
 
     #[test]
@@ -838,6 +860,9 @@ mod tests {
             mlp_backstop_vault_id: "mlp-v1".into(),
             require_deposit_credential: true,
             require_depositor_active: true,
+            enable_fee_crystallization: true,
+            authorized_crystallize_signers: alloc::vec!["morpheum1fee".into()],
+            fee_crystallization_interval_blocks: 43_200,
         };
         let proto_p: proto::Params = p.clone().into();
         let p2: VaultParams = proto_p.into();

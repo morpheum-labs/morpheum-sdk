@@ -277,6 +277,7 @@ mod tests {
                             last_fee_crystallization_epoch: 0,
                             buckets: vec![],
                             fee_preset: 0,
+                            last_manager_activity_secs: 0,
                         }),
                         error_message: "".into(),
                     }))

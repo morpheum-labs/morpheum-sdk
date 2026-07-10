@@ -213,6 +213,10 @@ pub struct Vault {
     /// VB9 (spec §7 / §12 gate #4) — the fee preset this vault was created under.
     /// `Unspecified` on pre-VB9 vaults and when the preset gate is disarmed.
     pub fee_preset: VaultFeePreset,
+    /// D6 (spec §14 G6) — deterministic block-time (whole seconds) of the
+    /// manager's most recent authorized state-changing op. Written only while the
+    /// dead-man switch is armed; `0` ⇒ untracked (never auto-paused, fail-safe).
+    pub last_manager_activity_secs: u64,
 }
 
 /// VB6 (spec P7 / §2) — per-vault operating constraints.
@@ -482,6 +486,7 @@ impl From<proto::Vault> for Vault {
             last_fee_crystallization_epoch: p.last_fee_crystallization_epoch,
             buckets: p.buckets.into_iter().map(VaultBucket::from).collect(),
             fee_preset: VaultFeePreset::from(p.fee_preset),
+            last_manager_activity_secs: p.last_manager_activity_secs,
         }
     }
 }
@@ -756,6 +761,16 @@ pub struct VaultParams {
     /// D9 CLMM extension — default-OFF gate for forced CLMM undeploy on matured
     /// redemptions. Reuses `unwind_exit_fee_bps` for the redeemer-borne exit fee.
     pub enable_forced_clmm_undeploy: bool,
+    /// D6 (spec §14 G6) — manager-silence threshold in seconds. Required (> 0)
+    /// when `enable_dead_man_switch` is true; `0` ⇒ disarmed.
+    pub dead_man_switch_secs: u64,
+    /// D6 — default-OFF gate for the dead-man-switch auto-pause sweep cadence
+    /// (`MsgSweepDeadVault`) and the manager-activity stamp. Byte-identical to
+    /// pre-D6 while false.
+    pub enable_dead_man_switch: bool,
+    /// D6 — addresses authorized to submit `MsgSweepDeadVault`. Empty =
+    /// permissionless (bounded by the default-OFF gate).
+    pub authorized_dead_man_signers: Vec<String>,
 }
 
 impl From<proto::Params> for VaultParams {
@@ -804,6 +819,9 @@ impl From<proto::Params> for VaultParams {
                 .collect(),
             authorized_premium_agents: p.authorized_premium_agents,
             enable_forced_clmm_undeploy: p.enable_forced_clmm_undeploy,
+            dead_man_switch_secs: p.dead_man_switch_secs,
+            enable_dead_man_switch: p.enable_dead_man_switch,
+            authorized_dead_man_signers: p.authorized_dead_man_signers,
         }
     }
 }
@@ -854,6 +872,9 @@ impl From<VaultParams> for proto::Params {
                 .collect(),
             authorized_premium_agents: p.authorized_premium_agents,
             enable_forced_clmm_undeploy: p.enable_forced_clmm_undeploy,
+            dead_man_switch_secs: p.dead_man_switch_secs,
+            enable_dead_man_switch: p.enable_dead_man_switch,
+            authorized_dead_man_signers: p.authorized_dead_man_signers,
         }
     }
 }
@@ -1006,10 +1027,12 @@ mod tests {
                 },
             ],
             fee_preset: 2,
+            last_manager_activity_secs: 1_700_000_000,
         };
         let v: Vault = p.into();
         assert_eq!(v.vault_type, VaultType::Custom);
         assert_eq!(v.fee_preset, VaultFeePreset::Premium);
+        assert_eq!(v.last_manager_activity_secs, 1_700_000_000);
         assert_eq!(v.buckets.len(), 2);
         assert_eq!(v.buckets[0].bucket_id, "bucket-v1");
         assert_eq!(v.buckets[0].mode, BucketMode::Cross);
@@ -1113,6 +1136,9 @@ mod tests {
             ],
             authorized_premium_agents: alloc::vec!["morpheum1premium".into()],
             enable_forced_clmm_undeploy: true,
+            dead_man_switch_secs: 604_800,
+            enable_dead_man_switch: true,
+            authorized_dead_man_signers: alloc::vec!["morpheum1deadman".into()],
         };
         let proto_p: proto::Params = p.clone().into();
         let p2: VaultParams = proto_p.into();

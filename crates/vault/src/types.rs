@@ -273,12 +273,14 @@ pub enum AllocationKind {
     #[default]
     Unspecified,
     Bucket,
+    SpotToken,
 }
 
 impl From<i32> for AllocationKind {
     fn from(v: i32) -> Self {
         match v {
             1 => Self::Bucket,
+            2 => Self::SpotToken,
             _ => Self::Unspecified,
         }
     }
@@ -289,6 +291,7 @@ impl From<AllocationKind> for i32 {
         match v {
             AllocationKind::Unspecified => 0,
             AllocationKind::Bucket => 1,
+            AllocationKind::SpotToken => 2,
         }
     }
 }
@@ -299,6 +302,9 @@ impl From<AllocationKind> for i32 {
 pub struct AllocationTarget {
     pub kind: AllocationKind,
     pub target_weight_bps: u32,
+    /// SPOT_TOKEN only: the whitelisted spot asset this target allocates into
+    /// (ignored / 0 for BUCKET).
+    pub asset_index: u32,
 }
 
 impl From<proto::AllocationTarget> for AllocationTarget {
@@ -306,6 +312,7 @@ impl From<proto::AllocationTarget> for AllocationTarget {
         Self {
             kind: AllocationKind::from(p.kind),
             target_weight_bps: p.target_weight_bps,
+            asset_index: p.asset_index,
         }
     }
 }
@@ -315,6 +322,7 @@ impl From<AllocationTarget> for proto::AllocationTarget {
         Self {
             kind: i32::from(t.kind),
             target_weight_bps: t.target_weight_bps,
+            asset_index: t.asset_index,
         }
     }
 }
@@ -828,6 +836,10 @@ pub struct VaultParams {
     /// tolerates versus the committed spot mark. Required (0 < bps <= 10000)
     /// when `enable_forced_spot_unwind`.
     pub forced_spot_max_slippage_bps: u32,
+    /// VB7 spot auto-allocation — max slippage (bps) the buffer-floor spot
+    /// acquisition floor tolerates versus the committed spot mark. `0` ⇒ spot
+    /// auto-allocation disarmed (SPOT_TOKEN targets fail-safe-skipped).
+    pub auto_alloc_spot_max_slippage_bps: u32,
 }
 
 impl From<proto::Params> for VaultParams {
@@ -884,6 +896,7 @@ impl From<proto::Params> for VaultParams {
             enable_spot_acquisition: p.enable_spot_acquisition,
             enable_forced_spot_unwind: p.enable_forced_spot_unwind,
             forced_spot_max_slippage_bps: p.forced_spot_max_slippage_bps,
+            auto_alloc_spot_max_slippage_bps: p.auto_alloc_spot_max_slippage_bps,
         }
     }
 }
@@ -942,6 +955,7 @@ impl From<VaultParams> for proto::Params {
             enable_spot_acquisition: p.enable_spot_acquisition,
             enable_forced_spot_unwind: p.enable_forced_spot_unwind,
             forced_spot_max_slippage_bps: p.forced_spot_max_slippage_bps,
+            auto_alloc_spot_max_slippage_bps: p.auto_alloc_spot_max_slippage_bps,
         }
     }
 }
@@ -1211,6 +1225,7 @@ mod tests {
             enable_spot_acquisition: true,
             enable_forced_spot_unwind: true,
             forced_spot_max_slippage_bps: 250,
+            auto_alloc_spot_max_slippage_bps: 150,
         };
         let proto_p: proto::Params = p.clone().into();
         let p2: VaultParams = proto_p.into();

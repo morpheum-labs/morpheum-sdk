@@ -1147,10 +1147,18 @@ mod tests {
             allocation_policy: Some(AllocationPolicy {
                 cash_buffer_floor_bps: 2_000,
                 deployment_ceiling_bps: 7_000,
-                targets: alloc::vec![AllocationTarget {
-                    kind: AllocationKind::Bucket,
-                    target_weight_bps: 5_000,
-                }],
+                targets: alloc::vec![
+                    AllocationTarget {
+                        kind: AllocationKind::Bucket,
+                        target_weight_bps: 5_000,
+                        asset_index: 0,
+                    },
+                    AllocationTarget {
+                        kind: AllocationKind::SpotToken,
+                        target_weight_bps: 1_500,
+                        asset_index: 7,
+                    },
+                ],
             }),
         }
         .to_any();
@@ -1159,8 +1167,10 @@ mod tests {
         let p = msg.allocation_policy.expect("allocation_policy present");
         assert_eq!(p.cash_buffer_floor_bps, 2_000);
         assert_eq!(p.deployment_ceiling_bps, 7_000);
-        assert_eq!(p.targets.len(), 1);
+        assert_eq!(p.targets.len(), 2);
         assert_eq!(p.targets[0].target_weight_bps, 5_000);
         assert_eq!(p.targets[0].kind, 1);
+        assert_eq!(p.targets[1].kind, 2);
+        assert_eq!(p.targets[1].asset_index, 7);
     }
 }

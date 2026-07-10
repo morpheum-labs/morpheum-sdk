@@ -588,6 +588,10 @@ pub struct VaultParams {
     /// D10 — crystallization epoch length in blocks. Required (> 0) when
     /// `enable_fee_crystallization` is true.
     pub fee_crystallization_interval_blocks: u64,
+    /// D9 — default-OFF gate for forced position unwind on matured redemptions.
+    pub enable_forced_unwind: bool,
+    /// D9 — redeemer-borne exit fee (bps of forced-native). Validated ≤ 10000.
+    pub unwind_exit_fee_bps: u32,
 }
 
 impl From<proto::Params> for VaultParams {
@@ -626,6 +630,8 @@ impl From<proto::Params> for VaultParams {
             enable_fee_crystallization: p.enable_fee_crystallization,
             authorized_crystallize_signers: p.authorized_crystallize_signers,
             fee_crystallization_interval_blocks: p.fee_crystallization_interval_blocks,
+            enable_forced_unwind: p.enable_forced_unwind,
+            unwind_exit_fee_bps: p.unwind_exit_fee_bps,
         }
     }
 }
@@ -666,6 +672,8 @@ impl From<VaultParams> for proto::Params {
             enable_fee_crystallization: p.enable_fee_crystallization,
             authorized_crystallize_signers: p.authorized_crystallize_signers,
             fee_crystallization_interval_blocks: p.fee_crystallization_interval_blocks,
+            enable_forced_unwind: p.enable_forced_unwind,
+            unwind_exit_fee_bps: p.unwind_exit_fee_bps,
         }
     }
 }
@@ -863,6 +871,8 @@ mod tests {
             enable_fee_crystallization: true,
             authorized_crystallize_signers: alloc::vec!["morpheum1fee".into()],
             fee_crystallization_interval_blocks: 43_200,
+            enable_forced_unwind: true,
+            unwind_exit_fee_bps: 50,
         };
         let proto_p: proto::Params = p.clone().into();
         let p2: VaultParams = proto_p.into();

@@ -524,6 +524,10 @@ pub struct WithdrawFromVaultRequest {
     pub vault_id: String,
     pub asset_index: u64,
     pub shares: String,
+    /// D4 in-kind redemption — elect to receive the strict pro-rata slice of the
+    /// vault's whitelisted SpotToken custody in-kind (only effective when
+    /// governance-armed and the vault holds spot; otherwise settle-to-base).
+    pub in_kind: bool,
 }
 
 impl WithdrawFromVaultRequest {
@@ -538,7 +542,14 @@ impl WithdrawFromVaultRequest {
             vault_id: vault_id.into(),
             asset_index,
             shares: shares.into(),
+            in_kind: false,
         }
+    }
+
+    /// D4 — elect an in-kind spot redemption for this withdrawal (builder).
+    pub fn in_kind(mut self, in_kind: bool) -> Self {
+        self.in_kind = in_kind;
+        self
     }
 
     pub fn to_any(&self) -> ProtoAny {
@@ -552,6 +563,7 @@ impl WithdrawFromVaultRequest {
             shares: self.shares.clone(),
             timestamp: None,
             external_address: None,
+            in_kind: self.in_kind,
         };
         ProtoAny {
             type_url: "/vault.v1.MsgWithdrawFromVault".into(),

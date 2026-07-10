@@ -840,6 +840,11 @@ pub struct VaultParams {
     /// acquisition floor tolerates versus the committed spot mark. `0` ⇒ spot
     /// auto-allocation disarmed (SPOT_TOKEN targets fail-safe-skipped).
     pub auto_alloc_spot_max_slippage_bps: u32,
+    /// D4 in-kind redemption — governance master gate for redeemer-elected
+    /// in-kind spot payout. `false` ⇒ all redemptions settle-to-base
+    /// (byte-identical); a `MsgWithdrawFromVault { in_kind: true }` then falls
+    /// back to settle-to-base.
+    pub enable_in_kind_redemption: bool,
 }
 
 impl From<proto::Params> for VaultParams {
@@ -897,6 +902,7 @@ impl From<proto::Params> for VaultParams {
             enable_forced_spot_unwind: p.enable_forced_spot_unwind,
             forced_spot_max_slippage_bps: p.forced_spot_max_slippage_bps,
             auto_alloc_spot_max_slippage_bps: p.auto_alloc_spot_max_slippage_bps,
+            enable_in_kind_redemption: p.enable_in_kind_redemption,
         }
     }
 }
@@ -956,6 +962,7 @@ impl From<VaultParams> for proto::Params {
             enable_forced_spot_unwind: p.enable_forced_spot_unwind,
             forced_spot_max_slippage_bps: p.forced_spot_max_slippage_bps,
             auto_alloc_spot_max_slippage_bps: p.auto_alloc_spot_max_slippage_bps,
+            enable_in_kind_redemption: p.enable_in_kind_redemption,
         }
     }
 }
@@ -1226,6 +1233,7 @@ mod tests {
             enable_forced_spot_unwind: true,
             forced_spot_max_slippage_bps: 250,
             auto_alloc_spot_max_slippage_bps: 150,
+            enable_in_kind_redemption: true,
         };
         let proto_p: proto::Params = p.clone().into();
         let p2: VaultParams = proto_p.into();

@@ -753,6 +753,9 @@ pub struct VaultParams {
     /// VB9 — governance allowlist of agents eligible to create a PREMIUM vault.
     /// Strict membership: an empty list locks Premium for everyone.
     pub authorized_premium_agents: Vec<String>,
+    /// D9 CLMM extension — default-OFF gate for forced CLMM undeploy on matured
+    /// redemptions. Reuses `unwind_exit_fee_bps` for the redeemer-borne exit fee.
+    pub enable_forced_clmm_undeploy: bool,
 }
 
 impl From<proto::Params> for VaultParams {
@@ -800,6 +803,7 @@ impl From<proto::Params> for VaultParams {
                 .map(FeePresetBound::from)
                 .collect(),
             authorized_premium_agents: p.authorized_premium_agents,
+            enable_forced_clmm_undeploy: p.enable_forced_clmm_undeploy,
         }
     }
 }
@@ -849,6 +853,7 @@ impl From<VaultParams> for proto::Params {
                 .map(Into::into)
                 .collect(),
             authorized_premium_agents: p.authorized_premium_agents,
+            enable_forced_clmm_undeploy: p.enable_forced_clmm_undeploy,
         }
     }
 }
@@ -1107,6 +1112,7 @@ mod tests {
                 },
             ],
             authorized_premium_agents: alloc::vec!["morpheum1premium".into()],
+            enable_forced_clmm_undeploy: true,
         };
         let proto_p: proto::Params = p.clone().into();
         let p2: VaultParams = proto_p.into();

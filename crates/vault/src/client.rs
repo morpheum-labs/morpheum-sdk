@@ -10,7 +10,9 @@ use morpheum_proto::vault::v1 as proto;
 use morpheum_sdk_core::{MorpheumClient, SdkConfig, SdkError, Transport};
 
 use crate::requests;
-use crate::types::{IlMetrics, Stake, StrategyExecution, Vault, VaultHealth, VaultParams};
+use crate::types::{
+    GuardianAction, IlMetrics, Stake, StrategyExecution, Vault, VaultHealth, VaultParams,
+};
 
 // ====================== RESULT TYPES ======================
 
@@ -27,6 +29,11 @@ pub struct StakeListPage {
 /// Paginated strategy execution history.
 pub struct StrategyHistoryPage {
     pub executions: Vec<StrategyExecution>,
+}
+
+/// Guardian-action list result (G6 legs 2–3).
+pub struct GuardianActionListPage {
+    pub actions: Vec<GuardianAction>,
 }
 
 // ====================== CLIENT ======================
@@ -198,6 +205,22 @@ impl VaultClient {
         })
     }
 
+    /// G6 legs 2–3 — list guardian actions for a vault.
+    pub async fn list_guardian_actions(
+        &self,
+        req: requests::ListGuardianActionsRequest,
+    ) -> Result<GuardianActionListPage, SdkError> {
+        let proto_req: proto::ListGuardianActionsRequest = req.into();
+        let resp = self
+            .query(svc_path!("ListGuardianActions"), proto_req.encode_to_vec())
+            .await?;
+        let p = proto::ListGuardianActionsResponse::decode(resp.as_slice())
+            .map_err(SdkError::Decode)?;
+        Ok(GuardianActionListPage {
+            actions: p.actions.into_iter().map(Into::into).collect(),
+        })
+    }
+
     /// Gets current governance parameters.
     pub async fn get_params(&self) -> Result<VaultParams, SdkError> {
         Err(SdkError::transport(
@@ -334,6 +357,24 @@ mod tests {
                         pagination: None,
                     },
                 )),
+                "/vault.v1.Query/ListGuardianActions" => Ok(prost::Message::encode_to_vec(
+                    &proto::ListGuardianActionsResponse {
+                        success: true,
+                        actions: vec![proto::GuardianAction {
+                            action_id: "a1".into(),
+                            vault_id: "v1".into(),
+                            kind: 1,
+                            justification: "incident".into(),
+                            proposer: "g1".into(),
+                            approvers: vec!["g1".into()],
+                            generation: 0,
+                            proposed_at_secs: 100,
+                            expires_at_secs: 86_500,
+                            status: 1,
+                        }],
+                        error_message: "".into(),
+                    },
+                )),
                 _ => Err(SdkError::transport("unexpected path")),
             }
         }
@@ -390,5 +431,20 @@ mod tests {
             .await
             .unwrap();
         assert!(page.vaults.is_empty());
+    }
+
+    #[tokio::test]
+    async fn list_guardian_actions_works() {
+        use crate::types::{GuardianActionKind, GuardianActionStatus};
+        let page = make_client()
+            .list_guardian_actions(requests::ListGuardianActionsRequest::new("v1"))
+            .await
+            .unwrap();
+        assert_eq!(page.actions.len(), 1);
+        let a = &page.actions[0];
+        assert_eq!(a.action_id, "a1");
+        assert_eq!(a.kind, GuardianActionKind::Pause);
+        assert_eq!(a.status, GuardianActionStatus::Pending);
+        assert_eq!(a.proposer, "g1");
     }
 }

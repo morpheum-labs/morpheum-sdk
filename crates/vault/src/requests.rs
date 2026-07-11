@@ -10,7 +10,7 @@ use serde::{Deserialize, Serialize};
 use morpheum_proto::google::protobuf::Any as ProtoAny;
 use morpheum_proto::vault::v1 as proto;
 
-use crate::types::{VaultFeePreset, VaultParams, VaultStatus, VaultType};
+use crate::types::{GuardianActionKind, VaultFeePreset, VaultParams, VaultStatus, VaultType};
 
 // ====================== TRANSACTION REQUESTS ======================
 
@@ -751,6 +751,174 @@ impl ClearVaultLiquidationRequest {
     }
 }
 
+/// D6 — keeper cadence: auto-pause a vault whose manager has gone silent past
+/// the dead-man threshold. Bounded by `enable_dead_man_switch` + allowlist.
+#[derive(Clone, Debug, PartialEq, Eq)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+pub struct SweepDeadVaultRequest {
+    pub keeper: String,
+    pub vault_id: String,
+}
+
+impl SweepDeadVaultRequest {
+    pub fn new(keeper: impl Into<String>, vault_id: impl Into<String>) -> Self {
+        Self {
+            keeper: keeper.into(),
+            vault_id: vault_id.into(),
+        }
+    }
+
+    pub fn to_any(&self) -> ProtoAny {
+        let msg = proto::MsgSweepDeadVault {
+            keeper: self.keeper.clone(),
+            vault_id: self.vault_id.clone(),
+        };
+        ProtoAny {
+            type_url: "/vault.v1.MsgSweepDeadVault".into(),
+            value: msg.encode_to_vec(),
+        }
+    }
+}
+
+/// G6 legs 2–3 — a guardian opens a protective action proposal. Sender must be
+/// in `Params.authorized_guardians`; the proposer auto-counts as approver #1.
+#[derive(Clone, Debug, PartialEq, Eq)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+pub struct ProposeGuardianActionRequest {
+    pub vault_id: String,
+    pub kind: GuardianActionKind,
+    pub justification: String,
+}
+
+impl ProposeGuardianActionRequest {
+    pub fn new(
+        vault_id: impl Into<String>,
+        kind: GuardianActionKind,
+        justification: impl Into<String>,
+    ) -> Self {
+        Self {
+            vault_id: vault_id.into(),
+            kind,
+            justification: justification.into(),
+        }
+    }
+
+    pub fn to_any(&self) -> ProtoAny {
+        let msg = proto::MsgProposeGuardianAction {
+            vault_id: self.vault_id.clone(),
+            kind: i32::from(self.kind),
+            justification: self.justification.clone(),
+        };
+        ProtoAny {
+            type_url: "/vault.v1.MsgProposeGuardianAction".into(),
+            value: msg.encode_to_vec(),
+        }
+    }
+}
+
+/// G6 legs 2–3 — a distinct guardian approves an in-flight PENDING action.
+/// On the Mth distinct approval the action auto-executes.
+#[derive(Clone, Debug, PartialEq, Eq)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+pub struct ApproveGuardianActionRequest {
+    pub vault_id: String,
+    pub action_id: String,
+}
+
+impl ApproveGuardianActionRequest {
+    pub fn new(vault_id: impl Into<String>, action_id: impl Into<String>) -> Self {
+        Self {
+            vault_id: vault_id.into(),
+            action_id: action_id.into(),
+        }
+    }
+
+    pub fn to_any(&self) -> ProtoAny {
+        let msg = proto::MsgApproveGuardianAction {
+            vault_id: self.vault_id.clone(),
+            action_id: self.action_id.clone(),
+        };
+        ProtoAny {
+            type_url: "/vault.v1.MsgApproveGuardianAction".into(),
+            value: msg.encode_to_vec(),
+        }
+    }
+}
+
+/// G6 legs 2–3 — cancel an in-flight PENDING action (any authorized guardian).
+#[derive(Clone, Debug, PartialEq, Eq)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+pub struct CancelGuardianActionRequest {
+    pub vault_id: String,
+    pub action_id: String,
+}
+
+impl CancelGuardianActionRequest {
+    pub fn new(vault_id: impl Into<String>, action_id: impl Into<String>) -> Self {
+        Self {
+            vault_id: vault_id.into(),
+            action_id: action_id.into(),
+        }
+    }
+
+    pub fn to_any(&self) -> ProtoAny {
+        let msg = proto::MsgCancelGuardianAction {
+            vault_id: self.vault_id.clone(),
+            action_id: self.action_id.clone(),
+        };
+        ProtoAny {
+            type_url: "/vault.v1.MsgCancelGuardianAction".into(),
+            value: msg.encode_to_vec(),
+        }
+    }
+}
+
+/// G6 leg 3 recovery (A3) — governance-only forced operator rotation. Installs
+/// a fresh operator identity and clears `operator_suspended` atomically.
+#[derive(Clone, Debug, PartialEq, Eq)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+pub struct RestoreVaultOperatorRequest {
+    pub authority: String,
+    pub vault_id: String,
+    pub new_operator: String,
+    pub new_owner_agent_hash: String,
+}
+
+impl RestoreVaultOperatorRequest {
+    pub fn new(
+        authority: impl Into<String>,
+        vault_id: impl Into<String>,
+        new_operator: impl Into<String>,
+    ) -> Self {
+        Self {
+            authority: authority.into(),
+            vault_id: vault_id.into(),
+            new_operator: new_operator.into(),
+            new_owner_agent_hash: String::new(),
+        }
+    }
+
+    /// Bind a fresh owner-agent hash alongside the operator rotation.
+    #[must_use]
+    pub fn with_owner_agent_hash(mut self, hash: impl Into<String>) -> Self {
+        self.new_owner_agent_hash = hash.into();
+        self
+    }
+
+    pub fn to_any(&self) -> ProtoAny {
+        let msg = proto::MsgRestoreVaultOperator {
+            authority: self.authority.clone(),
+            vault_id: self.vault_id.clone(),
+            new_operator: self.new_operator.clone(),
+            new_owner_agent_hash: self.new_owner_agent_hash.clone(),
+        };
+        ProtoAny {
+            type_url: "/vault.v1.MsgRestoreVaultOperator".into(),
+            value: msg.encode_to_vec(),
+        }
+    }
+}
+
 /// Update global vault module parameters (governance-only).
 #[derive(Clone, Debug, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
@@ -1039,6 +1207,41 @@ impl From<GetTopVaultsRequest> for proto::GetTopVaultsRequest {
     }
 }
 
+/// G6 legs 2–3 — list guardian actions for a vault.
+#[derive(Clone, Debug, PartialEq, Eq)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+pub struct ListGuardianActionsRequest {
+    pub vault_id: String,
+    /// When false (default), only PENDING actions are returned. When true,
+    /// terminal records still retained in state are included as well.
+    pub include_terminal: bool,
+}
+
+impl ListGuardianActionsRequest {
+    pub fn new(vault_id: impl Into<String>) -> Self {
+        Self {
+            vault_id: vault_id.into(),
+            include_terminal: false,
+        }
+    }
+
+    /// Include EXECUTED / EXPIRED / CANCELLED records still retained in state.
+    #[must_use]
+    pub fn include_terminal(mut self, include: bool) -> Self {
+        self.include_terminal = include;
+        self
+    }
+}
+
+impl From<ListGuardianActionsRequest> for proto::ListGuardianActionsRequest {
+    fn from(r: ListGuardianActionsRequest) -> Self {
+        Self {
+            vault_id: r.vault_id,
+            include_terminal: r.include_terminal,
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -1212,5 +1415,68 @@ mod tests {
         assert_eq!(p.targets[0].kind, 1);
         assert_eq!(p.targets[1].kind, 2);
         assert_eq!(p.targets[1].asset_index, 7);
+    }
+
+    #[test]
+    fn propose_guardian_action_to_any() {
+        let any = ProposeGuardianActionRequest::new(
+            "v1",
+            GuardianActionKind::Pause,
+            "rogue leader detected",
+        )
+        .to_any();
+        assert_eq!(any.type_url, "/vault.v1.MsgProposeGuardianAction");
+        let decoded = proto::MsgProposeGuardianAction::decode(any.value.as_slice()).unwrap();
+        assert_eq!(decoded.vault_id, "v1");
+        assert_eq!(decoded.kind, 1);
+        assert_eq!(decoded.justification, "rogue leader detected");
+    }
+
+    #[test]
+    fn approve_guardian_action_to_any() {
+        let any = ApproveGuardianActionRequest::new("v1", "action-1").to_any();
+        assert_eq!(any.type_url, "/vault.v1.MsgApproveGuardianAction");
+        let decoded = proto::MsgApproveGuardianAction::decode(any.value.as_slice()).unwrap();
+        assert_eq!(decoded.vault_id, "v1");
+        assert_eq!(decoded.action_id, "action-1");
+    }
+
+    #[test]
+    fn cancel_guardian_action_to_any() {
+        let any = CancelGuardianActionRequest::new("v1", "action-1").to_any();
+        assert_eq!(any.type_url, "/vault.v1.MsgCancelGuardianAction");
+        let decoded = proto::MsgCancelGuardianAction::decode(any.value.as_slice()).unwrap();
+        assert_eq!(decoded.vault_id, "v1");
+        assert_eq!(decoded.action_id, "action-1");
+    }
+
+    #[test]
+    fn restore_vault_operator_to_any() {
+        let any = RestoreVaultOperatorRequest::new("gov", "v1", "morm1new")
+            .with_owner_agent_hash("0xabc")
+            .to_any();
+        assert_eq!(any.type_url, "/vault.v1.MsgRestoreVaultOperator");
+        let decoded = proto::MsgRestoreVaultOperator::decode(any.value.as_slice()).unwrap();
+        assert_eq!(decoded.authority, "gov");
+        assert_eq!(decoded.vault_id, "v1");
+        assert_eq!(decoded.new_operator, "morm1new");
+        assert_eq!(decoded.new_owner_agent_hash, "0xabc");
+    }
+
+    #[test]
+    fn sweep_dead_vault_to_any() {
+        let any = SweepDeadVaultRequest::new("morm1keeper", "v1").to_any();
+        assert_eq!(any.type_url, "/vault.v1.MsgSweepDeadVault");
+        let decoded = proto::MsgSweepDeadVault::decode(any.value.as_slice()).unwrap();
+        assert_eq!(decoded.keeper, "morm1keeper");
+        assert_eq!(decoded.vault_id, "v1");
+    }
+
+    #[test]
+    fn list_guardian_actions_request_conversion() {
+        let p: proto::ListGuardianActionsRequest =
+            ListGuardianActionsRequest::new("v1").include_terminal(true).into();
+        assert_eq!(p.vault_id, "v1");
+        assert!(p.include_terminal);
     }
 }

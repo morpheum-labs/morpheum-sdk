@@ -125,6 +125,80 @@ impl From<VaultFeePreset> for i32 {
     }
 }
 
+/// G6 legs 2–3 — protective actions guardians may propose. Bounded authority:
+/// pause / wind-down / revoke-operator only — never move funds, change
+/// recipients, or appoint a new operator.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+pub enum GuardianActionKind {
+    #[default]
+    Unspecified,
+    /// Active -> Paused (reversible).
+    Pause,
+    /// -> Liquidating + D9 de-risk.
+    WindDown,
+    /// Suspend operator authority.
+    RevokeOperator,
+}
+
+impl From<i32> for GuardianActionKind {
+    fn from(v: i32) -> Self {
+        match v {
+            1 => Self::Pause,
+            2 => Self::WindDown,
+            3 => Self::RevokeOperator,
+            _ => Self::Unspecified,
+        }
+    }
+}
+
+impl From<GuardianActionKind> for i32 {
+    fn from(k: GuardianActionKind) -> Self {
+        match k {
+            GuardianActionKind::Unspecified => 0,
+            GuardianActionKind::Pause => 1,
+            GuardianActionKind::WindDown => 2,
+            GuardianActionKind::RevokeOperator => 3,
+        }
+    }
+}
+
+/// G6 legs 2–3 — proposal lifecycle for a [`GuardianAction`] record.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+pub enum GuardianActionStatus {
+    #[default]
+    Unspecified,
+    Pending,
+    Executed,
+    Expired,
+    Cancelled,
+}
+
+impl From<i32> for GuardianActionStatus {
+    fn from(v: i32) -> Self {
+        match v {
+            1 => Self::Pending,
+            2 => Self::Executed,
+            3 => Self::Expired,
+            4 => Self::Cancelled,
+            _ => Self::Unspecified,
+        }
+    }
+}
+
+impl From<GuardianActionStatus> for i32 {
+    fn from(s: GuardianActionStatus) -> Self {
+        match s {
+            GuardianActionStatus::Unspecified => 0,
+            GuardianActionStatus::Pending => 1,
+            GuardianActionStatus::Executed => 2,
+            GuardianActionStatus::Expired => 3,
+            GuardianActionStatus::Cancelled => 4,
+        }
+    }
+}
+
 // ====================== HELPERS ======================
 
 fn ts_to_u64(ts: &Option<morpheum_proto::google::protobuf::Timestamp>) -> u64 {
@@ -663,6 +737,39 @@ impl From<proto::StrategyExecution> for StrategyExecution {
             error_message: p.error_message,
             timestamp: ts_to_u64(&p.timestamp),
             memory_snapshot_hash: p.memory_snapshot_hash,
+        }
+    }
+}
+
+/// G6 legs 2–3 — in-flight or terminal guardian emergency-control proposal.
+#[derive(Clone, Debug, PartialEq, Eq)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+pub struct GuardianAction {
+    pub action_id: String,
+    pub vault_id: String,
+    pub kind: GuardianActionKind,
+    pub justification: String,
+    pub proposer: String,
+    pub approvers: Vec<String>,
+    pub generation: u64,
+    pub proposed_at_secs: u64,
+    pub expires_at_secs: u64,
+    pub status: GuardianActionStatus,
+}
+
+impl From<proto::GuardianAction> for GuardianAction {
+    fn from(p: proto::GuardianAction) -> Self {
+        Self {
+            action_id: p.action_id,
+            vault_id: p.vault_id,
+            kind: GuardianActionKind::from(p.kind),
+            justification: p.justification,
+            proposer: p.proposer,
+            approvers: p.approvers,
+            generation: p.generation,
+            proposed_at_secs: p.proposed_at_secs,
+            expires_at_secs: p.expires_at_secs,
+            status: GuardianActionStatus::from(p.status),
         }
     }
 }
@@ -1353,5 +1460,53 @@ mod tests {
         };
         let p: proto::FeePresetBound = b.into();
         assert_eq!(FeePresetBound::from(p), b);
+    }
+
+    #[test]
+    fn guardian_action_kind_status_roundtrip() {
+        for kind in [
+            GuardianActionKind::Unspecified,
+            GuardianActionKind::Pause,
+            GuardianActionKind::WindDown,
+            GuardianActionKind::RevokeOperator,
+        ] {
+            assert_eq!(kind, GuardianActionKind::from(i32::from(kind)));
+        }
+        assert_eq!(GuardianActionKind::Unspecified, GuardianActionKind::from(99));
+
+        for status in [
+            GuardianActionStatus::Unspecified,
+            GuardianActionStatus::Pending,
+            GuardianActionStatus::Executed,
+            GuardianActionStatus::Expired,
+            GuardianActionStatus::Cancelled,
+        ] {
+            assert_eq!(status, GuardianActionStatus::from(i32::from(status)));
+        }
+        assert_eq!(
+            GuardianActionStatus::Unspecified,
+            GuardianActionStatus::from(99)
+        );
+    }
+
+    #[test]
+    fn guardian_action_from_proto() {
+        let p = proto::GuardianAction {
+            action_id: "a1".into(),
+            vault_id: "v1".into(),
+            kind: 1,
+            justification: "incident".into(),
+            proposer: "g1".into(),
+            approvers: alloc::vec!["g1".into(), "g2".into()],
+            generation: 0,
+            proposed_at_secs: 100,
+            expires_at_secs: 86_500,
+            status: 1,
+        };
+        let a = GuardianAction::from(p);
+        assert_eq!(a.action_id, "a1");
+        assert_eq!(a.kind, GuardianActionKind::Pause);
+        assert_eq!(a.status, GuardianActionStatus::Pending);
+        assert_eq!(a.approvers.len(), 2);
     }
 }

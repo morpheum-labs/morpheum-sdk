@@ -15,23 +15,28 @@ pub mod types;
 
 // ==================== PUBLIC RE-EXPORTS ====================
 
-pub use client::{StakeListPage, StrategyHistoryPage, VaultClient, VaultListPage};
+pub use client::{
+    GuardianActionListPage, StakeListPage, StrategyHistoryPage, VaultClient, VaultListPage,
+};
 
 pub use types::{
-    AllocationKind, AllocationPolicy, AllocationTarget, BucketMode, FeePresetBound, GuardianQuorum,
-    IlMetrics, RevenueShareConfig, SpotExitPool, Stake, StrategyExecution, Vault, VaultBucket,
-    VaultFeePreset, VaultHealth, VaultMandate, VaultParams, VaultRecord, VaultStatus,
-    VaultStreamEvent, VaultType, VaultUpdateEvent,
+    AllocationKind, AllocationPolicy, AllocationTarget, BucketMode, FeePresetBound, GuardianAction,
+    GuardianActionKind, GuardianActionStatus, GuardianQuorum, IlMetrics, RevenueShareConfig,
+    SpotExitPool, Stake, StrategyExecution, Vault, VaultBucket, VaultFeePreset, VaultHealth,
+    VaultMandate, VaultParams, VaultRecord, VaultStatus, VaultStreamEvent, VaultType,
+    VaultUpdateEvent,
 };
 
 pub use requests::{
-    AcquireSpotRequest, ClaimYieldRequest, ClearVaultLiquidationRequest,
-    CreateProtocolVaultRequest, CreateVaultRequest, CrystallizeFeeRequest, DeployToBucketRequest,
-    DepositToVaultRequest, DisposeSpotRequest, ExecuteStrategyRequest, GetIlMetricsRequest,
-    GetStrategyHistoryRequest, GetTopVaultsRequest, GetUserStakeRequest, GetVaultHealthRequest,
-    GetVaultRequest, GetVaultsByAgentRequest, GetVaultsByTypeRequest, ListUserStakesRequest,
-    ListVaultsRequest, PauseVaultRequest, RefreshVaultScoreRequest, ResumeVaultRequest,
-    SetVaultLeverageRequest, UndeployFromBucketRequest, UpdateParamsRequest,
+    AcquireSpotRequest, ApproveGuardianActionRequest, CancelGuardianActionRequest,
+    ClaimYieldRequest, ClearVaultLiquidationRequest, CreateProtocolVaultRequest,
+    CreateVaultRequest, CrystallizeFeeRequest, DeployToBucketRequest, DepositToVaultRequest,
+    DisposeSpotRequest, ExecuteStrategyRequest, GetIlMetricsRequest, GetStrategyHistoryRequest,
+    GetTopVaultsRequest, GetUserStakeRequest, GetVaultHealthRequest, GetVaultRequest,
+    GetVaultsByAgentRequest, GetVaultsByTypeRequest, ListGuardianActionsRequest,
+    ListUserStakesRequest, ListVaultsRequest, PauseVaultRequest, ProposeGuardianActionRequest,
+    RefreshVaultScoreRequest, RestoreVaultOperatorRequest, ResumeVaultRequest,
+    SetVaultLeverageRequest, SweepDeadVaultRequest, UndeployFromBucketRequest, UpdateParamsRequest,
     UpdateVaultParamsRequest, WithdrawFromVaultRequest,
 };
 

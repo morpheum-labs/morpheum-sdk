@@ -228,6 +228,11 @@ pub struct Vault {
     /// uninitialized (the first tick seeds it and charges nothing). Inert while
     /// `management_fee_bps == 0` or the crystallization cadence is disarmed.
     pub last_management_fee_accrual_ms: u64,
+    /// G6 leg 3 — operator-authority suspension, orthogonal to `VaultStatus`.
+    /// Set by a quorum-reached `REVOKE_OPERATOR`; cleared only by governance
+    /// `MsgRestoreVaultOperator` (forced rotation). `false` ⇒ not suspended
+    /// (byte-identical to pre-G6).
+    pub operator_suspended: bool,
 }
 
 /// VB6 (spec P7 / §2) — per-vault operating constraints.
@@ -555,6 +560,7 @@ impl From<proto::Vault> for Vault {
             min_stake_native: p.min_stake_native,
             max_stake_native: p.max_stake_native,
             last_management_fee_accrual_ms: p.last_management_fee_accrual_ms,
+            operator_suspended: p.operator_suspended,
         }
     }
 }
@@ -866,6 +872,44 @@ pub struct VaultParams {
     /// (byte-identical); a `MsgWithdrawFromVault { in_kind: true }` then falls
     /// back to settle-to-base.
     pub enable_in_kind_redemption: bool,
+    /// G6 legs 2–3 — chain-global guardian set (authority-agnostic bech32).
+    /// Empty ⇒ subsystem disarmed (byte-identical).
+    pub authorized_guardians: Vec<String>,
+    /// G6 legs 2–3 — per-kind M-of-N approval thresholds. All-zero ⇒ no kind
+    /// armed. Armed kinds must satisfy compiled min floors (Phase 2).
+    pub guardian_quorum: GuardianQuorum,
+    /// G6 legs 2–3 — proposal lifetime in seconds. `0` ⇒ disarmed; armed values
+    /// validated in `[3600, 604800]`.
+    pub guardian_proposal_ttl_secs: u64,
+}
+
+/// G6 legs 2–3 — per-kind M-of-N approval thresholds for guardian actions.
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+pub struct GuardianQuorum {
+    pub pause: u32,
+    pub wind_down: u32,
+    pub revoke_operator: u32,
+}
+
+impl From<proto::GuardianQuorum> for GuardianQuorum {
+    fn from(q: proto::GuardianQuorum) -> Self {
+        Self {
+            pause: q.pause,
+            wind_down: q.wind_down,
+            revoke_operator: q.revoke_operator,
+        }
+    }
+}
+
+impl From<GuardianQuorum> for proto::GuardianQuorum {
+    fn from(q: GuardianQuorum) -> Self {
+        Self {
+            pause: q.pause,
+            wind_down: q.wind_down,
+            revoke_operator: q.revoke_operator,
+        }
+    }
 }
 
 impl From<proto::Params> for VaultParams {
@@ -924,6 +968,12 @@ impl From<proto::Params> for VaultParams {
             forced_spot_max_slippage_bps: p.forced_spot_max_slippage_bps,
             auto_alloc_spot_max_slippage_bps: p.auto_alloc_spot_max_slippage_bps,
             enable_in_kind_redemption: p.enable_in_kind_redemption,
+            authorized_guardians: p.authorized_guardians,
+            guardian_quorum: p
+                .guardian_quorum
+                .map(GuardianQuorum::from)
+                .unwrap_or_default(),
+            guardian_proposal_ttl_secs: p.guardian_proposal_ttl_secs,
         }
     }
 }
@@ -984,6 +1034,9 @@ impl From<VaultParams> for proto::Params {
             forced_spot_max_slippage_bps: p.forced_spot_max_slippage_bps,
             auto_alloc_spot_max_slippage_bps: p.auto_alloc_spot_max_slippage_bps,
             enable_in_kind_redemption: p.enable_in_kind_redemption,
+            authorized_guardians: p.authorized_guardians,
+            guardian_quorum: Some(p.guardian_quorum.into()),
+            guardian_proposal_ttl_secs: p.guardian_proposal_ttl_secs,
         }
     }
 }
@@ -1140,6 +1193,7 @@ mod tests {
             min_stake_native: "1000".into(),
             max_stake_native: "100000".into(),
             last_management_fee_accrual_ms: 1_700_000_500_000,
+            operator_suspended: false,
         };
         let v: Vault = p.into();
         assert_eq!(v.vault_type, VaultType::Custom);
@@ -1148,6 +1202,7 @@ mod tests {
         assert_eq!(v.min_stake_native, "1000");
         assert_eq!(v.max_stake_native, "100000");
         assert_eq!(v.last_management_fee_accrual_ms, 1_700_000_500_000);
+        assert!(!v.operator_suspended);
         assert_eq!(v.buckets.len(), 2);
         assert_eq!(v.buckets[0].bucket_id, "bucket-v1");
         assert_eq!(v.buckets[0].mode, BucketMode::Cross);
@@ -1261,6 +1316,13 @@ mod tests {
             forced_spot_max_slippage_bps: 250,
             auto_alloc_spot_max_slippage_bps: 150,
             enable_in_kind_redemption: true,
+            authorized_guardians: alloc::vec!["morpheum1guardian".into()],
+            guardian_quorum: GuardianQuorum {
+                pause: 2,
+                wind_down: 3,
+                revoke_operator: 4,
+            },
+            guardian_proposal_ttl_secs: 86_400,
         };
         let proto_p: proto::Params = p.clone().into();
         let p2: VaultParams = proto_p.into();

@@ -132,6 +132,20 @@ impl UpdateVaultParamsRequest {
         }
     }
 
+    /// VB5 G4 — set the per-depositor cumulative principal floor (base native).
+    /// `"0"` clears/disarms; empty (default) leaves the vault field unchanged.
+    pub fn with_min_stake(mut self, min_stake: impl Into<String>) -> Self {
+        self.min_stake = min_stake.into();
+        self
+    }
+
+    /// VB5 G4 — set the per-depositor cumulative principal ceiling (base native).
+    /// `"0"` clears/disarms; empty (default) leaves the vault field unchanged.
+    pub fn with_max_stake(mut self, max_stake: impl Into<String>) -> Self {
+        self.max_stake = max_stake.into();
+        self
+    }
+
     pub fn to_any(&self) -> ProtoAny {
         let msg = proto::MsgUpdateVaultParams {
             vault_id: self.vault_id.clone(),
@@ -1110,6 +1124,18 @@ mod tests {
         let msg = proto::MsgUpdateVaultParams::decode(any.value.as_slice()).unwrap();
         assert_eq!(msg.deposit_capacity_native.as_deref(), Some("5000"));
         assert_eq!(msg.soft_closed, Some(true));
+    }
+
+    #[test]
+    fn update_vault_params_stake_band_roundtrip() {
+        let any = UpdateVaultParamsRequest::new("v1")
+            .with_min_stake("1000")
+            .with_max_stake("50000")
+            .to_any();
+        assert_eq!(any.type_url, "/vault.v1.MsgUpdateVaultParams");
+        let msg = proto::MsgUpdateVaultParams::decode(any.value.as_slice()).unwrap();
+        assert_eq!(msg.min_stake, "1000");
+        assert_eq!(msg.max_stake, "50000");
     }
 
     #[test]

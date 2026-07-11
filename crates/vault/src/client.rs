@@ -278,6 +278,8 @@ mod tests {
                             buckets: vec![],
                             fee_preset: 0,
                             last_manager_activity_secs: 0,
+                            min_stake_native: "0".into(),
+                            max_stake_native: "0".into(),
                         }),
                         error_message: "".into(),
                     }))

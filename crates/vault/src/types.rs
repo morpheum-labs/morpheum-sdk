@@ -217,6 +217,12 @@ pub struct Vault {
     /// manager's most recent authorized state-changing op. Written only while the
     /// dead-man switch is armed; `0` ⇒ untracked (never auto-paused, fail-safe).
     pub last_manager_activity_secs: u64,
+    /// VB5 G4 — per-depositor cumulative principal floor (base-asset native).
+    /// `"0"` / empty ⇒ disarmed.
+    pub min_stake_native: String,
+    /// VB5 G4 — per-depositor cumulative principal ceiling (base-asset native).
+    /// `"0"` / empty ⇒ disarmed. Orthogonal to `deposit_capacity_native`.
+    pub max_stake_native: String,
 }
 
 /// VB6 (spec P7 / §2) — per-vault operating constraints.
@@ -534,6 +540,8 @@ impl From<proto::Vault> for Vault {
             buckets: p.buckets.into_iter().map(VaultBucket::from).collect(),
             fee_preset: VaultFeePreset::from(p.fee_preset),
             last_manager_activity_secs: p.last_manager_activity_secs,
+            min_stake_native: p.min_stake_native,
+            max_stake_native: p.max_stake_native,
         }
     }
 }
@@ -1116,11 +1124,15 @@ mod tests {
             ],
             fee_preset: 2,
             last_manager_activity_secs: 1_700_000_000,
+            min_stake_native: "1000".into(),
+            max_stake_native: "100000".into(),
         };
         let v: Vault = p.into();
         assert_eq!(v.vault_type, VaultType::Custom);
         assert_eq!(v.fee_preset, VaultFeePreset::Premium);
         assert_eq!(v.last_manager_activity_secs, 1_700_000_000);
+        assert_eq!(v.min_stake_native, "1000");
+        assert_eq!(v.max_stake_native, "100000");
         assert_eq!(v.buckets.len(), 2);
         assert_eq!(v.buckets[0].bucket_id, "bucket-v1");
         assert_eq!(v.buckets[0].mode, BucketMode::Cross);
@@ -1171,7 +1183,7 @@ mod tests {
     fn params_roundtrip() {
         let p = VaultParams {
             max_vaults_per_agent: 100,
-            min_initial_stake_usd: 100,
+            min_initial_stake_usd: 0,
             max_strategy_complexity: 50,
             treasury_cut_bps: 500,
             last_updated: 0,

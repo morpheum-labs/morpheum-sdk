@@ -280,6 +280,7 @@ mod tests {
                             last_manager_activity_secs: 0,
                             min_stake_native: "0".into(),
                             max_stake_native: "0".into(),
+                            last_management_fee_accrual_ms: 0,
                         }),
                         error_message: "".into(),
                     }))

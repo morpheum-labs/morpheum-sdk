@@ -223,6 +223,11 @@ pub struct Vault {
     /// VB5 G4 — per-depositor cumulative principal ceiling (base-asset native).
     /// `"0"` / empty ⇒ disarmed. Orthogonal to `deposit_capacity_native`.
     pub max_stake_native: String,
+    /// Management-fee accrual cursor (spec §7) — deterministic block-time (ms) of
+    /// the last `management_fee_bps` accrual on the D10 cadence. `0` ⇒
+    /// uninitialized (the first tick seeds it and charges nothing). Inert while
+    /// `management_fee_bps == 0` or the crystallization cadence is disarmed.
+    pub last_management_fee_accrual_ms: u64,
 }
 
 /// VB6 (spec P7 / §2) — per-vault operating constraints.
@@ -549,6 +554,7 @@ impl From<proto::Vault> for Vault {
             last_manager_activity_secs: p.last_manager_activity_secs,
             min_stake_native: p.min_stake_native,
             max_stake_native: p.max_stake_native,
+            last_management_fee_accrual_ms: p.last_management_fee_accrual_ms,
         }
     }
 }
@@ -1133,6 +1139,7 @@ mod tests {
             last_manager_activity_secs: 1_700_000_000,
             min_stake_native: "1000".into(),
             max_stake_native: "100000".into(),
+            last_management_fee_accrual_ms: 1_700_000_500_000,
         };
         let v: Vault = p.into();
         assert_eq!(v.vault_type, VaultType::Custom);
@@ -1140,6 +1147,7 @@ mod tests {
         assert_eq!(v.last_manager_activity_secs, 1_700_000_000);
         assert_eq!(v.min_stake_native, "1000");
         assert_eq!(v.max_stake_native, "100000");
+        assert_eq!(v.last_management_fee_accrual_ms, 1_700_000_500_000);
         assert_eq!(v.buckets.len(), 2);
         assert_eq!(v.buckets[0].bucket_id, "bucket-v1");
         assert_eq!(v.buckets[0].mode, BucketMode::Cross);

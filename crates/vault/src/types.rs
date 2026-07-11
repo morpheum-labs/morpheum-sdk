@@ -311,6 +311,11 @@ pub struct AllocationTarget {
     /// SPOT_TOKEN only: the whitelisted spot asset this target allocates into
     /// (ignored / 0 for BUCKET).
     pub asset_index: u32,
+    /// BUCKET only: which owned margin bucket this target funds. Empty ⇒ the
+    /// primary (first) bucket — byte-identical to pre-multi-bucket VB7.
+    /// Ignored for SPOT_TOKEN. At most one BUCKET target per distinct
+    /// `bucket_id` (including the empty/primary sentinel).
+    pub bucket_id: String,
 }
 
 impl From<proto::AllocationTarget> for AllocationTarget {
@@ -319,6 +324,7 @@ impl From<proto::AllocationTarget> for AllocationTarget {
             kind: AllocationKind::from(p.kind),
             target_weight_bps: p.target_weight_bps,
             asset_index: p.asset_index,
+            bucket_id: p.bucket_id,
         }
     }
 }
@@ -329,6 +335,7 @@ impl From<AllocationTarget> for proto::AllocationTarget {
             kind: i32::from(t.kind),
             target_weight_bps: t.target_weight_bps,
             asset_index: t.asset_index,
+            bucket_id: t.bucket_id,
         }
     }
 }

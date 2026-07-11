@@ -1190,11 +1190,13 @@ mod tests {
                         kind: AllocationKind::Bucket,
                         target_weight_bps: 5_000,
                         asset_index: 0,
+                        bucket_id: String::new(),
                     },
                     AllocationTarget {
                         kind: AllocationKind::SpotToken,
                         target_weight_bps: 1_500,
                         asset_index: 7,
+                        bucket_id: String::new(),
                     },
                 ],
             }),

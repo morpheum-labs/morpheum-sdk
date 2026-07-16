@@ -214,6 +214,8 @@ mod tests {
                 tiered_margin: None,
                 portfolio_var: None,
                 clmm_collateral: None,
+                oi_cap: None,
+                systemic_risk: None,
             },
         )
         .to_any();

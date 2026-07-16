@@ -58,6 +58,8 @@ pub struct UpdateParamsBuilder {
     tiered_margin: Option<morpheum_proto::risk::v1::TieredMarginConfig>,
     portfolio_var: Option<morpheum_proto::risk::v1::PortfolioVarConfig>,
     clmm_collateral: Option<morpheum_proto::risk::v1::ClmmCollateralConfig>,
+    oi_cap: Option<morpheum_proto::risk::v1::OiCapConfig>,
+    systemic_risk: Option<morpheum_proto::risk::v1::SystemicRiskConfig>,
 }
 
 impl UpdateParamsBuilder {
@@ -76,6 +78,8 @@ impl UpdateParamsBuilder {
         self.tiered_margin = params.tiered_margin;
         self.portfolio_var = params.portfolio_var;
         self.clmm_collateral = params.clmm_collateral;
+        self.oi_cap = params.oi_cap;
+        self.systemic_risk = params.systemic_risk;
         self
     }
 
@@ -114,6 +118,17 @@ impl UpdateParamsBuilder {
         self.clmm_collateral = Some(v);
         self
     }
+    pub fn oi_cap(mut self, v: morpheum_proto::risk::v1::OiCapConfig) -> Self {
+        self.oi_cap = Some(v);
+        self
+    }
+    pub fn systemic_risk(
+        mut self,
+        v: morpheum_proto::risk::v1::SystemicRiskConfig,
+    ) -> Self {
+        self.systemic_risk = Some(v);
+        self
+    }
 
     pub fn build(self) -> Result<UpdateParamsRequest, SdkError> {
         let authority = self
@@ -132,6 +147,8 @@ impl UpdateParamsBuilder {
                 tiered_margin: self.tiered_margin,
                 portfolio_var: self.portfolio_var,
                 clmm_collateral: self.clmm_collateral,
+                oi_cap: self.oi_cap,
+                systemic_risk: self.systemic_risk,
             },
         ))
     }
@@ -206,6 +223,8 @@ mod tests {
             tiered_margin: None,
             portfolio_var: None,
             clmm_collateral: None,
+            oi_cap: None,
+            systemic_risk: None,
         };
         let req = UpdateParamsBuilder::new()
             .from_current(current.clone())

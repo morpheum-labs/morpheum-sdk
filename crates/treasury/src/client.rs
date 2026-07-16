@@ -161,7 +161,7 @@ mod tests {
                             last_rebalance_timestamp: 90,
                             total_asset_reserves: vec![proto::AssetBalance {
                                 asset_index: 0,
-                                amount: 1_000_000,
+                                amount: "1000000".into(),
                             }],
                         }),
                         block_height: 50,
@@ -171,15 +171,15 @@ mod tests {
                 "/treasury.v1.Query/QueryTreasuryMetrics" => Ok(prost::Message::encode_to_vec(
                     &proto::QueryTreasuryMetricsResponse {
                         metrics: Some(proto::TreasuryMetrics {
-                            insurance_protection_balance: 400_000,
-                            buyback_burn_balance: 200_000,
+                            insurance_protection_balance: "400000".into(),
+                            buyback_burn_balance: "200000".into(),
                             reserve_to_oi_ratio_bps: 1500,
                             insurance_coverage_ratio_bps: 2000,
                             projected_runway_days: 365,
                             last_updated: None,
                             total_asset_reserves: vec![proto::AssetBalance {
                                 asset_index: 0,
-                                amount: 1_000_000,
+                                amount: "1000000".into(),
                             }],
                         }),
                         block_height: 50,
@@ -194,7 +194,7 @@ mod tests {
                             metadata: vec![],
                             asset_balances: vec![proto::AssetBalance {
                                 asset_index: 0,
-                                amount: 400_000,
+                                amount: "400000".into(),
                             }],
                         }),
                     },
@@ -212,7 +212,7 @@ mod tests {
                             auto_rebalance_threshold_bps: 500,
                             max_single_allocation_bps: 2000,
                             buyback_frequency_blocks: 100,
-                            min_buyback_amount: 1_000_000,
+                            min_buyback_amount: "1000000".into(),
                         }),
                     }))
                 }

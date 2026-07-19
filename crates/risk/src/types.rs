@@ -160,6 +160,8 @@ pub struct RiskParams {
     pub tiered_margin: Option<proto::TieredMarginConfig>,
     pub portfolio_var: Option<proto::PortfolioVarConfig>,
     pub clmm_collateral: Option<proto::ClmmCollateralConfig>,
+    pub oi_cap: Option<proto::OiCapConfig>,
+    pub systemic_risk: Option<proto::SystemicRiskConfig>,
 }
 
 impl From<proto::Params> for RiskParams {
@@ -172,6 +174,8 @@ impl From<proto::Params> for RiskParams {
             tiered_margin: p.tiered_margin,
             portfolio_var: p.portfolio_var,
             clmm_collateral: p.clmm_collateral,
+            oi_cap: p.oi_cap,
+            systemic_risk: p.systemic_risk,
         }
     }
 }
@@ -186,6 +190,8 @@ impl From<RiskParams> for proto::Params {
             tiered_margin: p.tiered_margin,
             portfolio_var: p.portfolio_var,
             clmm_collateral: p.clmm_collateral,
+            oi_cap: p.oi_cap,
+            systemic_risk: p.systemic_risk,
         }
     }
 }
@@ -354,6 +360,48 @@ impl From<proto::AuctionBackstopped> for AuctionBackstopped {
     }
 }
 
+/// Systemic stress index recomputed on a cadence scan (WS-BE).
+#[derive(Clone, Debug, PartialEq, Eq)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+pub struct SystemicStressUpdated {
+    pub ssi_bps: u32,
+    pub amplification_bps: u32,
+    pub concentration_hhi_bps: u32,
+    pub oi_contain_bps: u32,
+    pub last_updated_ms: u64,
+}
+
+impl From<proto::SystemicStressUpdated> for SystemicStressUpdated {
+    fn from(p: proto::SystemicStressUpdated) -> Self {
+        Self {
+            ssi_bps: p.ssi_bps,
+            amplification_bps: p.amplification_bps,
+            concentration_hhi_bps: p.concentration_hhi_bps,
+            oi_contain_bps: p.oi_contain_bps,
+            last_updated_ms: p.last_updated_ms,
+        }
+    }
+}
+
+/// SSI crossed the governance warn threshold (WS-BE, informational).
+#[derive(Clone, Debug, PartialEq, Eq)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+pub struct SystemicStressAlert {
+    pub ssi_bps: u32,
+    pub ssi_warn_bps: u32,
+    pub oi_contain_bps: u32,
+}
+
+impl From<proto::SystemicStressAlert> for SystemicStressAlert {
+    fn from(p: proto::SystemicStressAlert) -> Self {
+        Self {
+            ssi_bps: p.ssi_bps,
+            ssi_warn_bps: p.ssi_warn_bps,
+            oi_contain_bps: p.oi_contain_bps,
+        }
+    }
+}
+
 /// Union of risk module streaming events.
 #[derive(Clone, Debug, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
@@ -370,6 +418,8 @@ pub enum RiskEvent {
     AuctionCleared(AuctionCleared),
     AuctionExpired(AuctionExpired),
     AuctionBackstopped(AuctionBackstopped),
+    SystemicStressUpdated(SystemicStressUpdated),
+    SystemicStressAlert(SystemicStressAlert),
 }
 
 impl RiskEvent {
@@ -389,6 +439,8 @@ impl RiskEvent {
             Event::AuctionCleared(v) => Self::AuctionCleared(v.into()),
             Event::AuctionExpired(v) => Self::AuctionExpired(v.into()),
             Event::AuctionBackstopped(v) => Self::AuctionBackstopped(v.into()),
+            Event::SystemicStressUpdated(v) => Self::SystemicStressUpdated(v.into()),
+            Event::SystemicStressAlert(v) => Self::SystemicStressAlert(v.into()),
         })
     }
 }
@@ -431,6 +483,8 @@ mod tests {
             tiered_margin: None,
             portfolio_var: None,
             clmm_collateral: None,
+            oi_cap: None,
+            systemic_risk: None,
         };
         let p: proto::Params = params.clone().into();
         let back: RiskParams = p.into();
@@ -496,6 +550,8 @@ mod tests {
                     pools
                 },
             }),
+            oi_cap: None,
+            systemic_risk: None,
         };
         let p: proto::Params = params.clone().into();
         assert_eq!(p.spot_risk, params.spot_risk);

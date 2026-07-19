@@ -311,7 +311,7 @@ mod tests {
                     let dummy = morpheum_proto::x402::v1::FinalizeUptoResponse {
                         success: true,
                         receipt: Some(Default::default()),
-                        refunded_amount: 250,
+                        refunded_amount: "250".into(),
                     };
                     Ok(prost::Message::encode_to_vec(&dummy))
                 }

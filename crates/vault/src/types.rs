@@ -1226,6 +1226,7 @@ mod tests {
     #[test]
     fn vault_status_roundtrip() {
         for s in [
+            VaultStatus::Unspecified,
             VaultStatus::Active,
             VaultStatus::Paused,
             VaultStatus::Executing,
@@ -1234,6 +1235,8 @@ mod tests {
         ] {
             assert_eq!(s, VaultStatus::from(i32::from(s)));
         }
+        assert_eq!(VaultStatus::Unspecified, VaultStatus::from(-1));
+        assert_eq!(VaultStatus::Unspecified, VaultStatus::from(99));
     }
 
     #[test]

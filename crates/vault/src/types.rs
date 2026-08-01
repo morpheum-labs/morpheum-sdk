@@ -1126,11 +1126,7 @@ impl From<VaultParams> for proto::Params {
             enable_forced_unwind: p.enable_forced_unwind,
             unwind_exit_fee_bps: p.unwind_exit_fee_bps,
             enable_fee_presets: p.enable_fee_presets,
-            fee_preset_bounds: p
-                .fee_preset_bounds
-                .into_iter()
-                .map(Into::into)
-                .collect(),
+            fee_preset_bounds: p.fee_preset_bounds.into_iter().map(Into::into).collect(),
             authorized_premium_agents: p.authorized_premium_agents,
             enable_forced_clmm_undeploy: p.enable_forced_clmm_undeploy,
             dead_man_switch_secs: p.dead_man_switch_secs,
@@ -1205,7 +1201,11 @@ mod tests {
 
     #[test]
     fn bucket_mode_roundtrip() {
-        for m in [BucketMode::Cross, BucketMode::Isolated, BucketMode::Unspecified] {
+        for m in [
+            BucketMode::Cross,
+            BucketMode::Isolated,
+            BucketMode::Unspecified,
+        ] {
             assert_eq!(m, BucketMode::from(i32::from(m)));
         }
         assert_eq!(BucketMode::Unspecified, BucketMode::from(99));
@@ -1475,7 +1475,10 @@ mod tests {
         ] {
             assert_eq!(kind, GuardianActionKind::from(i32::from(kind)));
         }
-        assert_eq!(GuardianActionKind::Unspecified, GuardianActionKind::from(99));
+        assert_eq!(
+            GuardianActionKind::Unspecified,
+            GuardianActionKind::from(99)
+        );
 
         for status in [
             GuardianActionStatus::Unspecified,

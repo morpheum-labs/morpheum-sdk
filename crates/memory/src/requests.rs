@@ -119,11 +119,7 @@ pub struct UpdateEntryRequest {
 
 impl UpdateEntryRequest {
     /// Creates a new update-entry request.
-    pub fn new(
-        agent_hash: impl Into<String>,
-        key: impl Into<String>,
-        new_value: Vec<u8>,
-    ) -> Self {
+    pub fn new(agent_hash: impl Into<String>, key: impl Into<String>, new_value: Vec<u8>) -> Self {
         Self {
             agent_hash: agent_hash.into(),
             key: key.into(),

@@ -123,11 +123,7 @@ pub struct TransferToBankRequest {
 }
 
 impl TransferToBankRequest {
-    pub fn new(
-        bucket_id: impl Into<String>,
-        asset_index: u64,
-        amount: impl Into<String>,
-    ) -> Self {
+    pub fn new(bucket_id: impl Into<String>, asset_index: u64, amount: impl Into<String>) -> Self {
         Self {
             bucket_id: bucket_id.into(),
             asset_index,

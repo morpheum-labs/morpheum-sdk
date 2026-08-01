@@ -104,10 +104,7 @@ impl<S: Signer> TxBuilder<S> {
     /// that crosses, a `Cancel` against a non-existent order, etc.).
     /// See `morpheum_signing_core::tx_class` for the encoding
     /// contract and the SRP boundary.
-    pub fn with_tx_class(
-        mut self,
-        class: crate::signing::tx_class::TxClass,
-    ) -> Self {
+    pub fn with_tx_class(mut self, class: crate::signing::tx_class::TxClass) -> Self {
         self.inner = self.inner.with_tx_class(class);
         self
     }

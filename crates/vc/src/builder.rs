@@ -458,7 +458,10 @@ mod tests {
         assert_eq!(request.claims.max_daily_usd, 0);
         assert_eq!(request.claims.max_slippage_bps, 0);
         assert_eq!(request.claims.allowed_pairs_bitflags, 0);
-        assert_eq!(request.claims.custom_constraints.as_deref(), Some("{\"k\":1}"));
+        assert_eq!(
+            request.claims.custom_constraints.as_deref(),
+            Some("{\"k\":1}")
+        );
 
         // Commitment is the deterministic 32-byte Pedersen commitment.
         assert_eq!(request.claims_commitment.len(), 32);

@@ -42,6 +42,7 @@ members = [
     "crates/vesting",
     "crates/svm",
     "crates/cosmwasm",
+    "crates/cctp",
     "crates/clmm",
     "crates/clmmgrad",
     "crates/native",
@@ -54,28 +55,6 @@ members = [
 ]
 resolver = "2"
 
-# `crates/cctp` is excluded, not deleted.
-#
-# It path-depends on `../../../contracts/cosmwasm/contracts/hpl-cctp-handler`
-# — a Hyperlane CosmWasm contract crate that is not in this repo, not a
-# sibling checkout, not a submodule, not in the morpheum-labs org, and not
-# published on crates.io. There is no `Cargo.lock` in this workspace
-# because it has never resolved: with cctp listed as a member, `cargo
-# metadata` fails and therefore so does every cargo command, for all 50
-# crates.
-#
-# Excluding it restores the other 49 (clippy: 0 errors, 0 warnings).
-# Nothing depends on `morpheum-sdk-cctp`, so this costs no other crate;
-# only CCTP support is unavailable.
-#
-# To restore it, the contract dependency has to be resolvable — as a git
-# dependency pinned to the canonical Hyperlane revision, or vendored.
-# Deliberately not guessed here: `cctp` exists to re-export the contract's
-# canonical types (`pub use hpl_cctp_handler::state::PendingTransfer`)
-# precisely so they cannot drift, and pointing it at the wrong revision
-# would reintroduce that drift silently, which is worse than this build
-# failing loudly.
-exclude = ["crates/cctp"]
 
 [workspace.package]
 version = "0.1.0"
@@ -109,9 +88,8 @@ morpheum-sdk-svm = { path = "crates/svm" }
 # CosmWasm contract interaction (on Morpheum)
 morpheum-sdk-cosmwasm = { path = "crates/cosmwasm" }
 
-# CCTP handler contract interaction (canonical types + typed queries).
-# Commented out with the crate itself — see the `exclude` note above.
-# morpheum-sdk-cctp = { path = "crates/cctp" }
+# CCTP handler contract interaction (canonical types + typed queries)
+morpheum-sdk-cctp = { path = "crates/cctp" }
 
 # WebSocket streaming client
 morpheum-sdk-ws = { path = "crates/ws" }

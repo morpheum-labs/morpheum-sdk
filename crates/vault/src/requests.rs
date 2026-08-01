@@ -1248,8 +1248,7 @@ mod tests {
 
     #[test]
     fn create_vault_to_any() {
-        let any =
-            CreateVaultRequest::new(VaultType::Custom, "My Vault", 1, "1000").to_any();
+        let any = CreateVaultRequest::new(VaultType::Custom, "My Vault", 1, "1000").to_any();
         assert_eq!(any.type_url, "/vault.v1.MsgCreateVault");
         assert!(!any.value.is_empty());
     }
@@ -1474,8 +1473,9 @@ mod tests {
 
     #[test]
     fn list_guardian_actions_request_conversion() {
-        let p: proto::ListGuardianActionsRequest =
-            ListGuardianActionsRequest::new("v1").include_terminal(true).into();
+        let p: proto::ListGuardianActionsRequest = ListGuardianActionsRequest::new("v1")
+            .include_terminal(true)
+            .into();
         assert_eq!(p.vault_id, "v1");
         assert!(p.include_terminal);
     }

@@ -111,10 +111,7 @@ impl UpdateParamsBuilder {
         self.portfolio_var = Some(v);
         self
     }
-    pub fn clmm_collateral(
-        mut self,
-        v: morpheum_proto::risk::v1::ClmmCollateralConfig,
-    ) -> Self {
+    pub fn clmm_collateral(mut self, v: morpheum_proto::risk::v1::ClmmCollateralConfig) -> Self {
         self.clmm_collateral = Some(v);
         self
     }
@@ -122,10 +119,7 @@ impl UpdateParamsBuilder {
         self.oi_cap = Some(v);
         self
     }
-    pub fn systemic_risk(
-        mut self,
-        v: morpheum_proto::risk::v1::SystemicRiskConfig,
-    ) -> Self {
+    pub fn systemic_risk(mut self, v: morpheum_proto::risk::v1::SystemicRiskConfig) -> Self {
         self.systemic_risk = Some(v);
         self
     }

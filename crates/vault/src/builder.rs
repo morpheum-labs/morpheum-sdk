@@ -67,7 +67,12 @@ impl CreateVaultBuilder {
     }
     /// VB9 (spec §7 / §12 gate #4) — select the fee preset and rates. `0`
     /// performance resolves to the preset default when the gate is armed.
-    pub fn fee(mut self, preset: VaultFeePreset, performance_fee_bps: u32, management_fee_bps: u32) -> Self {
+    pub fn fee(
+        mut self,
+        preset: VaultFeePreset,
+        performance_fee_bps: u32,
+        management_fee_bps: u32,
+    ) -> Self {
         self.fee_preset = preset;
         self.performance_fee_bps = performance_fee_bps;
         self.management_fee_bps = management_fee_bps;

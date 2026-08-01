@@ -383,7 +383,10 @@ mod tests {
             default_proof_expiry_seconds: 86400,
             enable_verifier_reputation_gate: true,
             min_verifier_reputation: 250_000,
-            authorized_verifiers: alloc::vec![String::from("verifier-a"), String::from("verifier-b")],
+            authorized_verifiers: alloc::vec![
+                String::from("verifier-a"),
+                String::from("verifier-b")
+            ],
         };
         let proto: proto::Params = params.clone().into();
         let back: Params = proto.into();

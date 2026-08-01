@@ -368,8 +368,7 @@ mod tests {
 
     #[test]
     fn set_origin_metadata_to_any() {
-        let any =
-            SetOriginMetadataRequest::new(1, "ethereum", "0xabc", "cctp", true).to_any();
+        let any = SetOriginMetadataRequest::new(1, "ethereum", "0xabc", "cctp", true).to_any();
         assert_eq!(any.type_url, "/token.v1.SetOriginMetadataRequest");
     }
 

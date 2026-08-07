@@ -16,3 +16,7 @@ ts/node_modules/
 
 # Build artifacts
 **/*.rs.bk
+
+# Claude Code — local-only, never committed
+CLAUDE.local.md
+.claude/settings.local.json

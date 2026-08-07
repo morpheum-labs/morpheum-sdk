@@ -39,6 +39,29 @@ impl<S: Signer> TxBuilder<S> {
         self
     }
 
+    /// Binds the signing preimage to the target chain's genesis hash (Phase M3
+    /// — audit `O20` / row `C12`), so a signature valid on this chain cannot be
+    /// replayed onto another that happens to share its `chain_id`.
+    ///
+    /// This wrapper did not expose it, which is why no consumer of the native
+    /// SDK was binding one: not an oversight by the callers, but an API that
+    /// offered no way to comply. Devnet measurement put every transaction from
+    /// this path on the weaker `GenesisUnbound` preimage rung, and
+    /// `FORK_VERSION_STRICT_GENESIS_BINDING` cannot activate until that moves.
+    ///
+    /// # Trust
+    ///
+    /// Take the value from operator configuration, never from the node being
+    /// submitted to. A client that asked its RPC endpoint for the genesis hash
+    /// and signed against the answer would let whoever controls that endpoint
+    /// choose which chain the signature authorises — the exact cross-chain
+    /// replay this binding prevents. A node may expose it for cross-checking.
+    #[must_use]
+    pub fn with_genesis_hash(mut self, hash: impl Into<alloc::vec::Vec<u8>>) -> Self {
+        self.inner = self.inner.with_genesis_hash(hash);
+        self
+    }
+
     /// Sets an optional memo for the transaction.
     pub fn memo(mut self, memo: impl Into<alloc::string::String>) -> Self {
         self.inner = self.inner.memo(memo);
@@ -164,3 +187,86 @@ impl<S: Signer> TxBuilder<S> {
 // Re-export the signing library's TxBuilder for advanced users who need
 // direct access to all its methods.
 pub use crate::signing::builder::TxBuilder as RawTxBuilder;
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::signing::proto::tx::v1::{Nonce, SignDoc};
+    use crate::signing::types::{PublicKey, Signature, WalletType};
+    use crate::signing::SigningError;
+    use alloc::boxed::Box;
+    use async_trait::async_trait;
+
+    /// A signer whose output is a deterministic function of the preimage.
+    ///
+    /// A constant-signature stub cannot detect this bug at all: the genesis
+    /// hash binds into the `SignDoc`, which is *signed* but is not itself part
+    /// of `TxRaw`, so the transaction bytes are identical either way and only
+    /// the signature over them differs. Deriving the signature from the doc is
+    /// what makes the preimage observable — and is what a real signer does.
+    struct StubSigner;
+
+    #[async_trait]
+    impl crate::signing::signer::Signer for StubSigner {
+        async fn sign(&self, doc: &SignDoc) -> Result<Signature, SigningError> {
+            let encoded = prost::Message::encode_to_vec(doc);
+            let mut sig = [0u8; 64];
+            for (i, byte) in encoded.iter().enumerate() {
+                sig[i % 64] ^= *byte;
+            }
+            Ok(Signature::Ed25519(sig))
+        }
+        fn public_key(&self) -> PublicKey {
+            PublicKey::Ed25519([3u8; 32])
+        }
+        fn wallet_type(&self) -> WalletType {
+            WalletType::Native
+        }
+    }
+
+    fn stub_message() -> ProtoAny {
+        ProtoAny {
+            type_url: "/bank.v1.MsgTransfer".into(),
+            value: alloc::vec![1, 2, 3],
+        }
+    }
+
+    fn builder() -> TxBuilder<StubSigner> {
+        TxBuilder::new(StubSigner)
+            .chain_id("morpheum-test-1")
+            .with_nonce(Nonce {
+                monotonic: 1,
+                ts_ms: 2,
+                sub: 3,
+            })
+            .add_message(stub_message())
+    }
+
+    /// `with_genesis_hash` reaches the preimage.
+    ///
+    /// A delegating setter that silently dropped its argument would compile,
+    /// return `Self`, read correctly at every call site, and change nothing —
+    /// leaving every caller on the weaker `GenesisUnbound` rung while believing
+    /// they had bound a chain. Nothing but the bytes can tell the difference,
+    /// so the bytes are what this asserts.
+    #[tokio::test]
+    async fn with_genesis_hash_changes_the_signed_bytes() {
+        let bound = builder()
+            .with_genesis_hash([0xABu8; 32])
+            .sign()
+            .await
+            .expect("a bound preimage signs");
+        let other = builder()
+            .with_genesis_hash([0xCDu8; 32])
+            .sign()
+            .await
+            .expect("a bound preimage signs");
+
+        assert_ne!(
+            bound.raw_bytes(),
+            other.raw_bytes(),
+            "two different genesis hashes must produce different signed bytes; \
+             equal bytes mean the setter never reached the preimage",
+        );
+    }
+}

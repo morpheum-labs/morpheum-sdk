@@ -112,7 +112,11 @@ let config = SdkConfig::new("https://sentry.morpheum.xyz", "morpheum-1");
 
 The `Transport` trait abstracts network I/O:
 
-- `broadcast_tx(tx_bytes)` — Submit signed transaction
+- `broadcast_tx(tx_bytes)` — Submit signed transaction. Success means the node
+  **admitted** it (never finality): the tx may still fail, be skipped, or never
+  land. Bound your own wait and reconcile via `tx.v1.Query/QueryTxStatus`; the
+  returned `BroadcastResult.shard_id` is the routed shard for correlating with
+  per-shard surfaces.
 - `query(path, data)` — ABCI query (optional)
 
 Concrete implementations: gRPC (tonic), HTTP (reqwest). The native SDK uses a placeholder by default; provide a custom transport for production.

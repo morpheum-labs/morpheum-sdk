@@ -15,10 +15,24 @@ use async_trait::async_trait;
 use crate::SdkError;
 
 /// Result of broadcasting a signed transaction.
+///
+/// **Submission contract:** a successful broadcast means the node *admitted*
+/// the transaction (validation + signature verification + admission checks
+/// passed and it was handed to consensus) — it is **not** a statement of
+/// finality. The transaction may still fail, be skipped, or never land.
+/// Bound your own wait and reconcile the outcome via
+/// `tx.v1.Query/QueryTxStatus`.
 #[derive(Debug, Clone)]
 pub struct BroadcastResult {
     /// Transaction hash (SHA-256 hex).
     pub txhash: String,
+
+    /// Shard the node routed this transaction to, when reported
+    /// (`SubmitTxResponse.shard_id`; `None` from older nodes). Shard `0` is
+    /// also the global-module shard — governance/DAO/staking-style
+    /// transactions deterministically route there. Use this to correlate the
+    /// transaction with per-shard health/status surfaces.
+    pub shard_id: Option<u32>,
 
     /// Optional raw response from the node (for advanced debugging).
     pub raw_response: Option<Vec<u8>>,
@@ -70,6 +84,7 @@ impl Transport for DummyTransport {
     async fn broadcast_tx(&self, _tx_bytes: Vec<u8>) -> Result<BroadcastResult, SdkError> {
         Ok(BroadcastResult {
             txhash: "0000000000000000000000000000000000000000000000000000000000000000".into(),
+            shard_id: None,
             raw_response: None,
         })
     }

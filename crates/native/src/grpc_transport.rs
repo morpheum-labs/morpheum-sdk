@@ -78,6 +78,7 @@ impl Transport for GrpcTransport {
 
         Ok(BroadcastResult {
             txhash: resp.txhash,
+            shard_id: resp.shard_id,
             raw_response: None,
         })
     }

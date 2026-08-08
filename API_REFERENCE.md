@@ -25,7 +25,7 @@ Foundation crate shared by native and WASM targets. `no_std` compatible.
 | `AccountId` | 32-byte account identifier. `new(bytes)`, `as_bytes()` |
 | `ChainId` | Chain identifier string. `new(s)`, `as_str()` |
 | `SignedTx` | Signed transaction. `raw_bytes()`, `txhash_hex()`, `tx()`, `tx_raw_bytes()` |
-| `BroadcastResult` | Result of broadcast. `txhash`, `raw_response` |
+| `BroadcastResult` | Result of broadcast. `txhash`, `shard_id` (routed shard, when the node reports it), `raw_response` |
 | `PublicKey` | Re-exported from signing. |
 | `Signature` | Re-exported from signing. |
 | `WalletType` | Re-exported from signing. |
@@ -55,6 +55,20 @@ pub trait MorpheumClient: Send + Sync + 'static {
     async fn query(&self, path: &str, data: Vec<u8>) -> Result<Vec<u8>, SdkError>;
 }
 ```
+
+##### Submission contract
+
+`broadcast` / `broadcast_tx` return when the node **admits** the transaction —
+validation, signature verification, and the admission check passed, and it was
+handed to the consensus pipeline. **A returned txhash is not finality.** The
+transaction may still fail, be skipped, or (e.g. during a shard outage) never
+land. Bound your own wait and reconcile the outcome via
+`tx.v1.Query/QueryTxStatus`, which answers
+`confirmed | failed | skipped | pending | not_found` — where `pending` is
+node-local ("the node you submitted to admitted it and has not yet seen it
+execute") and degrades to `not_found` after that node's bounded retention.
+`BroadcastResult.shard_id` is the shard your transaction was routed to; use it
+to correlate with per-shard health surfaces.
 
 ### Configuration
 

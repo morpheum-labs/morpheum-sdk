@@ -149,6 +149,7 @@ impl SubmitProofBuilder {
 /// ```rust,ignore
 /// let request = RevokeProofBuilder::new()
 ///     .proof_id("proof-001")
+///     .agent_hash("agent-abc")
 ///     .verifier_agent_hash("verifier-xyz")
 ///     .verifier_signature(sig_bytes)
 ///     .reason("Fraudulent backtest data")
@@ -157,6 +158,7 @@ impl SubmitProofBuilder {
 #[derive(Default)]
 pub struct RevokeProofBuilder {
     proof_id: Option<String>,
+    agent_hash: Option<String>,
     verifier_agent_hash: Option<String>,
     verifier_signature: Option<Vec<u8>>,
     reason: Option<String>,
@@ -171,6 +173,15 @@ impl RevokeProofBuilder {
     /// Sets the ID of the proof to revoke.
     pub fn proof_id(mut self, id: impl Into<String>) -> Self {
         self.proof_id = Some(id.into());
+        self
+    }
+
+    /// Sets the subject agent the proof attests. The proof record lives on
+    /// this agent's shard and the chain routes the revocation there, so the
+    /// builder requires it — without it the revocation executes on the wrong
+    /// shard and fails "proof not found".
+    pub fn agent_hash(mut self, hash: impl Into<String>) -> Self {
+        self.agent_hash = Some(hash.into());
         self
     }
 
@@ -198,6 +209,13 @@ impl RevokeProofBuilder {
             .proof_id
             .ok_or_else(|| SdkError::invalid_input("proof_id is required for RevokeProof"))?;
 
+        let agent_hash = self.agent_hash.ok_or_else(|| {
+            SdkError::invalid_input(
+                "agent_hash (the proof's subject) is required for RevokeProof — \
+                 the revocation routes to that agent's shard",
+            )
+        })?;
+
         let verifier_agent_hash = self.verifier_agent_hash.ok_or_else(|| {
             SdkError::invalid_input("verifier_agent_hash is required for RevokeProof")
         })?;
@@ -212,6 +230,7 @@ impl RevokeProofBuilder {
 
         Ok(RevokeProofRequest::new(
             proof_id,
+            agent_hash,
             verifier_agent_hash,
             verifier_signature,
             reason,
@@ -293,6 +312,7 @@ mod tests {
     fn revoke_proof_builder_full_flow() {
         let request = RevokeProofBuilder::new()
             .proof_id("proof-001")
+            .agent_hash("agent-abc")
             .verifier_agent_hash("verifier-xyz")
             .verifier_signature(vec![0u8; 64])
             .reason("Fraudulent backtest data")
@@ -300,6 +320,7 @@ mod tests {
             .unwrap();
 
         assert_eq!(request.proof_id, "proof-001");
+        assert_eq!(request.agent_hash, "agent-abc");
         assert_eq!(request.verifier_agent_hash, "verifier-xyz");
         assert_eq!(request.reason, "Fraudulent backtest data");
     }
@@ -310,10 +331,19 @@ mod tests {
         assert!(result.is_err());
 
         let result = RevokeProofBuilder::new().proof_id("proof-001").build();
-        assert!(result.is_err());
+        assert!(result.is_err()); // missing agent_hash (the subject)
 
         let result = RevokeProofBuilder::new()
             .proof_id("proof-001")
+            .verifier_agent_hash("verifier-xyz")
+            .verifier_signature(vec![0u8; 64])
+            .reason("r")
+            .build();
+        assert!(result.is_err()); // missing agent_hash even with all legacy fields
+
+        let result = RevokeProofBuilder::new()
+            .proof_id("proof-001")
+            .agent_hash("agent-abc")
             .verifier_agent_hash("verifier-xyz")
             .verifier_signature(vec![0u8; 64])
             .build();

@@ -136,6 +136,11 @@ impl From<proto::SubmitProofResponse> for SubmitProofResponse {
 pub struct RevokeProofRequest {
     /// ID of the proof to revoke.
     pub proof_id: String,
+    /// Subject agent the proof attests. The proof record lives on this
+    /// agent's shard, and the chain routes the revocation there — a
+    /// revocation without it executes on the wrong shard and fails
+    /// "proof not found".
+    pub agent_hash: String,
     /// Hash of the verifier (or governance) agent revoking the proof.
     pub verifier_agent_hash: String,
     /// Verifier's BLS signature authorising the revocation.
@@ -148,12 +153,14 @@ impl RevokeProofRequest {
     /// Creates a new revoke-proof request.
     pub fn new(
         proof_id: impl Into<String>,
+        agent_hash: impl Into<String>,
         verifier_agent_hash: impl Into<String>,
         verifier_signature: Vec<u8>,
         reason: impl Into<String>,
     ) -> Self {
         Self {
             proof_id: proof_id.into(),
+            agent_hash: agent_hash.into(),
             verifier_agent_hash: verifier_agent_hash.into(),
             verifier_signature,
             reason: reason.into(),
@@ -174,6 +181,7 @@ impl From<RevokeProofRequest> for proto::MsgRevokeProof {
     fn from(req: RevokeProofRequest) -> Self {
         Self {
             proof_id: req.proof_id,
+            agent_hash: req.agent_hash,
             verifier_agent_hash: req.verifier_agent_hash,
             verifier_signature: req.verifier_signature,
             reason: req.reason,
@@ -381,6 +389,7 @@ mod tests {
     fn revoke_proof_request_to_any() {
         let req = RevokeProofRequest::new(
             "proof-001",
+            "agent-abc",
             "verifier-xyz",
             vec![0u8; 64],
             "Fraudulent backtest data",

@@ -73,6 +73,55 @@ impl From<TransferRequest> for proto::MsgTransferRequest {
     }
 }
 
+/// Request to claim a settlement outbox record on the payee's home shard.
+///
+/// A cross-shard transfer commits a settlement record on the payer's home
+/// shard; this claim credits the payee exactly once on the payee's home
+/// shard. The claim is permissionless (any funded sender may drive it) and
+/// idempotent — a duplicate claim is rejected by the chain. The transaction
+/// routes by `payee_address` to the payee's home shard.
+#[derive(Clone, Debug, PartialEq, Eq)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+pub struct ClaimSettlementRequest {
+    /// Payee whose home shard executes the claim (the routing field).
+    pub payee_address: String,
+    /// Shard holding the settlement record (from the originating
+    /// `TransferResponse`'s executing shard).
+    pub origin_shard: u32,
+    /// Settlement sequence from the originating `TransferResponse`
+    /// (`settlement_seq`; sequences start at 1).
+    pub seq: u64,
+}
+
+impl ClaimSettlementRequest {
+    pub fn new(payee_address: impl Into<String>, origin_shard: u32, seq: u64) -> Self {
+        Self {
+            payee_address: payee_address.into(),
+            origin_shard,
+            seq,
+        }
+    }
+
+    pub fn to_any(&self) -> ProtoAny {
+        let msg: proto::MsgClaimSettlement = self.clone().into();
+        ProtoAny {
+            type_url: "/bank.v1.MsgClaimSettlement".into(),
+            value: msg.encode_to_vec(),
+        }
+    }
+}
+
+impl From<ClaimSettlementRequest> for proto::MsgClaimSettlement {
+    fn from(req: ClaimSettlementRequest) -> Self {
+        Self {
+            payee_address: req.payee_address,
+            // Explicit presence on the wire: shard 0 is a valid shard.
+            origin_shard: Some(req.origin_shard),
+            seq: req.seq,
+        }
+    }
+}
+
 /// Request for cross-chain asset transfer.
 #[derive(Clone, Debug, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
@@ -643,6 +692,20 @@ mod tests {
         let any = req.to_any();
         assert_eq!(any.type_url, "/bank.v1.MsgTransferRequest");
         assert!(!any.value.is_empty());
+    }
+
+    #[test]
+    fn claim_settlement_request_to_any_with_explicit_origin_shard() {
+        let req = ClaimSettlementRequest::new("morm1payee", 0, 7);
+        let any = req.to_any();
+        assert_eq!(any.type_url, "/bank.v1.MsgClaimSettlement");
+
+        // Explicit presence: origin shard 0 must survive the wire (shard 0
+        // is a valid shard, distinct from "not set").
+        let decoded = proto::MsgClaimSettlement::decode(any.value.as_slice()).unwrap();
+        assert_eq!(decoded.origin_shard, Some(0));
+        assert_eq!(decoded.payee_address, "morm1payee");
+        assert_eq!(decoded.seq, 7);
     }
 
     #[test]

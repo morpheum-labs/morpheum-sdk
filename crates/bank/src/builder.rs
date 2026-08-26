@@ -10,9 +10,9 @@ use alloc::vec::Vec;
 use morpheum_sdk_core::SdkError;
 
 use crate::requests::{
-    BridgeAssetRequest, CrossChainTransferRequest, DepositRequest, MintRequest,
-    OnboardAssetRequest, SetSpendingPolicyRequest, TransferRequest, TransferToBucketRequest,
-    WithdrawRequest,
+    BridgeAssetRequest, ClaimSettlementRequest, CrossChainTransferRequest, DepositRequest,
+    MintRequest, OnboardAssetRequest, SetSpendingPolicyRequest, TransferRequest,
+    TransferToBucketRequest, WithdrawRequest,
 };
 use crate::types::{AssetIdentifier, ChainType, SpendingPolicy};
 
@@ -93,6 +93,67 @@ impl TransferBuilder {
         req.from_external_address = self.from_external_address;
         req.to_external_address = self.to_external_address;
         Ok(req)
+    }
+}
+
+// ============================================================================
+// ClaimSettlementBuilder
+// ============================================================================
+
+/// Fluent builder for [`ClaimSettlementRequest`].
+///
+/// All three fields are required: the claim routes by `payee_address` to the
+/// payee's home shard, and `(origin_shard, seq)` names the settlement record
+/// committed by the originating cross-shard transfer (surfaced on its
+/// `TransferResponse` as `settlement_seq`; the origin shard is the shard the
+/// transfer executed on).
+#[derive(Debug, Default, Clone)]
+pub struct ClaimSettlementBuilder {
+    payee_address: Option<String>,
+    origin_shard: Option<u32>,
+    seq: Option<u64>,
+}
+
+impl ClaimSettlementBuilder {
+    pub fn new() -> Self {
+        Self::default()
+    }
+
+    /// Payee whose home shard executes the claim — the routing field.
+    pub fn payee_address(mut self, addr: impl Into<String>) -> Self {
+        self.payee_address = Some(addr.into());
+        self
+    }
+
+    /// Shard holding the settlement record.
+    pub fn origin_shard(mut self, shard: u32) -> Self {
+        self.origin_shard = Some(shard);
+        self
+    }
+
+    /// Settlement sequence on the origin shard (starts at 1).
+    pub fn seq(mut self, seq: u64) -> Self {
+        self.seq = Some(seq);
+        self
+    }
+
+    pub fn build(self) -> Result<ClaimSettlementRequest, SdkError> {
+        let payee_address = self.payee_address.ok_or_else(|| {
+            SdkError::invalid_input(
+                "payee_address is required for ClaimSettlement — the claim routes to the payee's shard",
+            )
+        })?;
+        let origin_shard = self.origin_shard.ok_or_else(|| {
+            SdkError::invalid_input("origin_shard is required for ClaimSettlement")
+        })?;
+        let seq = self
+            .seq
+            .ok_or_else(|| SdkError::invalid_input("seq is required for ClaimSettlement"))?;
+        Ok(ClaimSettlementRequest::new(
+            payee_address,
+            origin_shard,
+            seq,
+        ))
     }
 }
 
@@ -739,6 +800,40 @@ mod tests {
         assert!(TransferBuilder::new()
             .from_address("a")
             .to_address("b")
+            .build()
+            .is_err());
+    }
+
+    #[test]
+    fn claim_settlement_builder_full_flow() {
+        let req = ClaimSettlementBuilder::new()
+            .payee_address("morm1payee")
+            .origin_shard(0)
+            .seq(7)
+            .build()
+            .unwrap();
+
+        assert_eq!(req.payee_address, "morm1payee");
+        assert_eq!(req.origin_shard, 0, "shard 0 is a valid origin shard");
+        assert_eq!(req.seq, 7);
+    }
+
+    #[test]
+    fn claim_settlement_builder_missing_required() {
+        assert!(ClaimSettlementBuilder::new().build().is_err());
+        assert!(ClaimSettlementBuilder::new()
+            .payee_address("morm1payee")
+            .build()
+            .is_err());
+        assert!(ClaimSettlementBuilder::new()
+            .payee_address("morm1payee")
+            .origin_shard(3)
+            .build()
+            .is_err());
+        // seq + shard without the routing field is also incomplete.
+        assert!(ClaimSettlementBuilder::new()
+            .origin_shard(3)
+            .seq(1)
             .build()
             .is_err());
     }

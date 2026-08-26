@@ -18,7 +18,6 @@ use crate::types::BucketType;
 /// Fluent builder for creating a new margin bucket.
 #[derive(Default)]
 pub struct CreateBucketBuilder {
-    bucket_id: Option<String>,
     bucket_type: Option<BucketType>,
     collateral_asset_index: Option<u64>,
     initial_margin: Option<String>,
@@ -27,11 +26,6 @@ pub struct CreateBucketBuilder {
 impl CreateBucketBuilder {
     pub fn new() -> Self {
         Self::default()
-    }
-
-    pub fn bucket_id(mut self, id: impl Into<String>) -> Self {
-        self.bucket_id = Some(id.into());
-        self
     }
 
     pub fn bucket_type(mut self, bt: BucketType) -> Self {
@@ -50,9 +44,6 @@ impl CreateBucketBuilder {
     }
 
     pub fn build(self) -> Result<CreateBucketRequest, SdkError> {
-        let bucket_id = self
-            .bucket_id
-            .ok_or_else(|| SdkError::invalid_input("bucket_id is required"))?;
         let bucket_type = self
             .bucket_type
             .ok_or_else(|| SdkError::invalid_input("bucket_type is required"))?;
@@ -64,7 +55,6 @@ impl CreateBucketBuilder {
             .ok_or_else(|| SdkError::invalid_input("initial_margin is required"))?;
 
         Ok(CreateBucketRequest::new(
-            bucket_id,
             bucket_type,
             collateral_asset_index,
             initial_margin,
@@ -206,14 +196,12 @@ mod tests {
     #[test]
     fn create_bucket_builder_full_flow() {
         let req = CreateBucketBuilder::new()
-            .bucket_id("bucket-1")
             .bucket_type(BucketType::Cross)
             .collateral_asset_index(4)
             .initial_margin("100000000000")
             .build()
             .unwrap();
 
-        assert_eq!(req.bucket_id, "bucket-1");
         assert_eq!(req.bucket_type, BucketType::Cross);
         assert_eq!(req.collateral_asset_index, 4);
         assert_eq!(req.initial_margin, "100000000000");

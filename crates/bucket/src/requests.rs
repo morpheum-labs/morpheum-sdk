@@ -21,21 +21,20 @@ use crate::types::BucketType;
 #[derive(Clone, Debug, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct CreateBucketRequest {
-    pub bucket_id: String,
     pub bucket_type: BucketType,
     pub collateral_asset_index: u64,
     pub initial_margin: String,
 }
 
 impl CreateBucketRequest {
+    /// Bucket ids are chain-minted: the chain allocates a namespaced id
+    /// and returns it in the create response, so the request carries none.
     pub fn new(
-        bucket_id: impl Into<String>,
         bucket_type: BucketType,
         collateral_asset_index: u64,
         initial_margin: impl Into<String>,
     ) -> Self {
         Self {
-            bucket_id: bucket_id.into(),
             bucket_type,
             collateral_asset_index,
             initial_margin: initial_margin.into(),
@@ -54,7 +53,9 @@ impl CreateBucketRequest {
 impl From<CreateBucketRequest> for proto::MsgCreateBucketRequest {
     fn from(req: CreateBucketRequest) -> Self {
         Self {
-            bucket_id: req.bucket_id,
+            // Chain-minted: the wire field stays empty and the chain
+            // allocates the namespaced id.
+            bucket_id: String::new(),
             bucket_type: i32::from(req.bucket_type),
             collateral_asset_index: req.collateral_asset_index,
             initial_margin: req.initial_margin,
@@ -530,7 +531,7 @@ mod tests {
 
     #[test]
     fn create_bucket_request_to_any() {
-        let req = CreateBucketRequest::new("bucket-1", BucketType::Cross, 4, "100000000000");
+        let req = CreateBucketRequest::new(BucketType::Cross, 4, "100000000000");
         let any = req.to_any();
         assert_eq!(any.type_url, "/bucket.v1.MsgCreateBucketRequest");
         assert!(!any.value.is_empty());

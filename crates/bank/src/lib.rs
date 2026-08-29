@@ -32,9 +32,9 @@ pub use requests::*;
 
 /// Fluent builders for bank transaction operations.
 pub use builder::{
-    BridgeAssetBuilder, CrossChainTransferBuilder, DepositBuilder, MintBuilder,
-    OnboardAssetBuilder, SetSpendingPolicyBuilder, TransferBuilder, TransferToBucketBuilder,
-    WithdrawBuilder,
+    BridgeAssetBuilder, ClaimSettlementBuilder, CrossChainTransferBuilder, DepositBuilder,
+    MintBuilder, OnboardAssetBuilder, SetSpendingPolicyBuilder, TransferBuilder,
+    TransferToBucketBuilder, WithdrawBuilder,
 };
 
 // Re-export core SDK types commonly used with bank flows.
@@ -49,9 +49,9 @@ pub use morpheum_sdk_core::{AccountId, ChainId, SdkError, SignedTx};
 pub mod prelude {
     pub use super::{
         resolve_asset_index, AccountId, Asset, AssetIdentifier, AssetsResponse, Balance,
-        BankClient, ChainId, ChainType, CrossChainTransferBuilder, DepositBuilder, MintBuilder,
-        SdkError, SetSpendingPolicyBuilder, SignedTx, SpendingPolicy, TransferBuilder,
-        WithdrawBuilder,
+        BankClient, ChainId, ChainType, ClaimSettlementBuilder, CrossChainTransferBuilder,
+        DepositBuilder, MintBuilder, SdkError, SetSpendingPolicyBuilder, SignedTx, SpendingPolicy,
+        TransferBuilder, WithdrawBuilder,
     };
 }
 

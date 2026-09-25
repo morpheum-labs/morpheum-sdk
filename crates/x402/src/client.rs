@@ -2,8 +2,10 @@
 //! in the Morpheum SDK.
 //!
 //! Provides high-level, type-safe query methods for receipts, policies,
-//! capabilities, and module parameters. Transaction construction is handled
-//! via the fluent builders in `builder.rs` + `TxBuilder`.
+//! capabilities, and module parameters. It sends no transactions: every x402
+//! Msg (including bridge settlement and Upto finalization) is built with the
+//! fluent builders in `builder.rs`, signed with `TxBuilder`, and submitted as
+//! a transaction.
 
 use alloc::boxed::Box;
 use alloc::string::String;
@@ -15,18 +17,16 @@ use prost::Message as _;
 use morpheum_sdk_core::{MorpheumClient, SdkConfig, SdkError, Transport};
 
 use crate::requests::{
-    FinalizeUptoRequest, QueryCapabilitiesRequest, QueryParamsRequest, QueryPendingUptoRequest,
-    QueryPolicyRequest, QueryReceiptRequest, QueryReceiptsByAgentRequest, QueryX402FeeStatsRequest,
-    SettleBridgePaymentRequest,
+    QueryCapabilitiesRequest, QueryParamsRequest, QueryPendingUptoRequest, QueryPolicyRequest,
+    QueryReceiptRequest, QueryReceiptsByAgentRequest, QueryX402FeeStatsRequest,
 };
-use crate::types::{
-    BridgeSettlementResult, Capabilities, FinalizeUptoResult, Params, Policy, Receipt,
-};
+use crate::types::{Capabilities, Params, Policy, Receipt};
 
 /// Primary client for all x402 payment queries.
 ///
-/// Transaction construction (register policy, update policy, rotate address,
-/// approve outbound) is delegated to the fluent builders in `builder.rs`.
+/// Queries only. Transactions (register/update policy, rotate address,
+/// approve outbound, settle bridge payment, finalize Upto) are built with the
+/// fluent builders in `builder.rs` and submitted as signed transactions.
 pub struct X402Client {
     config: SdkConfig,
     transport: Box<dyn Transport>,
@@ -132,52 +132,6 @@ impl X402Client {
             .capabilities
             .map(Into::into)
             .ok_or_else(|| SdkError::transport("capabilities field missing in response"))
-    }
-
-    /// Settles a cross-chain bridge payment on Morpheum.
-    ///
-    /// Submits an `X402PaymentPacket` from an external EVM chain, validates it,
-    /// processes it through the native inbound path, and returns a receipt with
-    /// Merkle proof plus a GMP reply payload for confirmation on the source chain.
-    ///
-    /// This is the primary SDK entry point for relay services and operators
-    /// performing cross-chain settlement.
-    pub async fn settle_bridge_payment(
-        &self,
-        request: SettleBridgePaymentRequest,
-    ) -> Result<BridgeSettlementResult, SdkError> {
-        let proto_req: morpheum_proto::x402::v1::MsgSettleBridgePayment = request.into();
-
-        let path = "/x402.v1.Msg/SettleBridgePayment";
-        let data = proto_req.encode_to_vec();
-
-        let response_bytes = self.query(path, data).await?;
-
-        let proto_res = morpheum_proto::x402::v1::SettleBridgePaymentResponse::decode(
-            response_bytes.as_slice(),
-        )
-        .map_err(SdkError::Decode)?;
-
-        Ok(proto_res.into())
-    }
-
-    /// Finalizes an Upto usage-based payment, charging only the actual consumed amount.
-    pub async fn finalize_upto(
-        &self,
-        request: FinalizeUptoRequest,
-    ) -> Result<FinalizeUptoResult, SdkError> {
-        let proto_req: morpheum_proto::x402::v1::MsgFinalizeUpto = request.into();
-
-        let path = "/x402.v1.Msg/FinalizeUpto";
-        let data = proto_req.encode_to_vec();
-
-        let response_bytes = self.query(path, data).await?;
-
-        let proto_res =
-            morpheum_proto::x402::v1::FinalizeUptoResponse::decode(response_bytes.as_slice())
-                .map_err(SdkError::Decode)?;
-
-        Ok(proto_res.into())
     }
 
     /// Queries pending Upto pre-authorizations for an agent.
@@ -298,23 +252,6 @@ mod tests {
                     };
                     Ok(prost::Message::encode_to_vec(&dummy))
                 }
-                "/x402.v1.Msg/SettleBridgePayment" => {
-                    let dummy = morpheum_proto::x402::v1::SettleBridgePaymentResponse {
-                        success: true,
-                        receipt: Some(Default::default()),
-                        gmp_reply_payload: vec![1, 2, 3],
-                        receipt_hash: "hash123".into(),
-                    };
-                    Ok(prost::Message::encode_to_vec(&dummy))
-                }
-                "/x402.v1.Msg/FinalizeUpto" => {
-                    let dummy = morpheum_proto::x402::v1::FinalizeUptoResponse {
-                        success: true,
-                        receipt: Some(Default::default()),
-                        refunded_amount: "250".into(),
-                    };
-                    Ok(prost::Message::encode_to_vec(&dummy))
-                }
                 "/x402.v1.Query/QueryPendingUpto" => {
                     let dummy =
                         morpheum_proto::x402::v1::QueryPendingUptoResponse { pending: vec![] };
@@ -370,46 +307,6 @@ mod tests {
         let client = test_client();
         let result = client.query_params().await;
         assert!(result.is_ok());
-    }
-
-    #[tokio::test]
-    async fn settle_bridge_payment_works() {
-        use crate::requests::SettleBridgePaymentRequest;
-        use crate::types::PaymentPacket;
-
-        let client = test_client();
-        let packet = PaymentPacket {
-            payment_id: "pay-001".into(),
-            source_chain: "eip155:8453".into(),
-            target_agent_id: "agent-1".into(),
-            amount: 5000,
-            asset: "USDC".into(),
-            memo: String::new(),
-            signature_payload: vec![0xAA],
-            reply_channel: "gmp-42".into(),
-            payer_address: "0x1234abcd".into(),
-        };
-
-        let req = SettleBridgePaymentRequest::new("relayer-1", packet);
-        let result = client.settle_bridge_payment(req).await;
-        assert!(result.is_ok());
-
-        let settlement = result.unwrap();
-        assert!(settlement.success);
-        assert!(settlement.receipt.is_some());
-        assert_eq!(settlement.receipt_hash, "hash123");
-    }
-
-    #[tokio::test]
-    async fn finalize_upto_works() {
-        let client = test_client();
-        let req = FinalizeUptoRequest::new("seller-1", "preauth-001", 750);
-        let result = client.finalize_upto(req).await;
-        assert!(result.is_ok());
-
-        let finalization = result.unwrap();
-        assert!(finalization.success);
-        assert_eq!(finalization.refunded_amount, 250);
     }
 
     #[tokio::test]

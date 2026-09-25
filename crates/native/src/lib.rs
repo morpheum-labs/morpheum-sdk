@@ -177,6 +177,12 @@ pub mod grpc_transport;
 #[cfg(feature = "grpc")]
 pub use grpc_transport::GrpcTransport;
 
+#[cfg(feature = "grpc")]
+pub mod submitter;
+
+#[cfg(feature = "grpc")]
+pub use submitter::{IngressTransport, TxOutcome, TxSubmitter};
+
 // ==================== PLACEHOLDER TRANSPORT ====================
 
 /// A placeholder transport that returns errors for all operations.
@@ -346,7 +352,7 @@ pub mod prelude {
     pub use super::vesting::VestingClient;
 
     #[cfg(feature = "grpc")]
-    pub use super::GrpcTransport;
+    pub use super::{GrpcTransport, TxOutcome, TxSubmitter};
 
     #[cfg(feature = "bondingcurve")]
     pub use super::bondingcurve::BondingCurveClient;

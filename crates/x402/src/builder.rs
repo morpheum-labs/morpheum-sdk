@@ -289,6 +289,8 @@ impl SettleBridgePaymentBuilder {
         Self::default()
     }
 
+    /// Optional. The settler is the transaction's signer; when set, this must
+    /// equal the signer's own address or the chain rejects the settlement.
     pub fn relayer_address(mut self, addr: impl Into<String>) -> Self {
         self.relayer_address = Some(addr.into());
         self
@@ -354,10 +356,6 @@ impl SettleBridgePaymentBuilder {
     }
 
     pub fn build(self) -> Result<SettleBridgePaymentRequest, SdkError> {
-        let relayer_address = self.relayer_address.ok_or_else(|| {
-            SdkError::invalid_input("relayer_address is required for bridge settlement")
-        })?;
-
         let payment_id = self
             .payment_id
             .ok_or_else(|| SdkError::invalid_input("payment_id is required"))?;
@@ -402,7 +400,10 @@ impl SettleBridgePaymentBuilder {
             payer_address: self.payer_address.unwrap_or_default(),
         };
 
-        Ok(SettleBridgePaymentRequest::new(relayer_address, packet))
+        Ok(SettleBridgePaymentRequest::new(
+            self.relayer_address.unwrap_or_default(),
+            packet,
+        ))
     }
 }
 
@@ -615,6 +616,14 @@ mod tests {
             .build()
             .unwrap();
 
+        assert_eq!(req.packet, packet);
+
+        // The settler is the tx signer; the address field may be omitted.
+        let req = SettleBridgePaymentBuilder::new()
+            .packet(packet.clone())
+            .build()
+            .unwrap();
+        assert_eq!(req.relayer_address, "");
         assert_eq!(req.packet, packet);
     }
 

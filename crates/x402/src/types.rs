@@ -355,46 +355,6 @@ impl From<PaymentPacket> for proto::X402PaymentPacket {
     }
 }
 
-/// Result of a cross-chain bridge settlement on Morpheum.
-#[derive(Clone, Debug, PartialEq, Eq)]
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-pub struct BridgeSettlementResult {
-    pub success: bool,
-    pub receipt: Option<Receipt>,
-    pub gmp_reply_payload: Vec<u8>,
-    pub receipt_hash: String,
-}
-
-impl From<proto::SettleBridgePaymentResponse> for BridgeSettlementResult {
-    fn from(r: proto::SettleBridgePaymentResponse) -> Self {
-        Self {
-            success: r.success,
-            receipt: r.receipt.map(Into::into),
-            gmp_reply_payload: r.gmp_reply_payload,
-            receipt_hash: r.receipt_hash,
-        }
-    }
-}
-
-/// Result of finalizing an Upto usage-based payment.
-#[derive(Clone, Debug, PartialEq, Eq)]
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-pub struct FinalizeUptoResult {
-    pub success: bool,
-    pub receipt: Option<Receipt>,
-    pub refunded_amount: u64,
-}
-
-impl From<proto::FinalizeUptoResponse> for FinalizeUptoResult {
-    fn from(r: proto::FinalizeUptoResponse) -> Self {
-        Self {
-            success: r.success,
-            receipt: r.receipt.map(Into::into),
-            refunded_amount: r.refunded_amount.parse().unwrap_or(0),
-        }
-    }
-}
-
 /// Module-level parameters for the x402 module.
 #[derive(Clone, Debug, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
@@ -565,21 +525,5 @@ mod tests {
         let proto: proto::X402PaymentPacket = packet.clone().into();
         let back: PaymentPacket = proto.into();
         assert_eq!(packet, back);
-    }
-
-    #[test]
-    fn bridge_settlement_result_from_proto() {
-        let proto_resp = proto::SettleBridgePaymentResponse {
-            success: true,
-            receipt: Some(Default::default()),
-            gmp_reply_payload: vec![1, 2, 3],
-            receipt_hash: "abc123".into(),
-        };
-
-        let result: BridgeSettlementResult = proto_resp.into();
-        assert!(result.success);
-        assert!(result.receipt.is_some());
-        assert_eq!(result.gmp_reply_payload, vec![1, 2, 3]);
-        assert_eq!(result.receipt_hash, "abc123");
     }
 }

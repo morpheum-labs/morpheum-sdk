@@ -34,6 +34,12 @@ impl GrpcTransport {
         Ok(Self { channel })
     }
 
+    /// Wraps an already-configured channel — use this to set request and
+    /// connect timeouts, keep-alive, or TLS on the `Endpoint` yourself.
+    pub fn from_channel(channel: Channel) -> Self {
+        Self { channel }
+    }
+
     /// Issues a raw unary gRPC call at the given method path.
     async fn raw_unary(&self, path: &str, data: Vec<u8>) -> Result<Vec<u8>, SdkError> {
         let path = http::uri::PathAndQuery::from_str(path)
@@ -53,12 +59,14 @@ impl GrpcTransport {
     }
 }
 
-#[async_trait(?Send)]
-impl Transport for GrpcTransport {
-    async fn broadcast_tx(&self, tx_bytes: Vec<u8>) -> Result<BroadcastResult, SdkError> {
-        use morpheum_proto::tx::v1::{SubmitTxRequest, SubmitTxResponse, Tx};
+#[async_trait]
+impl crate::submitter::IngressTransport for GrpcTransport {
+    async fn submit_tx(
+        &self,
+        tx: morpheum_proto::tx::v1::Tx,
+    ) -> Result<morpheum_proto::tx::v1::SubmitTxResponse, SdkError> {
+        use morpheum_proto::tx::v1::{SubmitTxRequest, SubmitTxResponse};
 
-        let tx = Tx::decode(tx_bytes.as_slice())?;
         let req = SubmitTxRequest {
             tx: Some(tx),
             ..Default::default()
@@ -66,8 +74,21 @@ impl Transport for GrpcTransport {
         let resp_bytes = self
             .raw_unary("/tx.v1.IngressService/SubmitTx", req.encode_to_vec())
             .await?;
+        Ok(SubmitTxResponse::decode(resp_bytes.as_slice())?)
+    }
 
-        let resp = SubmitTxResponse::decode(resp_bytes.as_slice())?;
+    async fn query(&self, path: &str, data: Vec<u8>) -> Result<Vec<u8>, SdkError> {
+        self.raw_unary(path, data).await
+    }
+}
+
+#[async_trait(?Send)]
+impl Transport for GrpcTransport {
+    async fn broadcast_tx(&self, tx_bytes: Vec<u8>) -> Result<BroadcastResult, SdkError> {
+        use crate::submitter::IngressTransport;
+
+        let tx = morpheum_proto::tx::v1::Tx::decode(tx_bytes.as_slice())?;
+        let resp = self.submit_tx(tx).await?;
 
         if !resp.accepted {
             return Err(SdkError::transport(format!(

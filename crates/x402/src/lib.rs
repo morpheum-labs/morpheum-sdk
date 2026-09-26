@@ -33,8 +33,8 @@ pub use chains::{
 };
 
 pub use types::{
-    BridgeSettlementResult, Capabilities, FinalizeUptoResult, Params, PaymentDirection,
-    PaymentPacket, Policy, Receipt, ReceiptStatus, Scheme, UptoDetails, X402FeeStats,
+    Capabilities, Params, PaymentDirection, PaymentPacket, Policy, Receipt, ReceiptStatus, Scheme,
+    UptoDetails, X402FeeStats,
 };
 
 pub use requests::*;
@@ -48,10 +48,10 @@ pub use morpheum_sdk_core::{AccountId, ChainId, SdkError, SignedTx};
 /// ```
 pub mod prelude {
     pub use super::{
-        AccountId, BridgeSettlementResult, Capabilities, ChainId, ChainMetadata,
-        FinalizeUptoBuilder, FinalizeUptoResult, Params, PaymentDirection, PaymentPacket, Policy,
-        Receipt, ReceiptStatus, Scheme, SdkError, SettleBridgePaymentBuilder, SignatureScheme,
-        SignedTx, UptoDetails, X402Client, KNOWN_CHAINS,
+        AccountId, Capabilities, ChainId, ChainMetadata, FinalizeUptoBuilder, Params,
+        PaymentDirection, PaymentPacket, Policy, Receipt, ReceiptStatus, Scheme, SdkError,
+        SettleBridgePaymentBuilder, SignatureScheme, SignedTx, UptoDetails, X402Client,
+        KNOWN_CHAINS,
     };
 }
 

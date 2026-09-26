@@ -152,9 +152,44 @@ Full Rust SDK for CLI, bots, and agents.
 | `native(signer: NativeSigner)` | SDK for human wallet |
 | `agent(signer: AgentSigner)` | SDK for autonomous agent |
 
+### Submitting transactions (`TxSubmitter`, feature `grpc`)
+
+Every Morpheum write — including module Msgs such as x402 bridge settlement
+or Upto finalization — is a **signed transaction** submitted through
+`IngressService/SubmitTx`. Module clients (`X402Client`, `BankClient`, …) only
+query; build Msgs with the module builders and submit them with `TxSubmitter`.
+
+| Method | Description |
+|--------|-------------|
+| `TxSubmitter::new(transport, signer, chain_id, genesis_hash: [u8; 32])` | One submitter per key. The genesis hash is required, so every signature is bound to one chain instance |
+| `submit(msg: Any) -> BroadcastResult` | Resolves the nonce (`max(highest signed here, chain last_monotonic) + 1`), signs, submits. Re-signs only when chain state proves the nonce was stale; any other rejection is returned as an error |
+| `wait_final(txhash, timeout) -> TxOutcome` | Polls `QueryTxStatus` on the same node until `Confirmed { height, shard_id }` or `Failed { status }` |
+| `account_hex()` | The signer's hex account id |
+
+```rust
+use morpheum_sdk_native::prelude::*;
+use morpheum_sdk_native::x402::SettleBridgePaymentBuilder;
+
+let submitter = TxSubmitter::new(GrpcTransport::connect(url).await?, signer, chain_id, genesis_hash);
+let msg = SettleBridgePaymentBuilder::new()
+    .packet(packet) // the settler is the tx signer
+    .build()?
+    .to_any();
+let admitted = submitter.submit(msg).await?;            // admission, not finality
+match submitter.wait_final(&admitted.txhash, timeout).await? {
+    TxOutcome::Confirmed { .. } => { /* executed */ }
+    TxOutcome::Failed { status } => { /* executed and failed, or skipped */ }
+}
+```
+
+`IngressTransport` is the trait `TxSubmitter` is generic over (`GrpcTransport`
+implements it); it exposes the node's raw admission verdict, which
+`Transport::broadcast_tx` folds into an error.
+
 ### Re-exports
 
 - **Core:** `core`, `AccountId`, `ChainId`, `SdkConfig`, `SdkError`, `SignedTx`
+- **Transactions (`grpc`):** `TxSubmitter`, `TxOutcome`, `IngressTransport`
 - **Signing:** `NativeSigner`, `AgentSigner`, `TradingKeyClaim`, `VcClaimBuilder`
 - **Modules (feature-gated):** `market`, `vc`, `auth`, `identity`, `agentreg`, `inferreg`, `interop`, `job`, `bank`, `staking`
 

@@ -6,7 +6,7 @@ rust-version.workspace = true
 license.workspace = true
 repository.workspace = true
 homepage.workspace = true
-description = "Prediction market module client for the Morpheum SDK — market creation, resolution, disputes, light challenges, and implied probability queries"
+description = "Prediction market module client for the Morpheum SDK — market state, implied probability, and fee statistics queries, plus streaming market event types"
 
 [lib]
 crate-type = ["lib"]

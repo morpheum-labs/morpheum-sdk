@@ -3,7 +3,7 @@
 //!
 //! Provides high-level, type-safe methods for querying validators, delegations,
 //! rewards, penalties, slashing history, epoch info, and module parameters.
-//! Transaction operations (stake, delegate, claim, report, etc.) are handled
+//! Transaction operations (stake, delegate, claim, etc.) are handled
 //! via the fluent builders in `builder.rs` + `TxBuilder`.
 
 use alloc::boxed::Box;
@@ -27,7 +27,7 @@ use crate::types::{
 
 /// Primary client for all staking-related queries.
 ///
-/// Transaction construction (stake, delegate, claim, report, vote, slash)
+/// Transaction construction (stake, delegate, claim, update params)
 /// is delegated to the fluent builders in `builder.rs` for maximum ergonomics
 /// and type safety.
 pub struct StakingClient {

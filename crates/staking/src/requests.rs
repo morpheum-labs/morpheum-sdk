@@ -3,9 +3,7 @@
 //! Clean, type-safe Rust APIs around the raw protobuf messages.
 //! Includes `to_any()` methods for seamless integration with `TxBuilder`.
 
-use alloc::collections::BTreeMap;
 use alloc::string::String;
-use alloc::vec::Vec;
 
 use prost::Message as _;
 
@@ -14,8 +12,6 @@ use serde::{Deserialize, Serialize};
 
 use morpheum_proto::google::protobuf::Any as ProtoAny;
 use morpheum_proto::staking::v1 as proto;
-
-use crate::types::MisbehaviorType;
 
 // ====================== TRANSACTION REQUESTS ======================
 
@@ -312,179 +308,6 @@ impl From<ClaimRewardsRequest> for proto::MsgClaimRewardsRequest {
     }
 }
 
-/// Request to report validator misbehavior.
-#[derive(Clone, Debug, PartialEq, Eq)]
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-pub struct ReportMisbehaviorRequest {
-    pub validator_id: String,
-    pub misbehavior_type: MisbehaviorType,
-    pub evidence: Vec<u8>,
-    pub severity: String,
-    pub height: u64,
-    pub sig: Vec<u8>,
-    pub reporter_address: String,
-    pub reporter_external_address: Option<String>,
-    pub reporter_chain_type: Option<i32>,
-}
-
-impl ReportMisbehaviorRequest {
-    pub fn new(
-        validator_id: impl Into<String>,
-        misbehavior_type: MisbehaviorType,
-        evidence: Vec<u8>,
-        severity: impl Into<String>,
-        reporter_address: impl Into<String>,
-        sig: Vec<u8>,
-    ) -> Self {
-        Self {
-            validator_id: validator_id.into(),
-            misbehavior_type,
-            evidence,
-            severity: severity.into(),
-            height: 0,
-            sig,
-            reporter_address: reporter_address.into(),
-            reporter_external_address: None,
-            reporter_chain_type: None,
-        }
-    }
-
-    pub fn to_any(&self) -> ProtoAny {
-        let msg: proto::MsgReportMisbehaviorRequest = self.clone().into();
-        ProtoAny {
-            type_url: "/staking.v1.MsgReportMisbehaviorRequest".into(),
-            value: msg.encode_to_vec(),
-        }
-    }
-}
-
-impl From<ReportMisbehaviorRequest> for proto::MsgReportMisbehaviorRequest {
-    fn from(req: ReportMisbehaviorRequest) -> Self {
-        Self {
-            validator_id: req.validator_id,
-            misbehavior_type: i32::from(req.misbehavior_type),
-            evidence: req.evidence,
-            severity: req.severity,
-            height: req.height,
-            sig: req.sig,
-            timestamp: None,
-            reporter_address: req.reporter_address,
-            reporter_external_address: req.reporter_external_address,
-            reporter_chain_type: req.reporter_chain_type,
-        }
-    }
-}
-
-/// Request to vote on a slashing proposal.
-#[derive(Clone, Debug, PartialEq, Eq)]
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-pub struct VoteOnSlashingRequest {
-    pub misbehavior_id: String,
-    pub vote: bool,
-    pub voter_address: String,
-    pub sig: Vec<u8>,
-    pub voter_external_address: Option<String>,
-    pub voter_chain_type: Option<i32>,
-}
-
-impl VoteOnSlashingRequest {
-    pub fn new(
-        misbehavior_id: impl Into<String>,
-        vote: bool,
-        voter_address: impl Into<String>,
-        sig: Vec<u8>,
-    ) -> Self {
-        Self {
-            misbehavior_id: misbehavior_id.into(),
-            vote,
-            voter_address: voter_address.into(),
-            sig,
-            voter_external_address: None,
-            voter_chain_type: None,
-        }
-    }
-
-    pub fn to_any(&self) -> ProtoAny {
-        let msg: proto::MsgVoteOnSlashingRequest = self.clone().into();
-        ProtoAny {
-            type_url: "/staking.v1.MsgVoteOnSlashingRequest".into(),
-            value: msg.encode_to_vec(),
-        }
-    }
-}
-
-impl From<VoteOnSlashingRequest> for proto::MsgVoteOnSlashingRequest {
-    fn from(req: VoteOnSlashingRequest) -> Self {
-        Self {
-            misbehavior_id: req.misbehavior_id,
-            vote: req.vote,
-            voter_address: req.voter_address,
-            sig: req.sig,
-            timestamp: None,
-            voter_external_address: req.voter_external_address,
-            voter_chain_type: req.voter_chain_type,
-        }
-    }
-}
-
-/// Request to apply a slashing penalty.
-#[derive(Clone, Debug, PartialEq, Eq)]
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-pub struct ApplySlashingRequest {
-    pub misbehavior_id: String,
-    pub validator_id: String,
-    pub slash_type: String,
-    pub asset_index: u64,
-    pub balance_penalty: String,
-    pub reputation_penalty: String,
-    pub quorum_votes: BTreeMap<String, bool>,
-    pub sig: Vec<u8>,
-}
-
-impl ApplySlashingRequest {
-    pub fn new(
-        misbehavior_id: impl Into<String>,
-        validator_id: impl Into<String>,
-        slash_type: impl Into<String>,
-        sig: Vec<u8>,
-    ) -> Self {
-        Self {
-            misbehavior_id: misbehavior_id.into(),
-            validator_id: validator_id.into(),
-            slash_type: slash_type.into(),
-            asset_index: 0,
-            balance_penalty: String::new(),
-            reputation_penalty: String::new(),
-            quorum_votes: BTreeMap::new(),
-            sig,
-        }
-    }
-
-    pub fn to_any(&self) -> ProtoAny {
-        let msg: proto::MsgApplySlashingRequest = self.clone().into();
-        ProtoAny {
-            type_url: "/staking.v1.MsgApplySlashingRequest".into(),
-            value: msg.encode_to_vec(),
-        }
-    }
-}
-
-impl From<ApplySlashingRequest> for proto::MsgApplySlashingRequest {
-    fn from(req: ApplySlashingRequest) -> Self {
-        Self {
-            misbehavior_id: req.misbehavior_id,
-            validator_id: req.validator_id,
-            slash_type: req.slash_type,
-            asset_index: req.asset_index,
-            balance_penalty: req.balance_penalty,
-            reputation_penalty: req.reputation_penalty,
-            quorum_votes: req.quorum_votes.into_iter().collect(),
-            sig: req.sig,
-            timestamp: None,
-        }
-    }
-}
-
 // ====================== QUERY REQUESTS ======================
 
 /// Query a single validator by ID.
@@ -756,7 +579,6 @@ impl From<QueryCommissionInfoRequest> for proto::QueryCommissionInfoRequest {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use alloc::vec;
 
     #[test]
     fn stake_request_to_any() {
@@ -785,33 +607,5 @@ mod tests {
         let req = ClaimRewardsRequest::new("morm1abc", "val-1");
         let any = req.to_any();
         assert_eq!(any.type_url, "/staking.v1.MsgClaimRewardsRequest");
-    }
-
-    #[test]
-    fn report_misbehavior_request_to_any() {
-        let req = ReportMisbehaviorRequest::new(
-            "val-1",
-            MisbehaviorType::DoubleVote,
-            vec![1, 2, 3],
-            "critical",
-            "morm1reporter",
-            vec![4, 5, 6],
-        );
-        let any = req.to_any();
-        assert_eq!(any.type_url, "/staking.v1.MsgReportMisbehaviorRequest");
-    }
-
-    #[test]
-    fn vote_on_slashing_request_to_any() {
-        let req = VoteOnSlashingRequest::new("misb-1", true, "morm1voter", vec![7, 8]);
-        let any = req.to_any();
-        assert_eq!(any.type_url, "/staking.v1.MsgVoteOnSlashingRequest");
-    }
-
-    #[test]
-    fn apply_slashing_request_to_any() {
-        let req = ApplySlashingRequest::new("misb-1", "val-1", "both", vec![9, 10]);
-        let any = req.to_any();
-        assert_eq!(any.type_url, "/staking.v1.MsgApplySlashingRequest");
     }
 }

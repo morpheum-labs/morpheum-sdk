@@ -8,9 +8,12 @@
 //! - **`client`** — `CosmWasmClient` query methods (smart contract state, raw state, contract info)
 //! - **`types`** — Domain types (`ContractInfo`, `CosmWasmError`)
 //! - **`requests`** — Request/response types with `to_any()` serialization
+//! - **`grpc`** (feature `grpc`) — smart queries over a `tonic` channel; the
+//!   `dev` feature adds unsigned execution helpers that only development
+//!   nodes accept
 //!
-//! Messages are encoded in Cosmos wire format and submitted via the GMP protocol
-//! bridge (`gmp_compat`), which translates them to Morpheum-native operations.
+//! Store, instantiate and execute requests are ordinary transaction Msgs:
+//! sign and submit `request.to_any()` with `morpheum_sdk_native::TxSubmitter`.
 
 #![cfg_attr(not(feature = "std"), no_std)]
 #![forbid(unsafe_code)]

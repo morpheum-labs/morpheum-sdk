@@ -410,6 +410,34 @@ Client for nonce queries, TradingKey management, account state.
 
 - **Client:** `IntentClient`
 
+### CosmWasm (`morpheum-sdk-cosmwasm`)
+
+- **Builders:** `ExecuteContractBuilder`, `InstantiateContractBuilder`, `StoreCodeBuilder` — each `build()?.to_any()` is an ordinary Msg; sign and submit it with `TxSubmitter`
+- **Queries:** `CosmWasmClient`; with feature `grpc`, `grpc::wasm_smart_query` / `grpc::wasm_smart_query_typed` over a `tonic` channel
+- **Development only (feature `dev`):** `grpc::broadcast_execute_contract` executes a contract call unsigned through `BroadcastTx`'s `dev_messages` field. Only nodes built with development endpoints accept it; every other node refuses the request
+
+### GMP (`morpheum-sdk-gmp`)
+
+- **Client:** `GmpClient`
+- **Relay (feature `relay`):** an embedded Hyperlane relayer
+  - `relay::inbound_process_msg(evm_provider, InboundRelayRequest)` builds the `Mailbox.process()` `MsgExecuteContract` that relays a message dispatched on an EVM chain. Relaying it is a signed transaction from `InboundRelayRequest::morpheum_sender`:
+
+    ```rust
+    let msg = relay::inbound_process_msg(&evm_provider, InboundRelayRequest {
+        morpheum_sender: &submitter.account_hex(),
+        morpheum_mailbox,
+        tx_hash,
+        validator_private_key: &validator_key,
+        origin_domain,
+        merkle_tree_hook,
+    })
+    .await?;
+    let admitted = submitter.submit(msg.to_any()).await?;
+    let outcome = submitter.wait_final(&admitted.txhash, timeout).await?; // TxOutcome
+    ```
+  - `relay::mailbox_process_msg(sender, mailbox, metadata, message)` and `relay::build_ism_metadata(..)` build the same Msg for a message from any origin chain
+  - `relay::relay_outbound(..)` delivers a Morpheum-originated message on an EVM chain
+
 ---
 
 ## Request Pattern

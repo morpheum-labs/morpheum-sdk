@@ -405,50 +405,53 @@ impl From<QueryMarketStatsRequest> for proto::QueryMarketStatsRequest {
     }
 }
 
-// ====================== FEE STATS QUERY ======================
-
-/// Request to query aggregated market fee statistics.
-#[derive(Clone, Debug, Default, PartialEq, Eq)]
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-pub struct QueryMarketFeeStatsRequest;
-
-impl From<QueryMarketFeeStatsRequest> for proto::QueryMarketFeeStatsRequest {
-    fn from(_: QueryMarketFeeStatsRequest) -> Self {
-        proto::QueryMarketFeeStatsRequest {}
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
     use morpheum_sdk_core::AccountId;
 
+    /// A default CLOB market creation puts its terms on the wire in
+    /// `clob_config`, mirrored into the deprecated top-level fields, and
+    /// never carries an x402 receipt id. That the default terms are integers
+    /// is pinned in `types::tests::clob_default_terms_are_integer_strings`.
     #[test]
-    fn create_market_request_to_any() {
+    #[allow(deprecated)]
+    fn create_market_request_mirrors_default_terms_and_no_x402_receipt() {
         let from = AccountId::new([1u8; 32]);
-        let params = crate::types::MarketParams {
-            min_order_size: "0.001".into(),
-            additional_params: alloc::collections::BTreeMap::new(),
-            type_config: Some(crate::types::MarketTypeConfig::Clob(
-                crate::types::ClobMarketConfig {
-                    tick_size: "0.01".into(),
-                    lot_size: "1".into(),
-                    max_leverage: "100".into(),
-                    initial_margin_ratio: "0.1".into(),
-                    maintenance_margin_ratio: "0.05".into(),
-                    allow_market_orders: true,
-                    allow_stop_orders: true,
-                    perp_config: None,
-                },
-            )),
-        };
-
-        let req = CreateMarketRequest::new(from, 1, 2, MarketType::Perp, "clob".into(), params)
-            .with_governance_proposal_id("gov-123");
+        let req = CreateMarketRequest::new(
+            from,
+            1,
+            2,
+            MarketType::Perp,
+            "clob".into(),
+            MarketParams::clob_default(),
+        )
+        .with_governance_proposal_id("gov-123");
 
         let any = req.to_any();
         assert_eq!(any.type_url, "/market.v1.MsgCreateMarketRequest");
-        assert!(!any.value.is_empty());
+        let msg = <proto::MsgCreateMarketRequest as prost::Message>::decode(any.value.as_slice())
+            .expect("MsgCreateMarketRequest decodes");
+
+        assert!(msg.x402_receipt_id.is_empty());
+        assert_eq!(msg.governance_proposal_id, "gov-123");
+
+        let terms = crate::types::ClobMarketConfig::default();
+        let params = msg.params.expect("params are on the wire");
+        let Some(proto::market_params::TypeConfig::ClobConfig(clob)) = &params.type_config else {
+            panic!("clob_config is on the wire");
+        };
+        assert_eq!(clob.tick_size, terms.tick_size);
+        assert_eq!(clob.lot_size, terms.lot_size);
+        assert_eq!(clob.max_leverage, terms.max_leverage);
+        assert_eq!(params.tick_size, terms.tick_size);
+        assert_eq!(params.lot_size, terms.lot_size);
+        assert_eq!(params.max_leverage, terms.max_leverage);
+        assert_eq!(params.initial_margin_ratio, terms.initial_margin_ratio);
+        assert_eq!(
+            params.maintenance_margin_ratio,
+            terms.maintenance_margin_ratio
+        );
     }
 
     #[test]

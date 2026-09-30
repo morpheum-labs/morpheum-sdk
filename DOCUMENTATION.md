@@ -343,6 +343,9 @@ let create_req = MarketCreateBuilder::new()
     .from_address(addr)
     .base_asset_index(1)
     .quote_asset_index(2)
+    .market_type(MarketType::Perp)
+    .orderbook_type("clob")
+    .params(MarketParams::clob_default())
     .build()?;
 
 signed_tx = TxBuilder::new(signer)

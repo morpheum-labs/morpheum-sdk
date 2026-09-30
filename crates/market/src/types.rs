@@ -160,13 +160,24 @@ impl From<PerpConfig> for proto::PerpConfig {
 }
 
 /// CLOB/order-book-specific trading parameters.
+///
+/// The terms are base-10 unsigned integer strings; the chain refuses a
+/// market whose tick, lot or leverage does not parse.
 #[derive(Clone, Debug, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct ClobMarketConfig {
+    /// Minimum price increment: a positive integer.
     pub tick_size: String,
+    /// Minimum quantity increment: a positive integer.
     pub lot_size: String,
+    /// Maximum leverage multiple: an integer that fits in `u32`, or empty.
     pub max_leverage: String,
+    /// Initial margin ratio: an integer string in the format of
+    /// `market.v1.MsgChangeMarketMarginRatioRequest`, which documents
+    /// `"1000000000"` as 10%.
     pub initial_margin_ratio: String,
+    /// Maintenance margin ratio in the same format; at most the initial
+    /// margin ratio.
     pub maintenance_margin_ratio: String,
     pub allow_market_orders: bool,
     pub allow_stop_orders: bool,
@@ -174,13 +185,16 @@ pub struct ClobMarketConfig {
 }
 
 impl Default for ClobMarketConfig {
+    /// Tick and lot 1 (the finest increments), 10x leverage, and the margin
+    /// ratios `market.v1.MsgChangeMarketMarginRatioRequest` documents as 10%
+    /// initial / 5% maintenance.
     fn default() -> Self {
         Self {
-            tick_size: "0.01".into(),
+            tick_size: "1".into(),
             lot_size: "1".into(),
             max_leverage: "10".into(),
-            initial_margin_ratio: "0.1".into(),
-            maintenance_margin_ratio: "0.05".into(),
+            initial_margin_ratio: "1000000000".into(),
+            maintenance_margin_ratio: "500000000".into(),
             allow_market_orders: true,
             allow_stop_orders: true,
             perp_config: None,
@@ -286,7 +300,9 @@ impl Default for MarketParams {
 }
 
 impl MarketParams {
-    /// Returns CLOB market params with sensible defaults.
+    /// Returns params for a market on the `"clob"` orderbook, carrying the
+    /// default [`ClobMarketConfig`] terms. A spot, perp, future or option
+    /// market needs CLOB terms; [`MarketParams::default`] carries none.
     pub fn clob_default() -> Self {
         Self {
             type_config: Some(MarketTypeConfig::Clob(ClobMarketConfig::default())),
@@ -632,48 +648,18 @@ impl From<proto::MarketUpdate> for MarketUpdate {
     }
 }
 
-// ====================== FEE STATS ======================
-
-/// Aggregated fee statistics for the market module.
-#[derive(Clone, Debug, Default, PartialEq, Eq)]
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-pub struct MarketFeeStats {
-    pub total_creation_fees: u64,
-    pub total_treasury_swept: u64,
-    pub native_payment_count: u64,
-    pub x402_payment_count: u64,
-    pub total_markets_created: u64,
-}
-
-impl From<proto::QueryMarketFeeStatsResponse> for MarketFeeStats {
-    fn from(r: proto::QueryMarketFeeStatsResponse) -> Self {
-        Self {
-            total_creation_fees: r.total_creation_fees,
-            total_treasury_swept: r.total_treasury_swept,
-            native_payment_count: r.native_payment_count,
-            x402_payment_count: r.x402_payment_count,
-            total_markets_created: r.total_markets_created,
-        }
-    }
-}
-
 // ====================== MODULE PARAMS ======================
 
 /// Module-level governance parameters for the market module.
-#[derive(Clone, Debug, PartialEq, Eq)]
+///
+/// Market creation collects no fee: the only params the chain admits are
+/// `default_creation_fee_sat == 0` and `x402_payment_enabled == false`,
+/// which is [`Default`].
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct Params {
     pub default_creation_fee_sat: u64,
     pub x402_payment_enabled: bool,
-}
-
-impl Default for Params {
-    fn default() -> Self {
-        Self {
-            default_creation_fee_sat: 10_000_000_000,
-            x402_payment_enabled: true,
-        }
-    }
 }
 
 impl From<proto::Params> for Params {
@@ -701,20 +687,7 @@ mod tests {
             market_type: MarketType::Perp,
             orderbook_type: "clob".into(),
             status: MarketStatus::Active,
-            params: MarketParams {
-                min_order_size: "0.001".into(),
-                additional_params: BTreeMap::new(),
-                type_config: Some(MarketTypeConfig::Clob(ClobMarketConfig {
-                    tick_size: "0.01".into(),
-                    lot_size: "1".into(),
-                    max_leverage: "100".into(),
-                    initial_margin_ratio: "0.1".into(),
-                    maintenance_margin_ratio: "0.05".into(),
-                    allow_market_orders: true,
-                    allow_stop_orders: true,
-                    perp_config: None,
-                })),
-            },
+            params: MarketParams::clob_default(),
             created_at: 1_700_000_000,
             activated_at: 1_700_001_000,
             total_volume_quote: "1234567.89".into(),
@@ -766,27 +739,71 @@ mod tests {
         assert_eq!(config, back);
     }
 
+    /// The default CLOB market carries integer terms the chain accepts:
+    /// positive min order size, tick and lot; an integer leverage; integer
+    /// margin ratios with the initial ratio at least the maintenance ratio.
     #[test]
-    fn clob_default_params() {
+    fn clob_default_terms_are_integer_strings() {
         let params = MarketParams::clob_default();
-        assert!(matches!(
-            params.type_config,
-            Some(MarketTypeConfig::Clob(_))
-        ));
+        assert!(
+            params.min_order_size.parse::<u128>().is_ok_and(|v| v > 0),
+            "min_order_size {:?}",
+            params.min_order_size
+        );
+        let Some(MarketTypeConfig::Clob(c)) = params.type_config else {
+            panic!("clob_default carries a ClobMarketConfig");
+        };
+        assert!(
+            c.tick_size.parse::<u128>().is_ok_and(|v| v > 0),
+            "tick_size {:?}",
+            c.tick_size
+        );
+        assert!(
+            c.lot_size.parse::<u64>().is_ok_and(|v| v > 0),
+            "lot_size {:?}",
+            c.lot_size
+        );
+        assert!(
+            c.max_leverage.parse::<u32>().is_ok(),
+            "max_leverage {:?}",
+            c.max_leverage
+        );
+        let initial: u128 = c
+            .initial_margin_ratio
+            .parse()
+            .expect("initial_margin_ratio is an integer");
+        let maintenance: u128 = c
+            .maintenance_margin_ratio
+            .parse()
+            .expect("maintenance_margin_ratio is an integer");
+        assert!(initial >= maintenance);
+    }
+
+    /// Market creation collects no fee: the default module params are the
+    /// only ones the chain admits.
+    #[test]
+    fn module_params_default_has_no_fee_and_no_x402_payment() {
+        assert_eq!(
+            Params::default(),
+            Params {
+                default_creation_fee_sat: 0,
+                x402_payment_enabled: false,
+            }
+        );
     }
 
     #[test]
     fn legacy_proto_compat() {
         #[allow(deprecated)]
         let proto_params = proto::MarketParams {
-            min_order_size: "0.1".into(),
+            min_order_size: "1".into(),
             additional_params: Default::default(),
             type_config: None,
-            tick_size: "0.01".into(),
+            tick_size: "100".into(),
             lot_size: "1".into(),
             max_leverage: "10".into(),
-            initial_margin_ratio: "0.1".into(),
-            maintenance_margin_ratio: "0.05".into(),
+            initial_margin_ratio: "1000000000".into(),
+            maintenance_margin_ratio: "500000000".into(),
             allow_market_orders: true,
             allow_stop_orders: false,
             perp_config: None,
@@ -795,7 +812,7 @@ mod tests {
         let params: MarketParams = proto_params.into();
         match &params.type_config {
             Some(MarketTypeConfig::Clob(c)) => {
-                assert_eq!(c.tick_size, "0.01");
+                assert_eq!(c.tick_size, "100");
                 assert_eq!(c.max_leverage, "10");
                 assert!(c.allow_market_orders);
                 assert!(!c.allow_stop_orders);

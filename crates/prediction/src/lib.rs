@@ -1,14 +1,15 @@
 //! Prediction market module for the Morpheum SDK.
 //!
-//! Provides support for creating prediction markets, resolving outcomes,
-//! disputing resolutions (bonded and light challenges), querying market
-//! state, implied probabilities, and consuming streaming market events.
+//! Provides queries for prediction market state, implied probabilities, and
+//! fee statistics, plus the event types for consuming streaming market events.
+//!
+//! The chain has no transaction form for market creation, resolution,
+//! disputes, or light challenges, so this crate carries no builders for them.
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
 extern crate alloc;
 
-pub mod builder;
 pub mod client;
 pub mod requests;
 pub mod types;
@@ -39,14 +40,7 @@ pub use types::{
 };
 
 pub use requests::{
-    CreateMarketRequest, DisputeMarketRequest, LightChallengeVoteRequest,
-    OpenLightChallengeRequest, QueryImpliedProbabilityRequest, QueryPredictionMarketRequest,
-    QueryPredictionMarketsRequest, ResolveMarketRequest,
-};
-
-pub use builder::{
-    CreateMarketBuilder, DisputeMarketBuilder, LightChallengeVoteBuilder,
-    OpenLightChallengeBuilder, ResolveMarketBuilder,
+    QueryImpliedProbabilityRequest, QueryPredictionMarketRequest, QueryPredictionMarketsRequest,
 };
 
 pub use morpheum_sdk_core::{AccountId, ChainId, SdkError, SignedTx};

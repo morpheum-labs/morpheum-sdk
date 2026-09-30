@@ -1,14 +1,15 @@
 //! Outcome feed module for the Morpheum SDK.
 //!
-//! Provides support for registering prediction market feeds,
-//! querying resolved outcomes, and listing feeds with filtering
-//! by resolution paradigm and status.
+//! Provides queries for prediction market feeds and resolved outcomes,
+//! including feed listing filtered by resolution paradigm and status.
+//!
+//! The chain has no transaction form for feed registration, so this crate
+//! carries no builder for it.
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
 extern crate alloc;
 
-pub mod builder;
 pub mod client;
 pub mod requests;
 pub mod types;
@@ -23,10 +24,7 @@ pub use types::{
 
 pub use requests::{
     QueryPredictionFeedRequest, QueryPredictionFeedsRequest, QueryResolvedOutcomeRequest,
-    RegisterPredictionFeedRequest,
 };
-
-pub use builder::RegisterPredictionFeedBuilder;
 
 pub use morpheum_sdk_core::{AccountId, ChainId, SdkError, SignedTx};
 

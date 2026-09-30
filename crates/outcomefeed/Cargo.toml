@@ -6,7 +6,7 @@ rust-version.workspace = true
 license.workspace = true
 repository.workspace = true
 homepage.workspace = true
-description = "Outcome feed module client for the Morpheum SDK — prediction market feed registration, resolution queries, and outcome settlement"
+description = "Outcome feed module client for the Morpheum SDK — prediction market feed and resolved-outcome queries"
 
 [lib]
 crate-type = ["lib"]

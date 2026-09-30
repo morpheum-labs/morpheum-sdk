@@ -6,7 +6,7 @@ rust-version.workspace = true
 license.workspace = true
 repository.workspace = true
 homepage.workspace = true
-description = "Staking module client for the Morpheum SDK — validator staking, delegation, rewards, slashing, and epoch lifecycle"
+description = "Staking module client for the Morpheum SDK — validator staking, delegation, rewards, slashing history, and epoch lifecycle"
 
 [lib]
 crate-type = ["lib"]

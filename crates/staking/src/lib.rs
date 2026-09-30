@@ -2,8 +2,13 @@
 //!
 //! This module provides full support for the staking lifecycle on Morpheum,
 //! including validator staking/unstaking, delegation/undelegation/redelegation,
-//! reward claiming, misbehavior
-//! reporting, slashing votes, and comprehensive staking queries.
+//! reward claiming, and comprehensive staking queries (validators, delegations,
+//! rewards, penalties, slashing history, epochs, and parameters).
+//!
+//! Slashing has no transaction form on the chain: misbehavior reports, slashing
+//! votes, and slashing application are not client-submitted messages, so this
+//! crate carries no builders for them. Slashing outcomes are read through
+//! `StakingClient::query_penalties` and `StakingClient::query_slashing_history`.
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
@@ -27,9 +32,8 @@ pub use types::{
 pub use requests::*;
 
 pub use builder::{
-    ApplySlashingBuilder, ClaimRewardsBuilder, DelegateBuilder, RedelegateBuilder,
-    ReportMisbehaviorBuilder, StakeBuilder, UndelegateBuilder, UnstakeBuilder, UpdateParamsBuilder,
-    VoteOnSlashingBuilder,
+    ClaimRewardsBuilder, DelegateBuilder, RedelegateBuilder, StakeBuilder, UndelegateBuilder,
+    UnstakeBuilder, UpdateParamsBuilder,
 };
 
 pub use morpheum_sdk_core::{AccountId, ChainId, SdkError, SignedTx};

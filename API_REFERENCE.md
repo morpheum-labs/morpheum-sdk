@@ -259,7 +259,8 @@ Browser-ready bindings for TypeScript/JavaScript.
 | Type | Description |
 |------|-------------|
 | `Market` | Market data |
-| `MarketParams` | Market parameters |
+| `MarketParams` | Market parameters; `clob_default()` gives CLOB terms the chain accepts |
+| `ClobMarketConfig` | CLOB terms as integer strings: `tick_size`, `lot_size` (positive), `max_leverage`, margin ratios |
 | `MarketStats` | Market statistics |
 | `MarketType` | Spot, Perp, Future, Option |
 | `MarketStatus` | Status enum |

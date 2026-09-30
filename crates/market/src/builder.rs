@@ -63,7 +63,11 @@ impl MarketCreateBuilder {
         self
     }
 
-    /// Sets the orderbook type (e.g., "clob", "amm").
+    /// Sets the orderbook type. Spot, perp, future and option markets trade
+    /// on `"clob"`, and a market on `"clob"` carries its terms in a
+    /// [`ClobMarketConfig`](crate::types::ClobMarketConfig). A prediction
+    /// market may name another orderbook, and then carries no
+    /// `ClobMarketConfig`.
     pub fn orderbook_type(mut self, orderbook_type: impl Into<String>) -> Self {
         self.orderbook_type = Some(orderbook_type.into());
         self
@@ -224,6 +228,9 @@ impl UpdateMarketBuilder {
         self
     }
 
+    /// Sets the market's new params. They replace the market's params in
+    /// full, so an update to a market on `"clob"` carries its CLOB terms
+    /// again.
     pub fn params(mut self, params: MarketParams) -> Self {
         self.params = Some(params);
         self
@@ -348,22 +355,6 @@ mod tests {
     #[test]
     fn market_create_builder_full_flow() {
         let from = AccountId::new([1u8; 32]);
-        let params = crate::types::MarketParams {
-            min_order_size: "0.001".into(),
-            additional_params: alloc::collections::BTreeMap::new(),
-            type_config: Some(crate::types::MarketTypeConfig::Clob(
-                crate::types::ClobMarketConfig {
-                    tick_size: "0.01".into(),
-                    lot_size: "1".into(),
-                    max_leverage: "100".into(),
-                    initial_margin_ratio: "0.1".into(),
-                    maintenance_margin_ratio: "0.05".into(),
-                    allow_market_orders: true,
-                    allow_stop_orders: true,
-                    perp_config: None,
-                },
-            )),
-        };
 
         let request = MarketCreateBuilder::new()
             .from_address(from.clone())
@@ -371,13 +362,15 @@ mod tests {
             .quote_asset_index(2)
             .market_type(MarketType::Perp)
             .orderbook_type("clob")
-            .params(params)
+            .params(MarketParams::clob_default())
             .governance_proposal_id("gov-456")
             .build()
             .unwrap();
 
         assert_eq!(request.from_address, from);
         assert_eq!(request.market_type, MarketType::Perp);
+        assert_eq!(request.orderbook_type, "clob");
+        assert_eq!(request.params, MarketParams::clob_default());
         assert_eq!(request.governance_proposal_id, Some("gov-456".into()));
     }
 

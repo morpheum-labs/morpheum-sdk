@@ -6,11 +6,20 @@
 //! - Fluent `MarketCreateBuilder` for type-safe market creation
 //! - Signing and broadcasting via the SDK
 //!
+//! Market terms are integer strings: `tick_size` and `lot_size` must be
+//! positive integers, and a spot, perp, future or option market trades on
+//! the `"clob"` orderbook.
+//!
 //! Run with:
 //! ```bash
 //! cargo run -p morpheum-sdk-examples --example native_market
 //! ```
 
+use morpheum_sdk_native::core::signing::signer::Signer;
+use morpheum_sdk_native::market::builder::MarketCreateBuilder;
+use morpheum_sdk_native::market::types::{
+    ClobMarketConfig, MarketParams, MarketType, MarketTypeConfig,
+};
 use morpheum_sdk_native::prelude::*;
 use std::error::Error;
 
@@ -19,30 +28,26 @@ async fn main() -> Result<(), Box<dyn Error>> {
     println!("🚀 Morpheum Native SDK - Market Creation Example");
 
     // 1. Create a deterministic signer (in production, load from secure storage or mnemonic)
-    let signer = NativeSigner::from_seed(b"morpheum-example-seed-32-bytes-long!!");
+    let signer = NativeSigner::from_seed(&[0x42; 32]);
 
     // 2. Create the main SDK instance
-    let sdk = native(signer);
+    let sdk = native(signer.clone());
 
-    // 3. Prepare market parameters using the fluent builder
+    // 3. Prepare the market terms: integer strings, starting from the CLOB defaults
     let market_params = MarketParams {
-        min_order_size: "0.001".to_string(),
-        tick_size: "0.01".to_string(),
-        lot_size: "1".to_string(),
-        max_leverage: "100".to_string(),
-        initial_margin_ratio: "0.1".to_string(),
-        maintenance_margin_ratio: "0.05".to_string(),
-        allow_market_orders: true,
-        allow_stop_orders: true,
-        perp_config: None,
-        additional_params: Default::default(),
+        type_config: Some(MarketTypeConfig::Clob(ClobMarketConfig {
+            tick_size: "100".to_string(),
+            max_leverage: "20".to_string(),
+            ..ClobMarketConfig::default()
+        })),
+        ..MarketParams::default()
     };
 
     // 4. Build the market creation request using the fluent builder
     let create_request = MarketCreateBuilder::new()
-        .from_address(sdk.config().default_chain_id.as_str()) // Using chain ID as placeholder; in real usage this would be the creator's AccountId
-        .base_asset_index(1)   // Example: BTC
-        .quote_asset_index(2)  // Example: USDC
+        .from_address(signer.account_id()) // The creator is the signing account
+        .base_asset_index(1) // Example: BTC
+        .quote_asset_index(2) // Example: USDC
         .market_type(MarketType::Perp)
         .orderbook_type("clob")
         .params(market_params)
@@ -52,8 +57,8 @@ async fn main() -> Result<(), Box<dyn Error>> {
     println!("📋 Market creation request built successfully");
 
     // 5. Create the transaction using TxBuilder and sign it
-    let signed_tx = TxBuilder::new(sdk.signer.clone()) // In real usage, you would pass the signer properly
-        .chain_id("morpheum-test-1")
+    let signed_tx = TxBuilder::new(signer)
+        .chain_id(sdk.config().default_chain_id.clone())
         .memo("Creating BTC-USDC-PERP market via SDK example")
         .add_message(create_request.to_any())
         .sign()

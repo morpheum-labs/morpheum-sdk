@@ -14,19 +14,8 @@ async fn test_create_market_full_flow() {
     let sdk = test_sdk();
     let signer = test_native_signer();
 
-    // Build realistic market parameters
-    let params = MarketParams {
-        min_order_size: "0.001".to_string(),
-        tick_size: "0.01".to_string(),
-        lot_size: "1".to_string(),
-        max_leverage: "100".to_string(),
-        initial_margin_ratio: "0.1".to_string(),
-        maintenance_margin_ratio: "0.05".to_string(),
-        allow_market_orders: true,
-        allow_stop_orders: true,
-        perp_config: None,
-        additional_params: Default::default(),
-    };
+    // CLOB market terms: integer strings (positive tick and lot)
+    let params = MarketParams::clob_default();
 
     // Build the create request using the fluent builder
     let create_request = MarketCreateBuilder::new()

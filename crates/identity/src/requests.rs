@@ -19,43 +19,58 @@ use crate::types::{AgentMetadataCardInput, AgentStatus};
 
 // ====================== TRANSACTION REQUESTS ======================
 
+/// Who owns an agent at registration.
+///
+/// An owner agent is named by its agent hash `hex(SHA256(DID))`
+/// (`morpheum_primitives::tx::agent_hash_from_did`). An account address is
+/// not an agent hash.
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+pub enum RegistrationOwner {
+    /// The signer's bound agent owns the new agent.
+    #[default]
+    Signer,
+    /// The new agent owns itself (autonomous agent).
+    SelfOwned,
+    /// The agent with this agent hash owns the new agent. The hash must not
+    /// be empty.
+    Agent(String),
+}
+
 /// Request to register a new AI Agent identity.
 ///
+/// The transaction signer authorizes the registration; no separate owner
+/// signature is carried.
+///
 /// The `did` field is optional — when `None`, the keeper auto-generates a
-/// DID from `"did:agent:" + hex(SHA256(owner_agent_hash || timestamp))`.
+/// DID from `"did:agent:" + hex(SHA256(owner_agent_hash || timestamp))` over
+/// the wire owner field, which is empty for [`RegistrationOwner::Signer`] and
+/// [`RegistrationOwner::SelfOwned`]. Two registrations without a DID and with
+/// the same wire owner field derive the same DID within one second, so set a
+/// DID explicitly.
 #[derive(Clone, Debug, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct RegisterAgentRequest {
     /// Optional DID — if `None`, the keeper auto-generates one.
     pub did: Option<String>,
-    /// The owner's agent hash (initial owner of the new agent).
-    pub owner_agent_hash: String,
+    /// The new agent's owner.
+    pub owner: RegistrationOwner,
     /// Metadata for the new agent.
     pub metadata: AgentMetadataCardInput,
-    /// Signature proving ownership (over did + owner_agent_hash + metadata).
-    pub owner_signature: Vec<u8>,
     /// Initial capability bitflags.
     pub capabilities: u64,
-    /// If `true`, the new agent owns itself (autonomous agent).
-    pub self_owned: bool,
     /// Optional initial VC bytes for immediate delegation.
     pub initial_vc: Option<Vec<u8>>,
 }
 
 impl RegisterAgentRequest {
-    /// Creates a new registration request with required fields.
-    pub fn new(
-        owner_agent_hash: impl Into<String>,
-        metadata: AgentMetadataCardInput,
-        owner_signature: Vec<u8>,
-    ) -> Self {
+    /// Creates a registration request owned by the signer's bound agent.
+    pub fn new(metadata: AgentMetadataCardInput) -> Self {
         Self {
             did: None,
-            owner_agent_hash: owner_agent_hash.into(),
+            owner: RegistrationOwner::Signer,
             metadata,
-            owner_signature,
             capabilities: 0,
-            self_owned: false,
             initial_vc: None,
         }
     }
@@ -67,17 +82,17 @@ impl RegisterAgentRequest {
         self
     }
 
+    /// Sets the new agent's owner.
+    #[must_use]
+    pub fn with_owner(mut self, owner: RegistrationOwner) -> Self {
+        self.owner = owner;
+        self
+    }
+
     /// Sets the initial capability bitflags.
     #[must_use]
     pub fn with_capabilities(mut self, caps: u64) -> Self {
         self.capabilities = caps;
-        self
-    }
-
-    /// Marks the agent as self-owned (autonomous).
-    #[must_use]
-    pub fn self_owned(mut self) -> Self {
-        self.self_owned = true;
         self
     }
 
@@ -100,14 +115,19 @@ impl RegisterAgentRequest {
 
 impl From<RegisterAgentRequest> for proto::MsgRegisterAgent {
     fn from(req: RegisterAgentRequest) -> Self {
+        let (owner_agent_hash, self_owned) = match req.owner {
+            RegistrationOwner::Signer => (String::new(), false),
+            RegistrationOwner::SelfOwned => (String::new(), true),
+            RegistrationOwner::Agent(hash) => (hash, false),
+        };
         Self {
             did: req.did,
-            owner_agent_hash: req.owner_agent_hash,
+            owner_agent_hash,
             metadata: Some(req.metadata.into()),
-            owner_signature: req.owner_signature,
             capabilities: req.capabilities,
-            self_owned: req.self_owned,
+            self_owned,
             initial_vc: req.initial_vc,
+            ..Self::default()
         }
     }
 }
@@ -423,10 +443,10 @@ mod tests {
             ..Default::default()
         };
 
-        let req = RegisterAgentRequest::new("owner_hash", metadata, vec![0u8; 64])
+        let req = RegisterAgentRequest::new(metadata)
             .with_did("did:agent:test")
             .with_capabilities(3)
-            .self_owned();
+            .with_owner(RegistrationOwner::SelfOwned);
 
         let any = req.to_any();
         assert_eq!(any.type_url, "/identity.v1.MsgRegisterAgent");
@@ -436,8 +456,36 @@ mod tests {
     #[test]
     fn register_request_auto_did() {
         let metadata = AgentMetadataCardInput::default();
-        let req = RegisterAgentRequest::new("owner", metadata, vec![]);
+        let req = RegisterAgentRequest::new(metadata);
         assert!(req.did.is_none());
+        assert_eq!(req.owner, RegistrationOwner::Signer);
+    }
+
+    #[test]
+    fn register_self_owned_needs_no_owner() {
+        let req = RegisterAgentRequest::new(AgentMetadataCardInput::default())
+            .with_owner(RegistrationOwner::SelfOwned);
+        let msg: proto::MsgRegisterAgent = req.into();
+        assert!(msg.self_owned);
+        assert!(msg.owner_agent_hash.is_empty());
+    }
+
+    #[test]
+    fn register_without_owner_names_the_signer() {
+        let req = RegisterAgentRequest::new(AgentMetadataCardInput::default());
+        let msg: proto::MsgRegisterAgent = req.into();
+        assert!(!msg.self_owned);
+        assert!(msg.owner_agent_hash.is_empty());
+    }
+
+    #[test]
+    fn register_names_the_given_owner() {
+        let owner = "ab".repeat(32);
+        let req = RegisterAgentRequest::new(AgentMetadataCardInput::default())
+            .with_owner(RegistrationOwner::Agent(owner.clone()));
+        let msg: proto::MsgRegisterAgent = req.into();
+        assert!(!msg.self_owned);
+        assert_eq!(msg.owner_agent_hash, owner);
     }
 
     #[test]

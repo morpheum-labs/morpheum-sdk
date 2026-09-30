@@ -57,8 +57,8 @@ pub mod prelude {
     pub use super::{
         AccountId, AgentId, AgentIdentity, AgentMetadataCard, AgentMetadataCardInput, AgentStatus,
         BurnAgentBuilder, Capability, ChainId, IdentityClient, Params, RegisterAgentBuilder,
-        SdkError, SignedTx, Signer, TransferOwnershipBuilder, UpdateMetadataBuilder,
-        UpdateStatusBuilder,
+        RegistrationOwner, SdkError, SignedTx, Signer, TransferOwnershipBuilder,
+        UpdateMetadataBuilder, UpdateStatusBuilder,
     };
 }
 

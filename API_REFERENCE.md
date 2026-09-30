@@ -343,7 +343,9 @@ Client for nonce queries, TradingKey management, account state.
 ### Identity (`morpheum-sdk-identity`)
 
 - **Client:** `IdentityClient`
+- **Builders:** `RegisterAgentBuilder`, `TransferOwnershipBuilder`, `UpdateMetadataBuilder`, `UpdateStatusBuilder`, `BurnAgentBuilder`
 - **Requests:** `RegisterAgentRequest`, `TransferOwnershipRequest`, `UpdateMetadataRequest`, `UpdateStatusRequest`, `BurnAgentRequest`
+- **Registration owner:** `RegistrationOwner` — `Signer` (the default: the signer's bound agent), `SelfOwned`, or `Agent(agent_hash)`. The transaction signer authorizes the registration; no owner signature is carried.
 - **Queries:** `QueryAgentRequest`, `QueryAgentByOwnerRequest`, `QueryMetadataCardRequest`, `QueryAgentStatusRequest`
 
 ### Agent Registry (`morpheum-sdk-agentreg`)
@@ -362,6 +364,7 @@ Client for nonce queries, TradingKey management, account state.
 
 - **Client:** `JobClient`
 - **Builders:** `CreateJobBuilder`, `FundJobBuilder`, `SubmitDeliverableBuilder`, `AttestBuilder`, `ClaimRefundBuilder`
+- **Role agents:** client, provider and evaluator are agent hashes, `hex(SHA256(DID))`. Unset `client_agent_hash` opens the job for the signer's bound agent; the chain attributes a deliverable to the job's stored provider.
 
 ### Bank (`morpheum-sdk-bank`)
 
@@ -402,6 +405,8 @@ Client for nonce queries, TradingKey management, account state.
 ### Marketplace (`morpheum-sdk-marketplace`)
 
 - **Client:** `MarketplaceClient`
+- **Builders:** `ListAgentBuilder`, `PlaceBidBuilder`, `AcceptBidBuilder`, `RequestEvaluationBuilder`
+- **Role agents:** the seller is an agent hash, `hex(SHA256(DID))`; unset `seller_agent_hash` lists for the signer's bound agent.
 
 ### Upgrade (`morpheum-sdk-upgrade`)
 

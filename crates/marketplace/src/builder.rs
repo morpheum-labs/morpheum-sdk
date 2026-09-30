@@ -21,7 +21,6 @@ use crate::types::{AgentListing, ListingType, RevenueShareConfig};
 /// ```rust,ignore
 /// let request = ListAgentBuilder::new()
 ///     .agent_hash("agent-abc")
-///     .seller_agent_hash("seller-xyz")
 ///     .listing_type(ListingType::FullOwnership)
 ///     .price_usd(1_000_000)
 ///     .revenue_share_config(RevenueShareConfig { ... })
@@ -54,7 +53,10 @@ impl ListAgentBuilder {
         self
     }
 
-    /// Sets the seller's agent hash.
+    /// The agent selling the listing, named by its agent hash
+    /// `hex(SHA256(DID))` (`morpheum_primitives::tx::agent_hash_from_did`).
+    /// Unset lists for the signer's bound agent. An account address is not an
+    /// agent hash.
     pub fn seller_agent_hash(mut self, hash: impl Into<String>) -> Self {
         self.seller_agent_hash = Some(hash.into());
         self
@@ -107,10 +109,6 @@ impl ListAgentBuilder {
             .agent_hash
             .ok_or_else(|| SdkError::invalid_input("agent_hash is required for ListAgent"))?;
 
-        let seller_agent_hash = self.seller_agent_hash.ok_or_else(|| {
-            SdkError::invalid_input("seller_agent_hash is required for ListAgent")
-        })?;
-
         let listing_type = self
             .listing_type
             .ok_or_else(|| SdkError::invalid_input("listing_type is required for ListAgent"))?;
@@ -149,7 +147,7 @@ impl ListAgentBuilder {
         let listing = AgentListing {
             listing_id: String::new(), // server-assigned
             agent_hash,
-            seller_agent_hash,
+            seller_agent_hash: self.seller_agent_hash.unwrap_or_default(),
             listing_type,
             price_usd,
             revenue_share_config: self.revenue_share_config,
@@ -375,14 +373,26 @@ mod tests {
     fn list_agent_builder_missing_fields() {
         assert!(ListAgentBuilder::new().build().is_err());
 
-        // Missing seller_agent_hash
+        // Missing agent_hash
         assert!(ListAgentBuilder::new()
-            .agent_hash("agent-abc")
             .listing_type(ListingType::FullOwnership)
             .price_usd(100)
             .metadata_hash("hash")
             .build()
             .is_err());
+    }
+
+    #[test]
+    fn list_agent_without_seller_names_the_signer() {
+        let req = ListAgentBuilder::new()
+            .agent_hash("agent-abc")
+            .listing_type(ListingType::FullOwnership)
+            .price_usd(100)
+            .metadata_hash("hash")
+            .build()
+            .expect("the seller is optional: unset names the signer's agent");
+
+        assert!(req.listing.seller_agent_hash.is_empty());
     }
 
     #[test]

@@ -1,8 +1,9 @@
 //! CosmWasm SDK request types.
 //!
 //! Each request type wraps the necessary data for a CosmWasm message and
-//! provides `to_any()` for encoding into the Cosmos wire format used by
-//! the GMP protocol bridge.
+//! provides `to_any()`, which encodes it as a transaction Msg (a
+//! `google.protobuf.Any` with a JSON value) to sign and submit with
+//! `morpheum_sdk_native::TxSubmitter`.
 
 #[cfg(not(feature = "std"))]
 extern crate alloc;

@@ -1,8 +1,23 @@
 //! Hyperlane message relay — embedded relayer for bidirectional message passing.
 //!
 //! Supports both directions:
-//!   - **Inbound (EVM → Morpheum)**: Extracts `Dispatch` event, signs checkpoint,
-//!     submits `Mailbox.process()` to Morpheum via `dev_messages`.
+//!   - **Inbound (EVM → Morpheum)**: [`inbound_process_msg`] extracts the
+//!     `Dispatch` event, signs a checkpoint, and builds the `Mailbox.process()`
+//!     `MsgExecuteContract`. Delivering it is an ordinary signed Morpheum
+//!     transaction, submitted by the caller's key:
+//!
+//!     ```ignore
+//!     let msg = relay::inbound_process_msg(&evm_provider, InboundRelayRequest {
+//!         morpheum_sender: &submitter.account_hex(),
+//!         // ...
+//!     })
+//!     .await?;
+//!     let admitted = submitter.submit(msg.to_any()).await?;
+//!     match submitter.wait_final(&admitted.txhash, timeout).await? {
+//!         TxOutcome::Confirmed { .. } => { /* delivered */ }
+//!         TxOutcome::Failed { status } => { /* executed and failed, or skipped */ }
+//!     }
+//!     ```
 //!   - **Outbound (Morpheum → EVM)**: Reconstructs the Hyperlane message,
 //!     queries Morpheum MerkleTreeHook, signs checkpoint, submits
 //!     `Mailbox.process()` on the target EVM chain.
@@ -12,14 +27,14 @@
 //!
 //! Requires the `relay` feature flag.
 
-use morpheum_sdk_evm::alloy::primitives::{Address, B256, U256};
+use morpheum_sdk_evm::alloy::primitives::{Address, B256};
 use morpheum_sdk_evm::alloy::providers::Provider;
 use morpheum_sdk_evm::alloy::sol_types::SolCall;
 use morpheum_sdk_evm::contracts::{IMailbox, IMerkleTreeHook};
 use morpheum_sdk_evm::provider::EvmProvider;
 use sha3::{Digest, Keccak256};
 
-use morpheum_sdk_cosmwasm::grpc;
+use morpheum_sdk_cosmwasm::{grpc, ExecuteContractRequest};
 
 /// Errors from relay operations.
 #[derive(Debug, thiserror::Error)]
@@ -123,8 +138,9 @@ pub fn sign_checkpoint(
     Ok(signature)
 }
 
-/// Builds MessageIdMultisigIsm metadata from checkpoint components.
-fn build_ism_metadata(
+/// Builds `MessageIdMultisigIsm` metadata from checkpoint components:
+/// `origin_merkle_tree || merkle_root || merkle_index || signature`.
+pub fn build_ism_metadata(
     origin_merkle_tree: &[u8; 32],
     merkle_root: &[u8; 32],
     merkle_index: u32,
@@ -138,8 +154,58 @@ fn build_ism_metadata(
     metadata
 }
 
+/// Builds the `Mailbox.process()` call that delivers a Hyperlane `message`
+/// to the Morpheum mailbox contract, as a `MsgExecuteContract` from `sender`.
+///
+/// `sender` is the account that signs the transaction carrying the Msg: its
+/// hex account id (as `TxSubmitter::account_hex()` returns) or its bech32
+/// address. `metadata` is the ISM metadata, e.g. from [`build_ism_metadata`].
+/// No funds are attached.
+pub fn mailbox_process_msg(
+    sender: &str,
+    mailbox: &str,
+    metadata: &[u8],
+    message: &[u8],
+) -> ExecuteContractRequest {
+    let process_msg = serde_json::json!({
+        "process": {
+            "metadata": hex::encode(metadata),
+            "message": hex::encode(message)
+        }
+    });
+
+    ExecuteContractRequest {
+        sender: sender.to_owned(),
+        contract: mailbox.to_owned(),
+        msg: process_msg.to_string().into_bytes(),
+        funds: Vec::new(),
+    }
+}
+
+/// Decodes the `bytes message` argument from the data of a Hyperlane
+/// `Dispatch(address,uint32,bytes32,bytes)` log: an ABI head word holding the
+/// offset of the tail, then the tail's length word and the bytes. Returns
+/// `None` if the data is malformed (an offset or length that does not fit in
+/// the data).
+fn decode_dispatch_message(data: &[u8]) -> Option<&[u8]> {
+    let word = |at: usize| -> Option<usize> {
+        let bytes = data.get(at..at.checked_add(32)?)?;
+        let (high, low) = bytes.split_at(24);
+        if high.iter().any(|&b| b != 0) {
+            return None;
+        }
+        usize::try_from(u64::from_be_bytes(low.try_into().ok()?)).ok()
+    };
+    let offset = word(0)?;
+    let length = word(offset)?;
+    let start = offset.checked_add(32)?;
+    data.get(start..start.checked_add(length)?)
+}
+
 /// Parameters required to relay a Hyperlane message from EVM into Morpheum.
 pub struct InboundRelayRequest<'a> {
+    /// The account that signs the relay transaction: its hex account id
+    /// (as `TxSubmitter::account_hex()` returns) or its bech32 address.
     pub morpheum_sender: &'a str,
     pub morpheum_mailbox: &'a str,
     pub tx_hash: B256,
@@ -148,16 +214,20 @@ pub struct InboundRelayRequest<'a> {
     pub merkle_tree_hook: Address,
 }
 
-/// Relays a dispatched Hyperlane message from an EVM chain to Morpheum.
+/// Builds the Morpheum `Mailbox.process()` Msg that relays a Hyperlane
+/// message dispatched on an EVM chain.
 ///
 /// Extracts the `Dispatch` event from the given EVM tx, reads the
-/// MerkleTreeHook state, signs a checkpoint, and submits `Mailbox.process()`
-/// to Morpheum via `dev_messages`.
-pub async fn relay_inbound(
+/// MerkleTreeHook state, signs a checkpoint, and returns the
+/// `MsgExecuteContract` from [`InboundRelayRequest::morpheum_sender`] to the
+/// mailbox. Nothing is sent to Morpheum: the relay is complete once the
+/// caller has signed and submitted `msg.to_any()` with that sender's key
+/// (e.g. `TxSubmitter::submit`) and the transaction has executed (see the
+/// [module docs](self)).
+pub async fn inbound_process_msg(
     evm_provider: &EvmProvider,
-    channel: &tonic::transport::Channel,
     request: InboundRelayRequest<'_>,
-) -> Result<(), RelayError> {
+) -> Result<ExecuteContractRequest, RelayError> {
     let receipt = evm_provider
         .get_transaction_receipt(request.tx_hash)
         .await
@@ -170,18 +240,10 @@ pub async fn relay_inbound(
         .inner
         .logs()
         .iter()
-        .find_map(|log| {
-            if log.topics().first() == Some(&dispatch_topic) {
-                let data = log.data().data.as_ref();
-                if data.len() >= 64 {
-                    let offset = U256::from_be_slice(&data[0..32]).to::<usize>();
-                    let length = U256::from_be_slice(&data[offset..offset + 32]).to::<usize>();
-                    return Some(data[offset + 32..offset + 32 + length].to_vec());
-                }
-            }
-            None
-        })
-        .ok_or_else(|| RelayError::Evm("Dispatch event not found in tx receipt".into()))?;
+        .filter(|log| log.topics().first() == Some(&dispatch_topic))
+        .find_map(|log| decode_dispatch_message(log.data().data.as_ref()))
+        .map(<[u8]>::to_vec)
+        .ok_or_else(|| RelayError::Evm("no well-formed Dispatch event in tx receipt".into()))?;
 
     if message_bytes.len() < 77 {
         return Err(RelayError::Validation(format!(
@@ -212,30 +274,12 @@ pub async fn relay_inbound(
 
     let metadata = build_ism_metadata(&origin_merkle_tree, &merkle_root, merkle_index, &signature);
 
-    let process_msg = serde_json::json!({
-        "process": {
-            "metadata": hex::encode(&metadata),
-            "message": hex::encode(&message_bytes)
-        }
-    });
-    let msg_json = serde_json::to_vec(&process_msg)
-        .map_err(|e| RelayError::Validation(format!("serialize process msg: {e}")))?;
-
-    grpc::broadcast_execute_contract(
-        channel,
+    Ok(mailbox_process_msg(
         request.morpheum_sender,
         request.morpheum_mailbox,
-        &msg_json,
-    )
-    .await
-    .map_err(|e| RelayError::Grpc(format!("Mailbox.process BroadcastTx: {e}")))?;
-
-    tracing::info!(
-        message_id = hex::encode(message_id),
-        "Hyperlane message relayed to Morpheum"
-    );
-
-    Ok(())
+        &metadata,
+        &message_bytes,
+    ))
 }
 
 /// Relays a Hyperlane message from Morpheum to a target EVM chain.
@@ -389,4 +433,80 @@ pub async fn relay_outbound(
     );
 
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn ism_metadata_is_tree_root_index_signature() {
+        let metadata = build_ism_metadata(&[1; 32], &[2; 32], 0x0102_0304, &[3; 65]);
+        assert_eq!(metadata.len(), 32 + 32 + 4 + 65);
+        assert_eq!(&metadata[..32], &[1; 32]);
+        assert_eq!(&metadata[32..64], &[2; 32]);
+        assert_eq!(&metadata[64..68], &[1, 2, 3, 4]);
+        assert_eq!(&metadata[68..], &[3; 65]);
+    }
+
+    /// ABI-encodes `message` as the single dynamic `bytes` argument.
+    fn abi_bytes(message: &[u8]) -> Vec<u8> {
+        let mut data = vec![0u8; 64];
+        data[31] = 0x20;
+        data[56..64].copy_from_slice(&(message.len() as u64).to_be_bytes());
+        data.extend_from_slice(message);
+        data.resize(64 + message.len().div_ceil(32) * 32, 0);
+        data
+    }
+
+    #[test]
+    fn dispatch_message_decodes_from_abi_bytes() {
+        let message: Vec<u8> = (0..77).collect();
+        assert_eq!(
+            decode_dispatch_message(&abi_bytes(&message)),
+            Some(message.as_slice())
+        );
+        assert_eq!(decode_dispatch_message(&abi_bytes(&[])), Some(&b""[..]));
+    }
+
+    #[test]
+    fn malformed_dispatch_data_is_rejected_without_panicking() {
+        let valid = abi_bytes(&[7; 40]);
+
+        // Too short for a head word.
+        assert_eq!(decode_dispatch_message(&valid[..31]), None);
+        // Length runs past the end of the data.
+        assert_eq!(decode_dispatch_message(&valid[..64 + 39]), None);
+        // Offset points past the end of the data.
+        let mut far_offset = valid.clone();
+        far_offset[31] = 0xff;
+        assert_eq!(decode_dispatch_message(&far_offset), None);
+        // Offset word wider than 64 bits.
+        let mut huge_offset = valid.clone();
+        huge_offset[0] = 1;
+        assert_eq!(decode_dispatch_message(&huge_offset), None);
+        // Length whose end offset overflows.
+        let mut huge_length = valid;
+        huge_length[56..64].copy_from_slice(&u64::MAX.to_be_bytes());
+        assert_eq!(decode_dispatch_message(&huge_length), None);
+    }
+
+    #[test]
+    fn process_msg_executes_the_mailbox_from_the_sender_without_funds() {
+        let any =
+            mailbox_process_msg("ab01", "morm1mailbox", &[0xaa, 0xbb], &[0x03, 0x00]).to_any();
+        assert_eq!(any.type_url, "/cosmwasm.wasm.v1.MsgExecuteContract");
+
+        let body: serde_json::Value = serde_json::from_slice(&any.value).unwrap();
+        assert_eq!(body["sender"], "ab01");
+        assert_eq!(body["contract"], "morm1mailbox");
+        assert_eq!(body["funds"], serde_json::json!([]));
+
+        let msg: Vec<u8> = serde_json::from_value(body["msg"].clone()).unwrap();
+        let process: serde_json::Value = serde_json::from_slice(&msg).unwrap();
+        assert_eq!(
+            process,
+            serde_json::json!({ "process": { "metadata": "aabb", "message": "0300" } })
+        );
+    }
 }

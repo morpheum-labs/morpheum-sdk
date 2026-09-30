@@ -12,7 +12,13 @@ description = "Morpheum SDK — CosmWasm contract interaction: builders for MsgE
 default = ["std"]
 std = []
 serde = ["dep:serde"]
-grpc = ["dep:tonic", "dep:tonic-prost", "dep:http", "dep:tracing", "serde"]
+grpc = ["dep:tonic", "dep:tonic-prost", "dep:http", "serde"]
+# Unsigned contract execution for development networks
+# (`grpc::broadcast_execute_contract` and its wire types). Only nodes built
+# with development endpoints accept it; every other node refuses the request.
+# Contract execution is otherwise a signed transaction. Deliberately not in
+# `full`.
+dev = ["grpc", "dep:tracing"]
 full = ["std", "serde", "grpc"]
 
 [dependencies]

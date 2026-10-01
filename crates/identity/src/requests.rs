@@ -129,7 +129,6 @@ impl From<RegisterAgentRequest> for proto::MsgRegisterAgent {
             capabilities: req.capabilities,
             self_owned,
             initial_vc: req.initial_vc,
-            ..Self::default()
         }
     }
 }

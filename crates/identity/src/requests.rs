@@ -27,13 +27,17 @@ use crate::types::{AgentMetadataCardInput, AgentStatus};
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub enum RegistrationOwner {
-    /// The signer's bound agent owns the new agent.
+    /// The signer's bound agent owns the new agent. The signing key must be
+    /// bound to an agent; an unbound key can register only a
+    /// [`RegistrationOwner::SelfOwned`] agent.
     #[default]
     Signer,
     /// The new agent owns itself (autonomous agent).
     SelfOwned,
-    /// The agent with this agent hash owns the new agent. The hash must not
-    /// be empty.
+    /// The agent with this agent hash owns the new agent. It must be the
+    /// signer's bound agent or an agent the signer's agent owns, and it is
+    /// looked up on the shard that executes the registration. The hash must
+    /// not be empty.
     Agent(String),
 }
 
@@ -42,12 +46,10 @@ pub enum RegistrationOwner {
 /// The transaction signer authorizes the registration; no separate owner
 /// signature is carried.
 ///
-/// The `did` field is optional — when `None`, the keeper auto-generates a
-/// DID from `"did:agent:" + hex(SHA256(owner_agent_hash || timestamp))` over
-/// the wire owner field, which is empty for [`RegistrationOwner::Signer`] and
-/// [`RegistrationOwner::SelfOwned`]. Two registrations without a DID and with
-/// the same wire owner field derive the same DID within one second, so set a
-/// DID explicitly.
+/// The `did` field is optional — when `None`, the chain derives the DID as
+/// `"did:agent:" + hex(SHA256(signer account || block second))`. Two
+/// registrations without a DID by one account in one second derive the same
+/// DID, so set a DID explicitly.
 #[derive(Clone, Debug, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct RegisterAgentRequest {

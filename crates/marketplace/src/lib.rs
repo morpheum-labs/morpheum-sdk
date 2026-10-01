@@ -20,7 +20,6 @@
 //! // Build a list-agent transaction
 //! let request = ListAgentBuilder::new()
 //!     .agent_hash("agent-abc")
-//!     .seller_agent_hash("seller-xyz")
 //!     .listing_type(ListingType::FullOwnership)
 //!     .price_usd(1_000_000)
 //!     .metadata_hash("meta-hash")

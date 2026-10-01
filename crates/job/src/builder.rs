@@ -38,11 +38,17 @@ impl CreateJobBuilder {
         Self::default()
     }
 
+    /// The agent the job is opened for, named by its agent hash
+    /// `hex(SHA256(DID))` (`morpheum_primitives::tx::agent_hash_from_did`).
+    /// Unset opens the job for the signer's bound agent. An account address is
+    /// not an agent hash.
     pub fn client_agent_hash(mut self, hash: impl Into<String>) -> Self {
         self.client_agent_hash = Some(hash.into());
         self
     }
 
+    /// The agent that attests the job's outcome, named by its agent hash
+    /// `hex(SHA256(DID))`.
     pub fn evaluator_agent_hash(mut self, hash: impl Into<String>) -> Self {
         self.evaluator_agent_hash = Some(hash.into());
         self
@@ -58,6 +64,9 @@ impl CreateJobBuilder {
         self
     }
 
+    /// The agent that delivers the job, named by its agent hash
+    /// `hex(SHA256(DID))`. Unset leaves the provider to be named later with
+    /// [`SetProviderBuilder`].
     pub fn provider_agent_hash(mut self, hash: impl Into<String>) -> Self {
         self.provider_agent_hash = Some(hash.into());
         self
@@ -112,10 +121,6 @@ impl CreateJobBuilder {
     }
 
     pub fn build(self) -> Result<CreateJobRequest, SdkError> {
-        let client_agent_hash = self.client_agent_hash.ok_or_else(|| {
-            SdkError::invalid_input("client_agent_hash is required for job creation")
-        })?;
-
         let evaluator_agent_hash = self.evaluator_agent_hash.ok_or_else(|| {
             SdkError::invalid_input("evaluator_agent_hash is required for job creation")
         })?;
@@ -125,7 +130,7 @@ impl CreateJobBuilder {
             .ok_or_else(|| SdkError::invalid_input("budget_usd is required for job creation"))?;
 
         let job = Job {
-            client_agent_hash,
+            client_agent_hash: self.client_agent_hash.unwrap_or_default(),
             evaluator_agent_hash,
             budget_usd,
             expiry_timestamp: self.expiry_timestamp.unwrap_or(0),
@@ -197,6 +202,8 @@ impl SubmitDeliverableBuilder {
         self
     }
 
+    /// The deliverable. The chain attributes it to the job's stored provider,
+    /// so [`Deliverable::provider_agent_hash`] may be left empty.
     pub fn deliverable(mut self, deliverable: Deliverable) -> Self {
         self.deliverable = Some(deliverable);
         self
@@ -313,6 +320,7 @@ impl SetProviderBuilder {
         self
     }
 
+    /// The new provider agent, named by its agent hash `hex(SHA256(DID))`.
     pub fn new_provider_agent_hash(mut self, hash: impl Into<String>) -> Self {
         self.new_provider_agent_hash = Some(hash.into());
         self
@@ -452,6 +460,17 @@ mod tests {
     fn create_job_builder_missing_required() {
         let result = CreateJobBuilder::new().build();
         assert!(result.is_err());
+    }
+
+    #[test]
+    fn create_job_without_client_names_the_signer() {
+        let req = CreateJobBuilder::new()
+            .evaluator_agent_hash("eval-007")
+            .budget_usd(1000)
+            .build()
+            .expect("the client is optional: unset names the signer's agent");
+
+        assert!(req.job.client_agent_hash.is_empty());
     }
 
     #[test]

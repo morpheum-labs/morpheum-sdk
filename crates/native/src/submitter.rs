@@ -22,7 +22,7 @@ use morpheum_proto::tx::v1::{QueryTxStatusRequest, QueryTxStatusResponse, Submit
 use morpheum_sdk_core::builder::TxBuilder;
 use morpheum_sdk_core::prelude::Any;
 use morpheum_sdk_core::signing::proto::tx::v1::Nonce;
-use morpheum_sdk_core::{BroadcastResult, SdkError};
+use morpheum_sdk_core::{BroadcastResult, SdkError, TxGasLimit, DEFAULT_GAS_LIMIT};
 use morpheum_signing_native::signer::Signer;
 
 use crate::NativeSigner;
@@ -76,6 +76,13 @@ pub enum TxOutcome {
 /// genesis hash, so a signature that could be replayed onto another chain
 /// sharing the chain id cannot be produced through this type.
 ///
+/// Every transaction declares a gas limit: the one passed to
+/// [`Self::submit_with_gas_limit`], otherwise the submitter's own —
+/// [`DEFAULT_GAS_LIMIT`] unless [`Self::with_gas_limit`] sets another. A key
+/// that sends messages with different gas needs keeps one submitter and
+/// declares per call: two submitters on one key resolve nonces independently
+/// and can sign the same one.
+///
 /// Nonces are `max(highest signed here, chain last_monotonic) + 1`, resolved
 /// under a lock so concurrent submits through one submitter never collide.
 pub struct TxSubmitter<T: IngressTransport> {
@@ -83,6 +90,7 @@ pub struct TxSubmitter<T: IngressTransport> {
     signer: NativeSigner,
     chain_id: String,
     genesis_hash: [u8; 32],
+    gas_limit: TxGasLimit,
     high_water: Mutex<u64>,
 }
 
@@ -100,8 +108,25 @@ impl<T: IngressTransport> TxSubmitter<T> {
             signer,
             chain_id: chain_id.into(),
             genesis_hash,
+            gas_limit: DEFAULT_GAS_LIMIT,
             high_water: Mutex::new(0),
         }
+    }
+
+    /// Declares `gas_limit` on every transaction [`Self::submit`] signs,
+    /// replacing [`DEFAULT_GAS_LIMIT`].
+    ///
+    /// Each transaction's limit caps the gas it may use and is reserved in
+    /// full against the block's gas budget whether used or not, so set what
+    /// the submitted messages need. A native message with a fixed charge
+    /// fits the default; a VM message (deploying or calling a contract), or
+    /// a message whose charge scales with the work it does, must declare the
+    /// gas it needs, up to [`TX_GAS_BUDGET`](crate::TX_GAS_BUDGET).
+    /// To declare for one transaction only, use [`Self::submit_with_gas_limit`].
+    #[must_use]
+    pub fn with_gas_limit(mut self, gas_limit: TxGasLimit) -> Self {
+        self.gas_limit = gas_limit;
+        self
     }
 
     /// The signer's account id, hex-encoded (the form nonce state is keyed by).
@@ -114,7 +139,24 @@ impl<T: IngressTransport> TxSubmitter<T> {
             .collect()
     }
 
-    /// Signs `msg` into a transaction and submits it.
+    /// Signs `msg` into a transaction declaring the submitter's gas limit
+    /// and submits it.
+    ///
+    /// Returns once the node **admits** the transaction; use
+    /// [`Self::wait_final`] for its execution outcome.
+    ///
+    /// # Errors
+    ///
+    /// As [`Self::submit_with_gas_limit`].
+    pub async fn submit(&self, msg: Any) -> Result<BroadcastResult, SdkError> {
+        self.submit_with_gas_limit(msg, self.gas_limit).await
+    }
+
+    /// Signs `msg` into a transaction declaring `gas_limit` and submits it.
+    ///
+    /// The declaration applies to this transaction only (stale-nonce
+    /// re-signs included); the submitter's own limit is unchanged. Nonces
+    /// come from the same sequence as [`Self::submit`].
     ///
     /// Returns once the node **admits** the transaction; use
     /// [`Self::wait_final`] for its execution outcome.
@@ -124,12 +166,16 @@ impl<T: IngressTransport> TxSubmitter<T> {
     /// A transport failure, a signing failure, or the node's rejection
     /// (after [`STALE_NONCE_RETRIES`] re-signs when chain state proves the
     /// nonce was stale).
-    pub async fn submit(&self, msg: Any) -> Result<BroadcastResult, SdkError> {
+    pub async fn submit_with_gas_limit(
+        &self,
+        msg: Any,
+        gas_limit: TxGasLimit,
+    ) -> Result<BroadcastResult, SdkError> {
         let mut high_water = self.high_water.lock().await;
         let mut chain_last = self.last_monotonic().await?;
         for _ in 0..=STALE_NONCE_RETRIES {
             let monotonic = (*high_water).max(chain_last) + 1;
-            let tx = self.sign(msg.clone(), monotonic).await?;
+            let tx = self.sign(msg.clone(), monotonic, gas_limit).await?;
             let resp = self.transport.submit_tx(tx).await?;
             if resp.accepted {
                 *high_water = monotonic;
@@ -211,10 +257,11 @@ impl<T: IngressTransport> TxSubmitter<T> {
         Ok(resp.state.map_or(0, |s| s.last_monotonic))
     }
 
-    async fn sign(&self, msg: Any, monotonic: u64) -> Result<Tx, SdkError> {
+    async fn sign(&self, msg: Any, monotonic: u64, gas_limit: TxGasLimit) -> Result<Tx, SdkError> {
         let signed = TxBuilder::new(self.signer.clone())
             .chain_id(self.chain_id.clone())
             .with_genesis_hash(self.genesis_hash.to_vec())
+            .gas_limit(gas_limit)
             .with_nonce(Nonce {
                 monotonic,
                 ts_ms: unix_ms_low32(),
@@ -256,6 +303,9 @@ mod tests {
         bump_on_reject: StdMutex<VecDeque<u64>>,
         statuses: StdMutex<VecDeque<(&'static str, u64)>>,
         submitted: StdMutex<Vec<u64>>,
+        /// `AuthInfo.gas_limit` of each submitted transaction, as received
+        /// (`0`, no declaration, when `auth_info` is absent).
+        declared_gas: StdMutex<Vec<u64>>,
     }
 
     #[async_trait]
@@ -290,6 +340,10 @@ mod tests {
         }
 
         async fn submit_tx(&self, tx: Tx) -> Result<SubmitTxResponse, SdkError> {
+            self.declared_gas
+                .lock()
+                .unwrap()
+                .push(tx.auth_info.as_ref().map_or(0, |auth| auth.gas_limit));
             let monotonic = tx.nonce.expect("signed tx carries a nonce").monotonic;
             self.submitted.lock().unwrap().push(monotonic);
             match self
@@ -377,6 +431,82 @@ mod tests {
         let err = s.submit(msg()).await.unwrap_err().to_string();
         assert!(err.contains("insufficient funds"), "{err}");
         assert_eq!(s.transport.submitted.lock().unwrap().len(), 1);
+    }
+
+    /// Pins the submitter's own default: with no `with_gas_limit`, it
+    /// declares `DEFAULT_GAS_LIMIT`. The signing builder's default is the
+    /// same constant, so this does not show that `sign()` forwards the
+    /// declaration; `submits_the_configured_gas_limit` and
+    /// `a_per_call_gas_limit_applies_to_that_transaction_only` do.
+    #[tokio::test]
+    async fn defaults_to_the_builder_default() {
+        let node = FakeNode::default();
+        node.verdicts.lock().unwrap().push_back(Ok("a".into()));
+        let s = submitter(node);
+
+        s.submit(msg()).await.unwrap();
+        assert_eq!(
+            *s.transport.declared_gas.lock().unwrap(),
+            vec![DEFAULT_GAS_LIMIT.get()]
+        );
+    }
+
+    /// `with_gas_limit` reaches every transaction the submitter signs,
+    /// including the re-sign after a stale nonce. The declared value is not
+    /// the default, so this cannot pass with the setting ignored.
+    #[tokio::test]
+    async fn submits_the_configured_gas_limit() {
+        let declared = TxGasLimit::MAX;
+        assert_ne!(declared, DEFAULT_GAS_LIMIT);
+
+        let node = FakeNode::default();
+        node.verdicts
+            .lock()
+            .unwrap()
+            .extend([Err("stale nonce".into()), Ok("ok".into())]);
+        node.bump_on_reject.lock().unwrap().push_back(20);
+        let s = submitter(node).with_gas_limit(declared);
+
+        assert_eq!(s.submit(msg()).await.unwrap().txhash, "ok");
+        assert_eq!(
+            *s.transport.declared_gas.lock().unwrap(),
+            vec![declared.get(); 2]
+        );
+    }
+
+    /// One submitter carries transactions with different declarations on
+    /// one nonce sequence: a per-call limit reaches its own transaction and
+    /// leaves the submitter's limit in force for the next. The per-call
+    /// value differs from both the default and the configured one, so this
+    /// cannot pass with either the argument or the configuration ignored.
+    #[tokio::test]
+    async fn a_per_call_gas_limit_applies_to_that_transaction_only() {
+        let configured = TxGasLimit::MIN;
+        let per_call = TxGasLimit::MAX;
+        assert_ne!(configured, DEFAULT_GAS_LIMIT);
+        assert_ne!(per_call, DEFAULT_GAS_LIMIT);
+
+        let node = FakeNode::default();
+        node.verdicts
+            .lock()
+            .unwrap()
+            .extend([Ok("a".into()), Ok("b".into()), Ok("c".into())]);
+        let s = submitter(node).with_gas_limit(configured);
+
+        assert_eq!(s.submit(msg()).await.unwrap().txhash, "a");
+        assert_eq!(
+            s.submit_with_gas_limit(msg(), per_call)
+                .await
+                .unwrap()
+                .txhash,
+            "b"
+        );
+        assert_eq!(s.submit(msg()).await.unwrap().txhash, "c");
+        assert_eq!(
+            *s.transport.declared_gas.lock().unwrap(),
+            vec![configured.get(), per_call.get(), configured.get()]
+        );
+        assert_eq!(*s.transport.submitted.lock().unwrap(), vec![1, 2, 3]);
     }
 
     #[tokio::test]

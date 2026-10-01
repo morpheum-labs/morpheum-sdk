@@ -21,6 +21,11 @@ pub enum SdkError {
     #[error("signing error: {0}")]
     Signing(#[from] crate::signing::SigningError),
 
+    /// A gas-limit declaration outside `1..=TX_GAS_BUDGET`, refused by
+    /// [`TxGasLimit::new`](crate::TxGasLimit::new) before anything is signed.
+    #[error("gas limit error: {0}")]
+    GasLimit(#[from] crate::GasLimitError),
+
     /// Transport-layer errors (gRPC, HTTP, connection, etc.).
     /// Concrete transport implementations will convert their errors into this variant.
     #[error("transport error: {0}")]
@@ -80,6 +85,28 @@ mod tests {
         let signing_err = crate::signing::SigningError::invalid_key("test key");
         let sdk_err: SdkError = signing_err.into();
         assert!(matches!(sdk_err, SdkError::Signing(_)));
+    }
+
+    /// `TxGasLimit::new(..)?` works in a function returning `SdkError`, and
+    /// keeps the refusal typed.
+    #[test]
+    fn gas_limit_error_converts() {
+        fn declare(raw: u64) -> Result<crate::TxGasLimit, SdkError> {
+            let limit = crate::TxGasLimit::new(raw)?;
+            Ok(limit)
+        }
+        assert!(matches!(
+            declare(0),
+            Err(SdkError::GasLimit(crate::GasLimitError::Missing))
+        ));
+        assert!(matches!(
+            declare(crate::TX_GAS_BUDGET + 1),
+            Err(SdkError::GasLimit(crate::GasLimitError::OverBudget { .. }))
+        ));
+        assert_eq!(
+            declare(crate::DEFAULT_GAS_LIMIT.get()).ok(),
+            Some(crate::DEFAULT_GAS_LIMIT)
+        );
     }
 
     #[test]

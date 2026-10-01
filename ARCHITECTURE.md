@@ -144,7 +144,8 @@ Default implementations for `broadcast` and `query` delegate to the transport, k
 Thin wrapper around `morpheum-signing`'s TxBuilder:
 
 - Accepts `Signer` (NativeSigner, AgentSigner, etc.)
-- Fluent API: `chain_id()`, `memo()`, `add_message()`, `with_trading_key_claim()`
+- Fluent API: `chain_id()`, `memo()`, `add_message()`, `with_trading_key_claim()`,
+  `gas_limit()` (every transaction declares one; `DEFAULT_GAS_LIMIT` unless set)
 - Delegates signing, nonce, and SignerInfo to the signing library
 
 ---

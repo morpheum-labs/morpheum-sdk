@@ -4,7 +4,8 @@
 //!   - **Inbound (EVM → Morpheum)**: [`inbound_process_msg`] extracts the
 //!     `Dispatch` event, signs a checkpoint, and builds the `Mailbox.process()`
 //!     `MsgExecuteContract`. Delivering it is an ordinary signed Morpheum
-//!     transaction, submitted by the caller's key:
+//!     transaction, submitted by the caller's key and declaring the gas the
+//!     contract call needs (`TxSubmitter::submit_with_gas_limit`):
 //!
 //!     ```ignore
 //!     let msg = relay::inbound_process_msg(&evm_provider, InboundRelayRequest {
@@ -12,7 +13,7 @@
 //!         // ...
 //!     })
 //!     .await?;
-//!     let admitted = submitter.submit(msg.to_any()).await?;
+//!     let admitted = submitter.submit_with_gas_limit(msg.to_any(), relay_gas).await?;
 //!     match submitter.wait_final(&admitted.txhash, timeout).await? {
 //!         TxOutcome::Confirmed { .. } => { /* delivered */ }
 //!         TxOutcome::Failed { status } => { /* executed and failed, or skipped */ }

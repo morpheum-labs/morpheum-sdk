@@ -20,7 +20,14 @@ use crate::types::SvmError;
 pub const USDC_ASSET_INDEX: u64 = 1;
 
 /// Default compute limit for USDC native program instructions.
+///
+/// A `MsgExecute`'s `compute_limit` must fit the gas its transaction's
+/// declared limit leaves for it (`TxBuilder::gas_limit`,
+/// `TxSubmitter::with_gas_limit` / `submit_with_gas_limit`). This default
+/// does not exceed the SDK's default declaration
+/// ([`morpheum_sdk_core::DEFAULT_GAS_LIMIT`]), asserted at compile time.
 pub const DEFAULT_COMPUTE_LIMIT: u64 = 10_000;
+const _: () = assert!(DEFAULT_COMPUTE_LIMIT <= morpheum_sdk_core::DEFAULT_GAS_LIMIT.get());
 
 /// Morpheum `MsgExecute` type URL used by the SVM actor.
 pub const MSG_EXECUTE_TYPE_URL: &str = "/morpheum.svm.v1.MsgExecute";
@@ -148,7 +155,9 @@ struct MsgExecute {
 /// targeting the USDC native program.
 ///
 /// The returned `Any` can be submitted via `MorpheumHarness::submit_signed_tx`
-/// or the CLI's Ingress gRPC endpoint.
+/// or the CLI's Ingress gRPC endpoint. `compute_limit` must fit the gas the
+/// transaction's declared limit leaves for this message, so declare a gas
+/// limit that covers it (see [`DEFAULT_COMPUTE_LIMIT`]).
 ///
 /// # Errors
 ///

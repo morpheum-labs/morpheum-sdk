@@ -97,14 +97,14 @@ impl CreateJobBuilder {
         self
     }
 
-    /// ARS v3: request an evaluation-fee track escrowed on top of the budget.
+    /// Request an evaluation-fee track escrowed on top of the budget.
     /// Zero (the default) inherits the governance `default_evaluation_fee_usd`.
     pub fn evaluation_fee_usd(mut self, fee: u64) -> Self {
         self.evaluation_fee_usd = Some(fee);
         self
     }
 
-    /// ARS v1/v6: the per-job compensation policy. Leave unset to inherit the
+    /// The per-job compensation policy. Leave unset to inherit the
     /// governance default; set to `CoverageReimbursed` alongside
     /// [`Self::coverage_amount_usd`] to buy self-funded rejection coverage.
     pub fn compensation_policy(mut self, policy: CompensationPolicy) -> Self {
@@ -112,7 +112,7 @@ impl CreateJobBuilder {
         self
     }
 
-    /// ARS v6: the coverage claim paid to the client on a `CoverageReimbursed`
+    /// The coverage claim paid to the client on a `CoverageReimbursed`
     /// rejection. Requires the governance coverage rate to be enabled; the
     /// premium is resolved at creation and escrowed on top of the budget + fee.
     pub fn coverage_amount_usd(mut self, coverage: u64) -> Self {
@@ -251,7 +251,7 @@ impl AttestBuilder {
         self
     }
 
-    /// ARS v2: the agreement commitment the evaluator judged against. Must
+    /// The agreement commitment the evaluator judged against. Must
     /// equal the job's stored `job_spec_hash` (leave unset for specless jobs).
     pub fn agreement_hash(mut self, hash: impl Into<String>) -> Self {
         self.agreement_hash = Some(hash.into());
@@ -339,7 +339,7 @@ impl SetProviderBuilder {
     }
 }
 
-/// Fluent builder for posting provider collateral (ARS v8 / WS-BI).
+/// Fluent builder for posting provider collateral.
 #[derive(Default)]
 pub struct StakeProviderBuilder {
     job_id: Option<String>,
@@ -374,7 +374,7 @@ impl StakeProviderBuilder {
     }
 }
 
-/// Fluent builder for posting underwriter capital (ARS v10 / WS-BK).
+/// Fluent builder for posting underwriter capital.
 #[derive(Default)]
 pub struct UnderwriteJobBuilder {
     job_id: Option<String>,

@@ -44,7 +44,7 @@ pub struct ReputationScore {
     pub perk_bitflags: u32,
     /// Whether non-floor Immortal perks are temporarily suspended.
     pub luxury_perks_throttled: bool,
-    /// WS-AG: Unix-seconds start of the current rolling 24h recovery window.
+    /// Unix-seconds start of the current rolling 24h recovery window.
     pub recovery_window_start: u64,
 }
 
@@ -321,7 +321,7 @@ pub struct Params {
     /// off. Passed through as the canonical generated type; see its doc
     /// comments in `reputation.proto` for the field-level semantics.
     pub economics: Option<proto::ReputationEconomicsConfig>,
-    /// WS-AG: addresses authorized to submit the `MsgScanReputationRecovery`
+    /// Addresses authorized to submit the `MsgScanReputationRecovery`
     /// sweep. Empty ⇒ no keeper may drive the recovery sweep (fail-closed).
     pub authorized_recovery_signers: Vec<String>,
 }

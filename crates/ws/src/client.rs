@@ -27,7 +27,7 @@ const CMD_CHANNEL_CAPACITY: usize = 64;
 /// 2. **Authenticate** — [`WsClient::authenticate`] (free tier requires no
 ///    signature; paid tiers require an x402 receipt).
 /// 3. **Subscribe** — [`WsClient::subscribe`] returns a [`Subscription`] that
-///    implements [`futures::Stream`].
+///    implements [`Stream`](futures_util::Stream).
 /// 4. **Close** — [`WsClient::close`] or simply drop all handles.
 #[derive(Clone)]
 pub struct WsClient {
@@ -97,7 +97,7 @@ impl WsClient {
     }
 
     /// Subscribes to a streaming channel and returns a [`Subscription`] handle
-    /// that implements [`futures::Stream`].
+    /// that implements [`Stream`](futures_util::Stream).
     ///
     /// The first event on the stream is a full snapshot (`is_snapshot == true`);
     /// subsequent events are deltas.

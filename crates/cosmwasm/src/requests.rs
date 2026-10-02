@@ -20,8 +20,8 @@ pub struct StoreCodeRequest {
 impl StoreCodeRequest {
     /// Encodes as `/cosmwasm.wasm.v1.MsgStoreCode` (JSON wire format).
     ///
-    /// Mormcore's CosmWasm actor deserialises message bytes with
-    /// `serde_json::from_slice`, so we must produce JSON — not protobuf.
+    /// The chain decodes these message bytes as JSON, so this must produce
+    /// JSON — not protobuf.
     pub fn to_any(&self) -> morpheum_proto::google::protobuf::Any {
         let value = serde_json::json!({
             "sender": self.sender,
@@ -56,8 +56,8 @@ pub struct CoinProto {
 impl InstantiateContractRequest {
     /// Encodes as `/cosmwasm.wasm.v1.MsgInstantiateContract` (JSON wire format).
     ///
-    /// Mormcore's CosmWasm actor deserialises message bytes with
-    /// `serde_json::from_slice`, so we must produce JSON — not protobuf.
+    /// The chain decodes these message bytes as JSON, so this must produce
+    /// JSON — not protobuf.
     pub fn to_any(&self) -> morpheum_proto::google::protobuf::Any {
         let funds: Vec<serde_json::Value> = self
             .funds
@@ -93,8 +93,8 @@ pub struct ExecuteContractRequest {
 impl ExecuteContractRequest {
     /// Encodes as `/cosmwasm.wasm.v1.MsgExecuteContract` (JSON wire format).
     ///
-    /// Mormcore's CosmWasm actor deserialises message bytes with
-    /// `serde_json::from_slice`, so we must produce JSON — not protobuf.
+    /// The chain decodes these message bytes as JSON, so this must produce
+    /// JSON — not protobuf.
     pub fn to_any(&self) -> morpheum_proto::google::protobuf::Any {
         let funds: Vec<serde_json::Value> = self
             .funds

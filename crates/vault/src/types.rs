@@ -22,7 +22,7 @@ pub enum VaultType {
     Unspecified,
     Custom,
     Yield,
-    /// VA5 — protocol-owned MLP house liquidity + liquidation backstop.
+    /// Protocol-owned MLP house liquidity + liquidation backstop.
     Protocol,
 }
 
@@ -87,7 +87,7 @@ impl From<VaultStatus> for i32 {
     }
 }
 
-/// VB9 (spec §7 / §12 gate #4) — the fee model a vault is created under. Governs
+/// The fee model a vault is created under. Governs
 /// the create-time fee-validation gate; `Unspecified` is the inert value and
 /// coalesces to `Standard` when the gate is armed.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash)]
@@ -125,7 +125,7 @@ impl From<VaultFeePreset> for i32 {
     }
 }
 
-/// G6 legs 2–3 — protective actions guardians may propose. Bounded authority:
+/// Protective actions guardians may propose. Bounded authority:
 /// pause / wind-down / revoke-operator only — never move funds, change
 /// recipients, or appoint a new operator.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash)]
@@ -135,7 +135,7 @@ pub enum GuardianActionKind {
     Unspecified,
     /// Active -> Paused (reversible).
     Pause,
-    /// -> Liquidating + D9 de-risk.
+    /// -> Liquidating + forced de-risk.
     WindDown,
     /// Suspend operator authority.
     RevokeOperator,
@@ -163,7 +163,7 @@ impl From<GuardianActionKind> for i32 {
     }
 }
 
-/// G6 legs 2–3 — proposal lifecycle for a [`GuardianAction`] record.
+/// Proposal lifecycle for a [`GuardianAction`] record.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub enum GuardianActionStatus {
@@ -244,72 +244,71 @@ pub struct Vault {
     pub clmm_position_id: String,
     pub clmm_collateral_token_index: u32,
     pub clmm_deployed_assets: String,
-    /// VB2 (spec §7 / §12) — persisted fee model. The leader (creator / agent
+    /// Persisted fee model. The leader (creator / agent
     /// manager) performance-fee payout recipient; the crystallized fee is split
     /// to this address plus the treasury and the insurance/MLP reserve.
     pub leader_payout_address: String,
     /// Performance-fee rate (bps of profit above the high-water mark). "0" ⇒
-    /// inherit the live `treasury_cut_bps` (pre-VB2 vaults).
+    /// inherit the live `treasury_cut_bps` (vaults created without a fee model).
     pub performance_fee_bps: u32,
     /// Management-fee rate (bps of AUM); locked at 0 for the Standard preset.
     pub management_fee_bps: u32,
-    /// VB3 (spec §8 / G3) — the leader's custody / stake-key address, captured at
+    /// The leader's custody / stake-key address, captured at
     /// create. The key under which the leader's first-loss `Stake` accrues for the
     /// skin-in-the-game clamp / soft-close (distinct from `agent_id` and
     /// `leader_payout_address`). Empty ⇒ the skin gate is inert for the vault.
     pub leader_custody_address: String,
-    /// VB5 (spec §14 G4) — hard deposit capacity cap in base-asset native units.
+    /// Hard deposit capacity cap in base-asset native units.
     /// "0" / empty ⇒ uncapped.
     pub deposit_capacity_native: String,
-    /// VB5 (spec §14 G4) — manager soft-close: while true, new deposits are
+    /// Manager soft-close: while true, new deposits are
     /// rejected; existing depositors may stay and redeem.
     pub soft_closed: bool,
-    /// VB6 (spec P7 / §2) — operating mandate. Empty `allowed_markets` ⇒ all
+    /// Operating mandate. Empty `allowed_markets` ⇒ all
     /// markets; `max_leverage = 0` ⇒ unbounded. Once armed, updates are
     /// tightening-only.
     pub mandate: VaultMandate,
-    /// VB7 (spec §5) — buffer-floor auto-allocation policy. Empty / zero
+    /// Buffer-floor auto-allocation policy. Empty / zero
     /// targets ⇒ disarmed (deployment stays fully manual).
     pub allocation_policy: AllocationPolicy,
-    /// D5 (spec §1) — creator's agent identity (`tx_meta.agent_hash`). The
+    /// Creator's agent identity (`tx_meta.agent_hash`). The
     /// delegation target for `DELEGATION_SCOPE_VAULT`. Empty ⇒ delegation
-    /// disabled (byte-identical to pre-D5).
+    /// disabled.
     pub owner_agent_hash: String,
-    /// D10 (spec §7 / §15 #12) — last epoch at which a periodic fee
+    /// Last epoch at which a periodic fee
     /// crystallization ran (`epoch = height / fee_crystallization_interval_blocks`).
     /// Seeded 0 at create; inert while the cadence is disarmed.
     pub last_fee_crystallization_epoch: u64,
-    /// D8 (spec §3) — the vault's owned margin buckets (SSOT). A vault may own N
+    /// The vault's owned margin buckets (SSOT). A vault may own N
     /// buckets (Cross and/or Isolated). Empty until the first deploy; the scalar
     /// `bucket_id` / `collateral_asset_index` / `deployed_assets` above are the
     /// derived mirror (primary bucket + total cost basis).
     pub buckets: Vec<VaultBucket>,
-    /// VB9 (spec §7 / §12 gate #4) — the fee preset this vault was created under.
-    /// `Unspecified` on pre-VB9 vaults and when the preset gate is disarmed.
+    /// The fee preset this vault was created under.
+    /// `Unspecified` on vaults created without a preset and when the preset gate is disarmed.
     pub fee_preset: VaultFeePreset,
-    /// D6 (spec §14 G6) — deterministic block-time (whole seconds) of the
+    /// Deterministic block-time (whole seconds) of the
     /// manager's most recent authorized state-changing op. Written only while the
     /// dead-man switch is armed; `0` ⇒ untracked (never auto-paused, fail-safe).
     pub last_manager_activity_secs: u64,
-    /// VB5 G4 — per-depositor cumulative principal floor (base-asset native).
+    /// Per-depositor cumulative principal floor (base-asset native).
     /// `"0"` / empty ⇒ disarmed.
     pub min_stake_native: String,
-    /// VB5 G4 — per-depositor cumulative principal ceiling (base-asset native).
+    /// Per-depositor cumulative principal ceiling (base-asset native).
     /// `"0"` / empty ⇒ disarmed. Orthogonal to `deposit_capacity_native`.
     pub max_stake_native: String,
-    /// Management-fee accrual cursor (spec §7) — deterministic block-time (ms) of
-    /// the last `management_fee_bps` accrual on the D10 cadence. `0` ⇒
+    /// Management-fee accrual cursor — deterministic block-time (ms) of
+    /// the last `management_fee_bps` accrual on the fee-crystallization cadence. `0` ⇒
     /// uninitialized (the first tick seeds it and charges nothing). Inert while
     /// `management_fee_bps == 0` or the crystallization cadence is disarmed.
     pub last_management_fee_accrual_ms: u64,
-    /// G6 leg 3 — operator-authority suspension, orthogonal to `VaultStatus`.
+    /// Operator-authority suspension, orthogonal to `VaultStatus`.
     /// Set by a quorum-reached `REVOKE_OPERATOR`; cleared only by governance
-    /// `MsgRestoreVaultOperator` (forced rotation). `false` ⇒ not suspended
-    /// (byte-identical to pre-G6).
+    /// `MsgRestoreVaultOperator` (forced rotation). `false` ⇒ not suspended.
     pub operator_suspended: bool,
 }
 
-/// VB6 (spec P7 / §2) — per-vault operating constraints.
+/// Per-vault operating constraints.
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct VaultMandate {
@@ -317,18 +316,18 @@ pub struct VaultMandate {
     pub allowed_markets: Vec<u64>,
     /// Maximum leverage the vault may configure per market. 0 ⇒ unbounded.
     pub max_leverage: u32,
-    /// VA3 — assets the vault may hold as SpotToken NAV legs. Empty ⇒ no
+    /// Assets the vault may hold as SpotToken NAV legs. Empty ⇒ no
     /// SpotToken holdings (byte-identical to `{cash, bucket, clmm}`). Opposite
     /// of `allowed_markets`.
     pub allowed_assets: Vec<u64>,
-    /// D9 spot leg — governed CLMM exit pool per whitelisted spot asset. The
+    /// Governed CLMM exit pool per whitelisted spot asset. The
     /// single source of truth for the base⇄asset pool used by acquisition,
     /// manager exit default, and forced spot liquidation on redemption. One
     /// entry per asset; each `asset_index` must be in `allowed_assets`.
     pub spot_exit_pools: Vec<SpotExitPool>,
 }
 
-/// D9 spot leg — a governed base⇄asset CLMM exit pool binding.
+/// A governed base⇄asset CLMM exit pool binding.
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct SpotExitPool {
@@ -356,7 +355,7 @@ impl From<SpotExitPool> for proto::SpotExitPool {
     }
 }
 
-/// VB7 (spec §5) — destination tier for a target weight.
+/// Destination tier for a target weight.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub enum AllocationKind {
@@ -386,7 +385,7 @@ impl From<AllocationKind> for i32 {
     }
 }
 
-/// VB7 (spec §5) — one destination's target weight as a fraction of NAV.
+/// One destination's target weight as a fraction of NAV.
 #[derive(Clone, Debug, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct AllocationTarget {
@@ -396,7 +395,7 @@ pub struct AllocationTarget {
     /// (ignored / 0 for BUCKET).
     pub asset_index: u32,
     /// BUCKET only: which owned margin bucket this target funds. Empty ⇒ the
-    /// primary (first) bucket — byte-identical to pre-multi-bucket VB7.
+    /// primary (first) bucket.
     /// Ignored for SPOT_TOKEN. At most one BUCKET target per distinct
     /// `bucket_id` (including the empty/primary sentinel).
     pub bucket_id: String,
@@ -424,7 +423,7 @@ impl From<AllocationTarget> for proto::AllocationTarget {
     }
 }
 
-/// VB7 (spec §5) — per-vault buffer-floor auto-allocation policy.
+/// Per-vault buffer-floor auto-allocation policy.
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct AllocationPolicy {
@@ -479,7 +478,7 @@ impl From<VaultMandate> for proto::VaultMandate {
     }
 }
 
-/// D8 (spec §3) — margin isolation mode of an owned bucket.
+/// Margin isolation mode of an owned bucket.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub enum BucketMode {
@@ -512,7 +511,7 @@ impl From<BucketMode> for i32 {
     }
 }
 
-/// D8 (spec §3) — one owned margin bucket with its own principal cost basis and
+/// One owned margin bucket with its own principal cost basis and
 /// isolation mode.
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
@@ -546,7 +545,7 @@ impl From<VaultBucket> for proto::VaultBucket {
     }
 }
 
-/// VB9 (spec §7) — governance-armed fee envelope for one preset. A requested
+/// Governance-armed fee envelope for one preset. A requested
 /// performance fee must fall within `[min_perf_bps, max_perf_bps]` (`0` resolves
 /// to `default_perf_bps`) and the management fee must be `<= max_mgmt_bps`.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
@@ -686,10 +685,10 @@ pub struct Stake {
     pub pending_yield: String,
     pub stake_time: u64,
     pub last_claim_time: u64,
-    /// VB1 (spec §7 / G9) — the depositor's per-position high-water mark (e8
+    /// The depositor's per-position high-water mark (e8
     /// fixed-point share price). "0" ⇒ par.
     pub high_water_mark: String,
-    /// VB4 (spec §6 / §14 G1) — the per-deposit minimum-hold unlock time (unix
+    /// The per-deposit minimum-hold unlock time (unix
     /// secs); shares are redeemable once `now >= unlock_at`. 0 ⇒ no lock.
     pub unlock_at: u64,
 }
@@ -741,7 +740,7 @@ impl From<proto::StrategyExecution> for StrategyExecution {
     }
 }
 
-/// G6 legs 2–3 — in-flight or terminal guardian emergency-control proposal.
+/// In-flight or terminal guardian emergency-control proposal.
 #[derive(Clone, Debug, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct GuardianAction {
@@ -805,9 +804,9 @@ pub struct VaultHealth {
     pub pnl_24h: String,
     pub risk_score: String,
     pub timestamp: u64,
-    /// VA4 — 30d PnL in USD (e8 string, signed). Distinct from `pnl_24h`.
+    /// 30d PnL in USD (e8 string, signed). Distinct from `pnl_24h`.
     pub pnl_30d_usd: String,
-    /// VA4 — Capacity-TVL snapshot in USD (e8 string) at last score refresh.
+    /// Capacity-TVL snapshot in USD (e8 string) at last score refresh.
     pub tvl_usd: String,
 }
 
@@ -866,131 +865,131 @@ pub struct VaultParams {
     pub authorized_withdrawal_signers: Vec<String>,
     /// Max withdrawals processed per `MsgProcessWithdrawals` scan.
     pub max_withdrawals_per_scan: u64,
-    /// Default-OFF gate for per-depositor high-water marks (spec §7 / G9). While
+    /// Default-OFF gate for per-depositor high-water marks. While
     /// false the performance fee crystallizes against the vault-global mark.
     pub per_depositor_hwm_enabled: bool,
-    /// VB2 (spec §7 / G9) — internal performance-fee split: the leader payout
+    /// Internal performance-fee split: the leader payout
     /// share (bps). The treasury receives the remainder (`10000 − leader −
-    /// reserve`); 0 ⇒ treasury takes the full fee (byte-identical pre-VB2).
+    /// reserve`); 0 ⇒ treasury takes the full fee.
     pub perf_fee_leader_bps: u32,
     /// The insurance/MLP-reserve share of the performance fee (bps).
     pub perf_fee_reserve_bps: u32,
-    /// VB3 (spec §8 / G3) — leader skin-in-the-game floor (bps of the vault the
+    /// Leader skin-in-the-game floor (bps of the vault the
     /// leader must retain as first-loss capital). 0 ⇒ the withdrawal clamp +
-    /// deposit soft-close are no-ops (byte-identical pre-VB3).
+    /// deposit soft-close are no-ops.
     pub min_leader_skin_bps: u32,
-    /// VB3 (spec §8 / G3) — anti-spam vault creation fee in MORM sat, swept to
+    /// Anti-spam vault creation fee in MORM sat, swept to
     /// the treasury at create. 0 ⇒ no fee.
     pub vault_creation_fee_sat: u64,
-    /// VB4 (spec §6 / §14 G1) — per-deposit minimum-hold lock in seconds, baked
+    /// Per-deposit minimum-hold lock in seconds, baked
     /// into each new deposit's unlock time. 0 ⇒ no lock (instant-redeemable).
     pub lockup_secs: u64,
-    /// VB4 (spec §6 / §14 G1) — redemption notice/queue window in seconds; a
+    /// Redemption notice/queue window in seconds; a
     /// queued redemption is serviceable only after `requested_at + this`. 0 ⇒
     /// instantly serviceable.
     pub redemption_notice_secs: u64,
-    /// VB7 (spec §5) — default-OFF gate for the buffer-floor auto-allocation
+    /// Default-OFF gate for the buffer-floor auto-allocation
     /// cadence (`MsgAllocateBuffer`).
     pub enable_auto_allocation: bool,
     /// Addresses authorized to submit `MsgAllocateBuffer`. Empty = permissionless.
     pub authorized_allocation_signers: Vec<String>,
-    /// VB8 (spec §14 / G5) — max age (ms) of a committed mark before NAV
+    /// Max age (ms) of a committed mark before NAV
     /// rejects it. 0 ⇒ staleness check off.
     pub max_mark_staleness_ms: u64,
-    /// VB8 — Perp (bucket) illiquidity haircut in bps. 0 ⇒ no haircut.
+    /// Perp (bucket) illiquidity haircut in bps. 0 ⇒ no haircut.
     pub perp_haircut_bps: u32,
-    /// VB8 — CLMM illiquidity haircut in bps. 0 ⇒ no haircut.
+    /// CLMM illiquidity haircut in bps. 0 ⇒ no haircut.
     pub clmm_haircut_bps: u32,
-    /// G5 CLMM leg — deadband (bps) for the CLMM NAV basis-deviation haircut.
+    /// Deadband (bps) for the CLMM NAV basis-deviation haircut.
     /// Ignored unless `clmm_max_basis_haircut_bps > 0`.
     pub clmm_basis_tolerance_bps: u32,
-    /// G5 CLMM leg — default-OFF cap (bps) for the CLMM NAV basis-deviation
+    /// Default-OFF cap (bps) for the CLMM NAV basis-deviation
     /// haircut. 0 ⇒ disarmed (the CLMM leg keeps only `clmm_haircut_bps`).
     pub clmm_max_basis_haircut_bps: u32,
-    /// VA3 — per-tier SpotToken illiquidity haircut in bps. Index =
+    /// Per-tier SpotToken illiquidity haircut in bps. Index =
     /// `SpotAssetTier.tier` ordinal. Empty ⇒ no spot haircut.
     pub spot_haircut_bps_by_tier: Vec<u32>,
-    /// VA4 — default-OFF gate for the analyst-score refresh cadence.
+    /// Default-OFF gate for the analyst-score refresh cadence.
     pub enable_analyst_scoring: bool,
     /// Addresses authorized to submit `MsgRefreshVaultScore`. Empty = permissionless.
     pub authorized_score_signers: Vec<String>,
-    /// VA4 — share-price sampling epoch length in blocks. Required (> 0) when
+    /// Share-price sampling epoch length in blocks. Required (> 0) when
     /// `enable_analyst_scoring` is true.
     pub score_sample_interval_blocks: u64,
-    /// VA5 — designated MLP protocol vault id. Empty ⇒ no MLP registered.
+    /// Designated MLP protocol vault id. Empty ⇒ no MLP registered.
     pub mlp_backstop_vault_id: String,
-    /// VA1 — default-OFF gate: deposits require a valid VC for the depositor.
+    /// Default-OFF gate: deposits require a valid VC for the depositor.
     pub require_deposit_credential: bool,
-    /// VA1 — default-OFF gate: deposits require the depositor identity Active.
+    /// Default-OFF gate: deposits require the depositor identity Active.
     pub require_depositor_active: bool,
-    /// D10 — default-OFF gate for the periodic performance-fee crystallization
+    /// Default-OFF gate for the periodic performance-fee crystallization
     /// cadence (`MsgCrystallizeFee`). While false, fees crystallize only on
-    /// redemption (byte-identical to pre-D10).
+    /// redemption.
     pub enable_fee_crystallization: bool,
     /// Addresses authorized to submit `MsgCrystallizeFee`. Empty = permissionless.
     pub authorized_crystallize_signers: Vec<String>,
-    /// D10 — crystallization epoch length in blocks. Required (> 0) when
+    /// Crystallization epoch length in blocks. Required (> 0) when
     /// `enable_fee_crystallization` is true.
     pub fee_crystallization_interval_blocks: u64,
-    /// D9 — default-OFF gate for forced position unwind on matured redemptions.
+    /// Default-OFF gate for forced position unwind on matured redemptions.
     pub enable_forced_unwind: bool,
-    /// D9 — redeemer-borne exit fee (bps of forced-native). Validated ≤ 10000.
+    /// Redeemer-borne exit fee (bps of forced-native). Validated ≤ 10000.
     pub unwind_exit_fee_bps: u32,
-    /// VB9 (spec §7 / §12 gate #4) — default-OFF gate for the create-time
+    /// Default-OFF gate for the create-time
     /// fee-preset validation. Disarmed ⇒ legacy fee seed (byte-identical).
     pub enable_fee_presets: bool,
-    /// VB9 — per-preset fee envelopes. Must contain a STANDARD entry when
+    /// Per-preset fee envelopes. Must contain a STANDARD entry when
     /// `enable_fee_presets` is true.
     pub fee_preset_bounds: Vec<FeePresetBound>,
-    /// VB9 — governance allowlist of agents eligible to create a PREMIUM vault.
+    /// Governance allowlist of agents eligible to create a PREMIUM vault.
     /// Strict membership: an empty list locks Premium for everyone.
     pub authorized_premium_agents: Vec<String>,
-    /// D9 CLMM extension — default-OFF gate for forced CLMM undeploy on matured
+    /// Default-OFF gate for forced CLMM undeploy on matured
     /// redemptions. Reuses `unwind_exit_fee_bps` for the redeemer-borne exit fee.
     pub enable_forced_clmm_undeploy: bool,
-    /// D6 (spec §14 G6) — manager-silence threshold in seconds. Required (> 0)
+    /// Manager-silence threshold in seconds. Required (> 0)
     /// when `enable_dead_man_switch` is true; `0` ⇒ disarmed.
     pub dead_man_switch_secs: u64,
-    /// D6 — default-OFF gate for the dead-man-switch auto-pause sweep cadence
-    /// (`MsgSweepDeadVault`) and the manager-activity stamp. Byte-identical to
-    /// pre-D6 while false.
+    /// Default-OFF gate for the dead-man-switch auto-pause sweep cadence
+    /// (`MsgSweepDeadVault`) and the manager-activity stamp. No effect while
+    /// false.
     pub enable_dead_man_switch: bool,
-    /// D6 — addresses authorized to submit `MsgSweepDeadVault`. Empty =
+    /// Addresses authorized to submit `MsgSweepDeadVault`. Empty =
     /// permissionless (bounded by the default-OFF gate).
     pub authorized_dead_man_signers: Vec<String>,
-    /// VA3 producer — default-OFF gate for the manager-driven spot-acquisition
+    /// Default-OFF gate for the manager-driven spot-acquisition
     /// path (`MsgAcquireSpot`). The reduce-only `MsgDisposeSpot` exit is never
-    /// gated by this flag. Byte-identical to pre-VA3-producer while false.
+    /// gated by this flag.
     pub enable_spot_acquisition: bool,
-    /// D9 spot leg — default-OFF gate for forced spot liquidation on matured
+    /// Default-OFF gate for forced spot liquidation on matured
     /// redemptions. While false, held SpotToken is reachable only via a manager
-    /// `MsgDisposeSpot`. Armed independently of the D9 perp/CLMM legs.
+    /// `MsgDisposeSpot`. Armed independently of the perp/CLMM forced-unwind gates.
     pub enable_forced_spot_unwind: bool,
-    /// D9 spot leg — max slippage (bps) the forced spot-liquidation floor
+    /// Max slippage (bps) the forced spot-liquidation floor
     /// tolerates versus the committed spot mark. Required (0 < bps <= 10000)
     /// when `enable_forced_spot_unwind`.
     pub forced_spot_max_slippage_bps: u32,
-    /// VB7 spot auto-allocation — max slippage (bps) the buffer-floor spot
+    /// Spot auto-allocation: max slippage (bps) the buffer-floor spot
     /// acquisition floor tolerates versus the committed spot mark. `0` ⇒ spot
     /// auto-allocation disarmed (SPOT_TOKEN targets fail-safe-skipped).
     pub auto_alloc_spot_max_slippage_bps: u32,
-    /// D4 in-kind redemption — governance master gate for redeemer-elected
+    /// In-kind redemption: governance master gate for redeemer-elected
     /// in-kind spot payout. `false` ⇒ all redemptions settle-to-base
     /// (byte-identical); a `MsgWithdrawFromVault { in_kind: true }` then falls
     /// back to settle-to-base.
     pub enable_in_kind_redemption: bool,
-    /// G6 legs 2–3 — chain-global guardian set (authority-agnostic bech32).
+    /// Chain-global guardian set (authority-agnostic bech32).
     /// Empty ⇒ subsystem disarmed (byte-identical).
     pub authorized_guardians: Vec<String>,
-    /// G6 legs 2–3 — per-kind M-of-N approval thresholds. All-zero ⇒ no kind
-    /// armed. Armed kinds must satisfy compiled min floors (Phase 2).
+    /// Per-kind M-of-N approval thresholds. All-zero ⇒ no kind
+    /// armed. Armed kinds must satisfy compiled min floors.
     pub guardian_quorum: GuardianQuorum,
-    /// G6 legs 2–3 — proposal lifetime in seconds. `0` ⇒ disarmed; armed values
+    /// Proposal lifetime in seconds. `0` ⇒ disarmed; armed values
     /// validated in `[3600, 604800]`.
     pub guardian_proposal_ttl_secs: u64,
 }
 
-/// G6 legs 2–3 — per-kind M-of-N approval thresholds for guardian actions.
+/// Per-kind M-of-N approval thresholds for guardian actions.
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct GuardianQuorum {

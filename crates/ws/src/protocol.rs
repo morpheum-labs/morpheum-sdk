@@ -1,6 +1,5 @@
 //! JSON wire protocol for the Morpheum multiplex WebSocket endpoint.
 //!
-//! Mirrors the framing defined in the streaming implementation doc (§3.2).
 //! Client sends `auth`, `subscribe`, `unsubscribe` messages; server responds
 //! with `auth`, `subscriptionResponse`, `error`, or typed data frames.
 

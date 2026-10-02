@@ -111,3 +111,7 @@ jobs:
         run: cargo clippy --workspace --all-targets --all-features -- -D warnings
       - name: cargo test
         run: cargo test --workspace --all-features
+      - name: cargo doc
+        run: cargo doc --no-deps --workspace --all-features
+        env:
+          RUSTDOCFLAGS: -D warnings

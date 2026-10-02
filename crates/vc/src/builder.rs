@@ -64,8 +64,8 @@ impl VcIssueBuilder {
         self
     }
 
-    /// Sets a pre-computed zkClaims commitment for a privacy-mode credential
-    /// (WS3-D). Use this when the 32-byte Pedersen commitment was computed
+    /// Sets a pre-computed zkClaims commitment for a privacy-mode credential.
+    /// Use this when the 32-byte Pedersen commitment was computed
     /// elsewhere (e.g. the prover crate). The numeric [`claims`](Self::claims)
     /// must be zero alongside a commitment (mode disjointness, enforced on
     /// chain). Prefer [`privacy_limits`](Self::privacy_limits) (with the `zk`
@@ -76,7 +76,7 @@ impl VcIssueBuilder {
         self
     }
 
-    /// Configures this builder for a **privacy-mode** credential (WS3-D): the
+    /// Configures this builder for a **privacy-mode** credential: the
     /// four owner-issued limits stay hidden behind a Pedersen commitment and the
     /// on-chain numeric claims are zeroed (mode disjointness). Computes
     /// `claims_commitment` from the supplied limits and a 32-byte `blinding`
@@ -250,7 +250,7 @@ impl UpdateClaimsBuilder {
     }
 
     /// Sets a pre-computed zkClaims commitment, rotating the credential into
-    /// privacy mode (WS3-D). The numeric [`new_claims`](Self::new_claims) must
+    /// privacy mode. The numeric [`new_claims`](Self::new_claims) must
     /// be zero alongside a commitment. Prefer
     /// [`privacy_limits`](Self::privacy_limits) (with the `zk` feature).
     pub fn claims_commitment(mut self, commitment: Vec<u8>) -> Self {
@@ -258,7 +258,7 @@ impl UpdateClaimsBuilder {
         self
     }
 
-    /// Rotates this claims update into **privacy mode** (WS3-D): computes the
+    /// Rotates this claims update into **privacy mode**: computes the
     /// `claims_commitment` from the supplied limits and a 32-byte `blinding`
     /// scalar and zeroes the on-chain numeric claims. Requires the `zk` feature.
     #[cfg(feature = "zk")]

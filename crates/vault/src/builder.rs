@@ -65,7 +65,7 @@ impl CreateVaultBuilder {
         self.strategy_goal = v.into();
         self
     }
-    /// VB9 (spec §7 / §12 gate #4) — select the fee preset and rates. `0`
+    /// Select the fee preset and rates. `0`
     /// performance resolves to the preset default when the gate is armed.
     pub fn fee(
         mut self,
@@ -150,23 +150,23 @@ impl UpdateVaultParamsBuilder {
         self.new_description = v.into();
         self
     }
-    /// VB5 — set the hard deposit capacity (base-asset native). Pass `"0"` to
+    /// Set the hard deposit capacity (base-asset native). Pass `"0"` to
     /// clear (uncapped).
     pub fn deposit_capacity(mut self, v: impl Into<String>) -> Self {
         self.deposit_capacity_native = Some(v.into());
         self
     }
-    /// VB5 — toggle the manager soft-close (true stops new deposits).
+    /// Toggle the manager soft-close (true stops new deposits).
     pub fn soft_closed(mut self, v: bool) -> Self {
         self.soft_closed = Some(v);
         self
     }
-    /// VB6 — replace-as-unit mandate (must be a tightening of the current one).
+    /// Replace-as-unit mandate (must be a tightening of the current one).
     pub fn mandate(mut self, v: crate::types::VaultMandate) -> Self {
         self.mandate = Some(v);
         self
     }
-    /// VB7 — replace-as-unit allocation policy.
+    /// Replace-as-unit allocation policy.
     pub fn allocation_policy(mut self, v: crate::types::AllocationPolicy) -> Self {
         self.allocation_policy = Some(v);
         self
@@ -219,7 +219,7 @@ impl ExecuteStrategyBuilder {
         self.strategy_params = Some(v.into());
         self
     }
-    /// D8 — target a specific owned bucket.
+    /// Target a specific owned bucket.
     pub fn bucket_id(mut self, v: impl Into<String>) -> Self {
         self.bucket_id = v.into();
         self
@@ -243,7 +243,7 @@ impl Default for ExecuteStrategyBuilder {
     }
 }
 
-// ====================== DEPLOY / UNDEPLOY / LEVERAGE (D8) ======================
+// ====================== DEPLOY / UNDEPLOY / LEVERAGE ======================
 
 pub struct DeployToBucketBuilder {
     vault_id: Option<String>,

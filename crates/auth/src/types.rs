@@ -130,10 +130,8 @@ impl From<BaseAccount> for proto::BaseAccount {
             mana_score: a.mana_score,
             storage_deposit: 0,
             bytes_reserved: 0,
-            // Phase 22X.5.D Stage 2.G.2.a (§5.2AY.D.35) — the SDK
-            // `BaseAccount` wrapper does not yet expose `did_hash`
-            // (DID-binding consumers are server-side: consensus
-            // ingress populator + Stage 2.G.2 Candidate C rewriter).
+            // The SDK `BaseAccount` wrapper does not yet expose `did_hash`
+            // (DID binding is populated chain-side, not by SDK callers).
             // We default the proto field to empty bytes ("unbound") so
             // SDK callers round-trip safely after prost regen; a future
             // SDK-side surface for DID binding can extend the wrapper

@@ -47,10 +47,10 @@ pub struct PlaceOrderRequest {
     pub display_quantity: Option<String>,
     pub reduce_only: bool,
     pub bucket_id: Option<String>,
-    /// zkClaims credential-limits proof (WS3-D). Present only when placing under a
+    /// zkClaims credential-limits proof. Present only when placing under a
     /// privacy-mode credential; empty for plaintext-mode credentials.
     pub credential_proof: alloc::vec::Vec<u8>,
-    /// GTT/DAY expiry as Unix milliseconds (A7). Required for a GTT order; a DAY order may
+    /// GTT/DAY expiry as Unix milliseconds. Required for a GTT order; a DAY order may
     /// omit it (the chain derives placement time + 24h). 0 = unset.
     pub expiry_timestamp: i64,
 }

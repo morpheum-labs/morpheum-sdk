@@ -1,6 +1,6 @@
 //! Subscription handle returned by [`WsClient::subscribe`](crate::WsClient::subscribe).
 //!
-//! Implements [`futures::Stream`] so callers can consume events with
+//! Implements [`Stream`] so callers can consume events with
 //! `StreamExt::next`, `select!`, or any combinator from the futures ecosystem.
 
 use std::pin::Pin;

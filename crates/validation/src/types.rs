@@ -202,12 +202,12 @@ pub struct Params {
     pub require_verifier_signature: bool,
     /// Default proof expiry in seconds (0 = no expiry).
     pub default_proof_expiry_seconds: u64,
-    /// WS-AL: master switch for the verifier reputation gate (default-OFF).
+    /// Master switch for the verifier reputation gate (default-OFF).
     pub enable_verifier_reputation_gate: bool,
-    /// WS-AL: minimum committed reputation the verifier must hold when the gate
+    /// Minimum committed reputation the verifier must hold when the gate
     /// is enabled (`0..=1_000_000`).
     pub min_verifier_reputation: u64,
-    /// WS-AL: governance allowlist of authorized verifier agent hashes
+    /// Governance allowlist of authorized verifier agent hashes
     /// (empty = no restriction).
     pub authorized_verifiers: Vec<String>,
 }

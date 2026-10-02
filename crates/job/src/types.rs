@@ -206,40 +206,40 @@ pub struct Job {
     pub blob_merkle_root: Vec<u8>,
     pub job_spec_hash: String,
     pub rejection_reason_hash: String,
-    /// ARS v1: bank-payable funder address, set on fund; refund recipient.
+    /// Bank-payable funder address, set on fund; refund recipient.
     pub funder_payout_address: String,
-    /// ARS v1: bank-payable provider address, set on first deliverable.
+    /// Bank-payable provider address, set on first deliverable.
     pub provider_payout_address: String,
-    /// ARS v1: bank-payable evaluator address, set on attest.
+    /// Bank-payable evaluator address, set on attest.
     pub evaluator_payout_address: String,
-    /// ARS v1: per-job compensation policy (Unspecified inherits governance).
+    /// Per-job compensation policy (Unspecified inherits governance).
     pub compensation_policy: CompensationPolicy,
-    /// ARS v3: evaluation-fee track escrowed on top of `budget_usd`; resolved
+    /// Evaluation-fee track escrowed on top of `budget_usd`; resolved
     /// once at creation (job value, else governance default) then immutable.
     pub evaluation_fee_usd: u64,
-    /// ARS v6: coverage claim paid to the client on a `CoverageReimbursed`
+    /// Coverage claim paid to the client on a `CoverageReimbursed`
     /// rejection; zero disables coverage.
     pub coverage_amount_usd: u64,
-    /// ARS v6: coverage premium escrowed on top of the principal + fee tracks;
+    /// Coverage premium escrowed on top of the principal + fee tracks;
     /// resolved once at creation then immutable.
     pub coverage_premium_usd: u64,
-    /// ARS v8 (WS-BI): provider collateral this job requires; resolved once at
+    /// Provider collateral this job requires; resolved once at
     /// creation (job value, else governance default, capped) when staking is
     /// enabled, then immutable. Zero disables staking (byte-identical to v7).
     pub provider_stake_required_usd: u64,
-    /// ARS v8 (WS-BI): provider collateral actually locked in the segregated
+    /// Provider collateral actually locked in the segregated
     /// stake pool: zero until `MsgStakeProvider`, then equal to
     /// `provider_stake_required_usd`, zeroed again on slash/release at settlement.
     pub provider_stake_locked_usd: u64,
-    /// ARS v10 (WS-BK): identity of the named underwriter backing this covered
+    /// Identity of the named underwriter backing this covered
     /// job's claim, stamped on `MsgUnderwriteJob`. Empty until an underwriter
     /// opts in (the job then stays on the v6 mutualized reserve).
     pub underwriter_agent_hash: String,
-    /// ARS v10 (WS-BK): bank-payable underwriter address, bound on the first
+    /// Bank-payable underwriter address, bound on the first
     /// `MsgUnderwriteJob`. Earns the coverage premium (net of any treasury cut)
     /// and receives the released remainder of its capital at settlement.
     pub underwriter_payout_address: String,
-    /// ARS v10 (WS-BK): underwriter capital actually locked in the segregated
+    /// Underwriter capital actually locked in the segregated
     /// underwriter pool: zero until `MsgUnderwriteJob` (then equal to
     /// `coverage_amount_usd`), zeroed again when settled or released. Non-zero
     /// means the job is underwritten (premium earned by the underwriter, claim
@@ -350,9 +350,9 @@ pub struct JobAttestation {
     pub attested_at: u64,
     pub detailed_report: Vec<u8>,
     pub detailed_report_blob_merkle_root: Vec<u8>,
-    /// ARS v2: agreement commitment the verdict was rendered against.
+    /// Agreement commitment the verdict was rendered against.
     pub agreement_hash: String,
-    /// ARS v2: deliverable Persistent Memory root that was judged.
+    /// Deliverable Persistent Memory root that was judged.
     pub deliverable_root: String,
 }
 
@@ -401,57 +401,57 @@ pub struct JobParams {
     pub max_active_job_per_provider: u32,
     pub default_evaluation_fee_usd: u64,
     pub declarative_job_enabled: bool,
-    /// ARS v1: governance default compensation policy.
+    /// Governance default compensation policy.
     pub default_compensation_policy: CompensationPolicy,
-    /// ARS v1: bank asset index all job budgets are escrowed in.
+    /// Bank asset index all job budgets are escrowed in.
     pub escrow_asset_index: u64,
-    /// ARS v2: require every new job to carry a valid agreement commitment.
+    /// Require every new job to carry a valid agreement commitment.
     pub require_agreement: bool,
-    /// ARS v2: require the acting agent to hold a valid VC on privileged actions.
+    /// Require the acting agent to hold a valid VC on privileged actions.
     pub require_vc_credential: bool,
-    /// ARS v4: protocol take-rate (bps, [0, 10_000]) skimmed from the evaluation
+    /// Protocol take-rate (bps, [0, 10_000]) skimmed from the evaluation
     /// fee track to the treasury on settlement; zero preserves v3 behavior.
     pub evaluation_fee_treasury_cut_bps: u32,
-    /// ARS v6: coverage premium rate (bps, [0, 10_000]) charged on a job's
+    /// Coverage premium rate (bps, [0, 10_000]) charged on a job's
     /// `coverage_amount_usd`; zero disables the self-funded coverage reserve.
     pub default_coverage_premium_rate_bps: u32,
-    /// ARS v6: governance cap on a single job's `coverage_amount_usd` (zero =
+    /// Governance cap on a single job's `coverage_amount_usd` (zero =
     /// unbounded).
     pub max_coverage_amount_usd: u64,
-    /// ARS v7 (WS-BH): master gate for reputation-weighted coverage-premium
+    /// Master gate for reputation-weighted coverage-premium
     /// pricing. When true, the flat v6 premium is discounted by the composite of
     /// the client's and (if named at creation) the provider's committed
     /// reputation, and the provider is locked on a coverage job that named one.
     /// False (default) preserves the v6 flat-premium behavior byte-for-byte.
     pub enable_risk_based_coverage_premium: bool,
-    /// ARS v8 (WS-BI): master gate for provider staking. When true, a job may
+    /// Master gate for provider staking. When true, a job may
     /// require provider collateral (posted via `MsgStakeProvider`), submission is
     /// gated on it, and a rejection slashes a bounded penalty to the client +
     /// treasury. False (default) preserves the v7 behavior byte-for-byte.
     pub enable_provider_stake: bool,
-    /// ARS v8: governance default provider stake stamped onto a job when unset.
+    /// Governance default provider stake stamped onto a job when unset.
     pub default_provider_stake_usd: u64,
-    /// ARS v8: governance cap on a job's provider stake (zero = unbounded).
+    /// Governance cap on a job's provider stake (zero = unbounded).
     pub max_provider_stake_usd: u64,
-    /// ARS v8: provider slash rate (bps, [0, 10_000]) applied to the locked
+    /// Provider slash rate (bps, [0, 10_000]) applied to the locked
     /// stake on a rejection; zero slashes nothing (staking inert).
     pub provider_penalty_bps: u32,
-    /// ARS v8: treasury cut (bps, [0, 10_000]) of the slashed penalty; the
+    /// Treasury cut (bps, [0, 10_000]) of the slashed penalty; the
     /// remainder compensates the client. Zero sends the whole penalty to client.
     /// Shared by the v8 rejection slash and the v9 non-delivery-expiry slash.
     pub provider_penalty_treasury_cut_bps: u32,
-    /// ARS v9 (WS-BJ): provider slash rate (bps, [0, 10_000]) applied to the
+    /// Provider slash rate (bps, [0, 10_000]) applied to the
     /// locked stake when a staked job expires while still Funded (committed but
     /// never delivered). Split via `provider_penalty_treasury_cut_bps`. Zero
     /// (default) releases the full stake on every expiry, byte-identical to v8.
     pub provider_nondelivery_penalty_bps: u32,
-    /// ARS v10 (WS-BK): master gate for named-underwriter coverage. When true, a
+    /// Master gate for named-underwriter coverage. When true, a
     /// covered job may be backed by an underwriter via `MsgUnderwriteJob`; such a
     /// job routes its premium to the underwriter and pays claims from underwriter
     /// capital instead of the mutualized reserve. False (default) rejects
     /// `MsgUnderwriteJob`, keeping v9 behavior byte-for-byte.
     pub enable_underwriter: bool,
-    /// ARS v10 (WS-BK): treasury cut (bps, [0, 10_000]) of the coverage premium
+    /// Treasury cut (bps, [0, 10_000]) of the coverage premium
     /// an underwriter earns on evaluation; the underwriter keeps the remainder.
     /// Zero (default) sends the whole premium to the underwriter.
     pub underwriter_premium_treasury_cut_bps: u32,

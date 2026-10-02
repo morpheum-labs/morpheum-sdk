@@ -26,7 +26,7 @@ pub struct Vc {
     pub issuance_timestamp: u64,
     pub expiry_timestamp: u64,
     pub status_list_index: u32,
-    /// zkClaims commitment (WS3-D). Empty for a plaintext credential; a 32-byte
+    /// zkClaims commitment. Empty for a plaintext credential; a 32-byte
     /// Pedersen commitment for a privacy-mode credential, in which case the
     /// numeric `claims` fields are zero.
     pub claims_commitment: Vec<u8>,
@@ -139,7 +139,7 @@ impl From<VcClaims> for proto::VcClaims {
             max_slippage_bps: c.max_slippage_bps,
             max_position_usd: c.max_position_usd,
             custom_constraints: c.custom_constraints.unwrap_or_default(),
-            // WS-V owner-delegation scopes are not surfaced by this builder; a
+            // Owner-delegation scopes are not surfaced by this builder; a
             // self-issued VC delegates nothing (0 == no delegated scopes).
             delegated_scopes_bitflags: 0,
         }

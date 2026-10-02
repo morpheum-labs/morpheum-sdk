@@ -122,7 +122,7 @@ pub struct AttestRequest {
     pub job_id: String,
     pub completed: bool,
     pub reason_hash: String,
-    /// ARS v2: the agreement commitment (`Job.job_spec_hash`) the evaluator
+    /// The agreement commitment (`Job.job_spec_hash`) the evaluator
     /// judged against. Must equal the stored spec (empty for specless jobs).
     pub agreement_hash: String,
 }
@@ -230,7 +230,7 @@ impl From<SetProviderRequest> for proto::MsgSetProvider {
     }
 }
 
-/// ARS v8 (WS-BI): request to post provider collateral for a job. `amount_usd`
+/// Request to post provider collateral for a job. `amount_usd`
 /// must equal the job's `provider_stake_required_usd` (front-run-safe); the
 /// provider's own funds are moved into the segregated stake pool.
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -266,7 +266,7 @@ impl From<StakeProviderRequest> for proto::MsgStakeProvider {
     }
 }
 
-/// ARS v10 (WS-BK): request to back a covered job with underwriter capital.
+/// Request to back a covered job with underwriter capital.
 /// `capital_usd` must equal the job's `coverage_amount_usd` (front-run-safe);
 /// the underwriter's own funds are moved into the segregated underwriter pool.
 #[derive(Clone, Debug, PartialEq, Eq)]

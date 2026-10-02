@@ -39,15 +39,12 @@ impl<S: Signer> TxBuilder<S> {
         self
     }
 
-    /// Binds the signing preimage to the target chain's genesis hash (Phase M3
-    /// — audit `O20` / row `C12`), so a signature valid on this chain cannot be
-    /// replayed onto another that happens to share its `chain_id`.
+    /// Binds the signing preimage to the target chain's genesis hash, so a
+    /// signature valid on this chain cannot be replayed onto another that
+    /// happens to share its `chain_id`.
     ///
-    /// This wrapper did not expose it, which is why no consumer of the native
-    /// SDK was binding one: not an oversight by the callers, but an API that
-    /// offered no way to comply. Devnet measurement put every transaction from
-    /// this path on the weaker `GenesisUnbound` preimage rung, and
-    /// `FORK_VERSION_STRICT_GENESIS_BINDING` cannot activate until that moves.
+    /// Required: [`sign`](Self::sign) refuses to build a transaction without
+    /// it.
     ///
     /// # Trust
     ///
@@ -117,13 +114,13 @@ impl<S: Signer> TxBuilder<S> {
         self
     }
 
-    /// Declares the transaction's semantics tier for the Phase 23A
+    /// Declares the transaction's semantics tier for the chain's
     /// tier-aware intra-block tie-break. Leaving this unset defaults
-    /// to `TxClass::Standard` (wire `0`), matching pre-23A behavior.
+    /// to `TxClass::Standard` (wire `0`), the default ordering.
     ///
-    /// Submitter-asserted on the wire; the consensus crate orders by
-    /// tier but does NOT verify semantics — the runtime executor
-    /// rejects mis-declared transactions at execution (a `PostOnly`
+    /// Submitter-asserted on the wire; ordering uses the declared
+    /// tier but does NOT verify semantics — a mis-declared
+    /// transaction is rejected at execution (a `PostOnly`
     /// that crosses, a `Cancel` against a non-existent order, etc.).
     /// See `morpheum_signing_core::tx_class` for the encoding
     /// contract and the SRP boundary.
@@ -141,35 +138,22 @@ impl<S: Signer> TxBuilder<S> {
     /// Thin zero-cost wrapper over
     /// `morpheum_signing_core::TxBuilder::priority_tip` so the SDK
     /// builder exposes the wire-side `TxBody.priority_tip` field
-    /// without re-implementing signing logic. Required for the
-    /// Phase 22T MEV-extraction observability gates
-    /// (`non_zero_tip_tx_count >= 1` / `>= 2`) which the bench
-    /// drives via the Phase 22X Stage 6 tipped-tx interleave.
+    /// without re-implementing signing logic.
     pub fn priority_tip(mut self, tip_oneirs: u128) -> Self {
         self.inner = self.inner.priority_tip(tip_oneirs);
         self
     }
 
-    /// Declares the transaction's `urgent` routing hint
-    /// (Phase 22X.5.D Stage 2.E.1 — L17
-    /// `WorkloadUrgentFlagAssignmentPolicyMode` implementation).
+    /// Declares the transaction's submitter-asserted `urgent` hint.
     ///
     /// Stamped onto `TxBody.urgent` (proto field 6); signed via
     /// `SignDoc.body_bytes` so a relayer or gossip peer cannot
-    /// forge it. Consumed chain-side by
-    /// `priority_flood::classify_validated` to route between the
-    /// MAV path (`false`, default — the `MarkerRoutedToMavPathOnlyByDesign`
-    /// Hypothesis-B confirmed path closed in §2.15.R) and the
-    /// direct flood path (`true` — the §5.2I 4-axis matrix
-    /// `TipsConvergeToFloodPath` slot enabled by §2.15.S).
+    /// forge it. Defaults to `false`.
     ///
     /// Thin zero-cost wrapper over
     /// `morpheum_signing_core::TxBuilder::urgent` so the SDK
     /// builder exposes the wire-side `TxBody.urgent` field
-    /// without re-implementing signing logic. Required for the
-    /// Phase 22X.5.D Stage 2.E.1 bench workload's
-    /// [`WorkloadUrgentFlagAssignmentPolicyMode`]-driven `urgent`
-    /// flag plumbing.
+    /// without re-implementing signing logic.
     pub fn urgent(mut self, urgent: bool) -> Self {
         self.inner = self.inner.urgent(urgent);
         self
@@ -244,11 +228,10 @@ mod tests {
 
     /// `with_genesis_hash` reaches the preimage.
     ///
-    /// A delegating setter that silently dropped its argument would compile,
-    /// return `Self`, read correctly at every call site, and change nothing —
-    /// leaving every caller on the weaker `GenesisUnbound` rung while believing
-    /// they had bound a chain. Nothing but the bytes can tell the difference,
-    /// so the bytes are what this asserts.
+    /// A delegating setter that silently dropped or altered its argument would
+    /// compile, return `Self`, and read correctly at every call site, while the
+    /// preimage bound something other than what the caller passed. Nothing but
+    /// the bytes can tell the difference, so the bytes are what this asserts.
     #[tokio::test]
     async fn with_genesis_hash_changes_the_signed_bytes() {
         let bound = builder()

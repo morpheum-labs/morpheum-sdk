@@ -31,7 +31,7 @@ pub struct StrategyHistoryPage {
     pub executions: Vec<StrategyExecution>,
 }
 
-/// Guardian-action list result (G6 legs 2–3).
+/// Guardian-action list result.
 pub struct GuardianActionListPage {
     pub actions: Vec<GuardianAction>,
 }
@@ -205,7 +205,7 @@ impl VaultClient {
         })
     }
 
-    /// G6 legs 2–3 — list guardian actions for a vault.
+    /// List guardian actions for a vault.
     pub async fn list_guardian_actions(
         &self,
         req: requests::ListGuardianActionsRequest,

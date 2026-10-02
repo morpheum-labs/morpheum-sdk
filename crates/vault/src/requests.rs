@@ -24,13 +24,13 @@ pub struct CreateVaultRequest {
     pub asset_index: u64,
     pub initial_assets: String,
     pub strategy_goal: String,
-    /// VB9 (spec §7 / §12 gate #4) — requested fee preset. `Unspecified` (the
+    /// Requested fee preset. `Unspecified` (the
     /// default) is inert when the preset gate is disarmed and coalesces to
     /// `Standard` when armed.
     pub fee_preset: VaultFeePreset,
-    /// VB9 — requested performance fee (bps). `0` resolves to the preset default.
+    /// Requested performance fee (bps). `0` resolves to the preset default.
     pub performance_fee_bps: u32,
-    /// VB9 — requested management fee (bps). Must be within the preset ceiling.
+    /// Requested management fee (bps). Must be within the preset ceiling.
     pub management_fee_bps: u32,
 }
 
@@ -54,7 +54,7 @@ impl CreateVaultRequest {
         }
     }
 
-    /// VB9 — select the fee preset and rates (`0` performance ⇒ preset default).
+    /// Select the fee preset and rates (`0` performance ⇒ preset default).
     #[must_use]
     pub fn with_fee(
         mut self,
@@ -83,9 +83,9 @@ impl CreateVaultRequest {
             creator_external_address: None,
             creator_chain_type: None,
             // Left UNSPECIFIED; the vault module coalesces it to the
-            // MARKET_MAKING default at create (spec §12).
+            // MARKET_MAKING default at create.
             strategy_type: 0,
-            // VB9 (spec §7 / §12 gate #4) — fee preset selection. Inert when the
+            // Fee preset selection. Inert when the
             // `enable_fee_presets` gate is disarmed (create uses the legacy seed).
             fee_preset: i32::from(self.fee_preset),
             performance_fee_bps: self.performance_fee_bps,
@@ -106,15 +106,15 @@ pub struct UpdateVaultParamsRequest {
     pub min_stake: String,
     pub max_stake: String,
     pub new_description: String,
-    /// VB5 (spec §14 G4) — hard deposit capacity. `None` ⇒ leave unchanged;
+    /// Hard deposit capacity. `None` ⇒ leave unchanged;
     /// `Some("0")` clears the cap (uncapped).
     pub deposit_capacity_native: Option<String>,
-    /// VB5 (spec §14 G4) — manager soft-close toggle. `None` ⇒ leave unchanged.
+    /// Manager soft-close toggle. `None` ⇒ leave unchanged.
     pub soft_closed: Option<bool>,
-    /// VB6 (spec P7 / §2) — replace-as-unit mandate. `None` ⇒ leave unchanged;
+    /// Replace-as-unit mandate. `None` ⇒ leave unchanged;
     /// `Some(...)` must be a tightening of the current mandate.
     pub mandate: Option<crate::types::VaultMandate>,
-    /// VB7 (spec §5) — replace-as-unit allocation policy. `None` ⇒ leave unchanged.
+    /// Replace-as-unit allocation policy. `None` ⇒ leave unchanged.
     pub allocation_policy: Option<crate::types::AllocationPolicy>,
 }
 
@@ -132,14 +132,14 @@ impl UpdateVaultParamsRequest {
         }
     }
 
-    /// VB5 G4 — set the per-depositor cumulative principal floor (base native).
+    /// Set the per-depositor cumulative principal floor (base native).
     /// `"0"` clears/disarms; empty (default) leaves the vault field unchanged.
     pub fn with_min_stake(mut self, min_stake: impl Into<String>) -> Self {
         self.min_stake = min_stake.into();
         self
     }
 
-    /// VB5 G4 — set the per-depositor cumulative principal ceiling (base native).
+    /// Set the per-depositor cumulative principal ceiling (base native).
     /// `"0"` clears/disarms; empty (default) leaves the vault field unchanged.
     pub fn with_max_stake(mut self, max_stake: impl Into<String>) -> Self {
         self.max_stake = max_stake.into();
@@ -173,7 +173,7 @@ impl UpdateVaultParamsRequest {
 pub struct ExecuteStrategyRequest {
     pub vault_id: String,
     pub strategy_params: String,
-    /// D8 (spec §3) — target owned bucket. Empty ⇒ the vault's sole bucket
+    /// Target owned bucket. Empty ⇒ the vault's sole bucket
     /// (rejected when the vault owns more than one — specify explicitly).
     pub bucket_id: String,
 }
@@ -187,7 +187,7 @@ impl ExecuteStrategyRequest {
         }
     }
 
-    /// D8 — target a specific owned bucket.
+    /// Target a specific owned bucket.
     pub fn with_bucket(mut self, bucket_id: impl Into<String>) -> Self {
         self.bucket_id = bucket_id.into();
         self
@@ -207,7 +207,7 @@ impl ExecuteStrategyRequest {
     }
 }
 
-/// D8 (spec §3) — deploy idle principal into an owned margin bucket. Empty
+/// Deploy idle principal into an owned margin bucket. Empty
 /// `bucket_id` with `provision_new = false` targets the sole bucket (or
 /// provisions the first). `provision_new = true` always provisions a NEW bucket
 /// of `new_bucket_mode`.
@@ -260,7 +260,7 @@ impl DeployToBucketRequest {
     }
 }
 
-/// D8 (spec §3) — pull margin back from an owned bucket into idle principal.
+/// Pull margin back from an owned bucket into idle principal.
 /// Empty `bucket_id` targets the sole bucket (rejected when ambiguous).
 #[derive(Clone, Debug, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
@@ -297,7 +297,7 @@ impl UndeployFromBucketRequest {
     }
 }
 
-/// D8 (spec §3) — set per-(bucket, market) leverage on an owned bucket. Empty
+/// Set per-(bucket, market) leverage on an owned bucket. Empty
 /// `bucket_id` targets the sole bucket (rejected when ambiguous).
 #[derive(Clone, Debug, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
@@ -337,7 +337,7 @@ impl SetVaultLeverageRequest {
     }
 }
 
-/// VA3 producer — acquire a mandate-whitelisted spot token by swapping `amount`
+/// Acquire a mandate-whitelisted spot token by swapping `amount`
 /// of idle base collateral into `asset_index` via the CLMM hybrid swap DIP. The
 /// pool must pair exactly `(base, asset_index)` and a committed spot mark must
 /// exist for the target. Gated by the default-OFF `enable_spot_acquisition` +
@@ -384,7 +384,7 @@ impl AcquireSpotRequest {
     }
 }
 
-/// VA3 producer — dispose a held spot token by swapping `amount` of `asset_index`
+/// Dispose a held spot token by swapping `amount` of `asset_index`
 /// back to base collateral via the CLMM hybrid swap DIP. The reduce-only exit is
 /// gated only by `enable_strategy_execution` (never by `enable_spot_acquisition`
 /// or the whitelist) so capital can always leave.
@@ -538,7 +538,7 @@ pub struct WithdrawFromVaultRequest {
     pub vault_id: String,
     pub asset_index: u64,
     pub shares: String,
-    /// D4 in-kind redemption — elect to receive the strict pro-rata slice of the
+    /// In-kind redemption: elect to receive the strict pro-rata slice of the
     /// vault's whitelisted SpotToken custody in-kind (only effective when
     /// governance-armed and the vault holds spot; otherwise settle-to-base).
     pub in_kind: bool,
@@ -560,7 +560,7 @@ impl WithdrawFromVaultRequest {
         }
     }
 
-    /// D4 — elect an in-kind spot redemption for this withdrawal (builder).
+    /// Elect an in-kind spot redemption for this withdrawal (builder).
     pub fn in_kind(mut self, in_kind: bool) -> Self {
         self.in_kind = in_kind;
         self
@@ -616,7 +616,7 @@ impl ClaimYieldRequest {
     }
 }
 
-/// VA4 — refresh one vault's analyst score (keeper cadence).
+/// Refresh one vault's analyst score (keeper cadence).
 #[derive(Clone, Debug, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct RefreshVaultScoreRequest {
@@ -644,7 +644,7 @@ impl RefreshVaultScoreRequest {
     }
 }
 
-/// D10 — crystallize one vault's performance fee (keeper cadence).
+/// Crystallize one vault's performance fee (keeper cadence).
 #[derive(Clone, Debug, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct CrystallizeFeeRequest {
@@ -672,7 +672,7 @@ impl CrystallizeFeeRequest {
     }
 }
 
-/// VA5 — governance-only creation of a `VaultType::Protocol` MLP vault.
+/// Governance-only creation of a `VaultType::Protocol` MLP vault.
 #[derive(Clone, Debug, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct CreateProtocolVaultRequest {
@@ -723,7 +723,7 @@ impl CreateProtocolVaultRequest {
     }
 }
 
-/// VA5 — governance recovery: Liquidating → Active.
+/// Governance recovery: Liquidating → Active.
 #[derive(Clone, Debug, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct ClearVaultLiquidationRequest {
@@ -751,7 +751,7 @@ impl ClearVaultLiquidationRequest {
     }
 }
 
-/// D6 — keeper cadence: auto-pause a vault whose manager has gone silent past
+/// Keeper cadence: auto-pause a vault whose manager has gone silent past
 /// the dead-man threshold. Bounded by `enable_dead_man_switch` + allowlist.
 #[derive(Clone, Debug, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
@@ -780,7 +780,7 @@ impl SweepDeadVaultRequest {
     }
 }
 
-/// G6 legs 2–3 — a guardian opens a protective action proposal. Sender must be
+/// A guardian opens a protective action proposal. Sender must be
 /// in `Params.authorized_guardians`; the proposer auto-counts as approver #1.
 #[derive(Clone, Debug, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
@@ -816,7 +816,7 @@ impl ProposeGuardianActionRequest {
     }
 }
 
-/// G6 legs 2–3 — a distinct guardian approves an in-flight PENDING action.
+/// A distinct guardian approves an in-flight PENDING action.
 /// On the Mth distinct approval the action auto-executes.
 #[derive(Clone, Debug, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
@@ -845,7 +845,7 @@ impl ApproveGuardianActionRequest {
     }
 }
 
-/// G6 legs 2–3 — cancel an in-flight PENDING action (any authorized guardian).
+/// Cancel an in-flight PENDING action (any authorized guardian).
 #[derive(Clone, Debug, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct CancelGuardianActionRequest {
@@ -873,7 +873,7 @@ impl CancelGuardianActionRequest {
     }
 }
 
-/// G6 leg 3 recovery (A3) — governance-only forced operator rotation. Installs
+/// Recovery: governance-only forced operator rotation. Installs
 /// a fresh operator identity and clears `operator_suspended` atomically.
 #[derive(Clone, Debug, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
@@ -1207,7 +1207,7 @@ impl From<GetTopVaultsRequest> for proto::GetTopVaultsRequest {
     }
 }
 
-/// G6 legs 2–3 — list guardian actions for a vault.
+/// List guardian actions for a vault.
 #[derive(Clone, Debug, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct ListGuardianActionsRequest {

@@ -460,31 +460,31 @@ pub struct ClobParams {
     pub default_taker_fee_bps: u32,
     pub default_liquidation_penalty_bps: u32,
     pub default_mm_quote_protocol_cut_bps: u32,
-    /// Reputation gate (ADR-ID-001): require a minimum committed reputation score to place orders.
+    /// Reputation gate: require a minimum committed reputation score to place orders.
     pub enable_reputation_gate: bool,
     pub min_reputation_score: u64,
-    /// Credential gate (WS3-E, ADR-ID-001): require a valid verifiable credential to place orders.
+    /// Credential gate: require a valid verifiable credential to place orders.
     pub enable_credential_gate: bool,
     /// Governance-curated registry resolving credential `allowed_pairs_bitflags` bits to
-    /// canonical trading pairs (WS3-E-claims). Passthrough — deep, nested governance registry.
+    /// canonical trading pairs. Passthrough — deep, nested governance registry.
     pub credential_pair_bits: Vec<proto::CredentialPairBit>,
-    /// zkRFQ reveal-and-settle toggle (ADR-ZK-002).
+    /// zkRFQ reveal-and-settle toggle.
     pub enable_rfq_settle: bool,
-    /// zkClaims credential-limits gate toggle (WS3-D); requires `enable_credential_gate`.
+    /// zkClaims credential-limits gate toggle; requires `enable_credential_gate`.
     pub enable_zk_credential_gate: bool,
-    /// Deterministic GTT/DAY order-expiry sweep gate (A7).
+    /// Deterministic GTT/DAY order-expiry sweep gate.
     pub enable_expiry_sweep: bool,
     /// Allowlist for `MsgScanExpiredOrders` submitters; empty = permissionless.
     pub authorized_expiry_signers: Vec<String>,
-    /// Reputation-scaled queue priority (WS-P, ADR-ID-001).
+    /// Reputation-scaled queue priority.
     pub enable_reputation_priority: bool,
-    /// Identity capability gate (E5): require the signer's agent to hold the
+    /// Identity capability gate: require the signer's agent to hold the
     /// `TRADE` capability to place orders.
     pub enable_trade_capability_gate: bool,
-    /// Identity lifecycle-status gate (E5): require the signer's agent to be in
+    /// Identity lifecycle-status gate: require the signer's agent to be in
     /// `AgentStatus::Active` to place orders.
     pub enable_agent_status_gate: bool,
-    /// CLOB trading-fee insurance share (WS-AU): basis points of the collected
+    /// CLOB trading-fee insurance share: basis points of the collected
     /// maker+taker fee routed to the insurance fund (remainder → treasury).
     /// Per-market override via `MsgUpdateMarketFeeParams.insurance_share_bps`.
     /// Default `0` (no-op).

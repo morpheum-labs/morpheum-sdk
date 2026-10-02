@@ -31,12 +31,17 @@ cargo test --workspace --all-features
   special-case one crate and leave the rest to drift.
 - Signing bytes come from `morpheum-signing`; this SDK wraps and forwards (e.g.
   `with_genesis_hash`) and must never assemble sign-doc bytes itself.
+- Every transaction declares a gas limit as a `TxGasLimit` (re-exported from
+  `morpheum-signing`; `DEFAULT_GAS_LIMIT` unless set via `TxBuilder::gas_limit`,
+  `TxSubmitter::with_gas_limit` or `TxSubmitter::submit_with_gas_limit`). Never take or
+  forward a raw `u64` gas limit.
 - Public API stability matters: additive changes preferred; breaking changes need the CLI
   and e2e consumers updated in the same batch.
 - Known-weak: `crates/wasm` does not currently build for `wasm32` and predates the
-  signing-SSOT discipline — do not extend it; repair-or-retire is an open decision. Use
-  `crates/gmp` as a reminder to prefer workspace deps over `../../../` paths when touching
-  manifests.
+  signing-SSOT discipline — it hand-builds `AuthInfo` and signs `gas_limit: 0`, which the
+  chain refuses. Do not extend it; repair (only by delegating to `TxBuilder`) or retire is
+  an open decision. Use `crates/gmp` as a reminder to prefer workspace deps over
+  `../../../` paths when touching manifests.
 
 <!-- framework:begin ripple -->
 ## Cross-repo ripple

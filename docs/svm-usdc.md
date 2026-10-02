@@ -94,6 +94,8 @@ let msg_any = usdc::build_usdc_execute(
 
 The `MsgExecute` is JSON-serialized (the chain decodes it as JSON) and wrapped in a `google.protobuf.Any`.
 
+`compute_limit` must fit the gas the transaction's declared gas limit leaves for the message, so sign the transaction with a gas limit that covers it (`TxBuilder::gas_limit`, `TxSubmitter::with_gas_limit` or `TxSubmitter::submit_with_gas_limit`). `DEFAULT_COMPUTE_LIMIT` does not exceed the SDK's default declaration, `DEFAULT_GAS_LIMIT`.
+
 ---
 
 ## Return Data

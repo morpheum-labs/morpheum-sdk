@@ -14,6 +14,10 @@
 //!
 //! Store, instantiate and execute requests are ordinary transaction Msgs:
 //! sign and submit `request.to_any()` with `morpheum_sdk_native::TxSubmitter`.
+//! As VM messages they must declare the gas they need rather than rely on
+//! the SDK's default declaration: per transaction with
+//! `TxSubmitter::submit_with_gas_limit`, or with `TxSubmitter::with_gas_limit`
+//! on a submitter that sends only such Msgs.
 
 #![cfg_attr(not(feature = "std"), no_std)]
 #![forbid(unsafe_code)]

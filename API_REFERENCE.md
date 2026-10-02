@@ -101,7 +101,34 @@ Fluent builder: `rpc_endpoint()`, `chain_id()`, `timeout_secs()`, `user_agent()`
 | `with_nonce(nonce)` | Set pre-built nonce |
 | `with_nonce_provider(provider)` | Set nonce provider |
 | `with_trading_key_claim(claim)` | Attach agent claim |
+| `gas_limit(limit: TxGasLimit)` | Declare the gas limit (default `DEFAULT_GAS_LIMIT`) |
 | `sign()` | Sign and return `SignedTx` |
+
+#### Gas limit
+
+Every transaction declares a gas limit in its signed `AuthInfo.gas_limit`, valid
+in `1..=TX_GAS_BUDGET`. The limit caps the gas the transaction may use, and the
+whole of it is reserved against the block's gas budget whether the transaction
+uses it or not, so declare what the transaction needs.
+
+`TxBuilder` declares `DEFAULT_GAS_LIMIT` unless `gas_limit()` sets another. A
+native message with a fixed charge fits the default; a VM message (deploying or
+calling a contract), or a message whose charge scales with the work it does,
+must declare the gas it needs, up to `TX_GAS_BUDGET`. `gas_limit()` takes a
+`TxGasLimit`, which exists only for a valid value: `TxGasLimit::new(u64)` returns
+`GasLimitError::Missing` for `0` and `GasLimitError::OverBudget` above
+`TX_GAS_BUDGET`, before anything is signed; `?` converts it into
+`SdkError::GasLimit`. `TxGasLimit::MAX` is the whole budget.
+
+```rust
+let signed = TxBuilder::new(signer)
+    .chain_id(chain_id)
+    .with_genesis_hash(genesis_hash)
+    .gas_limit(TxGasLimit::new(2_000_000)?)
+    .add_message(contract_call)
+    .sign()
+    .await?;
+```
 
 ### Error
 
@@ -110,6 +137,7 @@ Fluent builder: `rpc_endpoint()`, `chain_id()`, `timeout_secs()`, `user_agent()`
 | Variant | Description |
 |---------|-------------|
 | `Signing(SigningError)` | Signing library error |
+| `GasLimit(GasLimitError)` | Gas-limit declaration outside `1..=TX_GAS_BUDGET` (from `TxGasLimit::new`) |
 | `Transport(String)` | Network/transport error |
 | `Encode(EncodeError)` | Protobuf encode error |
 | `Decode(DecodeError)` | Protobuf decode error |
@@ -124,7 +152,8 @@ Fluent builder: `rpc_endpoint()`, `chain_id()`, `timeout_secs()`, `user_agent()`
 ```rust
 use morpheum_sdk_core::prelude::*;
 // Exports: MorpheumClient, SdkConfig, SdkError, AccountId, ChainId, SignedTx,
-// Transport, BroadcastResult, TxBuilder, Any, PublicKey, Signature, WalletType,
+// Transport, BroadcastResult, TxBuilder, TxGasLimit, GasLimitError,
+// DEFAULT_GAS_LIMIT, TX_GAS_BUDGET, Any, PublicKey, Signature, WalletType,
 // TradingKeyClaim, VcClaimBuilder
 ```
 
@@ -162,7 +191,9 @@ query; build Msgs with the module builders and submit them with `TxSubmitter`.
 | Method | Description |
 |--------|-------------|
 | `TxSubmitter::new(transport, signer, chain_id, genesis_hash: [u8; 32])` | One submitter per key. The genesis hash is required, so every signature is bound to one chain instance |
-| `submit(msg: Any) -> BroadcastResult` | Resolves the nonce (`max(highest signed here, chain last_monotonic) + 1`), signs, submits. Re-signs only when chain state proves the nonce was stale; any other rejection is returned as an error |
+| `with_gas_limit(limit: TxGasLimit)` | The gas limit `submit` declares (default `DEFAULT_GAS_LIMIT`; see [Gas limit](#gas-limit)) |
+| `submit(msg: Any) -> BroadcastResult` | Resolves the nonce (`max(highest signed here, chain last_monotonic) + 1`), signs with the submitter's gas limit, submits. Re-signs only when chain state proves the nonce was stale; any other rejection is returned as an error |
+| `submit_with_gas_limit(msg: Any, limit: TxGasLimit) -> BroadcastResult` | As `submit`, declaring `limit` for this transaction only. A key whose messages need different gas keeps one submitter and declares per call; two submitters on one key resolve nonces independently and can collide |
 | `wait_final(txhash, timeout) -> TxOutcome` | Polls `QueryTxStatus` on the same node until `Confirmed { height, shard_id }` or `Failed { status }` |
 | `account_hex()` | The signer's hex account id |
 
@@ -189,6 +220,7 @@ implements it); it exposes the node's raw admission verdict, which
 ### Re-exports
 
 - **Core:** `core`, `AccountId`, `ChainId`, `SdkConfig`, `SdkError`, `SignedTx`
+- **Gas:** `TxGasLimit`, `GasLimitError`, `DEFAULT_GAS_LIMIT`, `TX_GAS_BUDGET`
 - **Transactions (`grpc`):** `TxSubmitter`, `TxOutcome`, `IngressTransport`
 - **Signing:** `NativeSigner`, `AgentSigner`, `TradingKeyClaim`, `VcClaimBuilder`
 - **Modules (feature-gated):** `market`, `vc`, `auth`, `identity`, `agentreg`, `inferreg`, `interop`, `job`, `bank`, `staking`
@@ -199,7 +231,8 @@ implements it); it exposes the node's raw admission verdict, which
 use morpheum_sdk_native::prelude::*;
 // Exports: MorpheumSdk, native, agent, AccountId, ChainId, SdkConfig, SdkError,
 // SignedTx, NativeSigner, AgentSigner, TradingKeyClaim, VcClaimBuilder, TxBuilder,
-// Any, MarketClient, VcClient, AuthClient, ... (feature-gated)
+// TxGasLimit, GasLimitError, DEFAULT_GAS_LIMIT, TX_GAS_BUDGET, Any, MarketClient,
+// VcClient, AuthClient, ... (feature-gated)
 ```
 
 ---
@@ -418,7 +451,7 @@ Client for nonce queries, TradingKey management, account state.
 
 ### CosmWasm (`morpheum-sdk-cosmwasm`)
 
-- **Builders:** `ExecuteContractBuilder`, `InstantiateContractBuilder`, `StoreCodeBuilder` — each `build()?.to_any()` is an ordinary Msg; sign and submit it with `TxSubmitter`
+- **Builders:** `ExecuteContractBuilder`, `InstantiateContractBuilder`, `StoreCodeBuilder` — each `build()?.to_any()` is an ordinary Msg; sign and submit it with `TxSubmitter`, declaring the gas it needs with `submit_with_gas_limit` (or `with_gas_limit` on a submitter that sends only such Msgs); see [Gas limit](#gas-limit)
 - **Queries:** `CosmWasmClient`; with feature `grpc`, `grpc::wasm_smart_query` / `grpc::wasm_smart_query_typed` over a `tonic` channel
 - **Development only (feature `dev`):** `grpc::broadcast_execute_contract` executes a contract call unsigned through `BroadcastTx`'s `dev_messages` field. Only nodes built with development endpoints accept it; every other node refuses the request
 
@@ -426,7 +459,7 @@ Client for nonce queries, TradingKey management, account state.
 
 - **Client:** `GmpClient`
 - **Relay (feature `relay`):** an embedded Hyperlane relayer
-  - `relay::inbound_process_msg(evm_provider, InboundRelayRequest)` builds the `Mailbox.process()` `MsgExecuteContract` that relays a message dispatched on an EVM chain. Relaying it is a signed transaction from `InboundRelayRequest::morpheum_sender`:
+  - `relay::inbound_process_msg(evm_provider, InboundRelayRequest)` builds the `Mailbox.process()` `MsgExecuteContract` that relays a message dispatched on an EVM chain. Relaying it is a signed transaction from `InboundRelayRequest::morpheum_sender` that declares the gas the contract call needs:
 
     ```rust
     let msg = relay::inbound_process_msg(&evm_provider, InboundRelayRequest {
@@ -438,7 +471,7 @@ Client for nonce queries, TradingKey management, account state.
         merkle_tree_hook,
     })
     .await?;
-    let admitted = submitter.submit(msg.to_any()).await?;
+    let admitted = submitter.submit_with_gas_limit(msg.to_any(), relay_gas).await?;
     let outcome = submitter.wait_final(&admitted.txhash, timeout).await?; // TxOutcome
     ```
   - `relay::mailbox_process_msg(sender, mailbox, metadata, message)` and `relay::build_ism_metadata(..)` build the same Msg for a message from any origin chain

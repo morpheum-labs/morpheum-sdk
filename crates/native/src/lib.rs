@@ -163,6 +163,10 @@ pub use morpheum_sdk_ws as ws;
 // Re-export commonly used core types
 pub use core::{AccountId, ChainId, SdkConfig, SdkError, SignedTx};
 
+// The gas-limit declaration every transaction signs (`TxBuilder::gas_limit`,
+// `TxSubmitter::with_gas_limit`, `TxSubmitter::submit_with_gas_limit`)
+pub use core::{GasLimitError, TxGasLimit, DEFAULT_GAS_LIMIT, TX_GAS_BUDGET};
+
 // Re-export commonly used signing types
 pub use signing::{AgentSigner, NativeSigner};
 
@@ -277,6 +281,9 @@ pub mod prelude {
     // Transaction builder and the canonical `Any` type for constructing messages.
     pub use super::core::builder::TxBuilder;
     pub use super::core::prelude::Any;
+
+    // The gas-limit declaration every transaction signs.
+    pub use super::{GasLimitError, TxGasLimit, DEFAULT_GAS_LIMIT, TX_GAS_BUDGET};
 
     // Feature-gated module re-exports
     #[cfg(feature = "market")]

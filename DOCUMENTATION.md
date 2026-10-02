@@ -331,9 +331,25 @@ let signed_tx = TxBuilder::new(signer)
     .add_message(any_message)
     .with_trading_key_claim(claim)  // optional, for agents
     .with_nonce_provider(provider)  // optional, for nonce
+    .gas_limit(TxGasLimit::new(2_000_000)?)  // optional, DEFAULT_GAS_LIMIT otherwise
     .sign()
     .await?;
 ```
+
+### Gas Limit
+
+Every transaction declares a gas limit, valid in `1..=TX_GAS_BUDGET`. It caps
+the gas the transaction may use, and the whole of it is reserved against the
+block's gas budget whether used or not, so declare what the transaction needs.
+`TxBuilder` declares `DEFAULT_GAS_LIMIT` unless `gas_limit()` sets another. A
+native message with a fixed charge fits the default; a VM message (deploying or
+calling a contract), or a message whose charge scales with the work it does,
+must declare the gas it needs, up to `TX_GAS_BUDGET`. `TxGasLimit::new` refuses
+`0` and anything above `TX_GAS_BUDGET` before anything is signed (`?` converts
+the refusal into `SdkError::GasLimit`). `TxSubmitter::with_gas_limit` sets the
+declaration `submit` signs; `TxSubmitter::submit_with_gas_limit` declares one
+for a single transaction, so one submitter (one nonce sequence) serves a key
+whose messages need different gas.
 
 ### Adding Messages
 
@@ -370,6 +386,7 @@ Result of signing:
 | Variant | Description |
 |---------|-------------|
 | `Signing` | Key handling, claim verification, signature errors |
+| `GasLimit` | Gas-limit declaration outside `1..=TX_GAS_BUDGET` |
 | `Transport` | Network, gRPC, HTTP errors |
 | `Encode` / `Decode` | Protobuf serialization errors |
 | `Config` | Invalid configuration |

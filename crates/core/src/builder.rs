@@ -8,7 +8,7 @@
 
 use crate::{
     signing::{builder::TxBuilder as SigningTxBuilder, claim::TradingKeyClaim, signer::Signer},
-    ChainId, SdkError, SignedTx,
+    ChainId, SdkError, SignedTx, TxGasLimit,
 };
 
 // Re-use the same `Any` type the signing library uses (prost_types::Any),
@@ -175,6 +175,27 @@ impl<S: Signer> TxBuilder<S> {
         self
     }
 
+    /// Declares the transaction's gas limit, replacing
+    /// [`DEFAULT_GAS_LIMIT`](crate::DEFAULT_GAS_LIMIT).
+    ///
+    /// The limit is signed. It caps the gas the transaction may use, and the
+    /// whole of it is reserved against the block's gas budget whether the
+    /// transaction uses it or not, so declare what the transaction needs. A
+    /// native message with a fixed charge fits the default; a VM message
+    /// (deploying or calling a contract), or a message whose charge scales
+    /// with the work it does, must declare the gas it needs, up to
+    /// [`TX_GAS_BUDGET`](crate::TX_GAS_BUDGET).
+    ///
+    /// Thin wrapper over `morpheum_signing_core::TxBuilder::gas_limit`. A
+    /// [`TxGasLimit`] exists only for a value in `1..=TX_GAS_BUDGET`, so an
+    /// undeclared or over-budget limit is refused by [`TxGasLimit::new`]
+    /// before anything is signed.
+    #[must_use]
+    pub fn gas_limit(mut self, gas_limit: TxGasLimit) -> Self {
+        self.inner = self.inner.gas_limit(gas_limit);
+        self
+    }
+
     /// Finalizes and signs the transaction.
     ///
     /// Returns the SDK's `SignedTx` wrapper on success.
@@ -191,11 +212,13 @@ pub use crate::signing::builder::TxBuilder as RawTxBuilder;
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::signing::proto::tx::v1::{Nonce, SignDoc};
+    use crate::signing::proto::tx::v1::{AuthInfo, Nonce, SignDoc, TxRaw};
     use crate::signing::types::{PublicKey, Signature, WalletType};
     use crate::signing::SigningError;
+    use crate::DEFAULT_GAS_LIMIT;
     use alloc::boxed::Box;
     use async_trait::async_trait;
+    use prost::Message;
 
     /// A signer whose output is a deterministic function of the preimage.
     ///
@@ -267,6 +290,41 @@ mod tests {
             other.raw_bytes(),
             "two different genesis hashes must produce different signed bytes; \
              equal bytes mean the setter never reached the preimage",
+        );
+    }
+
+    /// `gas_limit` reaches the transaction that ships, in both the forms
+    /// `SignedTx` hands out: the `TxRaw` bytes `Transport::broadcast_tx`
+    /// sends and the `Tx` that `IngressService/SubmitTx` takes.
+    ///
+    /// Like `with_genesis_hash`, a setter that dropped its argument would
+    /// compile and read correctly at every call site while every transaction
+    /// kept declaring the default. The declared value is not the default, so
+    /// the assertions cannot pass with the setter ignored.
+    #[tokio::test]
+    async fn gas_limit_is_forwarded_into_the_signed_auth_info() {
+        let declared = TxGasLimit::MAX;
+        assert_ne!(declared, DEFAULT_GAS_LIMIT);
+
+        let signed = builder()
+            .with_genesis_hash([0xABu8; 32])
+            .gas_limit(declared)
+            .sign()
+            .await
+            .expect("a declared gas limit signs");
+
+        let shipped = TxRaw::decode(signed.raw_bytes()).expect("raw bytes are a TxRaw");
+        let auth_info = AuthInfo::decode(shipped.auth_info_bytes.as_slice())
+            .expect("the shipped auth_info_bytes decode");
+        assert_eq!(
+            auth_info.gas_limit,
+            declared.get(),
+            "the broadcast bytes must carry the declared gas limit",
+        );
+        assert_eq!(
+            TxGasLimit::declared_by(signed.tx()),
+            Ok(declared),
+            "the Tx form must carry the declared gas limit",
         );
     }
 }

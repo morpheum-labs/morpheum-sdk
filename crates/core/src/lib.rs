@@ -36,6 +36,11 @@ pub use error::SdkError;
 pub use transport::{BroadcastResult, Transport};
 pub use types::{AccountId, ChainId, SignedTx};
 
+// Every transaction declares a gas limit in `1..=TX_GAS_BUDGET`. The type and
+// bounds are the signing library's, re-exported so callers declare gas through
+// the SDK without a direct dependency on it.
+pub use signing::{GasLimitError, TxGasLimit, DEFAULT_GAS_LIMIT, TX_GAS_BUDGET};
+
 #[cfg(feature = "chain-registry")]
 pub use chain_registry::ChainRegistryOps;
 
@@ -64,8 +69,9 @@ pub mod prelude {
     // This is the canonical `Any` type used in TxBuilder.add_message().
     pub use crate::signing::Any;
 
-    // Transaction builder
+    // Transaction builder, and the gas-limit declaration it signs
     pub use crate::builder::TxBuilder;
+    pub use crate::{GasLimitError, TxGasLimit, DEFAULT_GAS_LIMIT, TX_GAS_BUDGET};
 
     // Frequently used protobuf types when constructing transactions
     pub use crate::proto::tx::v1::{AuthInfo, SignDoc, SignerInfo, Tx, TxBody, TxRaw};

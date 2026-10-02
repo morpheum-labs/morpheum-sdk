@@ -122,8 +122,8 @@ impl<T: IngressTransport> TxSubmitter<T> {
     /// # Errors
     ///
     /// A transport failure, a signing failure, or the node's rejection
-    /// (after [`STALE_NONCE_RETRIES`] re-signs when chain state proves the
-    /// nonce was stale).
+    /// (after up to three re-signs when chain state proves the nonce was
+    /// stale).
     pub async fn submit(&self, msg: Any) -> Result<BroadcastResult, SdkError> {
         let mut high_water = self.high_water.lock().await;
         let mut chain_last = self.last_monotonic().await?;

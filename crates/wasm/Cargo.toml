@@ -42,7 +42,7 @@ morpheum-sdk-auth = { path = "../auth", optional = true, default-features = fals
 
 # Signing: shared WASM adapters + core TxBuilder
 morpheum-signing-wasm-lib = { workspace = true }
-morpheum-signing-core = { workspace = true, features = ["wasm", "dynamic-signer-info"] }
+morpheum-signing-core = { workspace = true }
 
 # Proto types for message encoding
 morpheum-proto = { workspace = true }

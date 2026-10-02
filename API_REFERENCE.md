@@ -496,6 +496,7 @@ let any = req.to_any();
 // Add to transaction
 let signed = TxBuilder::new(signer)
     .chain_id("morpheum-1")
+    .with_genesis_hash(genesis_hash)  // from operator configuration
     .add_message(any)
     .sign()
     .await?;

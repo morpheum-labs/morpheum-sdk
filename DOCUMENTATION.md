@@ -75,6 +75,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Build and sign a transaction
     let signed_tx = TxBuilder::new(signer)
         .chain_id("morpheum-1")
+        .with_genesis_hash(genesis_hash)  // from operator configuration
         .memo("Hello from SDK")
         .add_message(your_message)
         .sign()
@@ -310,6 +311,8 @@ let claim = VcClaimBuilder::new()
 
 // Attach to transaction
 TxBuilder::new(agent_signer)
+    .chain_id("morpheum-1")
+    .with_genesis_hash(genesis_hash)  // from operator configuration
     .with_trading_key_claim(claim)
     .add_message(msg)
     .sign()
@@ -327,6 +330,7 @@ Fluent transaction builder:
 ```rust
 let signed_tx = TxBuilder::new(signer)
     .chain_id("morpheum-1")
+    .with_genesis_hash(genesis_hash)  // from operator configuration
     .memo("Optional memo")
     .add_message(any_message)
     .with_trading_key_claim(claim)  // optional, for agents
@@ -365,6 +369,8 @@ let create_req = MarketCreateBuilder::new()
     .build()?;
 
 signed_tx = TxBuilder::new(signer)
+    .chain_id("morpheum-1")
+    .with_genesis_hash(genesis_hash)  // from operator configuration
     .add_message(create_req.to_any())
     .sign()
     .await?;

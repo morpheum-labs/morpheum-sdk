@@ -283,7 +283,7 @@ Optional dependencies (`?`) allow modules to be excluded for smaller WASM bundle
 ### 3. Zero Unsafe Code
 
 - `#![forbid(unsafe_code)]` in `native` and `wasm`
-- Security-critical code lives in `morpheum-signing` (audited separately)
+- Security-critical code lives in `morpheum-signing`
 
 ### 4. Fluent Builders
 

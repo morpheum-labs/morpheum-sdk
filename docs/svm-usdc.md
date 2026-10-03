@@ -2,7 +2,7 @@
 
 > Last updated: 2026-03-21
 
-This document covers the client-side tooling for interacting with Morpheum's internal SVM USDC native program. The native program lives inside the Morpheum node (`mormcore/crates/modules/svm/src/programs/usdc.rs`) and translates compact byte-encoded instructions into `NativeOp` dispatches against the shared Bank module.
+This document covers the client-side tooling for interacting with Morpheum's SVM USDC native program. The native program is built into the Morpheum chain and translates compact byte-encoded instructions into operations on canonical USDC bank balances.
 
 ---
 
@@ -14,9 +14,9 @@ Morpheum canonical USDC (bank asset index 1) is accessible from three VM context
 |----|-----------|------------|
 | CosmWasm | CCTP Handler contract | `morpheum-sdk-cctp` |
 | EVM | Precompile at `0x...C1` | `morpheum-sdk-evm::cctp` |
-| SVM | Native program (intercepted in `SvmExecutor`) | `morpheum-sdk-svm::usdc` |
+| SVM | Native program | `morpheum-sdk-svm::usdc` |
 
-All three converge on the same `NativeDispatcher` → `TokenBridge` → `BankKeeper` pipeline. The precompile and native program are pure translators with zero independent state.
+All three operate on the same bank balance. The precompile and native program hold no state of their own.
 
 ---
 
@@ -92,7 +92,7 @@ let msg_any = usdc::build_usdc_execute(
 // Submit via IngressService/SubmitTx
 ```
 
-The `MsgExecute` is JSON-serialized (matching the SVM actor's `serde_json::from_slice` deserialization) and wrapped in a `google.protobuf.Any`.
+The `MsgExecute` is JSON-serialized (the chain decodes it as JSON) and wrapped in a `google.protobuf.Any`.
 
 `compute_limit` must fit the gas the transaction's declared gas limit leaves for the message, so sign the transaction with a gas limit that covers it (`TxBuilder::gas_limit`, `TxSubmitter::with_gas_limit` or `TxSubmitter::submit_with_gas_limit`). `DEFAULT_COMPUTE_LIMIT` does not exceed the SDK's default declaration, `DEFAULT_GAS_LIMIT`.
 
@@ -142,31 +142,8 @@ morpheum query svm-usdc allowance --owner <hex_address> --spender <hex_address>
 
 ---
 
-## E2E Testing
-
-The `CctpSvmHarness` in `orchestrator/tests/e2e/gmp/cctp/src/svm_harness.rs` provides:
-
-- `usdc_transfer(to, amount)` — Submit Transfer via `MsgExecute`
-- `usdc_approve(spender, amount)` — Submit Approve via `MsgExecute`
-- `usdc_balance_of(owner)` — Submit BalanceOf + verify via bank query
-- `usdc_allowance(owner, spender)` — Submit Allowance via `MsgExecute`
-- `raw_execute(data, accounts)` — Submit arbitrary instruction data (for negative tests)
-
-### Test coverage
-
-| Test | File | What it verifies |
-|------|------|-----------------|
-| `test_cctp_svm_native_program_balance` | `cctp_multi_vm_e2e.rs` | BalanceOf via MsgExecute matches bank |
-| `test_cctp_cross_vm_balance_consistency` | `cctp_multi_vm_e2e.rs` | Bank == SVM balance |
-| `test_svm_usdc_transfer_updates_bank` | `cctp_multi_vm_e2e.rs` | Transfer decrements sender, credits recipient |
-| `test_svm_usdc_transfer_insufficient_balance` | `cctp_negative_e2e.rs` | Overdraft rejected, balance unchanged |
-| `test_svm_usdc_invalid_instruction_rejected` | `cctp_negative_e2e.rs` | Invalid discriminator (0xFF) rejected |
-| `test_svm_usdc_empty_instruction_rejected` | `cctp_negative_e2e.rs` | Empty data rejected |
-
----
-
 ## Relationship to External Solana
 
-This module covers **Morpheum's internal SVM engine** — the USDC native program running inside the Morpheum node. It does NOT cover external Solana chain CCTP bridging (which would require a Solana program for CCTP — future work).
+This module covers **Morpheum's built-in SVM engine** — the USDC native program that is part of the Morpheum chain. It does not cover CCTP bridging on the external Solana chain.
 
 For bridging tokens FROM Solana TO Morpheum via Warp Route, use `morpheum-sdk-svm::bridge`.

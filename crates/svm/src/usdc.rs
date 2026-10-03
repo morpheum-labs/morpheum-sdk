@@ -1,8 +1,8 @@
 //! USDC native program client helpers for Morpheum's internal SVM engine.
 //!
 //! Provides instruction encoding, program ID derivation, and `MsgExecute`
-//! builders that mirror the on-chain encoding in
-//! `mormcore::modules::svm::programs::usdc`.
+//! builders that mirror the chain's on-chain encoding for the USDC native
+//! program.
 //!
 //! ## Instruction encoding
 //!
@@ -32,7 +32,7 @@ const _: () = assert!(DEFAULT_COMPUTE_LIMIT <= morpheum_sdk_core::DEFAULT_GAS_LI
 /// Morpheum `MsgExecute` type URL used by the SVM actor.
 pub const MSG_EXECUTE_TYPE_URL: &str = "/morpheum.svm.v1.MsgExecute";
 
-// Instruction discriminators (must match mormcore).
+// Instruction discriminators (must match the chain).
 const DISC_TRANSFER: u8 = 0;
 const DISC_APPROVE: u8 = 1;
 const DISC_TRANSFER_FROM: u8 = 2;
@@ -42,16 +42,16 @@ const DISC_ALLOWANCE: u8 = 4;
 /// Derives the deterministic USDC native program ID.
 ///
 /// Uses `blake3::hash(b"morpheum_usdc_native_program")` truncated to
-/// 20 bytes and hex-encoded, matching the address format used by
-/// `SvmExecutor::execute_deploy` in mormcore.
+/// 20 bytes and hex-encoded, matching the address format the chain uses for
+/// deployed SVM programs.
 #[must_use]
 pub fn usdc_program_id() -> String {
     let hash = blake3::hash(b"morpheum_usdc_native_program");
     hex::encode(&hash.as_bytes()[..20])
 }
 
-/// Account metadata for an SVM instruction (client-side mirror of
-/// `mormcore::modules::svm::types::msgs::AccountMeta`).
+/// Account metadata for an SVM instruction (client-side mirror of the chain's
+/// `AccountMeta` message shape).
 #[derive(Clone, Debug, serde::Serialize)]
 pub struct AccountMeta {
     pub pubkey: String,
@@ -140,8 +140,8 @@ pub fn decode_u128(data: &[u8]) -> Result<u128, SvmError> {
 
 // ── MsgExecute builder ──────────────────────────────────────────────────
 
-/// Serializable `MsgExecute` matching the JSON format expected by
-/// `mormcore::modules::svm::actor::SvmActor`.
+/// Serializable `MsgExecute` matching the JSON format the chain expects for
+/// SVM execution.
 #[derive(Clone, Debug, serde::Serialize)]
 struct MsgExecute {
     sender: String,

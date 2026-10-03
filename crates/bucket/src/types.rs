@@ -114,10 +114,10 @@ pub struct Bucket {
     pub created_at: u64,
     pub updated_at: u64,
     pub sequence_id: i64,
-    /// Spot collateral pledged to this bucket (WS-M unified spot+perp
+    /// Spot collateral pledged to this bucket (unified spot+perp
     /// collateral): token_index → u256 satoshi-format amount string.
     pub pledged: BTreeMap<u32, String>,
-    /// CLMM LP positions pledged to this bucket (WS-Y CLMM-LP-position
+    /// CLMM LP positions pledged to this bucket (CLMM-LP-position
     /// collateral): position_id → pool_id.
     pub pledged_positions: BTreeMap<u64, u64>,
 }

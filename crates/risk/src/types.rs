@@ -360,7 +360,7 @@ impl From<proto::AuctionBackstopped> for AuctionBackstopped {
     }
 }
 
-/// Systemic stress index recomputed on a cadence scan (WS-BE).
+/// Systemic stress index recomputed on a cadence scan.
 #[derive(Clone, Debug, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct SystemicStressUpdated {
@@ -383,7 +383,7 @@ impl From<proto::SystemicStressUpdated> for SystemicStressUpdated {
     }
 }
 
-/// SSI crossed the governance warn threshold (WS-BE, informational).
+/// SSI crossed the governance warn threshold (informational).
 #[derive(Clone, Debug, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct SystemicStressAlert {

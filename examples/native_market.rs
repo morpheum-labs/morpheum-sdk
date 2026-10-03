@@ -57,8 +57,12 @@ async fn main() -> Result<(), Box<dyn Error>> {
     println!("📋 Market creation request built successfully");
 
     // 5. Create the transaction using TxBuilder and sign it
+    // The target chain's genesis hash, from operator configuration (never from
+    // the node you submit to). `sign()` refuses a transaction built without one.
+    let genesis_hash = [0u8; 32]; // Replace with the configured genesis hash
     let signed_tx = TxBuilder::new(signer)
         .chain_id(sdk.config().default_chain_id.clone())
+        .with_genesis_hash(genesis_hash)
         .memo("Creating BTC-USDC-PERP market via SDK example")
         .add_message(create_request.to_any())
         .sign()

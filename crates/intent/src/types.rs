@@ -29,9 +29,9 @@ pub enum IntentType {
     MultiLeg = 2,
     /// Declarative: high-level goal decomposed by the runtime.
     Declarative = 3,
-    /// RFQ: sealed-bid request-for-quote auction (zkRFQ, ADR-ZK-002).
+    /// RFQ: sealed-bid request-for-quote auction (zkRFQ).
     Rfq = 4,
-    /// POV: volume-participation execution (WS-BF).
+    /// POV: volume-participation execution.
     Pov = 5,
 }
 
@@ -88,7 +88,7 @@ pub enum IntentStatus {
     /// Expired (past `expiry_timestamp`).
     Expired = 5,
     /// zkRFQ: a sealed bid has been accepted and escrow locked; the RFQ awaits
-    /// the winning maker's reveal-and-settle (ADR-ZK-002 Phase 4c).
+    /// the winning maker's reveal-and-settle.
     AwaitingReveal = 6,
 }
 
@@ -140,7 +140,7 @@ impl fmt::Display for IntentStatus {
     }
 }
 
-// ====================== EXECUTION-ENGINE ENUMS (E6, WS-G G1) ======================
+// ====================== EXECUTION-ENGINE ENUMS ======================
 //
 // Feed the intent-execution engine's typed orders/triggers. Every field is
 // deterministic and float-free: integer indices/sizes and 1e8 fixed-point
@@ -478,7 +478,7 @@ impl From<TwapParams> for proto::TwapParams {
     }
 }
 
-/// POV (Percentage-of-Volume) / volume-participation intent parameters (WS-BF).
+/// POV (Percentage-of-Volume) / volume-participation intent parameters.
 ///
 /// Each cadence tick sizes the child order to a target participation of the
 /// market volume realized since arming, reading the CLOB committed traded-volume
@@ -646,7 +646,7 @@ impl fmt::Display for RfqSide {
     }
 }
 
-/// Public terms of a sealed-bid RFQ auction (zkRFQ, ADR-ZK-002).
+/// Public terms of a sealed-bid RFQ auction (zkRFQ).
 #[derive(Clone, Debug, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct RfqParams {
@@ -892,9 +892,9 @@ pub struct Params {
     /// Maximum steps allowed in a single declarative decomposition.
     pub max_decomposition_steps: u32,
     /// Whether the zkRFQ flow (RFQ intent type + sealed-quote messages) is
-    /// enabled (ADR-ZK-002). Default-disabled, fail-closed.
+    /// enabled. Default-disabled, fail-closed.
     pub rfq_enabled: bool,
-    /// WS-G G1 — master switch for the intent-execution engine (TWAP /
+    /// Master switch for the intent-execution engine (TWAP /
     /// conditional / multi-leg). Default-disabled, fail-closed.
     pub enable_intent_execution: bool,
     /// Allowlist of keepers permitted to submit the `MsgExecuteIntents`
@@ -903,10 +903,10 @@ pub struct Params {
     /// Per-scan bound on the number of intents one `MsgExecuteIntents`
     /// services (0 = built-in default).
     pub max_intents_per_scan: u64,
-    /// WS-AI — whether the zkRFQ reputation admission gate is armed.
+    /// Whether the zkRFQ reputation admission gate is armed.
     /// Default-disabled, fail-closed.
     pub enable_rfq_reputation_gate: bool,
-    /// WS-AI — minimum committed reputation score a market maker must hold to
+    /// Minimum committed reputation score a market maker must hold to
     /// quote/settle a zkRFQ when the gate is armed (ignored when disarmed).
     pub min_reputation_to_quote: u64,
 }

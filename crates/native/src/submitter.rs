@@ -164,8 +164,8 @@ impl<T: IngressTransport> TxSubmitter<T> {
     /// # Errors
     ///
     /// A transport failure, a signing failure, or the node's rejection
-    /// (after [`STALE_NONCE_RETRIES`] re-signs when chain state proves the
-    /// nonce was stale).
+    /// (after up to three re-signs when chain state proves the nonce was
+    /// stale).
     pub async fn submit_with_gas_limit(
         &self,
         msg: Any,

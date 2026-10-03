@@ -45,8 +45,12 @@ async fn main() -> Result<(), Box<dyn Error>> {
     // =============================================
     // 4. Build and sign a simple transaction
     // =============================================
+    // The target chain's genesis hash, from operator configuration (never from
+    // the node you submit to). `sign()` refuses a transaction built without one.
+    let genesis_hash = [0u8; 32]; // Replace with the configured genesis hash
     let signed_tx = TxBuilder::new(sdk.signer.clone())
         .chain_id("morpheum-test-1")
+        .with_genesis_hash(genesis_hash)
         .memo("Transaction signed using BIP-39 mnemonic via Morpheum SDK")
         .add_message(Any {
             type_url: "/market.v1.MsgCreateMarketRequest".to_string(),

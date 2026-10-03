@@ -29,7 +29,7 @@ pub struct IssueVcRequest {
     pub subject: AccountId,
     pub claims: VcClaims,
     pub expiry_timestamp: u64, // 0 = use module default
-    /// zkClaims commitment binding the hidden owner-issued limits (WS3-D).
+    /// zkClaims commitment binding the hidden owner-issued limits.
     /// Empty for a plaintext credential (the default); a 32-byte Pedersen
     /// commitment for a privacy-mode credential, in which case the numeric
     /// `claims` fields MUST be zero (mode disjointness, enforced on-chain at
@@ -62,7 +62,7 @@ impl IssueVcRequest {
         self
     }
 
-    /// Sets the zkClaims commitment for a privacy-mode credential (WS3-D). The
+    /// Sets the zkClaims commitment for a privacy-mode credential. The
     /// numeric `claims` fields must be zero alongside a non-empty commitment.
     pub fn with_claims_commitment(mut self, commitment: Vec<u8>) -> Self {
         self.claims_commitment = commitment;
@@ -178,7 +178,7 @@ impl From<SelfRevokeVcRequest> for proto::MsgSelfRevoke {
 pub struct UpdateClaimsRequest {
     pub vc_id: String,
     pub new_claims: VcClaims,
-    /// zkClaims commitment for the updated claims (WS3-D). Empty keeps/rotates
+    /// zkClaims commitment for the updated claims. Empty keeps/rotates
     /// the credential into plaintext mode; a 32-byte commitment (with zeroed
     /// numeric `new_claims`) rotates it into privacy mode.
     pub claims_commitment: Vec<u8>,
@@ -193,7 +193,7 @@ impl UpdateClaimsRequest {
         }
     }
 
-    /// Sets the zkClaims commitment for a privacy-mode claims update (WS3-D).
+    /// Sets the zkClaims commitment for a privacy-mode claims update.
     pub fn with_claims_commitment(mut self, commitment: Vec<u8>) -> Self {
         self.claims_commitment = commitment;
         self

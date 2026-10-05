@@ -17,7 +17,6 @@ default = []
 std = [
     "prost/std",
     "thiserror/std",
-    "morpheum-signing-core/std",
     "morpheum-proto/std",
 ]
 # Enables serde support for types (std-only)
@@ -33,14 +32,10 @@ full = ["std", "serde"]
 # Canonical protobuf definitions (generated from morpheum-proto)
 morpheum-proto = { workspace = true }
 
-# Official Morpheum signing core (no_std version) — deliberately used here
-# instead of -native to keep sdk-core truly no_std and reusable.
-# All signing, dynamic SignerInfo, TradingKeyClaim, and claim verification
-# are delegated to this crate.
-morpheum-signing-core = { workspace = true, default-features = false, features = [
-    "dynamic-signer-info",
-    "claim-verification",
-] }
+# Official Morpheum signing core — used here instead of -native because it
+# carries no signer backends or networking. All signing, dynamic SignerInfo,
+# TradingKeyClaim, and claim verification are delegated to this crate.
+morpheum-signing-core = { workspace = true }
 
 # Protobuf runtime (for Message::decode / encode_to_vec)
 prost = { version = "0.14", default-features = false }

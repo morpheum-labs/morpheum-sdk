@@ -203,7 +203,7 @@ crates/<module>/
 
 The SDK **does not implement signing**. It delegates to the official `morpheum-signing` library:
 
-- **morpheum-signing-core** — `no_std` types, TxBuilder, claim verification
+- **morpheum-signing-core** — core types, TxBuilder, claim verification
 - **morpheum-signing-native** — NativeSigner, AgentSigner, BIP-39, full crypto
 
 **Key types re-exported:**

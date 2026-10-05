@@ -8,10 +8,11 @@ extern crate std;
 
 extern crate alloc;
 
-// Re-export the official Morpheum signing core (the no_std part).
+// Re-export the official Morpheum signing core.
 // This gives us AccountId, PublicKey, Signature, TradingKeyClaim,
 // VcClaimBuilder, dynamic SignerInfo, etc. — exactly as designed.
-// We do **not** depend on -native here to keep sdk-core truly no_std.
+// We do **not** depend on -native here: sdk-core carries no signer backends
+// or networking.
 pub use morpheum_signing_core as signing;
 
 // Re-export our generated protobuf definitions for clean access.

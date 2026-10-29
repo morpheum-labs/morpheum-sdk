@@ -1,0 +1,11 @@
+🔑 Morpheum Native SDK - BIP-39 Mnemonic Example
+📝 Using mnemonic:
+   abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about
+✅ NativeSigner created successfully from mnemonic
+🔏 Transaction signed successfully using mnemonic-derived key
+   TxHash : f9136e0e456eccbb73f9bd6020e8f59c858181f72ffd320c80b8e9c80c171130
+   Size   : 253 bytes
+
+🎉 BIP-39 mnemonic example completed successfully!
+   The private key was derived deterministically from the mnemonic phrase.
+   In real applications, never hardcode mnemonics — load them securely.

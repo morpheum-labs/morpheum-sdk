@@ -87,6 +87,16 @@ jobs:
       - uses: Swatinem/rust-cache@v2
         with:
           workspaces: morpheum-sdk -> target
+      - name: Permit unprivileged user namespaces
+        run: |
+          set -euo pipefail
+          if unshare --net --map-root-user -- true; then
+            echo "unshare --net --map-root-user already permitted"
+            exit 0
+          fi
+          # Ubuntu 24.04 AppArmor denies the uid_map write --map-root-user needs.
+          sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
+          unshare --net --map-root-user -- true
       - name: Run verify-morpheum-sdk
         run: |
           set -euo pipefail

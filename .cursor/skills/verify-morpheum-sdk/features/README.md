@@ -6,7 +6,7 @@ This directory is the source for verifying the native example programs. Read the
 
 - Clone `morpheum-proto`, `morpheum-primitives`, `morpheum-signing`, `cryptogram`, and `contracts` as siblings of this repo. `doctor` fails while a sibling marker is missing. The first four need a root `Cargo.toml`. `contracts` needs `contracts/cosmwasm/Cargo.toml`, or any other `Cargo.toml` under that tree.
 - `rustc` is at least the workspace `rust-version`. CI pins 1.98.1.
-- `protoc`, `tmux`, and `unshare` are on `PATH`.
+- `protoc`, `tmux`, and `unshare` are on `PATH`. The host must allow the `uid_map` write from `unshare --map-root-user`. Ubuntu 24.04 blocks it until `kernel.apparmor_restrict_unprivileged_userns` is `0`.
 - Run `launch`, then `doctor`, and require `doctor ok` for this run id.
 - One verification run owns the workspace `target/` directory. A second `launch` exits while the lock at `/tmp/verify-morpheum-sdk/lock` is held.
 - The example programs use the all-zero genesis hash baked into their source. That is the chain id binding under test. They do not submit to a node.

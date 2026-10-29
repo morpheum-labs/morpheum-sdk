@@ -33,4 +33,5 @@ Preconditions:
 - The mnemonic in the program is the public BIP-39 test vector. The proof records it because the program prints it.
 - The genesis hash in the program is 32 zero bytes, and the chain id is `morpheum-test-1`. With the default zero nonce, the hash does not depend on the clock.
 - `cargo run` inside the empty netns fails when Cargo tries to reach the registry. Only the example binary goes in the netns.
+- `unshare: write failed /proc/self/uid_map: Operation not permitted` means the host refused the user namespace. The binary is installed. On Ubuntu 24.04 set `kernel.apparmor_restrict_unprivileged_userns=0` and run the same command again.
 - The broadcast call in the example source is a comment. The netns exit code is the check that the process finished without a route.

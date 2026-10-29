@@ -61,6 +61,8 @@ unshare --net --map-root-user -- target/debug/examples/<name>
 
 `unshare --net --map-root-user` gives the example a network namespace with no external route. Cargo stays outside that namespace: Cargo talks to the registry, and a Cargo failure there says nothing about the example. The second and third commands are the built example binary, the same file `cargo run` executes.
 
+`--map-root-user` writes `/proc/self/uid_map`. `unshare` on `PATH` is not enough when the kernel refuses that write. Ubuntu 24.04 does so while `kernel.apparmor_restrict_unprivileged_userns` is `1`. The verify workflow sets that sysctl to `0`, then runs the same `unshare` command, before `launch`.
+
 `bip39-sign` and `market-sign` must print the same tx hash on all three runs. `bip39-sign` must also print the same byte size. The agent features call `SystemTime::now()` for claim expiry, so a matching hash is not required; the success lines and exit 0 are. On this tree those two examples fail to build. `drive` records that failure in `proof.txt` and exits non-zero.
 
 ## Evidence

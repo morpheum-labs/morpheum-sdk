@@ -1,0 +1,106 @@
+# One-shot proof runner for .cursor/skills/verify-morpheum-sdk.
+# Private siblings are checked out the same way as ci.yml. The job runs the
+# skill and uploads evidence/<run_id>/.
+name: verify-native-example
+
+on:
+  push:
+    branches:
+      - cursor/verify-morpheum-sdk-1633
+
+concurrency:
+  group: verify-native-example-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  CARGO_TERM_COLOR: never
+
+jobs:
+  drive:
+    name: launch doctor drive bip39-sign
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: morpheum-sdk
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: morpheum-sdk
+      - name: Verify access to private siblings
+        env:
+          CI_REPO_READ_TOKEN: ${{ secrets.CI_REPO_READ_TOKEN }}
+        run: |
+          if [ -z "$CI_REPO_READ_TOKEN" ]; then
+            echo "::error::CI_REPO_READ_TOKEN is unset. The native examples path-depend on private siblings."
+            exit 1
+          fi
+          failed=""
+          for repo in contracts cryptogram morpheum-primitives morpheum-proto; do
+            code=$(curl -s -o /dev/null -w '%{http_code}' \
+                     -H "Authorization: Bearer $CI_REPO_READ_TOKEN" \
+                     "https://api.github.com/repos/morpheum-labs/$repo")
+            echo "  $repo: HTTP $code"
+            [ "$code" = "200" ] || failed="$failed $repo"
+          done
+          if [ -n "$failed" ]; then
+            echo "::error::CI_REPO_READ_TOKEN cannot read:$failed"
+            exit 1
+          fi
+      - uses: actions/checkout@v4
+        with:
+          repository: morpheum-labs/contracts
+          path: contracts
+          token: ${{ secrets.CI_REPO_READ_TOKEN }}
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          repository: morpheum-labs/cryptogram
+          path: cryptogram
+          token: ${{ secrets.CI_REPO_READ_TOKEN }}
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          repository: morpheum-labs/morpheum-primitives
+          path: morpheum-primitives
+          token: ${{ secrets.CI_REPO_READ_TOKEN }}
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          repository: morpheum-labs/morpheum-proto
+          path: morpheum-proto
+          token: ${{ secrets.CI_REPO_READ_TOKEN }}
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          repository: morpheum-labs/morpheum-signing
+          path: morpheum-signing
+          persist-credentials: false
+      - uses: dtolnay/rust-toolchain@1.98.1
+        with:
+          components: rustfmt, clippy
+      - name: Install protoc and tmux
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq protobuf-compiler tmux
+          protoc --version
+          tmux -V
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: morpheum-sdk -> target
+      - name: Run verify-morpheum-sdk
+        run: |
+          set -euo pipefail
+          bin=.cursor/skills/verify-morpheum-sdk/bin/verify-morpheum-sdk
+          chmod +x "$bin"
+          cleanup() { "$bin" cleanup || true; }
+          trap cleanup EXIT
+          "$bin" launch
+          "$bin" doctor
+          "$bin" drive bip39-sign
+          "$bin" evidence
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: verify-evidence
+          path: morpheum-sdk/.cursor/skills/verify-morpheum-sdk/evidence
+          if-no-files-found: error

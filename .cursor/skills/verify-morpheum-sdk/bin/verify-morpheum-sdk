@@ -1,0 +1,534 @@
+#!/usr/bin/env bash
+# Drive the Morpheum native example binaries and record proof.
+set -euo pipefail
+
+BIN_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+ROOT=$(cd "$BIN_DIR/../../../.." && pwd)
+SKILL="$ROOT/.cursor/skills/verify-morpheum-sdk"
+STATE=/tmp/verify-morpheum-sdk
+LOCK=$STATE/lock
+CURRENT=$STATE/current
+
+export CARGO_TERM_COLOR=never
+
+die() {
+  echo "verify-morpheum-sdk: $*" >&2
+  exit 1
+}
+
+need_cmd() {
+  command -v "$1" >/dev/null 2>&1 || die "missing command: $1"
+}
+
+current_id() {
+  if [[ -n "${VERIFY_RUN_ID:-}" ]]; then
+    printf '%s\n' "$VERIFY_RUN_ID"
+    return
+  fi
+  [[ -f "$CURRENT" ]] || die "no run. launch first, or set VERIFY_RUN_ID"
+  tr -d '[:space:]' <"$CURRENT"
+}
+
+evidence_dir() {
+  printf '%s\n' "$SKILL/evidence/$1"
+}
+
+run_dir() {
+  printf '%s\n' "$STATE/runs/$1"
+}
+
+release_lock() {
+  local id=$1
+  if [[ -f "$LOCK/run_id" ]] && [[ "$(tr -d '[:space:]' <"$LOCK/run_id")" == "$id" ]]; then
+    rm -rf "$LOCK"
+  fi
+}
+
+# Print a check report. Exit 0 when the workspace can be built.
+check_workspace() {
+  python3 - "$ROOT" <<'PY'
+import re, shutil, subprocess, sys
+from pathlib import Path
+
+root = Path(sys.argv[1]).resolve()
+parent = root.parent
+failures = []
+
+def ok(msg):
+    print(f"ok  {msg}")
+
+def bad(msg):
+    failures.append(msg)
+    print(f"fail  {msg}")
+
+rustc = shutil.which("rustc")
+if not rustc:
+    bad("rustc missing")
+else:
+    line = subprocess.check_output([rustc, "--version"], text=True).strip()
+    m = re.search(r"(\d+)\.(\d+)\.(\d+)", line)
+    have = tuple(int(x) for x in m.groups()) if m else (0, 0, 0)
+    text = (root / "Cargo.toml").read_text(encoding="utf-8")
+    want_m = re.search(r'(?m)^rust-version\s*=\s*"([^"]+)"', text)
+    want = (1, 91, 0)
+    if want_m:
+        parts = [int(p) for p in want_m.group(1).split(".")]
+        while len(parts) < 3:
+            parts.append(0)
+        want = tuple(parts[:3])
+    if have < want:
+        bad(f"rustc {have} is older than workspace rust-version {want} ({line})")
+    else:
+        ok(f"rustc {line}")
+
+for tool in ("cargo", "protoc", "tmux", "unshare", "python3", "git"):
+    path = shutil.which(tool)
+    if path:
+        ok(f"{tool} {path}")
+    else:
+        bad(f"{tool} missing")
+
+# CI checks these out beside the SDK. Cargo fails the workspace load when any
+# path is absent, including ones that only appear inside a missing sibling.
+required = (
+    "morpheum-proto",
+    "morpheum-primitives",
+    "morpheum-signing",
+    "cryptogram",
+    "contracts",
+)
+for name in required:
+    manifest = parent / name / "Cargo.toml"
+    if manifest.is_file():
+        ok(f"sibling {manifest}")
+    else:
+        bad(f"sibling missing {manifest}")
+
+path_re = re.compile(r'path\s*=\s*"([^"]+)"')
+visited = set()
+queue = [root / "Cargo.toml"]
+while queue:
+    manifest = queue.pop().resolve()
+    if manifest in visited:
+        continue
+    if not manifest.is_file():
+        bad(f"manifest missing {manifest}")
+        continue
+    visited.add(manifest)
+    text = manifest.read_text(encoding="utf-8", errors="replace")
+    for match in path_re.finditer(text):
+        rel = match.group(1)
+        target = (manifest.parent / rel).resolve()
+        if not target.exists():
+            bad(f"{manifest} path {rel} -> {target}")
+            continue
+        pkg = target / "Cargo.toml"
+        if pkg.is_file() and pkg.resolve() not in visited:
+            queue.append(pkg)
+        cursor = target
+        while True:
+            parent_manifest = cursor / "Cargo.toml"
+            if parent_manifest.is_file():
+                body = parent_manifest.read_text(encoding="utf-8", errors="replace")
+                if re.search(r"(?m)^\[workspace\]", body) and parent_manifest.resolve() not in visited:
+                    queue.append(parent_manifest)
+                    break
+            if cursor.parent == cursor:
+                break
+            cursor = cursor.parent
+
+example_manifest = root / "examples" / "Cargo.toml"
+names = []
+if example_manifest.is_file():
+    parts = re.split(r"(?m)^\[\[example\]\]\s*$", example_manifest.read_text(encoding="utf-8"))[1:]
+    for part in parts:
+        found = re.search(r'(?m)^name\s*=\s*"([^"]+)"', part)
+        if found:
+            names.append(found.group(1))
+for name in ("native_bip39", "native_market"):
+    if name in names:
+        ok(f"example target {name}")
+    else:
+        bad(f"examples/Cargo.toml has no [[example]] name = \"{name}\"")
+
+if failures:
+    print(f"checks_failed {len(failures)}")
+    sys.exit(1)
+print("checks_ok")
+PY
+}
+
+launch() {
+  need_cmd python3
+  mkdir -p "$STATE" "$SKILL/evidence"
+  if ! mkdir "$LOCK" 2>/dev/null; then
+    local holder="unknown"
+    [[ -f "$LOCK/run_id" ]] && holder=$(tr -d '[:space:]' <"$LOCK/run_id")
+    die "workspace target dir is in use by run ${holder}. cleanup that run before launching another"
+  fi
+  local id
+  id=$(date -u +%Y%m%dT%H%M%SZ)-$$
+  printf '%s\n' "$id" >"$LOCK/run_id"
+  printf '%s\n' "$id" >"$CURRENT"
+  local evid
+  evid=$(evidence_dir "$id")
+  mkdir -p "$evid" "$(run_dir "$id")"
+  if ! check_workspace >"$evid/doctor-launch.txt" 2>&1; then
+    cp "$evid/doctor-launch.txt" "$evid/launch.log"
+    echo "result=FAIL" >"$evid/proof.txt"
+    echo "stage=launch" >>"$evid/proof.txt"
+    echo "reason=workspace checks failed" >>"$evid/proof.txt"
+    echo "run_id=$id" >>"$evid/proof.txt"
+    release_lock "$id"
+    echo "evidence=$evid"
+    die "workspace checks failed. see $evid/doctor-launch.txt"
+  fi
+  cp "$evid/doctor-launch.txt" "$evid/launch.log"
+  {
+    echo "run_id=$id"
+    echo "root=$ROOT"
+    echo "head=$(git -C "$ROOT" rev-parse HEAD)"
+    echo "rustc=$(rustc --version)"
+    echo "protoc=$(protoc --version)"
+    echo "command=cargo build -p morpheum-sdk-examples --example native_bip39 --example native_market"
+  } >>"$evid/launch.log"
+  if ! (cd "$ROOT" && cargo build -p morpheum-sdk-examples --example native_bip39 --example native_market) >>"$evid/launch.log" 2>&1; then
+    echo "result=FAIL" >"$evid/proof.txt"
+    echo "stage=launch" >>"$evid/proof.txt"
+    echo "reason=cargo build failed" >>"$evid/proof.txt"
+    echo "run_id=$id" >>"$evid/proof.txt"
+    release_lock "$id"
+    echo "evidence=$evid"
+    die "cargo build failed. see $evid/launch.log"
+  fi
+  local target="${CARGO_TARGET_DIR:-$ROOT/target}"
+  local name bin
+  : >"$(run_dir "$id")/binaries.txt"
+  for name in native_bip39 native_market; do
+    bin="$target/debug/examples/$name"
+    [[ -x "$bin" ]] || {
+      echo "result=FAIL" >"$evid/proof.txt"
+      echo "stage=launch" >>"$evid/proof.txt"
+      echo "reason=missing binary $bin" >>"$evid/proof.txt"
+      release_lock "$id"
+      die "missing binary $bin"
+    }
+    printf '%s %s %s\n' "$name" "$bin" "$(sha256sum "$bin" | awk '{print $1}')" >>"$(run_dir "$id")/binaries.txt"
+  done
+  sha256sum "$ROOT/examples/native_bip39.rs" "$ROOT/examples/native_market.rs" "$BIN_DIR/verify-morpheum-sdk" >"$(run_dir "$id")/sources.sha256"
+  git -C "$ROOT" rev-parse HEAD >"$(run_dir "$id")/head"
+  rustc --version >"$(run_dir "$id")/rustc"
+  date -u +%Y-%m-%dT%H:%M:%SZ >"$(run_dir "$id")/launched"
+  echo "ready run_id=$id"
+  echo "evidence=$evid"
+}
+
+doctor() {
+  need_cmd python3
+  local id evid
+  id=$(current_id)
+  evid=$(evidence_dir "$id")
+  mkdir -p "$evid"
+  local report="$evid/doctor.txt"
+  if ! check_workspace >"$report" 2>&1; then
+    echo "result=FAIL" >"$evid/proof.txt"
+    echo "stage=doctor" >>"$evid/proof.txt"
+    echo "run_id=$id" >>"$evid/proof.txt"
+    cat "$report" >&2
+    die "doctor failed"
+  fi
+  local rd
+  rd=$(run_dir "$id")
+  if [[ ! -f "$rd/launched" ]]; then
+    echo "fail  launch has not finished for $id" | tee -a "$report" >&2
+    die "doctor failed"
+  fi
+  local name bin hash have
+  while read -r name bin hash; do
+    if [[ ! -x "$bin" ]]; then
+      echo "fail  binary missing $bin" | tee -a "$report" >&2
+      die "doctor failed"
+    fi
+    have=$(sha256sum "$bin" | awk '{print $1}')
+    if [[ "$have" != "$hash" ]]; then
+      echo "fail  binary changed since launch $bin" | tee -a "$report" >&2
+      die "doctor failed"
+    fi
+    echo "ok  binary $name $bin $hash" >>"$report"
+  done <"$rd/binaries.txt"
+  if ! (cd "$ROOT" && sha256sum --check "$rd/sources.sha256") >>"$report" 2>&1; then
+    echo "fail  example or helper changed since launch" | tee -a "$report" >&2
+    die "doctor failed"
+  fi
+  local rustc_now rustc_then
+  rustc_now=$(rustc --version)
+  rustc_then=$(cat "$rd/rustc")
+  if [[ "$rustc_now" != "$rustc_then" ]]; then
+    echo "fail  rustc is $rustc_now, launch used $rustc_then" | tee -a "$report" >&2
+    die "doctor failed"
+  fi
+  echo "ok  rustc unchanged" >>"$report"
+  echo "doctor ok run_id=$id head=$(cat "$rd/head") rustc=$rustc_now"
+}
+
+feature_example() {
+  case "$1" in
+    bip39-sign) echo native_bip39 ;;
+    market-sign) echo native_market ;;
+    agent-trade-sign) echo native_agent_trade ;;
+    agent-vc-sign) echo native_agent_vc_issue ;;
+    *) die "unknown feature $1. use bip39-sign, market-sign, agent-trade-sign, or agent-vc-sign" ;;
+  esac
+}
+
+drive() {
+  local feature=${1:-}
+  [[ -n "$feature" ]] || die "drive needs a feature id"
+  doctor >/dev/null
+  local id example evid rd bin session script
+  id=$(current_id)
+  example=$(feature_example "$feature")
+  evid=$(evidence_dir "$id")
+  rd=$(run_dir "$id")
+  bin=""
+  if [[ -f "$rd/binaries.txt" ]]; then
+    bin=$(awk -v n="$example" '$1 == n { print $2 }' "$rd/binaries.txt")
+  fi
+  session="verify-morpheum-sdk-${id}-${feature}"
+  script="$rd/drive.sh"
+  cat >"$script" <<EOF
+#!/usr/bin/env bash
+set -u
+cd "$ROOT"
+{
+  echo "feature=$feature"
+  echo "example=$example"
+  echo "cargo=cargo run -p morpheum-sdk-examples --example $example"
+  echo "binary=$bin"
+  echo "netns=unshare --net --map-root-user -- $bin"
+} >"$evid/commands.txt"
+set +e
+cargo run -p morpheum-sdk-examples --example "$example" >"$evid/cargo-run.stdout" 2>"$evid/cargo-run.stderr"
+echo \$? >"$evid/cargo-run.exit"
+if [[ -n "$bin" && -x "$bin" ]]; then
+  unshare --net --map-root-user -- "$bin" >"$evid/netns-1.stdout" 2>"$evid/netns-1.stderr"
+  echo \$? >"$evid/netns-1.exit"
+  unshare --net --map-root-user -- "$bin" >"$evid/netns-2.stdout" 2>"$evid/netns-2.stderr"
+  echo \$? >"$evid/netns-2.exit"
+fi
+exit 0
+EOF
+  chmod +x "$script"
+  tmux has-session -t "$session" 2>/dev/null && tmux kill-session -t "$session"
+  tmux new-session -d -s "$session" -c "$ROOT" -- bash "$script"
+  local i
+  for i in $(seq 1 300); do
+    if ! tmux has-session -t "$session" 2>/dev/null; then
+      break
+    fi
+    sleep 1
+  done
+  if tmux has-session -t "$session" 2>/dev/null; then
+    tmux kill-session -t "$session" || true
+    die "drive timed out after 300s: $session"
+  fi
+  write_proof "$id" "$feature" "$example" "$bin" "$evid" "$rd"
+}
+
+write_proof() {
+  local id=$1 feature=$2 example=$3 bin=$4 evid=$5 rd=$6
+  local proof="$evid/proof.txt"
+  local cargo_exit net1 net2
+  cargo_exit=$(cat "$evid/cargo-run.exit" 2>/dev/null || echo missing)
+  net1=$(cat "$evid/netns-1.exit" 2>/dev/null || echo missing)
+  net2=$(cat "$evid/netns-2.exit" 2>/dev/null || echo missing)
+  {
+    echo "run_id=$id"
+    echo "feature=$feature"
+    echo "example=$example"
+    echo "sdk_head=$(cat "$rd/head")"
+    echo "rustc=$(cat "$rd/rustc")"
+    echo "binary=$bin"
+    echo "cargo=cargo run -p morpheum-sdk-examples --example $example"
+    echo "cargo_exit=$cargo_exit"
+    echo "netns=unshare --net --map-root-user"
+    echo "netns_1_exit=$net1"
+    echo "netns_2_exit=$net2"
+    echo "example_sha256=$(sha256sum "$ROOT/examples/$example.rs" 2>/dev/null | awk '{print $1}')"
+    echo "helper_sha256=$(sha256sum "$BIN_DIR/verify-morpheum-sdk" | awk '{print $1}')"
+  } >"$proof"
+  python3 - "$feature" "$evid" "$proof" <<'PY'
+import re, sys
+from pathlib import Path
+
+feature, evid, proof = sys.argv[1:]
+evid = Path(evid)
+markers = {
+    "bip39-sign": [
+        "BIP-39 Mnemonic Example",
+        "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about",
+        "NativeSigner created successfully",
+        "Transaction signed successfully",
+        "BIP-39 mnemonic example completed successfully",
+    ],
+    "market-sign": [
+        "Market Creation Example",
+        "Market creation request built successfully",
+        "Transaction signed successfully",
+        "Example completed successfully",
+    ],
+    "agent-trade-sign": [
+        "Agent Trade with Verified Claim Example",
+        "TradingKeyClaim built",
+        "TradingKeyClaim verified successfully",
+        "Trade transaction signed by Agent",
+        "Agent trade example completed successfully",
+    ],
+    "agent-vc-sign": [
+        "Agent VC Issuance Example",
+        "TradingKeyClaim built successfully",
+        "Transaction signed successfully by Agent",
+        "Agent VC issuance example completed successfully",
+    ],
+}
+stable = feature in {"bip39-sign", "market-sign"}
+require_size = feature == "bip39-sign"
+reasons = []
+
+def read(name):
+    path = evid / name
+    if not path.is_file():
+        return None
+    return path.read_text(encoding="utf-8", errors="replace")
+
+def code(name):
+    text = read(name)
+    if text is None:
+        return None
+    text = text.strip()
+    return int(text) if text.isdigit() or (text.startswith("-") and text[1:].isdigit()) else None
+
+def parsed(text):
+    if text is None:
+        return None, None
+    hash_m = re.search(r"TxHash\s*:\s*([0-9a-fA-F]{64})", text)
+    size_m = re.search(r"Size\s*:\s*([1-9][0-9]*)\s+bytes", text)
+    return (hash_m.group(1).lower() if hash_m else None, size_m.group(1) if size_m else None)
+
+streams = {
+    "cargo-run": read("cargo-run.stdout"),
+    "netns-1": read("netns-1.stdout"),
+    "netns-2": read("netns-2.stdout"),
+}
+exits = {
+    "cargo-run": code("cargo-run.exit"),
+    "netns-1": code("netns-1.exit"),
+    "netns-2": code("netns-2.exit"),
+}
+for label, status in exits.items():
+    if status != 0:
+        err = read(f"{label}.stderr") or ""
+        tail = " | ".join(line for line in err.splitlines()[-8:] if line.strip())
+        reasons.append(f"{label} exit {status}" + (f": {tail}" if tail else ""))
+
+hashes = []
+sizes = []
+for label, text in streams.items():
+    if text is None:
+        reasons.append(f"{label} stdout missing")
+        continue
+    for marker in markers[feature]:
+        if marker not in text:
+            reasons.append(f"{label} stdout missing marker {marker!r}")
+    digest, size = parsed(text)
+    if digest is None:
+        reasons.append(f"{label} stdout has no 64-hex TxHash")
+    else:
+        hashes.append(digest)
+    if require_size and size is None:
+        reasons.append(f"{label} stdout has no Size")
+    if size is not None:
+        sizes.append(size)
+
+if stable and len(set(hashes)) > 1:
+    reasons.append(f"tx hashes differ {hashes}")
+if require_size and len(set(sizes)) > 1:
+    reasons.append(f"sizes differ {sizes}")
+
+lines = Path(proof).read_text(encoding="utf-8").splitlines()
+if hashes:
+    lines.append(f"txhash={hashes[0]}")
+if sizes:
+    lines.append(f"size={sizes[0]}")
+if reasons:
+    reason = reasons[0].replace("\n", " ")
+    lines.append("result=FAIL")
+    lines.append(f"reason={reason}")
+    Path(proof).write_text("\n".join(lines) + "\n", encoding="utf-8")
+    print(f"result=FAIL reason={reason}", file=sys.stderr)
+    sys.exit(1)
+lines.append("result=PASS")
+Path(proof).write_text("\n".join(lines) + "\n", encoding="utf-8")
+print("result=PASS")
+PY
+}
+
+evidence() {
+  local id evid
+  id=$(current_id)
+  evid=$(evidence_dir "$id")
+  [[ -f "$evid/proof.txt" ]] || die "no proof at $evid/proof.txt"
+  echo "evidence=$evid"
+  cat "$evid/proof.txt"
+  grep -q '^result=PASS$' "$evid/proof.txt"
+}
+
+cleanup() {
+  local id evid session
+  if [[ -n "${VERIFY_RUN_ID:-}" ]]; then
+    id=$VERIFY_RUN_ID
+  elif [[ -f "$CURRENT" ]]; then
+    id=$(tr -d '[:space:]' <"$CURRENT")
+  else
+    die "no run to clean"
+  fi
+  evid=$(evidence_dir "$id")
+  if command -v tmux >/dev/null 2>&1; then
+    while IFS= read -r session; do
+      case "$session" in
+        "verify-morpheum-sdk-${id}-"*) tmux kill-session -t "$session" || true ;;
+      esac
+    done < <(tmux list-sessions -F '#{session_name}' 2>/dev/null || true)
+  fi
+  rm -rf "$(run_dir "$id")"
+  release_lock "$id"
+  if [[ -f "$CURRENT" ]] && [[ "$(tr -d '[:space:]' <"$CURRENT")" == "$id" ]]; then
+    rm -f "$CURRENT"
+  fi
+  [[ -d "$evid" ]] || die "cleanup removed evidence $evid"
+  echo "evidence=$evid"
+  echo "cleanup ok run_id=$id"
+}
+
+usage() {
+  cat <<EOF
+usage: verify-morpheum-sdk <launch|doctor|drive|evidence|cleanup>
+
+  launch              check siblings and build native_bip39 and native_market
+  doctor              re-read the toolchain, siblings, and launch binaries
+  drive <feature>     bip39-sign | market-sign | agent-trade-sign | agent-vc-sign
+  evidence            print proof.txt; exit 0 only when result=PASS
+  cleanup             stop this run's tmux session and delete its /tmp state
+EOF
+}
+
+cmd=${1:-}
+shift || true
+case "$cmd" in
+  launch) launch "$@" ;;
+  doctor) doctor "$@" ;;
+  drive) drive "$@" ;;
+  evidence) evidence "$@" ;;
+  cleanup) cleanup "$@" ;;
+  *) usage >&2; exit 2 ;;
+esac

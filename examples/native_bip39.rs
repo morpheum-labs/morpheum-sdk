@@ -40,7 +40,8 @@ async fn main() -> Result<(), Box<dyn Error>> {
     // =============================================
     // 3. Create the SDK using the mnemonic-derived signer
     // =============================================
-    let sdk = native(signer);
+    // `native()` does not keep the signer. Pass that same signer to `TxBuilder`.
+    let _sdk = native(signer.clone());
 
     // =============================================
     // 4. Build and sign a simple transaction
@@ -48,7 +49,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
     // The target chain's genesis hash, from operator configuration (never from
     // the node you submit to). `sign()` refuses a transaction built without one.
     let genesis_hash = [0u8; 32]; // Replace with the configured genesis hash
-    let signed_tx = TxBuilder::new(sdk.signer.clone())
+    let signed_tx = TxBuilder::new(signer)
         .chain_id("morpheum-test-1")
         .with_genesis_hash(genesis_hash)
         .memo("Transaction signed using BIP-39 mnemonic via Morpheum SDK")

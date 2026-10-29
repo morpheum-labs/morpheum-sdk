@@ -1,0 +1,39 @@
+# Morpheum native SDK verification map
+
+This directory is the source for verifying the native example programs. Read the index, then follow one feature file.
+
+## Baseline preconditions
+
+- Clone `morpheum-proto`, `morpheum-primitives`, `morpheum-signing`, `cryptogram`, and `contracts` as siblings of this repo. `doctor` fails while any sibling manifest is missing.
+- `rustc` is at least the workspace `rust-version`. CI pins 1.98.1.
+- `protoc`, `tmux`, and `unshare` are on `PATH`.
+- Run `launch`, then `doctor`, and require `doctor ok` for this run id.
+- One verification run owns the workspace `target/` directory. A second `launch` exits while the lock at `/tmp/verify-morpheum-sdk/lock` is held.
+- The example programs use the all-zero genesis hash baked into their source. That is the chain id binding under test. They do not submit to a node.
+
+## Driving conventions
+
+- Start from a finished `launch` unless the feature file says otherwise.
+- Treat every command as literal.
+- Run drives through `.cursor/skills/verify-morpheum-sdk/bin/verify-morpheum-sdk drive <feature>`.
+- `cleanup` deletes the tmux session and `/tmp` state for the run. It leaves `evidence/<run_id>/` in place.
+- A feature that fails to build stays failed. Record the compiler output. Do not mark it passed through a different program.
+
+## Proof and skip reporting
+
+- Capture the command, stdout, stderr, and exit code.
+- For a signing example, also capture the same binary's stdout inside `unshare --net --map-root-user`.
+- `bip39-sign` and `market-sign` quote one tx hash from three runs. Differing hashes fail the proof.
+- Record the feature id, example name, binary path, and sdk git head in `proof.txt`.
+- An unreachable example records `result=FAIL` and the cargo stderr. It is not verified by another feature.
+
+## Feature entry contract
+
+Each feature file has an H1, one paragraph, then four H2 sections in order: `Sub-features`, `How to get to it (user POV)`, `Driving it with verify-morpheum-sdk`, and `Gotchas`.
+
+## Features
+
+- [BIP-39 sign](./bip39-sign.md) signs one transaction from the standard test mnemonic and prints a stable hash. Offline.
+- [Market sign](./market-sign.md) builds a perp market create request and signs it. Offline. Stable hash.
+- [Agent trade sign](./agent-trade-sign.md) is the agent-trade example. On this tree the source does not match the SDK, so the drive fails.
+- [Agent VC sign](./agent-vc-sign.md) is the agent VC example. On this tree the source does not match the SDK, so the drive fails.

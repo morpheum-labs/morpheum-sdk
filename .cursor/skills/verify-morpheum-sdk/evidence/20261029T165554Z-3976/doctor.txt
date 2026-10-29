@@ -1,0 +1,21 @@
+ok  rustc rustc 1.98.1 (48a229cea 2026-09-01)
+ok  cargo /home/runner/.cargo/bin/cargo
+ok  protoc /usr/bin/protoc
+ok  tmux /usr/bin/tmux
+ok  unshare /usr/bin/unshare
+ok  python3 /usr/bin/python3
+ok  git /usr/bin/git
+ok  sibling /home/runner/work/morpheum-sdk/morpheum-sdk/morpheum-proto/Cargo.toml
+ok  sibling /home/runner/work/morpheum-sdk/morpheum-sdk/morpheum-primitives/Cargo.toml
+ok  sibling /home/runner/work/morpheum-sdk/morpheum-sdk/morpheum-signing/Cargo.toml
+ok  sibling /home/runner/work/morpheum-sdk/morpheum-sdk/cryptogram/Cargo.toml
+ok  sibling /home/runner/work/morpheum-sdk/morpheum-sdk/contracts/cosmwasm/Cargo.toml
+ok  example target native_bip39
+ok  example target native_market
+checks_ok
+ok  binary native_bip39 /home/runner/work/morpheum-sdk/morpheum-sdk/morpheum-sdk/target/debug/examples/native_bip39 18365f595241814d3c464c9de7a86813cfe3f7584c47607c60313602167cbe4a
+ok  binary native_market /home/runner/work/morpheum-sdk/morpheum-sdk/morpheum-sdk/target/debug/examples/native_market 9919b8773153c1f29625575e2679788490bc837aeb01dc5a9786c1d62058dc52
+/home/runner/work/morpheum-sdk/morpheum-sdk/morpheum-sdk/examples/native_bip39.rs: OK
+/home/runner/work/morpheum-sdk/morpheum-sdk/morpheum-sdk/examples/native_market.rs: OK
+/home/runner/work/morpheum-sdk/morpheum-sdk/morpheum-sdk/.cursor/skills/verify-morpheum-sdk/bin/verify-morpheum-sdk: OK
+ok  rustc unchanged

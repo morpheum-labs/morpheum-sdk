@@ -4,7 +4,7 @@ This directory is the source for verifying the native example programs. Read the
 
 ## Baseline preconditions
 
-- Clone `morpheum-proto`, `morpheum-primitives`, `morpheum-signing`, `cryptogram`, and `contracts` as siblings of this repo. `doctor` fails while any sibling manifest is missing.
+- Clone `morpheum-proto`, `morpheum-primitives`, `morpheum-signing`, `cryptogram`, and `contracts` as siblings of this repo. `doctor` fails while a sibling marker is missing. The first four need a root `Cargo.toml`. `contracts` needs `contracts/cosmwasm/Cargo.toml`, or any other `Cargo.toml` under that tree.
 - `rustc` is at least the workspace `rust-version`. CI pins 1.98.1.
 - `protoc`, `tmux`, and `unshare` are on `PATH`.
 - Run `launch`, then `doctor`, and require `doctor ok` for this run id.

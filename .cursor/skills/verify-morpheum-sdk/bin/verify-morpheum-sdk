@@ -98,7 +98,20 @@ required = (
     "contracts",
 )
 for name in required:
-    manifest = parent / name / "Cargo.toml"
+    base = parent / name
+    # contracts has no root manifest. The workspace file is cosmwasm/Cargo.toml.
+    # Any Cargo.toml under the tree is enough. The other four use a root manifest.
+    if name == "contracts":
+        marker = base / "cosmwasm" / "Cargo.toml"
+        found = marker if marker.is_file() else None
+        if found is None and base.is_dir():
+            found = next(base.rglob("Cargo.toml"), None)
+        if found is not None:
+            ok(f"sibling {found}")
+        else:
+            bad(f"sibling missing {marker}")
+        continue
+    manifest = base / "Cargo.toml"
     if manifest.is_file():
         ok(f"sibling {manifest}")
     else:

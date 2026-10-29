@@ -9,13 +9,13 @@ The user-facing surface is the native example programs in `examples/`. Each one 
 
 The workspace has one Cargo target directory. A second `launch` refuses to start while `/tmp/verify-morpheum-sdk/lock` belongs to another run.
 
-Sibling crates must sit beside this repo before `launch`. `doctor` reads the manifests and fails while any of these paths is missing:
+Sibling crates must sit beside this repo before `launch`. `doctor` fails while any of these markers is missing:
 
-- `../morpheum-proto`
-- `../morpheum-primitives`
-- `../morpheum-signing` (`crates/core`, `crates/native`, `crates/wasm-lib`)
-- `../cryptogram`
-- `../contracts`
+- `../morpheum-proto/Cargo.toml`
+- `../morpheum-primitives/Cargo.toml`
+- `../morpheum-signing/Cargo.toml` (crates `core`, `native`, and `wasm-lib`)
+- `../cryptogram/Cargo.toml`
+- `../contracts/cosmwasm/Cargo.toml`. The `contracts` repo has no root manifest. Any `Cargo.toml` under `../contracts/` also counts.
 
 `morpheum-signing` is public. The other four are private; CI checks them out with `CI_REPO_READ_TOKEN`. A stand-in crate is a failed run.
 

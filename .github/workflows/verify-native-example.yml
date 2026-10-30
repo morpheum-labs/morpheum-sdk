@@ -6,7 +6,7 @@ name: verify-native-example
 on:
   push:
     branches:
-      - cursor/verify-morpheum-sdk-1633
+      - cursor/market-sign-proof-18c3
 
 concurrency:
   group: verify-native-example-${{ github.ref }}
@@ -17,7 +17,7 @@ env:
 
 jobs:
   drive:
-    name: launch doctor drive bip39-sign
+    name: launch doctor drive bip39-sign market-sign
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -107,6 +107,8 @@ jobs:
           "$bin" launch
           "$bin" doctor
           "$bin" drive bip39-sign
+          "$bin" evidence
+          "$bin" drive market-sign
           "$bin" evidence
       - uses: actions/upload-artifact@v4
         if: always()

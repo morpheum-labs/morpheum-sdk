@@ -26,3 +26,7 @@ path = "native_bip39.rs"
 [[example]]
 name = "native_market"
 path = "native_market.rs"
+
+[[example]]
+name = "native_agent_trade"
+path = "native_agent_trade.rs"

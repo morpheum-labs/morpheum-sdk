@@ -1,0 +1,7 @@
+🚀 Morpheum Native SDK - Market Creation Example
+📋 Market creation request built successfully
+🔏 Transaction signed successfully
+   TxHash: 3b8ddf658aec55dbdfb5a96702a485db8119950503c8812cfdfc7b267f377bb4
+
+✅ Example completed successfully!
+   Next step: Broadcast the raw_bytes to a Sentry node.

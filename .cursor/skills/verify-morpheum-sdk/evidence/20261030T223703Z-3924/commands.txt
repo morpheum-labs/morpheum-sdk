@@ -1,0 +1,5 @@
+feature=market-sign
+example=native_market
+cargo=cargo run -p morpheum-sdk-examples --example native_market
+binary=/home/runner/work/morpheum-sdk/morpheum-sdk/morpheum-sdk/target/debug/examples/native_market
+netns=unshare --net --map-root-user -- /home/runner/work/morpheum-sdk/morpheum-sdk/morpheum-sdk/target/debug/examples/native_market

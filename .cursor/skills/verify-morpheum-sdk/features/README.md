@@ -35,5 +35,5 @@ Each feature file has an H1, one paragraph, then four H2 sections in order: `Sub
 
 - [BIP-39 sign](./bip39-sign.md) signs one transaction from the standard test mnemonic and prints a stable hash. Offline.
 - [Market sign](./market-sign.md) builds a perp market create request and signs it. Offline. Stable hash.
-- [Agent trade sign](./agent-trade-sign.md) is the agent-trade example. On this tree the source does not match the SDK, so the drive fails.
+- [Agent trade sign](./agent-trade-sign.md) builds a trading-key claim, checks it against the issuer key, and signs one order. Offline. The tx hash may change between runs.
 - [Agent VC sign](./agent-vc-sign.md) is the agent VC example. On this tree the source does not match the SDK, so the drive fails.

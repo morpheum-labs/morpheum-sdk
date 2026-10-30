@@ -1,6 +1,6 @@
 # Agent trade sign
 
-Agent trade sign is the example that builds a trading-key claim, checks it, and signs an order message with the agent key. On this tree that program does not compile, so a drive ends in `result=FAIL` and the cargo stderr.
+Agent trade sign builds a trading-key claim for an agent subject, checks that claim against the owner key, and signs one order with the agent key. The program prints the tx hash and exits. It does not broadcast. The hash can change between runs because claim expiry uses the clock.
 
 ## Sub-features
 
@@ -18,18 +18,20 @@ Preconditions:
 
 - `doctor` prints `doctor ok` for this run.
 - `examples/Cargo.toml` declares example `native_agent_trade`.
-- The example source typechecks against `morpheum-sdk-native` and `morpheum-signing-native`.
+- The sibling manifests listed in the index exist.
 
-- **User command.** The drive session runs `cargo run -p morpheum-sdk-examples --example native_agent_trade`. A passing run exits `0` and stdout contains `Agent Trade with Verified Claim Example`, `TradingKeyClaim built`, `TradingKeyClaim verified successfully`, `Trade transaction signed by Agent`, and `Agent trade example completed successfully`.
-- **Empty netns.** After that command exits `0`, run `unshare --net --map-root-user -- target/debug/examples/native_agent_trade` twice. Both exit `0` and print a 64-hex `TxHash`. The hashes may differ across runs.
-- **Current tree.** The preconditions above are unmet. `drive agent-trade-sign` exits non-zero, `proof.txt` says `result=FAIL`, and `cargo-run.stderr` is the cargo error. That is the whole result. Do not record this feature as covered by `bip39-sign`.
+- **User command.** The drive session runs `cargo run -p morpheum-sdk-examples --example native_agent_trade`. Exit code `0`. Stdout contains `Agent Trade with Verified Claim Example`, `TradingKeyClaim built`, `TradingKeyClaim verified successfully`, `Trade transaction signed by Agent`, and `Agent trade example completed successfully`.
+- **Hash.** Read `TxHash` from that stdout. It is 64 hex characters. A later run of the same binary may print a different hash.
+- **Empty netns, twice.** Run `unshare --net --map-root-user -- target/debug/examples/native_agent_trade` twice. Both exit `0` and print a 64-hex `TxHash`. The three hashes may differ.
+- **Proof.** `evidence` prints `result=PASS` and `feature=agent-trade-sign`. `cargo_exit`, `netns_1_exit`, and `netns_2_exit` are `0`.
 
 ## Gotchas
 
-- `examples/Cargo.toml` does not declare `native_agent_trade`. Cargo reports no example target of that name.
-- The source calls `AccountId::new`. `AccountId` is a tuple struct and has no `new` method.
-- The source calls `TxBuilder::new(sdk.signer.clone())`. `MorpheumSdk` has no `signer` field. `agent()` takes the signer by value and drops it.
-- The source calls `claim.verify(now_secs, &AccountId::...)`. `TradingKeyClaim::verify` takes `&PublicKey`.
-- `VcClaimBuilder::build` refuses a claim with no signature. The example never calls `.signature()`.
-- Claim expiry uses `SystemTime::now()`, so a future passing run will not have a stable hash.
-- Fix the example and declare the target before treating a drive as a pass. Do not replace this program with a different one and call the feature done.
+- `agent()` drops the signer it is given. The example clones the signer, passes one clone to `agent()`, and passes the signer to `TxBuilder::new`. `MorpheumSdk` has no `signer` field.
+- `AgentSigner::new` and `VcClaimBuilder` take the signing library's `AccountId`, a tuple struct. The example derives those ids from `NativeSigner::account_id()`. The SDK `AccountId::new` is a different type.
+- `TradingKeyClaim::verify` takes `&PublicKey`. The issuer on the claim is `owner.account_id()`, and the check passes that owner's `public_key()`.
+- `VcClaimBuilder::build` refuses a claim with no signature. The example calls `.signature(Signature::Ed25519([1u8; 64]))`. `verify` checks that the signature is present and that the issuer matches the public key. It does not check the curve.
+- Claim expiry uses `SystemTime::now()`, so three runs do not have to share a hash. Differing hashes are not a failure for this feature.
+- The chain id in the program is `morpheum-test-1`. The genesis hash is 32 zero bytes. The order message is the placeholder `/market.v1.MsgCreateOrder` bytes in the example.
+- `cargo run` inside the empty netns is the wrong process to watch. Run the example binary there.
+- The broadcast call in the example source is a comment. The netns exit code is the check that the process finished without a route.

@@ -1,0 +1,5 @@
+feature=agent-trade-sign
+example=native_agent_trade
+cargo=cargo run -p morpheum-sdk-examples --example native_agent_trade
+binary=/home/runner/work/morpheum-sdk/morpheum-sdk/morpheum-sdk/target/debug/examples/native_agent_trade
+netns=unshare --net --map-root-user -- /home/runner/work/morpheum-sdk/morpheum-sdk/morpheum-sdk/target/debug/examples/native_agent_trade

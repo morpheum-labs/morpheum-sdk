@@ -1,0 +1,5 @@
+feature=place-batch-orders-sign
+example=native_place_batch_orders
+cargo=cargo run -p morpheum-sdk-examples --example native_place_batch_orders
+binary=/home/runner/work/morpheum-sdk/morpheum-sdk/morpheum-sdk/target/debug/examples/native_place_batch_orders
+netns=unshare --net --map-root-user -- /home/runner/work/morpheum-sdk/morpheum-sdk/morpheum-sdk/target/debug/examples/native_place_batch_orders

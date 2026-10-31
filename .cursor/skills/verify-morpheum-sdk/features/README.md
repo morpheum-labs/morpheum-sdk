@@ -40,3 +40,4 @@ Each feature file has an H1, one paragraph, then four H2 sections in order: `Sub
 - [Cancel order sign](./cancel-order-sign.md) builds a CLOB cancel request (`/clob.v1.MsgCancelOrderRequest`) and signs it. Offline. Stable hash.
 - [Modify order sign](./modify-order-sign.md) builds a CLOB amend request (`/clob.v1.MsgModifyOrderRequest`) and signs it. Offline. Stable hash.
 - [Place order sign](./place-order-sign.md) builds a CLOB place request (`/clob.v1.MsgPlaceOrderRequest`) and signs it. Offline. Stable hash.
+- [Place batch orders sign](./place-batch-orders-sign.md) builds a CLOB batch request (`/clob.v1.MsgPlaceBatchOrdersRequest`) and signs it. Offline. The tx hash may change between runs.

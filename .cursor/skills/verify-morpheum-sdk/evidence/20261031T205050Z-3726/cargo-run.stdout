@@ -1,0 +1,7 @@
+🚀 Morpheum Native SDK - Place Batch Orders Example
+📋 Place batch orders request built successfully
+🔏 Transaction signed successfully
+   TxHash: 7d1d92f824c88407380e773fc055d6e0f1016f164e6a36b8fec0a123103ff85d
+
+✅ Example completed successfully!
+   Next step: Broadcast the raw_bytes to a Sentry node.

@@ -11,7 +11,7 @@ publish = false
 
 [dependencies]
 # `full` is market, vc, auth, grpc, http, and std. `clob` is separate;
-# native_cancel_order needs CancelOrderBuilder.
+# native_cancel_order and native_modify_order need the clob builders.
 morpheum-sdk-native = { path = "../crates/native", features = ["full", "clob"] }
 
 # Async runtime for all async examples
@@ -39,3 +39,7 @@ path = "native_agent_vc_issue.rs"
 [[example]]
 name = "native_cancel_order"
 path = "native_cancel_order.rs"
+
+[[example]]
+name = "native_modify_order"
+path = "native_modify_order.rs"

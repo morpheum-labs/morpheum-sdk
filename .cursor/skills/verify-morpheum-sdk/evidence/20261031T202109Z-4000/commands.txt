@@ -1,0 +1,5 @@
+feature=modify-order-sign
+example=native_modify_order
+cargo=cargo run -p morpheum-sdk-examples --example native_modify_order
+binary=/home/runner/work/morpheum-sdk/morpheum-sdk/morpheum-sdk/target/debug/examples/native_modify_order
+netns=unshare --net --map-root-user -- /home/runner/work/morpheum-sdk/morpheum-sdk/morpheum-sdk/target/debug/examples/native_modify_order

@@ -8,6 +8,13 @@ on:
     branches:
       - cursor/agent-vc-sign-proof-2a5c
 
+# GITHUB_TOKEN: checkout this repo (contents) and upload the evidence
+# artifact plus the Cargo cache (actions). Sibling clones use
+# secrets.CI_REPO_READ_TOKEN, not this token.
+permissions:
+  contents: read
+  actions: write
+
 concurrency:
   group: verify-native-example-${{ github.ref }}
   cancel-in-progress: true

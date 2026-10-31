@@ -1,0 +1,12 @@
+🤖 Morpheum Native SDK - Agent VC Issuance Example
+✅ TradingKeyClaim built successfully
+   Issuer : AccountId([16, 186, 104, 44, 138, 209, 53, 19, 151, 30, 139, 86, 136, 26, 171, 139, 215, 2, 187, 128, 119, 150, 236, 168, 25, 50, 199, 53, 169, 77, 110, 109])
+   Subject: AccountId([68, 143, 4, 255, 203, 168, 116, 219, 147, 217, 253, 2, 82, 13, 170, 88, 58, 146, 177, 242, 11, 16, 15, 247, 145, 32, 42, 109, 122, 147, 224, 222])
+   Expires: 86400 seconds from now
+✅ TradingKeyClaim verified successfully
+🔏 Transaction signed successfully by Agent
+   TxHash : a1da7e9e5f4eebe2e05e43b5a891d4f9c6e885c359ee1c2f094a1987e4200527
+   Size   : 524 bytes
+
+🎉 Agent VC issuance example completed successfully!
+   The TradingKeyClaim was embedded in the transaction and covered by the signature.

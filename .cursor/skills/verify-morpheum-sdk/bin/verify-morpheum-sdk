@@ -158,7 +158,7 @@ if example_manifest.is_file():
         found = re.search(r'(?m)^name\s*=\s*"([^"]+)"', part)
         if found:
             names.append(found.group(1))
-for name in ("native_bip39", "native_market", "native_agent_trade", "native_agent_vc_issue", "native_cancel_order", "native_modify_order"):
+for name in ("native_bip39", "native_market", "native_agent_trade", "native_agent_vc_issue", "native_cancel_order", "native_modify_order", "native_place_order"):
     if name in names:
         ok(f"example target {name}")
     else:
@@ -203,9 +203,9 @@ launch() {
     echo "head=$(git -C "$ROOT" rev-parse HEAD)"
     echo "rustc=$(rustc --version)"
     echo "protoc=$(protoc --version)"
-    echo "command=cargo build -p morpheum-sdk-examples --example native_bip39 --example native_market --example native_agent_trade --example native_agent_vc_issue --example native_cancel_order --example native_modify_order"
+    echo "command=cargo build -p morpheum-sdk-examples --example native_bip39 --example native_market --example native_agent_trade --example native_agent_vc_issue --example native_cancel_order --example native_modify_order --example native_place_order"
   } >>"$evid/launch.log"
-  if ! (cd "$ROOT" && cargo build -p morpheum-sdk-examples --example native_bip39 --example native_market --example native_agent_trade --example native_agent_vc_issue --example native_cancel_order --example native_modify_order) >>"$evid/launch.log" 2>&1; then
+  if ! (cd "$ROOT" && cargo build -p morpheum-sdk-examples --example native_bip39 --example native_market --example native_agent_trade --example native_agent_vc_issue --example native_cancel_order --example native_modify_order --example native_place_order) >>"$evid/launch.log" 2>&1; then
     echo "result=FAIL" >"$evid/proof.txt"
     echo "stage=launch" >>"$evid/proof.txt"
     echo "reason=cargo build failed" >>"$evid/proof.txt"
@@ -217,7 +217,7 @@ launch() {
   local target="${CARGO_TARGET_DIR:-$ROOT/target}"
   local name bin
   : >"$(run_dir "$id")/binaries.txt"
-  for name in native_bip39 native_market native_agent_trade native_agent_vc_issue native_cancel_order native_modify_order; do
+  for name in native_bip39 native_market native_agent_trade native_agent_vc_issue native_cancel_order native_modify_order native_place_order; do
     bin="$target/debug/examples/$name"
     [[ -x "$bin" ]] || {
       echo "result=FAIL" >"$evid/proof.txt"
@@ -228,7 +228,7 @@ launch() {
     }
     printf '%s %s %s\n' "$name" "$bin" "$(sha256sum "$bin" | awk '{print $1}')" >>"$(run_dir "$id")/binaries.txt"
   done
-  sha256sum "$ROOT/examples/native_bip39.rs" "$ROOT/examples/native_market.rs" "$ROOT/examples/native_agent_trade.rs" "$ROOT/examples/native_agent_vc_issue.rs" "$ROOT/examples/native_cancel_order.rs" "$ROOT/examples/native_modify_order.rs" "$BIN_DIR/verify-morpheum-sdk" >"$(run_dir "$id")/sources.sha256"
+  sha256sum "$ROOT/examples/native_bip39.rs" "$ROOT/examples/native_market.rs" "$ROOT/examples/native_agent_trade.rs" "$ROOT/examples/native_agent_vc_issue.rs" "$ROOT/examples/native_cancel_order.rs" "$ROOT/examples/native_modify_order.rs" "$ROOT/examples/native_place_order.rs" "$BIN_DIR/verify-morpheum-sdk" >"$(run_dir "$id")/sources.sha256"
   git -C "$ROOT" rev-parse HEAD >"$(run_dir "$id")/head"
   rustc --version >"$(run_dir "$id")/rustc"
   date -u +%Y-%m-%dT%H:%M:%SZ >"$(run_dir "$id")/launched"
@@ -292,7 +292,8 @@ feature_example() {
     agent-vc-sign) echo native_agent_vc_issue ;;
     cancel-order-sign) echo native_cancel_order ;;
     modify-order-sign) echo native_modify_order ;;
-    *) die "unknown feature $1. use bip39-sign, market-sign, agent-trade-sign, agent-vc-sign, cancel-order-sign, or modify-order-sign" ;;
+    place-order-sign) echo native_place_order ;;
+    *) die "unknown feature $1. use bip39-sign, market-sign, agent-trade-sign, agent-vc-sign, cancel-order-sign, modify-order-sign, or place-order-sign" ;;
   esac
 }
 
@@ -418,8 +419,14 @@ markers = {
         "Transaction signed successfully",
         "Example completed successfully",
     ],
+    "place-order-sign": [
+        "Place Order Example",
+        "Place order request built successfully",
+        "Transaction signed successfully",
+        "Example completed successfully",
+    ],
 }
-stable = feature in {"bip39-sign", "market-sign", "cancel-order-sign", "modify-order-sign"}
+stable = feature in {"bip39-sign", "market-sign", "cancel-order-sign", "modify-order-sign", "place-order-sign"}
 require_size = feature == "bip39-sign"
 reasons = []
 
@@ -542,9 +549,9 @@ usage() {
   cat <<EOF
 usage: verify-morpheum-sdk <launch|doctor|drive|evidence|cleanup>
 
-  launch              check siblings and build native_bip39, native_market, native_agent_trade, native_agent_vc_issue, native_cancel_order, and native_modify_order
+  launch              check siblings and build native_bip39, native_market, native_agent_trade, native_agent_vc_issue, native_cancel_order, native_modify_order, and native_place_order
   doctor              re-read the toolchain, siblings, and launch binaries
-  drive <feature>     bip39-sign | market-sign | agent-trade-sign | agent-vc-sign | cancel-order-sign | modify-order-sign
+  drive <feature>     bip39-sign | market-sign | agent-trade-sign | agent-vc-sign | cancel-order-sign | modify-order-sign | place-order-sign
   evidence            print proof.txt; exit 0 only when result=PASS
   cleanup             stop this run's tmux session and delete its /tmp state
 EOF

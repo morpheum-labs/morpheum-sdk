@@ -10,8 +10,9 @@ description = "Examples for the Morpheum Native SDK — demonstrates usage for C
 publish = false
 
 [dependencies]
-# Full native SDK with all modules and transports enabled
-morpheum-sdk-native = { path = "../crates/native", features = ["full"] }
+# `full` is market, vc, auth, grpc, http, and std. `clob` is separate;
+# native_cancel_order needs CancelOrderBuilder.
+morpheum-sdk-native = { path = "../crates/native", features = ["full", "clob"] }
 
 # Async runtime for all async examples
 tokio = { version = "1", features = ["full"] }
@@ -34,3 +35,7 @@ path = "native_agent_trade.rs"
 [[example]]
 name = "native_agent_vc_issue"
 path = "native_agent_vc_issue.rs"
+
+[[example]]
+name = "native_cancel_order"
+path = "native_cancel_order.rs"

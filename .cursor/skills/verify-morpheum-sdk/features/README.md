@@ -23,7 +23,7 @@ This directory is the source for verifying the native example programs. Read the
 
 - Capture the command, stdout, stderr, and exit code.
 - For a signing example, also capture the same binary's stdout inside `unshare --net --map-root-user`.
-- `bip39-sign` and `market-sign` quote one tx hash from three runs. Differing hashes fail the proof.
+- `bip39-sign`, `market-sign`, and `cancel-order-sign` quote one tx hash from three runs. Differing hashes fail the proof.
 - Record the feature id, example name, binary path, and sdk git head in `proof.txt`.
 - An unreachable example records `result=FAIL` and the cargo stderr. It is not verified by another feature.
 
@@ -37,3 +37,4 @@ Each feature file has an H1, one paragraph, then four H2 sections in order: `Sub
 - [Market sign](./market-sign.md) builds a perp market create request and signs it. Offline. Stable hash.
 - [Agent trade sign](./agent-trade-sign.md) builds a trading-key claim, checks it against the issuer key, and signs one order. Offline. The tx hash may change between runs.
 - [Agent VC sign](./agent-vc-sign.md) builds a trading-key claim and signs one VC issue message with the agent key. Offline. The tx hash may change between runs.
+- [Cancel order sign](./cancel-order-sign.md) builds a CLOB cancel request (`/clob.v1.MsgCancelOrderRequest`) and signs it. Offline. Stable hash.

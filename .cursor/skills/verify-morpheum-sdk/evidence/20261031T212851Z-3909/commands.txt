@@ -1,0 +1,5 @@
+feature=cancel-mm-quote-sign
+example=native_cancel_mm_quote
+cargo=cargo run -p morpheum-sdk-examples --example native_cancel_mm_quote
+binary=/home/runner/work/morpheum-sdk/morpheum-sdk/morpheum-sdk/target/debug/examples/native_cancel_mm_quote
+netns=unshare --net --map-root-user -- /home/runner/work/morpheum-sdk/morpheum-sdk/morpheum-sdk/target/debug/examples/native_cancel_mm_quote

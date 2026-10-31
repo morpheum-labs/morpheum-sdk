@@ -1,0 +1,7 @@
+🚀 Morpheum Native SDK - Place Order Example
+📋 Place order request built successfully
+🔏 Transaction signed successfully
+   TxHash: 02ea40f4f159690192cfd0cdec7e8b4adc601107f54075dd58339d0dcf329d5e
+
+✅ Example completed successfully!
+   Next step: Broadcast the raw_bytes to a Sentry node.

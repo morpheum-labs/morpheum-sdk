@@ -1,0 +1,5 @@
+feature=cancel-order-sign
+example=native_cancel_order
+cargo=cargo run -p morpheum-sdk-examples --example native_cancel_order
+binary=/home/runner/work/morpheum-sdk/morpheum-sdk/morpheum-sdk/target/debug/examples/native_cancel_order
+netns=unshare --net --map-root-user -- /home/runner/work/morpheum-sdk/morpheum-sdk/morpheum-sdk/target/debug/examples/native_cancel_order

@@ -428,6 +428,9 @@ cargo run -p morpheum-sdk-examples --example native_agent_vc_issue
 
 # BIP-39 mnemonic
 cargo run -p morpheum-sdk-examples --example native_bip39
+
+# CLOB cancel order (needs the native `clob` feature, enabled on this package)
+cargo run -p morpheum-sdk-examples --example native_cancel_order
 ```
 
 ### WASM Examples

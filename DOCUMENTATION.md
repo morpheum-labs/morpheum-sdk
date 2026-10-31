@@ -437,6 +437,9 @@ cargo run -p morpheum-sdk-examples --example native_modify_order
 
 # CLOB place order (needs the native `clob` feature, enabled on this package)
 cargo run -p morpheum-sdk-examples --example native_place_order
+
+# CLOB place batch orders (needs the native `clob` feature, enabled on this package)
+cargo run -p morpheum-sdk-examples --example native_place_batch_orders
 ```
 
 ### WASM Examples

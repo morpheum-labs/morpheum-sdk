@@ -10,6 +10,7 @@ on:
       - cursor/cancel-order-sign-f52e
       - cursor/modify-order-sign-5442
       - cursor/place-order-sign-10f0
+      - cursor/place-batch-orders-sign-d667
 
 # GITHUB_TOKEN: checkout this repo (contents) and upload the evidence
 # artifact plus the Cargo cache (actions). Sibling clones use
@@ -27,7 +28,7 @@ env:
 
 jobs:
   drive:
-    name: launch doctor drive bip39-sign market-sign agent-trade-sign agent-vc-sign cancel-order-sign modify-order-sign place-order-sign
+    name: launch doctor drive bip39-sign market-sign agent-trade-sign agent-vc-sign cancel-order-sign modify-order-sign place-order-sign place-batch-orders-sign
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -129,6 +130,8 @@ jobs:
           "$bin" drive modify-order-sign
           "$bin" evidence
           "$bin" drive place-order-sign
+          "$bin" evidence
+          "$bin" drive place-batch-orders-sign
           "$bin" evidence
       - uses: actions/upload-artifact@v4
         if: always()

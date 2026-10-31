@@ -1,0 +1,9 @@
+🤖 Morpheum Native SDK - Agent Trade with Verified Claim Example
+✅ TradingKeyClaim built
+✅ TradingKeyClaim verified successfully
+🔏 Trade transaction signed by Agent
+   TxHash : 025ef7c335ba466fce63586733e070e502933f432a7ae0c812fa4dedac21222e
+   Size   : 544 bytes
+
+🎉 Agent trade example completed successfully!
+   The TradingKeyClaim was verified, embedded, and covered by the agent's signature.

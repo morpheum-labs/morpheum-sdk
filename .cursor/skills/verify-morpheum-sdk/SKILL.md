@@ -27,13 +27,13 @@ From the repo root:
 .cursor/skills/verify-morpheum-sdk/bin/verify-morpheum-sdk launch
 ```
 
-`launch` checks `rustc` against the workspace `rust-version`, and checks that `cargo`, `protoc`, `tmux`, `unshare`, and `git` are on `PATH`. It then builds the two example targets the package declares:
+`launch` checks `rustc` against the workspace `rust-version`, and checks that `cargo`, `protoc`, `tmux`, `unshare`, and `git` are on `PATH`. It then builds the three example targets the drive can run:
 
 ```bash
-cargo build -p morpheum-sdk-examples --example native_bip39 --example native_market
+cargo build -p morpheum-sdk-examples --example native_bip39 --example native_market --example native_agent_trade
 ```
 
-Ready is the line `ready run_id=<id>`. The id is stored in `/tmp/verify-morpheum-sdk/current`. The debug binaries are `target/debug/examples/native_bip39` and `target/debug/examples/native_market`. `launch` records their sha256.
+Ready is the line `ready run_id=<id>`. The id is stored in `/tmp/verify-morpheum-sdk/current`. The debug binaries are `target/debug/examples/native_bip39`, `target/debug/examples/native_market`, and `target/debug/examples/native_agent_trade`. `launch` records their sha256. `native_agent_vc_issue` is not built. That example is still undeclared, and `drive agent-vc-sign` stays a failed cargo run.
 
 ## Doctor
 
@@ -63,7 +63,7 @@ unshare --net --map-root-user -- target/debug/examples/<name>
 
 `--map-root-user` writes `/proc/self/uid_map`. `unshare` on `PATH` is not enough when the kernel refuses that write. Ubuntu 24.04 does so while `kernel.apparmor_restrict_unprivileged_userns` is `1`. The verify workflow sets that sysctl to `0`, then runs the same `unshare` command, before `launch`.
 
-`bip39-sign` and `market-sign` must print the same tx hash on all three runs. `bip39-sign` must also print the same byte size. The agent features call `SystemTime::now()` for claim expiry, so a matching hash is not required; the success lines and exit 0 are. On this tree those two examples fail to build. `drive` records that failure in `proof.txt` and exits non-zero.
+`bip39-sign` and `market-sign` must print the same tx hash on all three runs. `bip39-sign` must also print the same byte size. `agent-trade-sign` calls `SystemTime::now()` for claim expiry, so a matching hash is not required. The success lines and exit 0 are. `agent-vc-sign` still fails to build. `drive` records that failure in `proof.txt` and exits non-zero.
 
 ## Evidence
 

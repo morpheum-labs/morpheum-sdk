@@ -1,0 +1,42 @@
+ok  rustc rustc 1.98.1 (48a229cea 2026-09-01)
+ok  cargo /home/runner/.cargo/bin/cargo
+ok  protoc /usr/bin/protoc
+ok  tmux /usr/bin/tmux
+ok  unshare /usr/bin/unshare
+ok  python3 /usr/bin/python3
+ok  git /usr/bin/git
+ok  sibling /home/runner/work/morpheum-sdk/morpheum-sdk/morpheum-proto/Cargo.toml
+ok  sibling /home/runner/work/morpheum-sdk/morpheum-sdk/morpheum-primitives/Cargo.toml
+ok  sibling /home/runner/work/morpheum-sdk/morpheum-sdk/morpheum-signing/Cargo.toml
+ok  sibling /home/runner/work/morpheum-sdk/morpheum-sdk/cryptogram/Cargo.toml
+ok  sibling /home/runner/work/morpheum-sdk/morpheum-sdk/contracts/cosmwasm/Cargo.toml
+ok  example target native_bip39
+ok  example target native_market
+ok  example target native_agent_trade
+ok  example target native_agent_vc_issue
+ok  example target native_cancel_order
+ok  example target native_modify_order
+ok  example target native_place_order
+ok  example target native_place_batch_orders
+ok  example target native_provide_mm_quote
+checks_ok
+ok  binary native_bip39 /home/runner/work/morpheum-sdk/morpheum-sdk/morpheum-sdk/target/debug/examples/native_bip39 33cc8cf7b2610c75f41ee8c890e0802bc43ca88bcb0a4a3bfa18d9054bff98dd
+ok  binary native_market /home/runner/work/morpheum-sdk/morpheum-sdk/morpheum-sdk/target/debug/examples/native_market c179c080c4db37669e72d4da76c42957a1470e5754ee91f83228a61c7b86ba00
+ok  binary native_agent_trade /home/runner/work/morpheum-sdk/morpheum-sdk/morpheum-sdk/target/debug/examples/native_agent_trade 0da781d8c1b2cd8500434c429353914c86979260d817f398d01bb3c7f5542eec
+ok  binary native_agent_vc_issue /home/runner/work/morpheum-sdk/morpheum-sdk/morpheum-sdk/target/debug/examples/native_agent_vc_issue d08f6eea2229259ad0bf1cc774f544109b288f645b6b835c1d76d80f556fb1ec
+ok  binary native_cancel_order /home/runner/work/morpheum-sdk/morpheum-sdk/morpheum-sdk/target/debug/examples/native_cancel_order 5546efaf86c3cf0702703df95438f3135be65cbb5958540fba00d8a3ea6a32a4
+ok  binary native_modify_order /home/runner/work/morpheum-sdk/morpheum-sdk/morpheum-sdk/target/debug/examples/native_modify_order c85cf7ee060430b4468e62b69fb06655d08e11f225a371756ff3f6b98ab38620
+ok  binary native_place_order /home/runner/work/morpheum-sdk/morpheum-sdk/morpheum-sdk/target/debug/examples/native_place_order 4d11fb6afb335cecbb78779c62b531249df3d11be17bc22ce3e00380a136fe6c
+ok  binary native_place_batch_orders /home/runner/work/morpheum-sdk/morpheum-sdk/morpheum-sdk/target/debug/examples/native_place_batch_orders e1c95dfcbf335a7eb4772860b77257cced329c2b0e7dc921fa3a3640d72dd658
+ok  binary native_provide_mm_quote /home/runner/work/morpheum-sdk/morpheum-sdk/morpheum-sdk/target/debug/examples/native_provide_mm_quote 4e05ac54201cf4f81c975ee6c0549c9f845493dff51348aa427b949040970022
+/home/runner/work/morpheum-sdk/morpheum-sdk/morpheum-sdk/examples/native_bip39.rs: OK
+/home/runner/work/morpheum-sdk/morpheum-sdk/morpheum-sdk/examples/native_market.rs: OK
+/home/runner/work/morpheum-sdk/morpheum-sdk/morpheum-sdk/examples/native_agent_trade.rs: OK
+/home/runner/work/morpheum-sdk/morpheum-sdk/morpheum-sdk/examples/native_agent_vc_issue.rs: OK
+/home/runner/work/morpheum-sdk/morpheum-sdk/morpheum-sdk/examples/native_cancel_order.rs: OK
+/home/runner/work/morpheum-sdk/morpheum-sdk/morpheum-sdk/examples/native_modify_order.rs: OK
+/home/runner/work/morpheum-sdk/morpheum-sdk/morpheum-sdk/examples/native_place_order.rs: OK
+/home/runner/work/morpheum-sdk/morpheum-sdk/morpheum-sdk/examples/native_place_batch_orders.rs: OK
+/home/runner/work/morpheum-sdk/morpheum-sdk/morpheum-sdk/examples/native_provide_mm_quote.rs: OK
+/home/runner/work/morpheum-sdk/morpheum-sdk/morpheum-sdk/.cursor/skills/verify-morpheum-sdk/bin/verify-morpheum-sdk: OK
+ok  rustc unchanged

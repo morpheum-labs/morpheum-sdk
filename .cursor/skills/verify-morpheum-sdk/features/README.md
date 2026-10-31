@@ -23,7 +23,7 @@ This directory is the source for verifying the native example programs. Read the
 
 - Capture the command, stdout, stderr, and exit code.
 - For a signing example, also capture the same binary's stdout inside `unshare --net --map-root-user`.
-- `bip39-sign`, `market-sign`, `cancel-order-sign`, `modify-order-sign`, `place-order-sign`, and `provide-mm-quote-sign` quote one tx hash from three runs. Differing hashes fail the proof.
+- `bip39-sign`, `market-sign`, `cancel-order-sign`, `modify-order-sign`, `place-order-sign`, `provide-mm-quote-sign`, and `cancel-mm-quote-sign` quote one tx hash from three runs. Differing hashes fail the proof.
 - Record the feature id, example name, binary path, and sdk git head in `proof.txt`.
 - An unreachable example records `result=FAIL` and the cargo stderr. It is not verified by another feature.
 
@@ -42,3 +42,4 @@ Each feature file has an H1, one paragraph, then four H2 sections in order: `Sub
 - [Place order sign](./place-order-sign.md) builds a CLOB place request (`/clob.v1.MsgPlaceOrderRequest`) and signs it. Offline. Stable hash.
 - [Place batch orders sign](./place-batch-orders-sign.md) builds a CLOB batch request (`/clob.v1.MsgPlaceBatchOrdersRequest`) and signs it. Offline. The tx hash may change between runs.
 - [Provide market maker quote sign](./provide-mm-quote-sign.md) builds a CLOB provide-quote request (`/clob.v1.MsgProvideMarketMakerQuoteRequest`) and signs it. Offline. Stable hash.
+- [Cancel market maker quote sign](./cancel-mm-quote-sign.md) builds a CLOB cancel-quote request (`/clob.v1.MsgCancelMarketMakerQuoteRequest`) and signs it. Offline. Stable hash.

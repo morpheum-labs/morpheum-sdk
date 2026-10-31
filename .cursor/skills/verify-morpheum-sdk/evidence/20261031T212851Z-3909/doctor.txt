@@ -1,0 +1,45 @@
+ok  rustc rustc 1.98.1 (48a229cea 2026-09-01)
+ok  cargo /home/runner/.cargo/bin/cargo
+ok  protoc /usr/bin/protoc
+ok  tmux /usr/bin/tmux
+ok  unshare /usr/bin/unshare
+ok  python3 /usr/bin/python3
+ok  git /usr/bin/git
+ok  sibling /home/runner/work/morpheum-sdk/morpheum-sdk/morpheum-proto/Cargo.toml
+ok  sibling /home/runner/work/morpheum-sdk/morpheum-sdk/morpheum-primitives/Cargo.toml
+ok  sibling /home/runner/work/morpheum-sdk/morpheum-sdk/morpheum-signing/Cargo.toml
+ok  sibling /home/runner/work/morpheum-sdk/morpheum-sdk/cryptogram/Cargo.toml
+ok  sibling /home/runner/work/morpheum-sdk/morpheum-sdk/contracts/cosmwasm/Cargo.toml
+ok  example target native_bip39
+ok  example target native_market
+ok  example target native_agent_trade
+ok  example target native_agent_vc_issue
+ok  example target native_cancel_order
+ok  example target native_modify_order
+ok  example target native_place_order
+ok  example target native_place_batch_orders
+ok  example target native_provide_mm_quote
+ok  example target native_cancel_mm_quote
+checks_ok
+ok  binary native_bip39 /home/runner/work/morpheum-sdk/morpheum-sdk/morpheum-sdk/target/debug/examples/native_bip39 564470fc065aef73ed8ee2b0070b96406f37c168d334584c0a17cda3677056e1
+ok  binary native_market /home/runner/work/morpheum-sdk/morpheum-sdk/morpheum-sdk/target/debug/examples/native_market a55d6d6a105ce1f4fa048d8dfe9e6a32ef769dff39479ee34f1ec0cd4e969bf8
+ok  binary native_agent_trade /home/runner/work/morpheum-sdk/morpheum-sdk/morpheum-sdk/target/debug/examples/native_agent_trade 7308f4771cf305d27e2d4341671bc90720137ee3e008d260cf15f27e42950a4a
+ok  binary native_agent_vc_issue /home/runner/work/morpheum-sdk/morpheum-sdk/morpheum-sdk/target/debug/examples/native_agent_vc_issue 8768a08ad7d9520013f1a3186347a621fac85fcf5c7c7a550e649f3dfa4c8b4f
+ok  binary native_cancel_order /home/runner/work/morpheum-sdk/morpheum-sdk/morpheum-sdk/target/debug/examples/native_cancel_order b0089a2011ad1974a1a4c4ff9dad594bc6aa80e67312d40417b2fb5ed9a5e7c7
+ok  binary native_modify_order /home/runner/work/morpheum-sdk/morpheum-sdk/morpheum-sdk/target/debug/examples/native_modify_order 4ecc9a1ed1a98a8b3b38c60b7c9b6fbb930be9e24c6c44c77a7b32c64774fdc5
+ok  binary native_place_order /home/runner/work/morpheum-sdk/morpheum-sdk/morpheum-sdk/target/debug/examples/native_place_order f52acd1034c597a745d71c1de861b25272fd600d37b0836c98a887111b7dcb77
+ok  binary native_place_batch_orders /home/runner/work/morpheum-sdk/morpheum-sdk/morpheum-sdk/target/debug/examples/native_place_batch_orders d9f2beff717b74673532c4096809f6db64cc14a82c94df160510706014a361dd
+ok  binary native_provide_mm_quote /home/runner/work/morpheum-sdk/morpheum-sdk/morpheum-sdk/target/debug/examples/native_provide_mm_quote 047390931a88c6b7c52c5f7a85ac8e54fb9b79bc5d14187284a42c750b45eaa6
+ok  binary native_cancel_mm_quote /home/runner/work/morpheum-sdk/morpheum-sdk/morpheum-sdk/target/debug/examples/native_cancel_mm_quote 640f730c901ac18eb6f84b8e15d84cdeb63614a2bf4405cad0ad4b560c1b030a
+/home/runner/work/morpheum-sdk/morpheum-sdk/morpheum-sdk/examples/native_bip39.rs: OK
+/home/runner/work/morpheum-sdk/morpheum-sdk/morpheum-sdk/examples/native_market.rs: OK
+/home/runner/work/morpheum-sdk/morpheum-sdk/morpheum-sdk/examples/native_agent_trade.rs: OK
+/home/runner/work/morpheum-sdk/morpheum-sdk/morpheum-sdk/examples/native_agent_vc_issue.rs: OK
+/home/runner/work/morpheum-sdk/morpheum-sdk/morpheum-sdk/examples/native_cancel_order.rs: OK
+/home/runner/work/morpheum-sdk/morpheum-sdk/morpheum-sdk/examples/native_modify_order.rs: OK
+/home/runner/work/morpheum-sdk/morpheum-sdk/morpheum-sdk/examples/native_place_order.rs: OK
+/home/runner/work/morpheum-sdk/morpheum-sdk/morpheum-sdk/examples/native_place_batch_orders.rs: OK
+/home/runner/work/morpheum-sdk/morpheum-sdk/morpheum-sdk/examples/native_provide_mm_quote.rs: OK
+/home/runner/work/morpheum-sdk/morpheum-sdk/morpheum-sdk/examples/native_cancel_mm_quote.rs: OK
+/home/runner/work/morpheum-sdk/morpheum-sdk/morpheum-sdk/.cursor/skills/verify-morpheum-sdk/bin/verify-morpheum-sdk: OK
+ok  rustc unchanged

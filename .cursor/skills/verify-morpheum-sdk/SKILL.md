@@ -27,13 +27,13 @@ From the repo root:
 .cursor/skills/verify-morpheum-sdk/bin/verify-morpheum-sdk launch
 ```
 
-`launch` checks `rustc` against the workspace `rust-version`, and checks that `cargo`, `protoc`, `tmux`, `unshare`, and `git` are on `PATH`. It then builds the eight example targets the drive can run:
+`launch` checks `rustc` against the workspace `rust-version`, and checks that `cargo`, `protoc`, `tmux`, `unshare`, and `git` are on `PATH`. It then builds the nine example targets the drive can run:
 
 ```bash
-cargo build -p morpheum-sdk-examples --example native_bip39 --example native_market --example native_agent_trade --example native_agent_vc_issue --example native_cancel_order --example native_modify_order --example native_place_order --example native_place_batch_orders
+cargo build -p morpheum-sdk-examples --example native_bip39 --example native_market --example native_agent_trade --example native_agent_vc_issue --example native_cancel_order --example native_modify_order --example native_place_order --example native_place_batch_orders --example native_provide_mm_quote
 ```
 
-Ready is the line `ready run_id=<id>`. The id is stored in `/tmp/verify-morpheum-sdk/current`. The debug binaries are `target/debug/examples/native_bip39`, `target/debug/examples/native_market`, `target/debug/examples/native_agent_trade`, `target/debug/examples/native_agent_vc_issue`, `target/debug/examples/native_cancel_order`, `target/debug/examples/native_modify_order`, `target/debug/examples/native_place_order`, and `target/debug/examples/native_place_batch_orders`. `launch` records their sha256.
+Ready is the line `ready run_id=<id>`. The id is stored in `/tmp/verify-morpheum-sdk/current`. The debug binaries are `target/debug/examples/native_bip39`, `target/debug/examples/native_market`, `target/debug/examples/native_agent_trade`, `target/debug/examples/native_agent_vc_issue`, `target/debug/examples/native_cancel_order`, `target/debug/examples/native_modify_order`, `target/debug/examples/native_place_order`, `target/debug/examples/native_place_batch_orders`, and `target/debug/examples/native_provide_mm_quote`. `launch` records their sha256.
 
 ## Doctor
 
@@ -49,7 +49,7 @@ Ready is the line `ready run_id=<id>`. The id is stored in `/tmp/verify-morpheum
 .cursor/skills/verify-morpheum-sdk/bin/verify-morpheum-sdk drive bip39-sign
 ```
 
-Feature ids: `bip39-sign`, `market-sign`, `agent-trade-sign`, `agent-vc-sign`, `cancel-order-sign`, `modify-order-sign`, `place-order-sign`, `place-batch-orders-sign`. The map in `features/` is the recipe. One drive uses one tmux session named `verify-morpheum-sdk-<run_id>-<feature>`.
+Feature ids: `bip39-sign`, `market-sign`, `agent-trade-sign`, `agent-vc-sign`, `cancel-order-sign`, `modify-order-sign`, `place-order-sign`, `place-batch-orders-sign`, `provide-mm-quote-sign`. The map in `features/` is the recipe. One drive uses one tmux session named `verify-morpheum-sdk-<run_id>-<feature>`.
 
 Inside that session the helper runs, from the repo root:
 
@@ -63,7 +63,7 @@ unshare --net --map-root-user -- target/debug/examples/<name>
 
 `--map-root-user` writes `/proc/self/uid_map`. `unshare` on `PATH` is not enough when the kernel refuses that write. Ubuntu 24.04 does so while `kernel.apparmor_restrict_unprivileged_userns` is `1`. The verify workflow sets that sysctl to `0`, then runs the same `unshare` command, before `launch`.
 
-`bip39-sign`, `market-sign`, `cancel-order-sign`, `modify-order-sign`, and `place-order-sign` must print the same tx hash on all three runs. `bip39-sign` must also print the same byte size. `agent-trade-sign` and `agent-vc-sign` call `SystemTime::now()` for claim expiry, so a matching hash is not required. `place-batch-orders-sign` stamps each order with `SystemTime::now()` inside `PlaceBatchOrdersRequest::to_any()` (`to_proto_with_canonical_hash`), so a matching hash is not required. The success lines and exit 0 are.
+`bip39-sign`, `market-sign`, `cancel-order-sign`, `modify-order-sign`, `place-order-sign`, and `provide-mm-quote-sign` must print the same tx hash on all three runs. `bip39-sign` must also print the same byte size. `agent-trade-sign` and `agent-vc-sign` call `SystemTime::now()` for claim expiry, so a matching hash is not required. `place-batch-orders-sign` stamps each order with `SystemTime::now()` inside `PlaceBatchOrdersRequest::to_any()` (`to_proto_with_canonical_hash`), so a matching hash is not required. `provide-mm-quote-sign` leaves `timestamp` and `duration` unset, so a matching hash is required. The success lines and exit 0 are.
 
 ## Evidence
 

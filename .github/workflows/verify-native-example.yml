@@ -12,6 +12,7 @@ on:
       - cursor/place-order-sign-10f0
       - cursor/place-batch-orders-sign-d667
       - cursor/provide-mm-quote-sign-06cd
+      - cursor/cancel-mm-quote-sign-ecbf
 
 # GITHUB_TOKEN: checkout this repo (contents) and upload the evidence
 # artifact plus the Cargo cache (actions). Sibling clones use
@@ -29,7 +30,7 @@ env:
 
 jobs:
   drive:
-    name: launch doctor drive bip39-sign market-sign agent-trade-sign agent-vc-sign cancel-order-sign modify-order-sign place-order-sign place-batch-orders-sign provide-mm-quote-sign
+    name: launch doctor drive bip39-sign market-sign agent-trade-sign agent-vc-sign cancel-order-sign modify-order-sign place-order-sign place-batch-orders-sign provide-mm-quote-sign cancel-mm-quote-sign
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -135,6 +136,8 @@ jobs:
           "$bin" drive place-batch-orders-sign
           "$bin" evidence
           "$bin" drive provide-mm-quote-sign
+          "$bin" evidence
+          "$bin" drive cancel-mm-quote-sign
           "$bin" evidence
       - uses: actions/upload-artifact@v4
         if: always()

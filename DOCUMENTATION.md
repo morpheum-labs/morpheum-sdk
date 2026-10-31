@@ -443,6 +443,9 @@ cargo run -p morpheum-sdk-examples --example native_place_batch_orders
 
 # CLOB provide market-maker quote (needs the native `clob` feature, enabled on this package)
 cargo run -p morpheum-sdk-examples --example native_provide_mm_quote
+
+# CLOB cancel market-maker quote (needs the native `clob` feature, enabled on this package)
+cargo run -p morpheum-sdk-examples --example native_cancel_mm_quote
 ```
 
 ### WASM Examples

@@ -1,0 +1,5 @@
+feature=agent-vc-sign
+example=native_agent_vc_issue
+cargo=cargo run -p morpheum-sdk-examples --example native_agent_vc_issue
+binary=/home/runner/work/morpheum-sdk/morpheum-sdk/morpheum-sdk/target/debug/examples/native_agent_vc_issue
+netns=unshare --net --map-root-user -- /home/runner/work/morpheum-sdk/morpheum-sdk/morpheum-sdk/target/debug/examples/native_agent_vc_issue

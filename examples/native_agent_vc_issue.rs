@@ -4,63 +4,67 @@
 //! - Using `agent()` convenience constructor with `AgentSigner`
 //! - Building a `TradingKeyClaim` using `VcClaimBuilder`
 //! - Attaching the claim to a transaction (embedded in SignerInfo)
-//! - Signing with the delegated Trading Key
+//! - Signing the VC issue message with the delegated Trading Key
 //!
 //! Run with:
 //! ```bash
 //! cargo run -p morpheum-sdk-examples --example native_agent_vc_issue
 //! ```
 
+use morpheum_sdk_native::core::signing::signer::Signer;
 use morpheum_sdk_native::prelude::*;
+use morpheum_sdk_native::signing::types::{AccountId as SigningAccountId, Signature};
 use std::error::Error;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
     println!("🤖 Morpheum Native SDK - Agent VC Issuance Example");
 
-    // 1. Create the owner (human) and agent signers
-    let owner_signer = NativeSigner::from_seed(b"owner-secret-seed-32-bytes-long!!!");
-    let agent_signer = AgentSigner::new(
-        b"agent-trading-key-seed-32-bytes-long!!!",
-        AccountId::new([0xAA; 32]), // Agent's AccountId
-        None,                       // Optional claim (will be built below)
-    );
+    let owner = NativeSigner::from_seed(&[0x11; 32]);
+    let agent_id: SigningAccountId = NativeSigner::from_seed(&[0xAA; 32]).account_id();
+    let agent_signer = AgentSigner::new(&[0xAA; 32], agent_id, None);
 
-    // 2. Build a TradingKeyClaim — this is the core of agent delegation
     let now_secs = std::time::SystemTime::now()
         .duration_since(std::time::UNIX_EPOCH)?
         .as_secs();
 
+    // Non-zero placeholder. `build` checks that a signature is present.
+    // It does not check the curve. `verify` checks the issuer key.
     let claim = VcClaimBuilder::new()
-        .issuer(owner_signer.account_id())           // Owner (human) is the issuer
-        .subject(agent_signer.account_id())          // Agent is the subject
-        .permissions(0b0001)                         // Example: TRADE permission (bit 0)
-        .max_daily_usd(500_000)                      // $500k daily spending limit
-        .expiry(now_secs + 86_400)                   // 24 hours from now
-        .nonce_sub_range(1000, 2000)                 // Isolated nonce range for parallelism
+        .issuer(owner.account_id())
+        .subject(agent_signer.account_id())
+        .permissions(0b0001)
+        .max_daily_usd(500_000)
+        .expiry(now_secs + 86_400)
+        .nonce_sub_range(1000, 2000)
+        .signature(Signature::Ed25519([1u8; 64]))
         .build(now_secs)?;
 
     println!("✅ TradingKeyClaim built successfully");
-    println!("   Issuer : {}", claim.issuer);
-    println!("   Subject: {}", claim.subject);
-    println!("   Expires: {} seconds from now", claim.expiry_timestamp - now_secs);
+    println!("   Issuer : {:?}", claim.issuer);
+    println!("   Subject: {:?}", claim.subject);
+    println!(
+        "   Expires: {} seconds from now",
+        claim.expiry_timestamp - now_secs
+    );
 
-    // 3. Create the SDK using the AgentSigner
-    let sdk = agent(agent_signer);
+    claim.verify(now_secs, &owner.public_key())?;
+    println!("✅ TradingKeyClaim verified successfully");
 
-    // 4. Build a transaction that includes the TradingKeyClaim
-    //    (In this example we issue a VC, but any transaction works)
+    // `agent()` does not keep the signer. Pass that same signer to `TxBuilder`.
+    let _sdk = agent(agent_signer.clone());
+
     // The target chain's genesis hash, from operator configuration (never from
     // the node you submit to). `sign()` refuses a transaction built without one.
-    let genesis_hash = [0u8; 32]; // Replace with the configured genesis hash
-    let signed_tx = TxBuilder::new(sdk.signer.clone()) // Agent signs with delegated key
+    let genesis_hash = [0u8; 32];
+    let signed_tx = TxBuilder::new(agent_signer)
         .chain_id("morpheum-test-1")
         .with_genesis_hash(genesis_hash)
         .memo("Agent issuing VC with delegated TradingKey")
-        .with_trading_key_claim(claim)                    // ← Critical: claim is embedded
+        .with_trading_key_claim(claim)
         .add_message(Any {
             type_url: "/vc.v1.MsgIssue".to_string(),
-            value: vec![1, 2, 3], // Placeholder for real VC issuance message
+            value: vec![1, 2, 3],
         })
         .sign()
         .await?;
@@ -69,12 +73,14 @@ async fn main() -> Result<(), Box<dyn Error>> {
     println!("   TxHash : {}", signed_tx.txhash_hex());
     println!("   Size   : {} bytes", signed_tx.raw_bytes().len());
 
-    // 5. In production you would broadcast:
+    // In production you would broadcast:
     // let result = sdk.auth().broadcast(signed_tx.raw_bytes()).await?;
     // println!("✅ VC issued on-chain! TxHash: {}", result.txhash);
 
     println!("\n🎉 Agent VC issuance example completed successfully!");
-    println!("   The TradingKeyClaim was embedded in the transaction and covered by the signature.");
+    println!(
+        "   The TradingKeyClaim was embedded in the transaction and covered by the signature."
+    );
 
     Ok(())
 }

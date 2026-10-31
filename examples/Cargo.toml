@@ -30,3 +30,7 @@ path = "native_market.rs"
 [[example]]
 name = "native_agent_trade"
 path = "native_agent_trade.rs"
+
+[[example]]
+name = "native_agent_vc_issue"
+path = "native_agent_vc_issue.rs"

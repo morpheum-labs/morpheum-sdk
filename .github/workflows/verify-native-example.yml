@@ -6,7 +6,7 @@ name: verify-native-example
 on:
   push:
     branches:
-      - cursor/agent-trade-sign-proof-7326
+      - cursor/agent-vc-sign-proof-2a5c
 
 concurrency:
   group: verify-native-example-${{ github.ref }}
@@ -17,7 +17,7 @@ env:
 
 jobs:
   drive:
-    name: launch doctor drive bip39-sign market-sign agent-trade-sign
+    name: launch doctor drive bip39-sign market-sign agent-trade-sign agent-vc-sign
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -111,6 +111,8 @@ jobs:
           "$bin" drive market-sign
           "$bin" evidence
           "$bin" drive agent-trade-sign
+          "$bin" evidence
+          "$bin" drive agent-vc-sign
           "$bin" evidence
       - uses: actions/upload-artifact@v4
         if: always()

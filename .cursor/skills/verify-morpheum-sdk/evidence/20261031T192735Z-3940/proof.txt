@@ -1,0 +1,16 @@
+run_id=20261031T192735Z-3940
+feature=agent-vc-sign
+example=native_agent_vc_issue
+sdk_head=7b4f51239a90a662cef5b49e0488266f62ad94af
+rustc=rustc 1.98.1 (48a229cea 2026-09-01)
+binary=/home/runner/work/morpheum-sdk/morpheum-sdk/morpheum-sdk/target/debug/examples/native_agent_vc_issue
+cargo=cargo run -p morpheum-sdk-examples --example native_agent_vc_issue
+cargo_exit=0
+netns=unshare --net --map-root-user
+netns_1_exit=0
+netns_2_exit=0
+example_sha256=d751ee1c9c68b0e01a0cdf437649e7a9460baecdeba7d5d2a8ae0bc937aff8a3
+helper_sha256=0b42b0053ce34e16602471ed05a14d86252f6ccc5e58380a58fa90440cb87fe8
+txhash=a1da7e9e5f4eebe2e05e43b5a891d4f9c6e885c359ee1c2f094a1987e4200527
+size=524
+result=PASS

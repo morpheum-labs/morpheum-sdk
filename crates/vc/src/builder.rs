@@ -96,12 +96,13 @@ impl VcIssueBuilder {
         allowed_pairs_bitflags: u64,
         blinding: &[u8; 32],
     ) -> Result<Self, SdkError> {
+        let blinding = morpheum_primitives::crypto::zk::PedersenBlinding::new(*blinding);
         let commitment = morpheum_primitives::crypto::zk::claims_pedersen_commit(
             max_position_usd,
             max_daily_usd,
             max_slippage_bps,
             allowed_pairs_bitflags,
-            blinding,
+            &blinding,
         )
         .map_err(|_| {
             SdkError::invalid_input(
@@ -114,7 +115,7 @@ impl VcIssueBuilder {
             custom_constraints,
             ..Default::default()
         });
-        self.claims_commitment = commitment.to_vec();
+        self.claims_commitment = commitment.as_bytes().to_vec();
         Ok(self)
     }
 
@@ -270,12 +271,13 @@ impl UpdateClaimsBuilder {
         allowed_pairs_bitflags: u64,
         blinding: &[u8; 32],
     ) -> Result<Self, SdkError> {
+        let blinding = morpheum_primitives::crypto::zk::PedersenBlinding::new(*blinding);
         let commitment = morpheum_primitives::crypto::zk::claims_pedersen_commit(
             max_position_usd,
             max_daily_usd,
             max_slippage_bps,
             allowed_pairs_bitflags,
-            blinding,
+            &blinding,
         )
         .map_err(|_| {
             SdkError::invalid_input(
@@ -288,7 +290,7 @@ impl UpdateClaimsBuilder {
             custom_constraints,
             ..Default::default()
         });
-        self.claims_commitment = commitment.to_vec();
+        self.claims_commitment = commitment.as_bytes().to_vec();
         Ok(self)
     }
 
@@ -466,9 +468,13 @@ mod tests {
         // Commitment is the deterministic 32-byte Pedersen commitment.
         assert_eq!(request.claims_commitment.len(), 32);
         let expected = morpheum_primitives::crypto::zk::claims_pedersen_commit(
-            500_000, 100_000, 50, 0b0011, &blinding,
+            500_000,
+            100_000,
+            50,
+            0b0011,
+            &morpheum_primitives::crypto::zk::PedersenBlinding::new(blinding),
         )
         .unwrap();
-        assert_eq!(request.claims_commitment, expected.to_vec());
+        assert_eq!(request.claims_commitment, expected.as_bytes().to_vec());
     }
 }
